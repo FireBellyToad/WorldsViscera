@@ -1,0 +1,8 @@
+[package]
+name = "worldsviscera"
+version = "0.1.0"
+authors = ["Jacopo Faust Buttiglieri"]
+edition = "2024"
+
+[dependencies]
+bracket-lib = "~0.8"
