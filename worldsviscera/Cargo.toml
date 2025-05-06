@@ -6,3 +6,5 @@ edition = "2024"
 
 [dependencies]
 bracket-lib = "~0.8"
+specs = "0.16.1"
+specs-derive = "0.4.1"
