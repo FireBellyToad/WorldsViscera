@@ -1,12 +1,15 @@
 //We are using some classes of bracket_lib to access all its libraries
 use bracket_lib::{
     color::{BLACK, RED1, YELLOW},
-    prelude::to_cp437,
+    prelude::{VirtualKeyCode, to_cp437},
     terminal::{BError, BTerm, BTermBuilder, FontCharType, GameState, RGB},
 };
 use specs::prelude::*;
 use specs_derive::Component;
 use std::cmp::{max, min};
+
+const MAP_WIDTH: i32 = 79;
+const MAP_HEIGHT: i32 = 49;
 
 //Utility Struct to attach stuff to it
 struct State {
@@ -15,10 +18,9 @@ struct State {
 
 //State common implementations
 impl State {
-
-    // Function taht will create and run a LeftWalker System 
+    // Function taht will create and run a LeftWalker System
     fn run_systems(&mut self) {
-        let mut left_walker = LeftWalker{};
+        let mut left_walker = LeftWalker {};
         left_walker.run_now(&self.ecs_world); //Run system, run!
         self.ecs_world.maintain(); // if any changes are queued by the systems, apply them now to the world
     }
@@ -30,6 +32,9 @@ impl GameState for State {
     fn tick(&mut self, context: &mut BTerm) {
         //ctx is a reference to the terminal
         context.cls(); //clean terminal
+        
+        //Handle player input
+        player_input(self, context);
 
         // The current state will run!
         self.run_systems();
@@ -68,6 +73,36 @@ struct Renderable {
     background: RGB,
 }
 
+//Why Player is Component?
+#[derive(Component, Debug)]
+struct Player {}
+
+fn try_move_player(delta_x: i32, delta_y: i32, ecs_world: &mut World) {
+    //Get all entities with Position an Player components
+    let mut positions = ecs_world.write_storage::<Position>();
+    let mut players = ecs_world.write_storage::<Player>();
+
+    // For each one that have both of them, change position
+    for (_player, pos) in (&mut players, &mut positions).join() {
+        pos.x = min(MAP_WIDTH, max(0, pos.x + delta_x));
+        pos.y = min(MAP_HEIGHT, max(0, pos.y + delta_y));
+    }
+}
+
+fn player_input(game_state: &mut State, context: &mut BTerm) {
+    //Move Player
+    match context.key {
+        None => {} // Do nothing if none is pressed
+        Some(key) => match key {
+            VirtualKeyCode::Left => try_move_player(-1, 0, &mut game_state.ecs_world),
+            VirtualKeyCode::Right => try_move_player(1, 0, &mut game_state.ecs_world),
+            VirtualKeyCode::Up => try_move_player(0, -1, &mut game_state.ecs_world),
+            VirtualKeyCode::Down => try_move_player(0, 1, &mut game_state.ecs_world),
+            _ => {} // Do nothing for all other keys
+        },
+    }
+}
+
 #[derive(Component)]
 struct LeftMover {}
 
@@ -78,7 +113,6 @@ struct LeftWalker {}
 // The System is asking us what it needs to be done
 // 'a specifies that the lifetime must be long enough to make the System run
 impl<'a> System<'a> for LeftWalker {
-
     // SystemData is an alias of the tuple (ReadStorage, WriteStorage)
     // Here we define what kind of SystemData the "run" function will use and how
     // We can READ LeftMover Components and READ AND WRITE Position components
@@ -88,13 +122,12 @@ impl<'a> System<'a> for LeftWalker {
     // We get the data we defined as SystemData (readalbe LeftMover components and writeable Position components)
     // and do stuff with it
     fn run(&mut self, (left_mover, mut position): Self::SystemData) {
-
         //For each entity that have BOTH LeftMover and Position Component, move left
         //_left_mover is never used here
         for (_left_mover, position) in (&left_mover, &mut position).join() {
             position.x -= 1;
             if position.x < 0 {
-                position.x = 79;
+                position.x = MAP_WIDTH;
             }
         }
     }
@@ -117,6 +150,7 @@ fn main() -> BError {
     gs.ecs_world.register::<Position>();
     gs.ecs_world.register::<Renderable>();
     gs.ecs_world.register::<LeftMover>();
+    gs.ecs_world.register::<Player>();
 
     //Insert player "@" into world
     gs.ecs_world
@@ -127,6 +161,7 @@ fn main() -> BError {
             foreground: RGB::named(YELLOW),
             background: RGB::named(BLACK),
         })
+        .with(Player {})
         .build();
 
     //Insert 10 other entities
