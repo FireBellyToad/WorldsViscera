@@ -1,8 +1,6 @@
-
-
 //Get all imports from parent
-use super::{Position, get_index_from_xy, State};
-use super::map::{TileType, MAP_HEIGHT, MAP_WIDTH};
+use super::map::{MAP_HEIGHT, MAP_WIDTH, TileType};
+use super::{Position, State, get_index_from_xy};
 
 use bracket_lib::prelude::{BTerm, VirtualKeyCode};
 use specs::prelude::*;
@@ -34,10 +32,22 @@ pub fn player_input(game_state: &mut State, context: &mut BTerm) {
     match context.key {
         None => {} // Do nothing if none is pressed
         Some(key) => match key {
-            VirtualKeyCode::Left => try_move_player(-1, 0, &mut game_state.ecs_world),
-            VirtualKeyCode::Right => try_move_player(1, 0, &mut game_state.ecs_world),
-            VirtualKeyCode::Up => try_move_player(0, -1, &mut game_state.ecs_world),
-            VirtualKeyCode::Down => try_move_player(0, 1, &mut game_state.ecs_world),
+            //Support Numpad and vi commands (holy shit)
+            VirtualKeyCode::Left | VirtualKeyCode::Numpad4 | VirtualKeyCode::H => {
+                try_move_player(-1, 0, &mut game_state.ecs_world)
+            }
+
+            VirtualKeyCode::Right | VirtualKeyCode::Numpad6 | VirtualKeyCode::L => {
+                try_move_player(1, 0, &mut game_state.ecs_world)
+            }
+
+            VirtualKeyCode::Up | VirtualKeyCode::Numpad8 | VirtualKeyCode::K => {
+                try_move_player(0, -1, &mut game_state.ecs_world)
+            }
+
+            VirtualKeyCode::Down | VirtualKeyCode::Numpad2 | VirtualKeyCode::J => {
+                try_move_player(0, 1, &mut game_state.ecs_world)
+            }
             _ => {} // Do nothing for all other keys
         },
     }

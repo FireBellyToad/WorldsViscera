@@ -10,6 +10,7 @@ use specs_derive::Component;
 
 mod player;
 mod map;
+mod rect;
 use player::*;
 use map::*;
 
@@ -128,7 +129,9 @@ fn main() -> BError {
     };
 
     //Insert into ECS a new map
-    gs.ecs_world.insert(new_map());
+    let (rooms,map) = new_map_rooms_and_corridors();
+    gs.ecs_world.insert(map);
+    let (player_x, player_y) = rooms[0].get_center(); // make the player start in the center of the first available room
 
     //Here the ECS world register Position and Renderable types inside its system
     //This seems like is working with a Generic / Pseudoreflection mechanism!
@@ -141,8 +144,8 @@ fn main() -> BError {
     gs.ecs_world
         .create_entity()
         .with(Position {
-            x: MAP_WIDTH / 2,
-            y: MAP_HEIGHT / 2,
+            x: player_x,
+            y: player_y,
         })
         .with(Renderable {
             glyph: to_cp437('@'),
