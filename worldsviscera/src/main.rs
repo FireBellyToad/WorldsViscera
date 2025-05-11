@@ -1,16 +1,17 @@
 //We are using some classes of bracket_lib to access all its libraries
 use bracket_lib::{
     color::*,
-    prelude::{VirtualKeyCode, to_cp437},
-    random::RandomNumberGenerator,
+    prelude::to_cp437,
     terminal::{BError, BTerm, BTermBuilder, FontCharType, GameState, RGB},
 };
+use map::TileType;
 use specs::prelude::*;
 use specs_derive::Component;
-use std::cmp::{max, min};
 
-const MAP_WIDTH: i32 = 80;
-const MAP_HEIGHT: i32 = 50;
+mod player;
+mod map;
+use player::*;
+use map::*;
 
 //Utility Struct to attach stuff to it
 struct State {
@@ -35,14 +36,14 @@ impl GameState for State {
         context.cls(); //clean terminal
 
         //Handle player input
-        player_input(self, context);
+        player::player_input(self, context);
 
         // The current state will run!
         self.run_systems();
 
         //Fetch from world all the Tiles
         let map_to_draw = self.ecs_world.fetch::<Vec<TileType>>();
-        draw_map(&map_to_draw, context);
+        map::draw_map(&map_to_draw, context);
 
         //We read Position and Renderable currently inserted in world
         let positions = self.ecs_world.read_storage::<Position>();
@@ -78,39 +79,6 @@ struct Renderable {
     background: RGB,
 }
 
-//Why Player is Component?
-#[derive(Component, Debug)]
-struct Player {}
-
-fn try_move_player(delta_x: i32, delta_y: i32, ecs_world: &mut World) {
-    //Get all entities with Position an Player components
-    let mut positions = ecs_world.write_storage::<Position>();
-    let mut players = ecs_world.write_storage::<Player>();
-    let map = ecs_world.fetch::<Vec<TileType>>();
-
-    // For each one that have both of them (only one, the Player), change position if space is free
-    for (_player, pos) in (&mut players, &mut positions).join() {
-        let destination_index = get_index_from_xy(pos.x + delta_x, pos.y + delta_y);
-        if map[destination_index] != TileType::Wall {
-            pos.x = min(MAP_WIDTH - 1, max(0, pos.x + delta_x));
-            pos.y = min(MAP_HEIGHT - 1, max(0, pos.y + delta_y));
-        }
-    }
-}
-
-fn player_input(game_state: &mut State, context: &mut BTerm) {
-    //Move Player
-    match context.key {
-        None => {} // Do nothing if none is pressed
-        Some(key) => match key {
-            VirtualKeyCode::Left => try_move_player(-1, 0, &mut game_state.ecs_world),
-            VirtualKeyCode::Right => try_move_player(1, 0, &mut game_state.ecs_world),
-            VirtualKeyCode::Up => try_move_player(0, -1, &mut game_state.ecs_world),
-            VirtualKeyCode::Down => try_move_player(0, 1, &mut game_state.ecs_world),
-            _ => {} // Do nothing for all other keys
-        },
-    }
-}
 
 #[derive(Component)]
 struct LeftMover {}
@@ -142,66 +110,9 @@ impl<'a> System<'a> for LeftWalker {
     }
 }
 
-// Copy Trait will handle a "=" operator as a copy instead of a moving (x = y will leave both variables valid)
-#[derive(PartialEq, Copy, Clone)]
-enum TileType {
-    Wall,
-    Floor,
-}
-
 // Get vector index from x and y position on map
 pub fn get_index_from_xy(x: i32, y: i32) -> usize {
     (y as usize * (MAP_WIDTH as usize)) + x as usize // Remember this is returned, no semicolon
-}
-
-fn new_map() -> Vec<TileType> {
-    //vec! is a factory macro for Vectors (ArrayList in Java)
-    //here, vec! creates a 4000 (80 x 50) items long vector full of "Floor" tiles
-    let mut map = vec![TileType::Floor; (MAP_WIDTH * MAP_HEIGHT) as usize];
-
-    //Make boundary walls
-    for x in 0..MAP_WIDTH {
-        map[get_index_from_xy(x, 0)] = TileType::Wall;
-        map[get_index_from_xy(x, MAP_HEIGHT - 1)] = TileType::Wall;
-    }
-
-    for y in 0..MAP_HEIGHT {
-        map[get_index_from_xy(0, y)] = TileType::Wall;
-        map[get_index_from_xy(MAP_WIDTH - 1, y)] = TileType::Wall;
-    }
-
-    //Get thread local RNG
-    let mut rng = RandomNumberGenerator::new();
-
-    //Random walls around the map
-    for _i in 0..400 {
-        let wall_x = rng.roll_dice(1, MAP_WIDTH - 1);
-        let wall_y = rng.roll_dice(1, MAP_HEIGHT - 1);
-        let index = get_index_from_xy(wall_x, wall_y);
-
-        //Place wall in map unless x and y are on player position
-        if index != get_index_from_xy(MAP_WIDTH / 2, MAP_HEIGHT / 2) {
-            map[index] = TileType::Wall
-        }
-    }
-
-    //Return new map
-    map
-}
-
-fn draw_map(map: &[TileType], context: &mut BTerm) {
-    for x in 0..MAP_WIDTH {
-        for y in 0..MAP_HEIGHT {
-            match map[get_index_from_xy(x, y)] {
-                TileType::Floor => {
-                    context.set(x, y, RGB::named(GRAY50), RGB::named(BLACK), to_cp437('.'))
-                }
-                TileType::Wall => {
-                    context.set(x, y, RGB::named(GREEN1), RGB::named(BLACK), to_cp437('#'))
-                }
-            }
-        }
-    }
 }
 
 fn main() -> BError {
