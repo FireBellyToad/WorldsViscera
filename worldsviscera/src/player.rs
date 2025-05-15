@@ -4,7 +4,7 @@ use bracket_lib::prelude::{BTerm, VirtualKeyCode};
 use specs::prelude::*;
 use specs_derive::Component;
 
-use crate::{common_components::Position, game_state::State, map::{is_tile_passable, TileType, MAP_HEIGHT, MAP_WIDTH}};
+use crate::{components::Position, game_state::State, map::{is_tile_passable, TileType, MAP_HEIGHT, MAP_WIDTH}};
 
 // Player module
 

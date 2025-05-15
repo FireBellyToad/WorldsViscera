@@ -1,7 +1,7 @@
 use bracket_lib::prelude::{BTerm, GameState};
 use specs::{Join, World, WorldExt};
 
-use crate::{common_components::{Position, Renderable}, map::{self, TileType}, player};
+use crate::{components::{Position, Renderable}, map::{self, TileType}, player};
 
 
 pub struct State {

@@ -1,9 +1,9 @@
-mod common_components;
+mod components;
 mod game_state;
 mod map;
 mod player;
 
-use common_components::*;
+use components::*;
 use game_state::*;
 
 //We are using some classes of bracket_lib to access all its libraries
