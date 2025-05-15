@@ -29,7 +29,10 @@ fn main() -> BError {
     };
 
     //Create new map
-    gs.ecs_world.insert(Map::new_map_rooms_and_corridors());
+    let map = Map::new_map_rooms_and_corridors();
+    let player_start_position = map.rooms[0].center(); // make the player start in the center of the first available room
+    //Must be placed here or else map will be owned by gs.ecs_world.insert(map);
+    gs.ecs_world.insert(map);
 
     //Here the ECS world register Position and Renderable types inside its system
     //This seems like is working with a Generic / Pseudoreflection mechanism!
@@ -41,8 +44,8 @@ fn main() -> BError {
     gs.ecs_world
         .create_entity()
         .with(Position {
-            x: MAP_WIDTH / 2,
-            y: MAP_HEIGHT / 2,
+            x: player_start_position.x,
+            y: player_start_position.y,
         })
         .with(Renderable {
             glyph: to_cp437('@'),
