@@ -7,6 +7,8 @@ use specs::prelude::*;
 use specs_derive::Component;
 use std::cmp::{max, min};
 
+
+pub const VIEW_RADIUS : i32 = 8;
 //Why Player is Component?
 #[derive(Component, Debug)]
 pub struct Player {}
