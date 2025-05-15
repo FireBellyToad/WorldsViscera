@@ -1,7 +1,7 @@
 use bracket_lib::prelude::{BTerm, GameState};
 use specs::{Join, World, WorldExt};
 
-use crate::{components::{Position, Renderable}, map::{self, TileType}, player};
+use crate::{components::{Position, Renderable}, map::{Map}, player};
 
 
 pub struct State {
@@ -20,8 +20,8 @@ impl GameState for State {
         player::player_input(self, context);
 
         //Fetch from world all the Tiles
-        let map_to_draw = self.ecs_world.fetch::<Vec<TileType>>();
-        map::draw_map(&map_to_draw, context);
+        let map_to_draw = self.ecs_world.fetch::<Map>();
+        map_to_draw.draw_map(context);
 
         //We read Position and Renderable currently inserted in world
         let positions = self.ecs_world.read_storage::<Position>();

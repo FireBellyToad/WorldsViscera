@@ -4,7 +4,7 @@ use bracket_lib::prelude::{BTerm, VirtualKeyCode};
 use specs::prelude::*;
 use specs_derive::Component;
 
-use crate::{components::Position, game_state::State, map::{is_tile_passable, TileType, MAP_HEIGHT, MAP_WIDTH}};
+use crate::{components::Position, game_state::State, map::Map};
 
 // Player module
 
@@ -20,14 +20,13 @@ fn try_move_player(delta_x: i32, delta_y: i32, ecs_world: &mut World) {
     //Get all entities with Position an Player components
     let mut positions = ecs_world.write_storage::<Position>();
     let mut players = ecs_world.write_storage::<Player>();
-    let map = ecs_world.fetch::<Vec<TileType>>();
+    let map = ecs_world.fetch::<Map>();
 
     // For each one that have both of them (only one, the Player), change position if space is free
     for (_player, pos) in (&mut players, &mut positions).join() {
-
-        if is_tile_passable(&map, pos.x + delta_x, pos.y + delta_y) {
-            pos.x = min(MAP_WIDTH - 1, max(0, pos.x + delta_x));
-            pos.y = min(MAP_HEIGHT - 1, max(0, pos.y + delta_y));
+        if map.is_tile_passable(pos.x + delta_x, pos.y + delta_y) {
+            pos.x = min(map.width - 1, max(0, pos.x + delta_x));
+            pos.y = min(map.height - 1, max(0, pos.y + delta_y));
         }
     }
 }

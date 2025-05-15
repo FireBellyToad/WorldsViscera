@@ -12,7 +12,7 @@ use bracket_lib::{
     prelude::to_cp437,
     terminal::{BError, BTermBuilder, RGB},
 };
-use map::{MAP_HEIGHT, MAP_WIDTH};
+use map::{Map, MAP_HEIGHT, MAP_WIDTH};
 use player::Player;
 use specs::prelude::*;
 
@@ -29,7 +29,7 @@ fn main() -> BError {
     };
 
     //Create new map
-    gs.ecs_world.insert(map::new_map());
+    gs.ecs_world.insert(Map::new_map_rooms_and_corridors());
 
     //Here the ECS world register Position and Renderable types inside its system
     //This seems like is working with a Generic / Pseudoreflection mechanism!
