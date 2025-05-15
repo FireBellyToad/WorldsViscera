@@ -4,7 +4,7 @@ use bracket_lib::{
     prelude::to_cp437,
     terminal::{BError, BTerm, BTermBuilder, FontCharType, GameState, RGB},
 };
-use map::TileType;
+
 use specs::prelude::*;
 use specs_derive::Component;
 
@@ -43,8 +43,8 @@ impl GameState for State {
         self.run_systems();
 
         //Fetch from world all the Tiles
-        let map_to_draw = self.ecs_world.fetch::<Vec<TileType>>();
-        map::draw_map(&map_to_draw, context);
+        let map_to_draw = self.ecs_world.fetch::<Map>();
+        map_to_draw.draw_map(context);
 
         //We read Position and Renderable currently inserted in world
         let positions = self.ecs_world.read_storage::<Position>();
@@ -110,12 +110,6 @@ impl<'a> System<'a> for LeftWalker {
         }
     }
 }
-
-// Get vector index from x and y position on map
-pub fn get_index_from_xy(x: i32, y: i32) -> usize {
-    (y as usize * (MAP_WIDTH as usize)) + x as usize // Remember this is returned, no semicolon
-}
-
 fn main() -> BError {
     //This is a context. what is this?
     let context = BTermBuilder::simple80x50() //Create a 80x50 basic terminal
@@ -129,9 +123,10 @@ fn main() -> BError {
     };
 
     //Insert into ECS a new map
-    let (rooms,map) = new_map_rooms_and_corridors();
+    let map = Map::new_map_rooms_and_corridors();
+    let (player_x, player_y) = map.rooms[0].get_center(); // make the player start in the center of the first available room
+    //Must be placed here or else map will be owned by gs.ecs_world.insert(map);
     gs.ecs_world.insert(map);
-    let (player_x, player_y) = rooms[0].get_center(); // make the player start in the center of the first available room
 
     //Here the ECS world register Position and Renderable types inside its system
     //This seems like is working with a Generic / Pseudoreflection mechanism!
