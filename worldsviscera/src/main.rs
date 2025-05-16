@@ -1,9 +1,9 @@
 mod components;
 mod game_state;
 mod map;
-mod player;
+mod systems;
 
-use components::*;
+use components::{common::{Position, Renderable, Viewshed}, *};
 use game_state::*;
 
 //We are using some classes of bracket_lib to access all its libraries
@@ -12,7 +12,7 @@ use bracket_lib::{
     prelude::to_cp437,
     terminal::{BError, BTermBuilder, RGB},
 };
-use map::{Map, MAP_HEIGHT, MAP_WIDTH};
+use map::Map;
 use player::Player;
 use specs::prelude::*;
 
@@ -39,6 +39,7 @@ fn main() -> BError {
     gs.ecs_world.register::<Position>();
     gs.ecs_world.register::<Renderable>();
     gs.ecs_world.register::<Player>();
+    gs.ecs_world.register::<Viewshed>();
 
     //Insert player "@" into world
     gs.ecs_world
@@ -52,7 +53,12 @@ fn main() -> BError {
             foreground: RGB::named(YELLOW),
             background: RGB::named(BLACK),
         })
-        .with(Player {})
+        .with(Player {}) 
+        .with(Viewshed { // FOV component
+            visible_tiles: Vec::new(),
+            range: player::VIEW_RADIUS,
+            must_recalculate: true,
+        })
         .build();
 
     //Main Engine loop

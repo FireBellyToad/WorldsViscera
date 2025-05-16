@@ -2,9 +2,10 @@ use std::cmp::{max, min};
 
 use bracket_lib::{
     color::{BLACK, GRAY50, GREEN1, RGB},
-    prelude::{BTerm, Rect, to_cp437},
+    prelude::{to_cp437, Algorithm2D, BTerm, BaseMap, Point, Rect},
     random::RandomNumberGenerator,
 };
+use specs::World;
 
 pub const MAP_WIDTH: i32 = 80;
 pub const MAP_HEIGHT: i32 = 50;
@@ -21,18 +22,23 @@ pub struct Map {
     pub rooms: Vec<Rect>,
     pub width: i32,
     pub height: i32,
+    pub revealed_tiles: Vec<bool>,
+    pub visible_tiles: Vec<bool>,
 }
 
 impl Map {
     // Create new dungeon-like map and returns a vector of rooms and the map itself
     pub fn new_map_rooms_and_corridors() -> Map {
         //vec! is a factory macro for Vectors (ArrayList in Java)
-        //here, vec! creates a 4000 (80 x 50) items long vector full of "Wall" tiles
+        //here, vec! creates a 4000 (80 x 50) items long vector full of "Wall" for tiles
+        //and a 4000 items long vector full of "false" for revealed_tiles
         let mut map = Map {
             tiles: vec![TileType::Wall; (MAP_WIDTH * MAP_HEIGHT) as usize],
             rooms: Vec::new(),
             width: MAP_WIDTH,
             height: MAP_HEIGHT,
+            revealed_tiles: vec![false; (MAP_WIDTH * MAP_HEIGHT) as usize],
+            visible_tiles: vec![false; (MAP_WIDTH * MAP_HEIGHT) as usize],
         };
 
         //Empty vector of rooms
@@ -141,15 +147,42 @@ impl Map {
         for x in 0..self.width {
             for y in 0..self.height {
                 let index = self.get_index_from_xy(x, y);
-                match self.tiles[index] {
-                    TileType::Floor => {
-                        context.set(x, y, RGB::named(GRAY50), RGB::named(BLACK), to_cp437('.'))
+                // If visible to the player, render tile
+                if self.revealed_tiles[index] {
+                    let glyph_to_render;
+                    let mut foreground_color;
+                    match self.tiles[index] {
+                        TileType::Floor => {
+                            glyph_to_render = to_cp437('.');
+                            foreground_color = RGB::named(GRAY50);
+                        }
+                        TileType::Wall => {
+                            glyph_to_render = to_cp437('#');
+                            foreground_color = RGB::named(GREEN1)
+                        }
                     }
-                    TileType::Wall => {
-                        context.set(x, y, RGB::named(GREEN1), RGB::named(BLACK), to_cp437('#'))
+
+                    // If not visible, add fog of war (gray color)
+                    if !self.visible_tiles[index] {
+                        foreground_color = foreground_color.to_greyscale()
                     }
+                    context.set(x, y, foreground_color, RGB::named(BLACK), glyph_to_render)
                 }
             }
         }
+    }
+}
+
+impl Algorithm2D for Map {
+    fn dimensions(&self) -> bracket_lib::prelude::Point {
+        Point::new(self.width, self.height)
+    }
+}
+
+// BaseMap is a bracketlib struct which implementations will support pathfinding
+impl BaseMap for Map {
+    // Return true if cannot see through
+    fn is_opaque(&self, idx: usize) -> bool {
+        self.tiles[idx] == TileType::Wall
     }
 }
