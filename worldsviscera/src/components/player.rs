@@ -5,7 +5,7 @@ use specs::prelude::*;
 use specs_derive::Component;
 
 use crate::{
-    game_state::State,
+    game_state::{RunState, State},
     map::Map,
 };
 
@@ -44,10 +44,10 @@ fn try_move_player(delta_x: i32, delta_y: i32, ecs_world: &mut World) {
 ///
 /// Handle player input
 ///
-pub fn player_input(game_state: &mut State, context: &mut BTerm) {
+pub fn player_input(game_state: &mut State, context: &mut BTerm) -> RunState{
     //Move Player
     match context.key {
-        None => {} // Do nothing if none is pressed
+        None => {return RunState::Paused } // Keep the game paused if none is pressed
         Some(key) => match key {
             //Support Numpad and vi commands (holy shit)
             VirtualKeyCode::Left | VirtualKeyCode::Numpad4 | VirtualKeyCode::H => {
@@ -65,7 +65,9 @@ pub fn player_input(game_state: &mut State, context: &mut BTerm) {
             VirtualKeyCode::Down | VirtualKeyCode::Numpad2 | VirtualKeyCode::J => {
                 try_move_player(0, 1, &mut game_state.ecs_world)
             }
-            _ => {} // Do nothing for all other keys
+            _ => { return RunState::Paused } // Keep the game paused for all other keys
         },
     }
+
+    RunState::Running
 }

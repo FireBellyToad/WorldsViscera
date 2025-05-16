@@ -1,12 +1,17 @@
 use bracket_lib::prelude::{BTerm, GameState};
-use specs::{Join, RunNow, World, WorldExt};
+use specs::{Join, RunNow, World, WorldExt, world::Index};
 
 use crate::{
-    components::common::{Position, Renderable}, map::Map, player, systems::fov::FovSystem
+    components::common::{Position, Renderable},
+    map::Map,
+    player,
+    systems::{fov::FovSystem, monster_ai::MonsterAI},
 };
 
+// Game state struct
 pub struct State {
-    pub ecs_world: World, // World of ECS, where the framework lives
+    pub ecs_world: World,    // World of ECS, where the framework lives
+    pub run_state: RunState, //Running state
 }
 
 // State implementations
@@ -15,6 +20,8 @@ impl State {
     fn run_systems(&mut self) {
         let mut visibility = FovSystem {};
         visibility.run_now(&self.ecs_world); //Run system, run!
+        let mut monster_ai = MonsterAI {};
+        monster_ai.run_now(&self.ecs_world); //Run system, run!
         self.ecs_world.maintain(); // if any changes are queued by the systems, apply them now to the world
     }
 }
@@ -25,10 +32,14 @@ impl GameState for State {
         //ctx is a reference to the terminal
         context.cls(); //clean terminal
 
-        //Handle player input
-        player::player_input(self, context);
-
-        self.run_systems();
+        // Run system only while not paused, or else wait for player input.
+        // Make the whole game turn based
+        if self.run_state == RunState::Running {
+            self.run_systems();
+            self.run_state = RunState::Paused;
+        } else {
+            self.run_state = player::player_input(self, context);
+        }
 
         //Fetch from world all the Tiles
         let map_to_draw = self.ecs_world.fetch::<Map>();
@@ -40,13 +51,25 @@ impl GameState for State {
 
         //Render all Renderables in their Position
         for (pos, render) in (&positions, &renderables).join() {
-            context.set(
-                pos.x,
-                pos.y,
-                render.foreground,
-                render.background,
-                render.glyph,
-            );
+            let index = map_to_draw.get_index_from_xy(pos.x, pos.y);
+            //Render only if tile underneath is visible to the player
+            if map_to_draw.visible_tiles[index] {
+                context.set(
+                    pos.x,
+                    pos.y,
+                    render.foreground,
+                    render.background,
+                    render.glyph,
+                );
+            }
         }
     }
+}
+
+// Game state enums
+
+#[derive(PartialEq, Copy, Clone)]
+pub enum RunState {
+    Paused,
+    Running,
 }

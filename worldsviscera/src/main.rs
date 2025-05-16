@@ -3,14 +3,12 @@ mod game_state;
 mod map;
 mod systems;
 
-use components::{common::{Position, Renderable, Viewshed}, *};
+use components::{common::{Position, Renderable, Viewshed, Name, Monster}, *};
 use game_state::*;
 
 //We are using some classes of bracket_lib to access all its libraries
 use bracket_lib::{
-    color::{BLACK, YELLOW},
-    prelude::to_cp437,
-    terminal::{BError, BTermBuilder, RGB},
+    color::{BLACK, RED, YELLOW}, prelude::{to_cp437, FontCharType}, random::RandomNumberGenerator, terminal::{BError, BTermBuilder, RGB}
 };
 use map::Map;
 use player::Player;
@@ -26,13 +24,12 @@ fn main() -> BError {
     //must be mutable so we can change its fields
     let mut gs: State = State {
         ecs_world: World::new(),
+        run_state: RunState::Running
     };
 
     //Create new map
     let map = Map::new_map_rooms_and_corridors();
     let player_start_position = map.rooms[0].center(); // make the player start in the center of the first available room
-    //Must be placed here or else map will be owned by gs.ecs_world.insert(map);
-    gs.ecs_world.insert(map);
 
     //Here the ECS world register Position and Renderable types inside its system
     //This seems like is working with a Generic / Pseudoreflection mechanism!
@@ -40,6 +37,8 @@ fn main() -> BError {
     gs.ecs_world.register::<Renderable>();
     gs.ecs_world.register::<Player>();
     gs.ecs_world.register::<Viewshed>();
+    gs.ecs_world.register::<Name>();
+    gs.ecs_world.register::<Monster>();
 
     //Insert player "@" into world
     gs.ecs_world
@@ -60,6 +59,44 @@ fn main() -> BError {
             must_recalculate: true,
         })
         .build();
+
+    // FIXME REMOVE!!!
+    //For each room except the first one
+    let mut rng = RandomNumberGenerator::new();
+    //.enumerate also expose an index of the current iteration
+    for (i, room) in map.rooms.iter().skip(1).enumerate() {
+        let room_center_point = room.center();
+        let monster_glyph: FontCharType;
+        let name:String;
+        let roll = rng.roll_dice(1, 2);
+        match roll {
+            1 => { monster_glyph = to_cp437('g'); name = String::from("Goblin"); }
+            _ => { monster_glyph = to_cp437('o'); name = String::from("Orc"); }
+        }
+
+        //Insert monster
+        gs.ecs_world
+            .create_entity()
+            .with(Position { x: room_center_point.x, y: room_center_point.y })
+            .with(Renderable {
+                foreground: RGB::named(RED),
+                background: RGB::named(BLACK),
+                glyph: monster_glyph,
+            })
+            .with(Viewshed {
+                // FOV component
+                visible_tiles: Vec::new(),
+                range: player::VIEW_RADIUS,
+                must_recalculate: true,
+            })
+            .with(Monster {})
+            .with(Name {
+                name: format!("{} #{}", &name, i)
+            })
+            .build();
+    }
+    
+    gs.ecs_world.insert(map);
 
     //Main Engine loop
     bracket_lib::terminal::main_loop(context, gs) //must not have a semicolon: this function returns a BError!

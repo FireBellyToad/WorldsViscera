@@ -13,7 +13,7 @@ pub struct FovSystem {}
 
 // FOV system
 impl<'a> System<'a> for FovSystem {
-
+    
     // SystemData is an alias of the tuple 
         type SystemData = (
         WriteExpect<'a, Map>,
@@ -52,9 +52,9 @@ impl<'a> System<'a> for FovSystem {
                 // Reveal what the player can see
                 // if entity is a player, calculate view
                 let player_entity: Option<&Player> = player.get(entity);
-                // reset current visible tiles
-                map.visible_tiles.fill(false);
                 if player_entity.is_some() {
+                    // reset current visible tiles
+                    map.visible_tiles.fill(false);
                     for visible_tile in viewshed.visible_tiles.iter() {
                         let index = map.get_index_from_xy(visible_tile.x, visible_tile.y);
                         map.revealed_tiles[index] = true;
