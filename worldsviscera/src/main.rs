@@ -6,19 +6,17 @@ use bracket_lib::{
 };
 
 use specs::prelude::*;
-use specs_derive::Component;
 
-mod player;
-mod map;
-mod rect;
 mod components;
+mod map;
+pub mod player;
+mod rect;
 mod visibility_system;
 
-use player::*;
-use map::*;
 use components::*;
+use map::*;
+use player::*;
 use visibility_system::*;
-
 
 //Utility Struct to attach stuff to it
 struct State {
@@ -50,7 +48,7 @@ impl GameState for State {
 
         //Fetch from world all the Tiles
         let map_to_draw = self.ecs_world.fetch::<Map>();
-        map_to_draw.draw_map(context);
+        map_to_draw.draw_map(&self.ecs_world, context);
 
         //We read Position and Renderable currently inserted in world
         let positions = self.ecs_world.read_storage::<Position>();
@@ -71,24 +69,6 @@ impl GameState for State {
         }
     }
 }
-
-//Position
-#[derive(Component)] // Macro for deriving all the needed data for Component (think of something like @Component in Java)
-struct Position {
-    x: i32,
-    y: i32,
-}
-
-#[derive(Component)]
-struct Renderable {
-    glyph: FontCharType,
-    foreground: RGB,
-    background: RGB,
-}
-
-
-#[derive(Component)]
-struct LeftMover {}
 
 fn main() -> BError {
     //This is a context. what is this?
@@ -112,10 +92,8 @@ fn main() -> BError {
     //This seems like is working with a Generic / Pseudoreflection mechanism!
     gs.ecs_world.register::<Position>();
     gs.ecs_world.register::<Renderable>();
-    gs.ecs_world.register::<LeftMover>();
     gs.ecs_world.register::<Player>();
     gs.ecs_world.register::<Viewshed>();
-
 
     //Insert player "@" into world
     gs.ecs_world
@@ -130,7 +108,11 @@ fn main() -> BError {
             background: RGB::named(BLACK),
         })
         .with(Player {})
-        .with(Viewshed { visible_tiles: Vec::new(), range: Player::VIEW_RADIUS }) // FOV component
+        .with(Viewshed { // FOV component
+            visible_tiles: Vec::new(),
+            range: player::VIEW_RADIUS,
+            must_recalculate: true,
+        }) 
         .build();
 
     //I prefer this syntax for now. I need to explicit the main_loop origin
