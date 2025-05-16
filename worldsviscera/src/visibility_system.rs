@@ -3,7 +3,6 @@ use bracket_lib::prelude::field_of_view;
 use specs::System;
 use specs::prelude::*;
 
-use crate::player;
 use crate::player::Player;
 
 use super::Position;
@@ -57,14 +56,16 @@ impl<'a> System<'a> for VisibilitySystem {
                 // Reveal what the player can see
                 // if entity is a player, calculate view
                 let player_entity: Option<&Player> = player.get(entity);
-                // reset current visible tiles
-                map.visible_tiles.fill(false);
                 if player_entity.is_some() {
+                    // reset current visible tiles
+                    map.visible_tiles.fill(false);
                     for visible_tile in viewshed.visible_tiles.iter() {
                         let index = map.get_index_from_xy(visible_tile.x, visible_tile.y);
                         map.revealed_tiles[index] = true;
                         map.visible_tiles[index] = true;
                     }
+                } else {
+                    println!("Entity is not Player")
                 }
             }
         }

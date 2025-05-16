@@ -134,7 +134,7 @@ impl Map {
         }
     }
 
-    pub fn draw_map(&self, ecs_world: &World, context: &mut BTerm) {
+    pub fn draw_map(&self, context: &mut BTerm) {
         // For each Entity with both Player and Viewshed compnents
         for x in 0..self.width {
             for y in 0..self.height {

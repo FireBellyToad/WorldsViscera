@@ -2,9 +2,11 @@
 use bracket_lib::{
     color::*,
     prelude::to_cp437,
+    random::RandomNumberGenerator,
     terminal::{BError, BTerm, BTermBuilder, FontCharType, GameState, RGB},
 };
 
+use monster_ai_system::MonsterAI;
 use specs::prelude::*;
 
 mod components;
@@ -12,6 +14,7 @@ mod map;
 pub mod player;
 mod rect;
 mod visibility_system;
+mod monster_ai_system;
 
 use components::*;
 use map::*;
@@ -21,6 +24,7 @@ use visibility_system::*;
 //Utility Struct to attach stuff to it
 struct State {
     ecs_world: World, // World of ECS, where the framework lives
+    run_state: RunState
 }
 
 //State common implementations
@@ -29,6 +33,8 @@ impl State {
     fn run_systems(&mut self) {
         let mut visibility = VisibilitySystem {};
         visibility.run_now(&self.ecs_world); //Run system, run!
+        let mut monster_ai = MonsterAI {};
+        monster_ai.run_now(&self.ecs_world); //Run system, run!
         self.ecs_world.maintain(); // if any changes are queued by the systems, apply them now to the world
     }
 }
@@ -40,15 +46,18 @@ impl GameState for State {
         //ctx is a reference to the terminal
         context.cls(); //clean terminal
 
-        //Handle player input
-        player::player_input(self, context);
-
-        // The current state will run!
-        self.run_systems();
+        // Run system only while not paused, or else wait for player input.
+        // Make the whole game turn based
+        if self.run_state == RunState::Running {
+            self.run_systems();
+            self.run_state = RunState::Paused;
+        } else {            
+            self.run_state =  player::player_input(self, context);
+        }
 
         //Fetch from world all the Tiles
         let map_to_draw = self.ecs_world.fetch::<Map>();
-        map_to_draw.draw_map(&self.ecs_world, context);
+        map_to_draw.draw_map(context);
 
         //We read Position and Renderable currently inserted in world
         let positions = self.ecs_world.read_storage::<Position>();
@@ -59,16 +68,23 @@ impl GameState for State {
         // get a list of tuples that have BOTH  Position and Renderable Component
         // then, for each tuple, do render
         for (pos, render) in (&positions, &renderables).join() {
-            context.set(
-                pos.x,
-                pos.y,
-                render.foreground,
-                render.background,
-                render.glyph,
-            );
+            let index = map_to_draw.get_index_from_xy(pos.x, pos.y);
+            //Only if visible
+            if map_to_draw.visible_tiles[index] {
+                context.set(
+                    pos.x,
+                    pos.y,
+                    render.foreground,
+                    render.background,
+                    render.glyph,
+                );
+            }
         }
     }
 }
+
+#[derive(PartialEq, Copy, Clone)]
+pub enum RunState { Paused, Running }
 
 fn main() -> BError {
     //This is a context. what is this?
@@ -80,13 +96,13 @@ fn main() -> BError {
     //must be mutable so we can change its fields
     let mut gs: State = State {
         ecs_world: World::new(),
+        run_state: RunState::Running,
     };
 
     //Insert into ECS a new map
     let map = Map::new_map_rooms_and_corridors();
     let (player_x, player_y) = map.rooms[0].get_center(); // make the player start in the center of the first available room
     //Must be placed here or else map will be owned by gs.ecs_world.insert(map);
-    gs.ecs_world.insert(map);
 
     //Here the ECS world register Position and Renderable types inside its system
     //This seems like is working with a Generic / Pseudoreflection mechanism!
@@ -94,6 +110,8 @@ fn main() -> BError {
     gs.ecs_world.register::<Renderable>();
     gs.ecs_world.register::<Player>();
     gs.ecs_world.register::<Viewshed>();
+    gs.ecs_world.register::<Monster>();
+    gs.ecs_world.register::<Name>();
 
     //Insert player "@" into world
     gs.ecs_world
@@ -108,12 +126,51 @@ fn main() -> BError {
             background: RGB::named(BLACK),
         })
         .with(Player {})
-        .with(Viewshed { // FOV component
+        .with(Viewshed {
+            // FOV component
             visible_tiles: Vec::new(),
             range: player::VIEW_RADIUS,
             must_recalculate: true,
-        }) 
+        })
         .build();
+
+
+
+    //For each room except the first one
+    let mut rng = RandomNumberGenerator::new();
+    //.enumerate also expose an index of the current iteration
+    for (i, room) in map.rooms.iter().skip(1).enumerate() {
+        let (x, y) = room.get_center();
+        let monster_glyph: FontCharType;
+        let name:String;
+        let roll = rng.roll_dice(1, 2);
+        match roll {
+            1 => { monster_glyph = to_cp437('g'); name = String::from("Goblin"); }
+            _ => { monster_glyph = to_cp437('o'); name = String::from("Orc"); }
+        }
+
+        //Insert monster
+        gs.ecs_world
+            .create_entity()
+            .with(Position { x, y })
+            .with(Renderable {
+                foreground: RGB::named(RED),
+                background: RGB::named(BLACK),
+                glyph: monster_glyph,
+            })
+            .with(Viewshed {
+                // FOV component
+                visible_tiles: Vec::new(),
+                range: player::VIEW_RADIUS,
+                must_recalculate: true,
+            })
+            .with(Monster {})
+            .with(Name {
+                name: format!("{} #{}", &name, i)
+            })
+            .build();
+    }
+    gs.ecs_world.insert(map);
 
     //I prefer this syntax for now. I need to explicit the main_loop origin
     //Main Engine loop

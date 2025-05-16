@@ -1,14 +1,15 @@
 //Get all imports from parent
-use super::map::{Map,MAP_HEIGHT, MAP_WIDTH, TileType};
-use crate::{components::{Position, Viewshed}, State};
+use super::map::{MAP_HEIGHT, MAP_WIDTH, Map, TileType};
+use crate::{
+    components::{Position, Viewshed}, RunState, State
+};
 
 use bracket_lib::prelude::{BTerm, VirtualKeyCode};
 use specs::prelude::*;
 use specs_derive::Component;
 use std::cmp::{max, min};
 
-
-pub const VIEW_RADIUS : i32 = 8;
+pub const VIEW_RADIUS: i32 = 8;
 //Why Player is Component?
 #[derive(Component, Debug)]
 pub struct Player {}
@@ -32,10 +33,10 @@ fn try_move_player(delta_x: i32, delta_y: i32, ecs_world: &mut World) {
     }
 }
 
-pub fn player_input(game_state: &mut State, context: &mut BTerm) {
+pub(crate) fn player_input(game_state: &mut State, context: &mut BTerm) -> RunState{
     //Move Player
     match context.key {
-        None => {} // Do nothing if none is pressed
+        None => {return RunState::Paused } // Keep the game paused if none is pressed
         Some(key) => match key {
             //Support Numpad and vi commands (holy shit)
             VirtualKeyCode::Left | VirtualKeyCode::Numpad4 | VirtualKeyCode::H => {
@@ -53,7 +54,9 @@ pub fn player_input(game_state: &mut State, context: &mut BTerm) {
             VirtualKeyCode::Down | VirtualKeyCode::Numpad2 | VirtualKeyCode::J => {
                 try_move_player(0, 1, &mut game_state.ecs_world)
             }
-            _ => {} // Do nothing for all other keys
+            _ => { return RunState::Paused } // Keep the game paused for all other keys
         },
     }
+
+    RunState::Running
 }
