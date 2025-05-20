@@ -1,34 +1,50 @@
 use macroquad::prelude::*;
 
-#[macroquad::main("CLicker Game")]
+const MAP_WIDTH: i32 = 40;
+const MAP_HEIGHT: i32 = 25;
+const TILE_SIZE: i32 = 32;
+const UI_BORDER: i32 = 8;
+const WINDOW_WIDTH: i32 = (UI_BORDER * 2) + (MAP_WIDTH * TILE_SIZE);
+const WINDOW_HEIGHT: i32 = (UI_BORDER * 2) + (MAP_HEIGHT * TILE_SIZE);
+
+//snip
+fn conf() -> Conf {
+    Conf {
+        window_title: String::from("World's Viscera"),
+        fullscreen: false,
+        window_height: WINDOW_HEIGHT,
+        window_width: WINDOW_WIDTH,
+        window_resizable: false,
+        //you can add other options too, or just use the default ones:
+        ..Default::default()
+    }
+}
+//then pass the function to the attribute
+#[macroquad::main(conf)]
+
 async fn main() {
-    let mut score = 0;
-    let r = 70.;
+    
+    //Draw a 80 x 50 map made up of 32 x 32 tiles
     loop {
-        let (x, y) = (screen_width() / 2., screen_height() / 2.);
-        let circle = Circle::new(x, y, r);
-        clear_background(GRAY);
-
-        if is_mouse_button_pressed(MouseButton::Left) {
-            let (mouse_x, mouse_y) = mouse_position();
-            let mouse_circ = Circle::new(mouse_x, mouse_y, 1.);
-
-            if circle.overlaps(&mouse_circ) {
-                score += 1;
+        for x in 0..MAP_WIDTH {
+            for y in 0..MAP_HEIGHT {
+                draw_rectangle_lines(
+                    (UI_BORDER + (x * (TILE_SIZE))) as f32,
+                    (UI_BORDER + (y * (TILE_SIZE))) as f32,
+                    TILE_SIZE as f32,
+                    TILE_SIZE as f32,
+                    2.0,
+                    macroquad::color::BLUE,
+                );
             }
         }
 
-        draw_text("Clicker Game", screen_width() / 2. - 100., 100., 50., WHITE);
-        draw_text(
-            format!("Clicks: {}", score).as_str(),
-            screen_width() / 2. - 100.,
-            500.,
-            50.,
-            WHITE,
-        );
-        draw_circle(x, y, r, RED);
-        next_frame().await;
+        // Quit game on Q
+        if is_key_pressed(KeyCode::Q) {
+            break;
+        }
 
-        rand
+        // needed for the engine
+        next_frame().await;
     }
 }
