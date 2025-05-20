@@ -6,15 +6,17 @@ use bracket_lib::{
     terminal::{BError, BTerm, BTermBuilder, FontCharType, GameState, RGB},
 };
 
+use map_indexing_system::MapIndexingSystem;
 use monster_ai_system::MonsterAI;
 use specs::prelude::*;
 
 mod components;
 mod map;
+mod monster_ai_system;
+mod map_indexing_system;
 pub mod player;
 mod rect;
 mod visibility_system;
-mod monster_ai_system;
 
 use components::*;
 use map::*;
@@ -24,7 +26,7 @@ use visibility_system::*;
 //Utility Struct to attach stuff to it
 struct State {
     ecs_world: World, // World of ECS, where the framework lives
-    run_state: RunState
+    run_state: RunState,
 }
 
 //State common implementations
@@ -35,6 +37,8 @@ impl State {
         visibility.run_now(&self.ecs_world); //Run system, run!
         let mut monster_ai = MonsterAI {};
         monster_ai.run_now(&self.ecs_world); //Run system, run!
+        let mut map_indexing = MapIndexingSystem {};
+        map_indexing.run_now(&self.ecs_world); //Run system, run!
         self.ecs_world.maintain(); // if any changes are queued by the systems, apply them now to the world
     }
 }
@@ -51,8 +55,8 @@ impl GameState for State {
         if self.run_state == RunState::Running {
             self.run_systems();
             self.run_state = RunState::Paused;
-        } else {            
-            self.run_state =  player::player_input(self, context);
+        } else {
+            self.run_state = player::player_input(self, context);
         }
 
         //Fetch from world all the Tiles
@@ -84,7 +88,10 @@ impl GameState for State {
 }
 
 #[derive(PartialEq, Copy, Clone)]
-pub enum RunState { Paused, Running }
+pub enum RunState {
+    Paused,
+    Running,
+}
 
 fn main() -> BError {
     //This is a context. what is this?
@@ -112,6 +119,8 @@ fn main() -> BError {
     gs.ecs_world.register::<Viewshed>();
     gs.ecs_world.register::<Monster>();
     gs.ecs_world.register::<Name>();
+    gs.ecs_world.register::<Targetable>();
+    gs.ecs_world.register::<BlocksTile>();
 
     //Insert player "@" into world
     gs.ecs_world
@@ -132,9 +141,13 @@ fn main() -> BError {
             range: player::VIEW_RADIUS,
             must_recalculate: true,
         })
+        .with(Targetable {
+            target_position: Position {
+                x: player_x,
+                y: player_y,
+            },
+        })
         .build();
-
-
 
     //For each room except the first one
     let mut rng = RandomNumberGenerator::new();
@@ -142,11 +155,17 @@ fn main() -> BError {
     for (i, room) in map.rooms.iter().skip(1).enumerate() {
         let (x, y) = room.get_center();
         let monster_glyph: FontCharType;
-        let name:String;
+        let name: String;
         let roll = rng.roll_dice(1, 2);
         match roll {
-            1 => { monster_glyph = to_cp437('g'); name = String::from("Goblin"); }
-            _ => { monster_glyph = to_cp437('o'); name = String::from("Orc"); }
+            1 => {
+                monster_glyph = to_cp437('g');
+                name = String::from("Goblin");
+            }
+            _ => {
+                monster_glyph = to_cp437('o');
+                name = String::from("Orc");
+            }
         }
 
         //Insert monster
@@ -166,8 +185,9 @@ fn main() -> BError {
             })
             .with(Monster {})
             .with(Name {
-                name: format!("{} #{}", &name, i)
+                name: format!("{} #{}", &name, i),
             })
+            .with(BlocksTile {})
             .build();
     }
     gs.ecs_world.insert(map);

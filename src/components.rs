@@ -38,3 +38,11 @@ pub struct Name {
     pub name: String
 }
 
+// This is a component that will be used to mark entities that can be targeted by attacks
+#[derive(Component)]
+pub struct Targetable {
+    pub target_position: Position
+}
+
+#[derive(Component, Debug)]
+pub struct BlocksTile {}

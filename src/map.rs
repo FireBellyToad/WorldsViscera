@@ -3,7 +3,7 @@ use std::cmp::{max, min};
 use crate::{components::Viewshed, player::Player, rect::Rect};
 use bracket_lib::{
     color::{BLACK, GRAY50, GREEN1, RGB},
-    prelude::{Algorithm2D, BTerm, BaseMap, Point, to_cp437},
+    prelude::{to_cp437, Algorithm2D, BTerm, BaseMap, DistanceAlg, Point, SmallVec},
     random::RandomNumberGenerator,
 };
 use specs::prelude::*;
@@ -26,6 +26,7 @@ pub struct Map {
     pub height: i32,
     pub revealed_tiles: Vec<bool>,
     pub visible_tiles: Vec<bool>,
+    pub blocked_tiles: Vec<bool>
 }
 
 impl Map {
@@ -41,6 +42,7 @@ impl Map {
             height: MAP_HEIGHT,
             revealed_tiles: vec![false; (MAP_WIDTH * MAP_HEIGHT) as usize],
             visible_tiles: vec![false; (MAP_WIDTH * MAP_HEIGHT) as usize],
+            blocked_tiles: vec![false; (MAP_WIDTH * MAP_HEIGHT) as usize],
         };
 
         //Empty vector of rooms
@@ -163,6 +165,22 @@ impl Map {
             }
         }
     }
+
+    // Utility function for a_star_pathfinding of bracket-lib
+    fn is_exit_valid(&self, x:i32, y: i32 ) -> bool {
+        if x < 1 || x > self.width-1 || y < 1 || y > self.height-1 { return false; }
+        let index = self.get_index_from_xy(x, y);
+
+        //Must not be blocked
+        !self.blocked_tiles[index]
+    }
+
+    //Block all Wall tiles
+    pub fn populate_blocked_tiles(&mut self) {
+        for (i, &tile) in self.tiles.iter().enumerate() {
+            self.blocked_tiles[i] = TileType::Wall == tile;
+        }
+    }
 }
 
 impl Algorithm2D for Map {
@@ -176,5 +194,40 @@ impl BaseMap for Map {
     // Return true if cannot see through
     fn is_opaque(&self, idx: usize) -> bool {
         self.tiles[idx] == TileType::Wall
+    }
+
+    // BaseMap is expecting a list of tiles, so we must work with a index to me transformed into x and y
+    fn get_available_exits(&self, index: usize) -> SmallVec<[(usize, f32); 10]> {
+        let mut exits = SmallVec::new();
+
+        //Handle x and y coordinates from the index of the Vector containing all the tiles
+        let x = index as i32 % self.width; // Modulo operator to convert index to x ( width+1 = 0, width+2 = 1, etc)
+        let y = index as i32 / self.width; // Division to convert index to y 
+        let width = self.width as usize;
+
+        //Check all 4 cardinal directions
+        if self.is_exit_valid(x-1, y) {
+            exits.push((index - 1, 1.0));
+        }
+        if self.is_exit_valid(x+1, y) {
+            exits.push((index + 1, 1.0));
+        }
+        if self.is_exit_valid(x, y-1) {
+            exits.push((index - width, 1.0));
+        }    
+        if self.is_exit_valid(x, y+1) {
+            exits.push((index + width, 1.0));
+        }       
+
+        exits
+    }
+
+    // BaseMap is expecting a list of tiles, so we must work with a index to me transformed into x and y
+    fn get_pathing_distance(&self, start_index: usize, end_index: usize) -> f32 {
+        let width = self.width as usize;
+        let start = Point::new(start_index as i32 % width as i32, start_index as i32 / width as i32);
+        let end = Point::new(end_index as i32 % width as i32, end_index as i32 / width as i32);
+
+        DistanceAlg::Pythagoras.distance2d(start, end)
     }
 }

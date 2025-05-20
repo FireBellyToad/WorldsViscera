@@ -1,7 +1,7 @@
 //Get all imports from parent
 use super::map::{MAP_HEIGHT, MAP_WIDTH, Map, TileType};
 use crate::{
-    components::{Position, Viewshed}, RunState, State
+    components::{Position, Targetable, Viewshed}, RunState, State
 };
 
 use bracket_lib::prelude::{BTerm, VirtualKeyCode};
@@ -17,17 +17,22 @@ pub struct Player {}
 fn try_move_player(delta_x: i32, delta_y: i32, ecs_world: &mut World) {
     //Get all entities with Position an Player components
     let mut positions = ecs_world.write_storage::<Position>();
+    let mut target = ecs_world.write_storage::<Targetable>();
     let mut players = ecs_world.write_storage::<Player>();
     let mut viewsheds = ecs_world.write_storage::<Viewshed>();
     let map = ecs_world.fetch::<Map>();
 
     // For each one that have both of them (only one, the Player), change position if space is free
-    for (_player, position, viewshed) in (&mut players, &mut positions, &mut viewsheds).join() {
+    for (_player, position, viewshed, target) in (&mut players, &mut positions, &mut viewsheds, &mut target).join() {
         let destination_index = map.get_index_from_xy(position.x + delta_x, position.y + delta_y);
-        if map.tiles[destination_index] != TileType::Wall {
+        if !map.blocked_tiles[destination_index]{
             position.x = min(MAP_WIDTH - 1, max(0, position.x + delta_x));
             position.y = min(MAP_HEIGHT - 1, max(0, position.y + delta_y));
 
+            //Update the targetable position
+            target.target_position.x = position.x;
+            target.target_position.y = position.y;
+            
             viewshed.must_recalculate = true;
         }
     }
