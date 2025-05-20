@@ -19,22 +19,37 @@ fn conf() -> Conf {
         ..Default::default()
     }
 }
+
+enum TileType {
+    Floor,
+    Wall,
+}
 //then pass the function to the attribute
 #[macroquad::main(conf)]
 
 async fn main() {
-    
+    let tileset = load_texture("assets/tiles.png").await.unwrap();
+    let tiles_index = get_tile_index(TileType::Floor) * TILE_SIZE as f32;
+    println!("tiles_index {tiles_index}");
+
     //Draw a 80 x 50 map made up of 32 x 32 tiles
     loop {
         for x in 0..MAP_WIDTH {
             for y in 0..MAP_HEIGHT {
-                draw_rectangle_lines(
-                    (UI_BORDER + (x * (TILE_SIZE))) as f32,
-                    (UI_BORDER + (y * (TILE_SIZE))) as f32,
-                    TILE_SIZE as f32,
-                    TILE_SIZE as f32,
-                    2.0,
-                    macroquad::color::BLUE,
+                draw_texture_ex(
+                    &tileset,
+                    (UI_BORDER + (x * TILE_SIZE)) as f32,
+                    (UI_BORDER + (y * TILE_SIZE)) as f32,
+                    WHITE,
+                    DrawTextureParams {
+                        source: Some(Rect {
+                            x: tiles_index,
+                            y: 0.0,
+                            w: TILE_SIZE as f32,
+                            h: TILE_SIZE as f32,
+                        }),
+                        ..Default::default()
+                    },
                 );
             }
         }
@@ -46,5 +61,12 @@ async fn main() {
 
         // needed for the engine
         next_frame().await;
+    }
+}
+
+fn get_tile_index(tile_type: TileType) -> f32 {
+    match tile_type {
+        TileType::Floor => 0.0,
+        TileType::Wall => 1.0,
     }
 }
