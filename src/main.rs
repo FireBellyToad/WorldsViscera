@@ -1,8 +1,20 @@
+use std::{collections::HashMap, thread::sleep, time::Duration};
+
+use assets::TextureName;
+use components::{
+    common::{Position, Renderable},
+    player::{Player, player_input},
+};
 use constants::*;
+use game_state::State;
+use hecs::{EntityBuilder, World};
 use macroquad::prelude::*;
 use map::Map;
 
+mod assets;
+mod components;
 mod constants;
+mod game_state;
 mod map;
 
 //Game configuration
@@ -20,20 +32,91 @@ fn get_game_configuration() -> Conf {
 
 #[macroquad::main(get_game_configuration)]
 async fn main() {
+    //Load resources inside map
+    let mut assets = HashMap::new();
+    assets.insert(
+        TextureName::Creatures,
+        load_texture("assets/creatures.png").await.unwrap(),
+    );
+    assets.insert(
+        TextureName::Tiles,
+        load_texture("assets/tiles.png").await.unwrap(),
+    );
 
-    let map = Map {
-        tileset: load_texture("assets/tiles.png").await.unwrap(),
+    //Init ECS
+    let game_state = State {
+        ecs_world: create_ecs_world(),
     };
 
+    let mut maps = game_state.ecs_world.query::<&Map>();
     loop {
-        map.draw_map();
+        for (_entity, map) in &mut maps {
+            map.draw_map(&assets);
+        }
 
         // Quit game on Q
         if is_key_pressed(KeyCode::Q) {
             break;
         }
 
+        player_input(&game_state.ecs_world);
+        draw_renderables(&game_state.ecs_world, &assets);
+
+        // needed for FPS limit
+        // TODO keep in mind that macroquad is async and is not sleep friendly... keep it checked
+        sleep(Duration::from_millis(100));
         // needed for the engine
         next_frame().await;
+    }
+}
+
+fn create_ecs_world() -> World {
+    let mut world = World::new();
+    let mut builder = EntityBuilder::new();
+    let player_entity = builder
+        .add(Player {})
+        .add(Position {
+            x: MAP_WIDTH / 2,
+            y: MAP_HEIGHT / 2,
+        })
+        .add(Renderable {
+            texture_name: TextureName::Creatures,
+            texture_region: Rect {
+                x: 0.0,
+                y: 0.0,
+                w: TILE_SIZE as f32,
+                h: TILE_SIZE as f32,
+            },
+        })
+        .build();
+
+    world.spawn(player_entity);
+
+    let map_entity = builder.add(Map::new()).build();
+    world.spawn(map_entity);
+
+    world
+}
+
+fn draw_renderables(world: &World, assets: &HashMap<TextureName, Texture2D>) {
+    //Get all entities in readonly
+    let mut renderables_with_position = world.query::<(&Renderable, &Position)>();
+
+    for (_entity, (renderable, position)) in &mut renderables_with_position {
+        let texture_to_render = assets
+            .get(&renderable.texture_name)
+            .expect("Texture not found");
+
+        // Take the texture and draw only the wanted tile ( DrawTextureParams.source )
+        draw_texture_ex(
+            texture_to_render,
+            (UI_BORDER + (position.x * TILE_SIZE)) as f32,
+            (UI_BORDER + (position.y * TILE_SIZE)) as f32,
+            WHITE, // Seems like White color is needed to normal render
+            DrawTextureParams {
+                source: Some(renderable.texture_region),
+                ..Default::default()
+            },
+        );
     }
 }
