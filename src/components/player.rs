@@ -1,7 +1,7 @@
 use std::cmp::{max, min};
 
 use hecs::World;
-use macroquad::input::{KeyCode, get_last_key_pressed, is_key_down};
+use macroquad::input::{KeyCode, get_keys_down, get_last_key_pressed};
 
 use crate::{
     constants::{MAP_HEIGHT, MAP_WIDTH},
@@ -38,14 +38,28 @@ fn try_move_player(delta_x: i32, delta_y: i32, ecs_world: &World) {
 /// Handle player input
 ///
 pub fn player_input(ecs_world: &World) {
-    
-    if is_key_down(KeyCode::Left) {
-        try_move_player(-1, 0, &ecs_world);
-    } else if is_key_down(KeyCode::Right) {
-        try_move_player(1, 0, &ecs_world);
-    } else if is_key_down(KeyCode::Up) {
-        try_move_player(0, -1, &ecs_world);
-    } else if is_key_down(KeyCode::Down) {
-        try_move_player(0, 1, &ecs_world);
+    // Player movement
+    match get_last_key_pressed() {
+        None => {} // Nothing happened
+        Some(key) => match key {
+            KeyCode::Left => try_move_player(-1, 0, &ecs_world),
+            KeyCode::Right => try_move_player(1, 0, &ecs_world),
+            KeyCode::Up => try_move_player(0, -1, &ecs_world),
+            KeyCode::Down => try_move_player(0, 1, &ecs_world),
+            _ => {}
+        },
     }
+
+    if !get_keys_down().is_empty() {
+        println!("is keepinh pressed!")
+    }
+    //     if is_key_down(KeyCode::Left) {
+    //         try_move_player(-1, 0, &ecs_world);
+    //     } else if is_key_down(KeyCode::Right) {
+    //         try_move_player(1, 0, &ecs_world);
+    //     } else if is_key_down(KeyCode::Up) {
+    //         try_move_player(0, -1, &ecs_world);
+    //     } else if is_key_down(KeyCode::Down) {
+    //         try_move_player(0, 1, &ecs_world);
+    //     }
 }

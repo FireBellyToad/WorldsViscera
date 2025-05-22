@@ -6,7 +6,7 @@ use components::{
     player::{Player, player_input},
 };
 use constants::*;
-use engine::state::EngineState;
+use engine::{gameengine::GameEngine, state::EngineState};
 use hecs::{EntityBuilder, World};
 use macroquad::prelude::*;
 use map::Map;
@@ -44,46 +44,30 @@ async fn main() {
     );
 
     //Init ECS
+    let mut game_engine = GameEngine::new();
     let game_state = EngineState {
         ecs_world: create_ecs_world(),
     };
 
     let mut maps = game_state.ecs_world.query::<&Map>();
-    let mut time: f32 = 0.0;
+
     loop {
-        time = do_game_tick(time, &game_state);
-
-        if is_tick_done(time){
-            next_frame().await;
-        }
-
         for (_entity, map) in &mut maps {
             map.draw_map(&assets);
         }
 
         draw_renderables(&game_state.ecs_world, &assets);
+
+        if game_engine.next_tick() {
+            player_input(&game_state.ecs_world);
+            game_engine.add_delay_to_next_tick();
+            next_frame().await;
+        }
+
     }
 }
 
-fn do_game_tick(current_time: f32, game_state: &EngineState) -> f32 {
-    let time_passed = current_time + get_frame_time();
-
-    // needed for the engine
-    if time_passed > SECONDS_TO_WAIT {
-        do_game_logic(game_state);
-        return 0.0;
-    }
-
-    time_passed
-}
-
-fn is_tick_done(current_time: f32) -> bool {
-  current_time == 0.0
-}
-
-fn do_game_logic(game_state: &EngineState) {
-    player_input(&game_state.ecs_world);
-}
+fn do_game_logic(game_state: &EngineState) {}
 
 fn create_ecs_world() -> World {
     let mut world = World::new();
