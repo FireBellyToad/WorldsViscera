@@ -6,7 +6,7 @@ use components::{
     player::{Player, player_input},
 };
 use constants::*;
-use game_state::State;
+use engine::state::EngineState;
 use hecs::{EntityBuilder, World};
 use macroquad::prelude::*;
 use map::Map;
@@ -14,7 +14,7 @@ use map::Map;
 mod assets;
 mod components;
 mod constants;
-mod game_state;
+mod engine;
 mod map;
 
 //Game configuration
@@ -44,30 +44,45 @@ async fn main() {
     );
 
     //Init ECS
-    let game_state = State {
+    let game_state = EngineState {
         ecs_world: create_ecs_world(),
     };
 
     let mut maps = game_state.ecs_world.query::<&Map>();
+    let mut time: f32 = 0.0;
     loop {
+        time = do_game_tick(time, &game_state);
+
+        if is_tick_done(time){
+            next_frame().await;
+        }
+
         for (_entity, map) in &mut maps {
             map.draw_map(&assets);
         }
 
-        // Quit game on Q
-        if is_key_pressed(KeyCode::Q) {
-            break;
-        }
-
-        player_input(&game_state.ecs_world);
         draw_renderables(&game_state.ecs_world, &assets);
-
-        // needed for FPS limit
-        // TODO keep in mind that macroquad is async and is not sleep friendly... keep it checked
-        sleep(Duration::from_millis(100));
-        // needed for the engine
-        next_frame().await;
     }
+}
+
+fn do_game_tick(current_time: f32, game_state: &EngineState) -> f32 {
+    let time_passed = current_time + get_frame_time();
+
+    // needed for the engine
+    if time_passed > SECONDS_TO_WAIT {
+        do_game_logic(game_state);
+        return 0.0;
+    }
+
+    time_passed
+}
+
+fn is_tick_done(current_time: f32) -> bool {
+  current_time == 0.0
+}
+
+fn do_game_logic(game_state: &EngineState) {
+    player_input(&game_state.ecs_world);
 }
 
 fn create_ecs_world() -> World {

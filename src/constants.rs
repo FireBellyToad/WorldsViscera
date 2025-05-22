@@ -7,3 +7,6 @@ pub const TILE_SIZE: i32 = 32;
 pub const UI_BORDER: i32 = 8;
 pub const WINDOW_WIDTH: i32 = (UI_BORDER * 2) + (MAP_WIDTH * TILE_SIZE);
 pub const WINDOW_HEIGHT: i32 = (UI_BORDER * 2) + (MAP_HEIGHT * TILE_SIZE);
+
+/// Timing related constants
+pub const SECONDS_TO_WAIT: f32 = 0.5;
