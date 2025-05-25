@@ -60,7 +60,6 @@ async fn main() {
 
         if game_engine.next_tick() {
             player_input(&game_state.ecs_world);
-            game_engine.add_delay_to_next_tick();
             next_frame().await;
         }
 

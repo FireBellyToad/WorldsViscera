@@ -1,7 +1,7 @@
 use std::cmp::{max, min};
 
 use hecs::World;
-use macroquad::input::{KeyCode, get_keys_down, get_last_key_pressed};
+use macroquad::input::{get_key_pressed, get_keys_down, get_keys_pressed, get_last_key_pressed, KeyCode};
 
 use crate::{
     constants::{MAP_HEIGHT, MAP_WIDTH},
@@ -39,7 +39,7 @@ fn try_move_player(delta_x: i32, delta_y: i32, ecs_world: &World) {
 ///
 pub fn player_input(ecs_world: &World) {
     // Player movement
-    match get_last_key_pressed() {
+    match get_key_pressed() {
         None => {} // Nothing happened
         Some(key) => match key {
             KeyCode::Left => try_move_player(-1, 0, &ecs_world),
@@ -49,17 +49,5 @@ pub fn player_input(ecs_world: &World) {
             _ => {}
         },
     }
-
-    if !get_keys_down().is_empty() {
-        println!("is keepinh pressed!")
-    }
-    //     if is_key_down(KeyCode::Left) {
-    //         try_move_player(-1, 0, &ecs_world);
-    //     } else if is_key_down(KeyCode::Right) {
-    //         try_move_player(1, 0, &ecs_world);
-    //     } else if is_key_down(KeyCode::Up) {
-    //         try_move_player(0, -1, &ecs_world);
-    //     } else if is_key_down(KeyCode::Down) {
-    //         try_move_player(0, 1, &ecs_world);
-    //     }
+    
 }
