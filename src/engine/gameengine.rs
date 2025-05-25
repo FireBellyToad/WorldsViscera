@@ -1,6 +1,6 @@
 use macroquad::time::get_frame_time;
 
-use crate::constants::{DELAY_IN_SECONDS, SECONDS_TO_WAIT};
+use crate::constants::{SECONDS_TO_WAIT};
 
 pub struct GameEngine {
     engine_time: f32,
@@ -30,10 +30,5 @@ impl GameEngine {
 
     fn is_tick_done(&self) -> bool {
         self.engine_time == 0.0
-    }
-
-    /// Add delay (in seconds) to the current tick
-    pub fn add_delay_to_next_tick(&mut self) {
-        self.tick_delay = DELAY_IN_SECONDS
     }
 }

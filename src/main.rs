@@ -1,4 +1,4 @@
-use std::{collections::HashMap, thread::sleep, time::Duration};
+use std::{collections::HashMap};
 
 use assets::TextureName;
 use components::{
@@ -66,16 +66,16 @@ async fn main() {
     }
 }
 
-fn do_game_logic(game_state: &EngineState) {}
-
 fn create_ecs_world() -> World {
     let mut world = World::new();
     let mut builder = EntityBuilder::new();
+    
+    let map: Map = Map::new_dungeon_map();
     let player_entity = builder
         .add(Player {})
         .add(Position {
-            x: MAP_WIDTH / 2,
-            y: MAP_HEIGHT / 2,
+            x: map.rooms[0].center()[0] as i32,
+            y: map.rooms[0].center()[1] as i32,
         })
         .add(Renderable {
             texture_name: TextureName::Creatures,
@@ -90,8 +90,9 @@ fn create_ecs_world() -> World {
 
     world.spawn(player_entity);
 
-    let map_entity = builder.add(Map::new()).build();
+    let map_entity = builder.add(map).build();
     world.spawn(map_entity);
+
 
     world
 }

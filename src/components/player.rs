@@ -1,7 +1,9 @@
 use std::cmp::{max, min};
 
 use hecs::World;
-use macroquad::input::{get_key_pressed, get_keys_down, get_keys_pressed, get_last_key_pressed, KeyCode};
+use macroquad::input::{
+    KeyCode, get_key_pressed,
+};
 
 use crate::{
     constants::{MAP_HEIGHT, MAP_WIDTH},
@@ -42,12 +44,11 @@ pub fn player_input(ecs_world: &World) {
     match get_key_pressed() {
         None => {} // Nothing happened
         Some(key) => match key {
-            KeyCode::Left => try_move_player(-1, 0, &ecs_world),
-            KeyCode::Right => try_move_player(1, 0, &ecs_world),
-            KeyCode::Up => try_move_player(0, -1, &ecs_world),
-            KeyCode::Down => try_move_player(0, 1, &ecs_world),
+            KeyCode::Kp4 | KeyCode::Left => try_move_player(-1, 0, &ecs_world),
+            KeyCode::Kp6 | KeyCode::Right => try_move_player(1, 0, &ecs_world),
+            KeyCode::Kp8 | KeyCode::Up => try_move_player(0, -1, &ecs_world),
+            KeyCode::Kp2 | KeyCode::Down => try_move_player(0, 1, &ecs_world),
             _ => {}
         },
     }
-    
 }

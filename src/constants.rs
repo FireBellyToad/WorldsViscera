@@ -10,4 +10,3 @@ pub const WINDOW_HEIGHT: i32 = (UI_BORDER * 2) + (MAP_HEIGHT * TILE_SIZE);
 
 /// Timing related constants
 pub const SECONDS_TO_WAIT: f32 = 0.03;
-pub const DELAY_IN_SECONDS: f32 = 0.5;
