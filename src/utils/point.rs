@@ -1,6 +1,6 @@
 use adam_fov_rs::{GridPoint, IVec2};
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy,PartialEq)]
 pub struct Point {
     pub x: i32,
     pub y: i32,

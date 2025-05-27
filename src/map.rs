@@ -74,8 +74,7 @@ impl Map {
     fn apply_room_to_map(&mut self, room: &Rect) {
         for y in room.y as i32 + 1..=(room.y + room.h) as i32 {
             for x in room.x as i32 + 1..=(room.x + room.w) as i32 {
-                let index = get_index_from_xy(x, y);
-                self.tiles[index] = TileType::Floor;
+                self.tiles[get_index_from_xy(x, y)] = TileType::Floor;
             }
         }
     }

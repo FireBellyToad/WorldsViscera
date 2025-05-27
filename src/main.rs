@@ -2,15 +2,16 @@ use std::collections::HashMap;
 
 use assets::TextureName;
 use components::{
-    common::{Position, Renderable, Viewshed},
+    common::{Name, Position, Renderable, Viewshed},
+    monster::Monster,
     player::{Player, VIEW_RADIUS, player_input},
 };
 use constants::*;
-use engine::{gameengine::GameEngine, state::EngineState};
+use engine::{gameengine::GameEngine, state::{EngineState, RunState}};
 use hecs::{EntityBuilder, World};
 use macroquad::prelude::*;
-use map::Map;
-use systems::fov::FovSystem;
+use map::{Map, get_index_from_xy};
+use systems::{fov::FovSystem, monster_ai::MonsterAI};
 
 mod assets;
 mod components;
@@ -48,14 +49,23 @@ async fn main() {
 
     //Init ECS
     let mut game_engine = GameEngine::new();
-    let game_state = EngineState {
+    let mut game_state = EngineState {
         ecs_world: create_ecs_world(),
+        run_state: RunState::SystemsRunning
     };
 
     loop {
         if game_engine.next_tick() {
-            player_input(&game_state.ecs_world);
-            FovSystem::calculate_fov(&game_state.ecs_world);
+            // Run system only while not paused, or else wait for player input.
+            // Make the whole game turn based
+            if game_state.run_state == RunState::SystemsRunning {
+                FovSystem::calculate_fov(&game_state.ecs_world);
+                MonsterAI::act(&game_state.ecs_world);
+                game_state.run_state = RunState::WaitingPlayerInput
+            } else {
+                game_state.run_state = player_input(&game_state.ecs_world);
+            }
+
             next_frame().await;
         }
 
@@ -68,13 +78,14 @@ fn create_ecs_world() -> World {
     let mut builder = EntityBuilder::new();
 
     let map: Map = Map::new_dungeon_map();
-    let player_entity = builder
-        .add(Player {})
-        .add(Position {
+
+    let player_entity = (
+        Player {},
+        Position {
             x: map.rooms[0].center()[0] as i32,
             y: map.rooms[0].center()[1] as i32,
-        })
-        .add(Renderable {
+        },
+        Renderable {
             texture_name: TextureName::Creatures,
             texture_region: Rect {
                 x: 0.0,
@@ -82,15 +93,46 @@ fn create_ecs_world() -> World {
                 w: TILE_SIZE as f32,
                 h: TILE_SIZE as f32,
             },
-        })
-        .add(Viewshed {
+        },
+        Viewshed {
             visible_tiles: Vec::new(),
             range: VIEW_RADIUS,
             must_recalculate: true,
-        })
-        .build();
+        },
+    );
 
     world.spawn(player_entity);
+
+    let mut monsters = Vec::new();
+    for (index, room) in map.rooms.iter().skip(1).enumerate() {
+        let monster_entity = (
+            Monster {},
+            Position {
+                x: room.center()[0] as i32,
+                y: room.center()[1] as i32,
+            },
+            Renderable {
+                texture_name: TextureName::Creatures,
+                texture_region: Rect {
+                    x: 1.0 * TILE_SIZE as f32, //TODO fix
+                    y: 0.0,
+                    w: TILE_SIZE as f32,
+                    h: TILE_SIZE as f32,
+                },
+            },
+            Viewshed {
+                visible_tiles: Vec::new(),
+                range: VIEW_RADIUS,
+                must_recalculate: true,
+            },
+            Name {
+                name: String::from(format!("Deep one #{index}")),
+            },
+        );
+        monsters.push(monster_entity);
+    }
+
+    world.spawn_batch(monsters);
 
     let map_entity = builder.add(map).build();
     world.spawn(map_entity);
@@ -102,12 +144,11 @@ fn render_game(game_state: &EngineState, assets: &HashMap<TextureName, Texture2D
     let mut maps = game_state.ecs_world.query::<&Map>();
     for (_entity, map) in &mut maps {
         map.draw_map(assets);
+        draw_renderables(&game_state.ecs_world, &assets, &map);
     }
-
-    draw_renderables(&game_state.ecs_world, &assets);
 }
 
-fn draw_renderables(world: &World, assets: &HashMap<TextureName, Texture2D>) {
+fn draw_renderables(world: &World, assets: &HashMap<TextureName, Texture2D>, map: &Map) {
     //Get all entities in readonly
     let mut renderables_with_position = world.query::<(&Renderable, &Position)>();
 
@@ -116,16 +157,18 @@ fn draw_renderables(world: &World, assets: &HashMap<TextureName, Texture2D>) {
             .get(&renderable.texture_name)
             .expect("Texture not found");
 
-        // Take the texture and draw only the wanted tile ( DrawTextureParams.source )
-        draw_texture_ex(
-            texture_to_render,
-            (UI_BORDER + (position.x * TILE_SIZE)) as f32,
-            (UI_BORDER + (position.y * TILE_SIZE)) as f32,
-            WHITE, // Seems like White color is needed to normal render
-            DrawTextureParams {
-                source: Some(renderable.texture_region),
-                ..Default::default()
-            },
-        );
+        if map.visible_tiles[get_index_from_xy(position.x, position.y)] {
+            // Take the texture and draw only the wanted tile ( DrawTextureParams.source )
+            draw_texture_ex(
+                texture_to_render,
+                (UI_BORDER + (position.x * TILE_SIZE)) as f32,
+                (UI_BORDER + (position.y * TILE_SIZE)) as f32,
+                WHITE, // Seems like White color is needed to normal render
+                DrawTextureParams {
+                    source: Some(renderable.texture_region),
+                    ..Default::default()
+                },
+            );
+        }
     }
 }

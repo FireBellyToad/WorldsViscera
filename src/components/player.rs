@@ -4,8 +4,7 @@ use hecs::World;
 use macroquad::input::{KeyCode, get_key_pressed};
 
 use crate::{
-    constants::{MAP_HEIGHT, MAP_WIDTH},
-    map::{get_index_from_xy, Map, TileType},
+    constants::{MAP_HEIGHT, MAP_WIDTH}, engine::state::RunState, map::{get_index_from_xy, Map, TileType}
 };
 
 use super::common::{Position, Viewshed};
@@ -27,8 +26,7 @@ fn try_move_player(delta_x: i32, delta_y: i32, ecs_world: &World) {
         .last()
         .expect("Map is not in hecs::World");
 
-    for (entity, (_players, position, viewshed)) in &mut players {
-        println!("Player: {:?}",entity);
+    for (_e, (_p, position, viewshed)) in &mut players {
         let index = get_index_from_xy(position.x + delta_x, position.y + delta_y);
         if map.tiles[index] != TileType::Wall {
             position.x = min(MAP_WIDTH - 1, max(0, position.x + delta_x));
@@ -41,16 +39,18 @@ fn try_move_player(delta_x: i32, delta_y: i32, ecs_world: &World) {
 ///
 /// Handle player input
 ///
-pub fn player_input(ecs_world: &World) {
+pub fn player_input(ecs_world: &World) -> RunState {
     // Player movement
     match get_key_pressed() {
-        None => {} // Nothing happened
+        None => {return RunState::WaitingPlayerInput} // Nothing happened
         Some(key) => match key {
             KeyCode::Kp4 | KeyCode::Left => try_move_player(-1, 0, &ecs_world),
             KeyCode::Kp6 | KeyCode::Right => try_move_player(1, 0, &ecs_world),
             KeyCode::Kp8 | KeyCode::Up => try_move_player(0, -1, &ecs_world),
             KeyCode::Kp2 | KeyCode::Down => try_move_player(0, 1, &ecs_world),
-            _ => {}
+            _ => {return RunState::WaitingPlayerInput}
         },
     }
+
+    RunState::SystemsRunning
 }

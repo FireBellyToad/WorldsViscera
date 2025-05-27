@@ -1,11 +1,16 @@
 use hecs::World;
 
+#[derive(PartialEq)]
+pub enum RunState {
+    SystemsRunning,
+    WaitingPlayerInput,
+}
+
 // Game state struct
 pub struct EngineState {
-    pub ecs_world: World,    // World of ECS, where the framework lives
+    pub ecs_world: World, // World of ECS, where the framework lives
+    pub run_state: RunState
 }
 
 // State implementations
-impl EngineState {
-    
-}
+impl EngineState {}

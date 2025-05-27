@@ -7,6 +7,7 @@ pub struct GameEngine {
     tick_delay: f32,
 }
 
+
 impl GameEngine {
     pub fn new() -> Self {
         Self {
