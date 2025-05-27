@@ -1,21 +1,24 @@
-use std::{collections::HashMap};
+use std::collections::HashMap;
 
 use assets::TextureName;
 use components::{
-    common::{Position, Renderable},
-    player::{Player, player_input},
+    common::{Position, Renderable, Viewshed},
+    player::{Player, VIEW_RADIUS, player_input},
 };
 use constants::*;
 use engine::{gameengine::GameEngine, state::EngineState};
 use hecs::{EntityBuilder, World};
 use macroquad::prelude::*;
 use map::Map;
+use systems::fov::FovSystem;
 
 mod assets;
 mod components;
 mod constants;
 mod engine;
 mod map;
+mod systems;
+mod utils;
 
 //Game configuration
 fn get_game_configuration() -> Conf {
@@ -49,27 +52,21 @@ async fn main() {
         ecs_world: create_ecs_world(),
     };
 
-    let mut maps = game_state.ecs_world.query::<&Map>();
-
     loop {
-        for (_entity, map) in &mut maps {
-            map.draw_map(&assets);
-        }
-
-        draw_renderables(&game_state.ecs_world, &assets);
-
         if game_engine.next_tick() {
             player_input(&game_state.ecs_world);
+            FovSystem::calculate_fov(&game_state.ecs_world);
             next_frame().await;
         }
 
+        render_game(&game_state, &assets);
     }
 }
 
 fn create_ecs_world() -> World {
     let mut world = World::new();
     let mut builder = EntityBuilder::new();
-    
+
     let map: Map = Map::new_dungeon_map();
     let player_entity = builder
         .add(Player {})
@@ -86,6 +83,11 @@ fn create_ecs_world() -> World {
                 h: TILE_SIZE as f32,
             },
         })
+        .add(Viewshed {
+            visible_tiles: Vec::new(),
+            range: VIEW_RADIUS,
+            must_recalculate: true,
+        })
         .build();
 
     world.spawn(player_entity);
@@ -93,8 +95,16 @@ fn create_ecs_world() -> World {
     let map_entity = builder.add(map).build();
     world.spawn(map_entity);
 
-
     world
+}
+
+fn render_game(game_state: &EngineState, assets: &HashMap<TextureName, Texture2D>) {
+    let mut maps = game_state.ecs_world.query::<&Map>();
+    for (_entity, map) in &mut maps {
+        map.draw_map(assets);
+    }
+
+    draw_renderables(&game_state.ecs_world, &assets);
 }
 
 fn draw_renderables(world: &World, assets: &HashMap<TextureName, Texture2D>) {
