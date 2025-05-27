@@ -2,16 +2,19 @@ use std::collections::HashMap;
 
 use assets::TextureName;
 use components::{
-    common::{Name, Position, Renderable, Viewshed},
+    common::{BlocksTile, Named, Position, Renderable, Target, Viewshed},
     monster::Monster,
-    player::{Player, VIEW_RADIUS, player_input},
+    player::{player_input, Player, VIEW_RADIUS},
 };
 use constants::*;
-use engine::{gameengine::GameEngine, state::{EngineState, RunState}};
+use engine::{
+    gameengine::GameEngine,
+    state::{EngineState, RunState},
+};
 use hecs::{EntityBuilder, World};
 use macroquad::prelude::*;
 use map::{Map, get_index_from_xy};
-use systems::{fov::FovSystem, monster_ai::MonsterAI};
+use systems::{fov::FovSystem, map_indexing::MapIndexing, monster_ai::MonsterAI};
 
 mod assets;
 mod components;
@@ -51,7 +54,7 @@ async fn main() {
     let mut game_engine = GameEngine::new();
     let mut game_state = EngineState {
         ecs_world: create_ecs_world(),
-        run_state: RunState::SystemsRunning
+        run_state: RunState::SystemsRunning,
     };
 
     loop {
@@ -61,6 +64,7 @@ async fn main() {
             if game_state.run_state == RunState::SystemsRunning {
                 FovSystem::calculate_fov(&game_state.ecs_world);
                 MonsterAI::act(&game_state.ecs_world);
+                MapIndexing::index_map(&game_state.ecs_world);
                 game_state.run_state = RunState::WaitingPlayerInput
             } else {
                 game_state.run_state = player_input(&game_state.ecs_world);
@@ -99,6 +103,10 @@ fn create_ecs_world() -> World {
             range: VIEW_RADIUS,
             must_recalculate: true,
         },
+        Target {
+            x: map.rooms[0].center()[0] as i32,
+            y: map.rooms[0].center()[1] as i32,
+        },
     );
 
     world.spawn(player_entity);
@@ -125,9 +133,10 @@ fn create_ecs_world() -> World {
                 range: VIEW_RADIUS,
                 must_recalculate: true,
             },
-            Name {
+            Named {
                 name: String::from(format!("Deep one #{index}")),
             },
+            BlocksTile{}
         );
         monsters.push(monster_entity);
     }

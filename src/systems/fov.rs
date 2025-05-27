@@ -4,7 +4,7 @@ use hecs::World;
 use crate::{
     components::{common::*, player::Player},
     constants::{MAP_HEIGHT, MAP_WIDTH},
-    map::{Map, get_index_from_xy},
+    map::{get_index_from_xy, Map},
     utils::point::Point,
 };
 

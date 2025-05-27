@@ -7,6 +7,12 @@ pub struct Position {
     pub y: i32,
 }
 
+pub struct Target {
+    pub x: i32,
+    pub y: i32,
+}
+
+
 pub struct Renderable {
     pub texture_name: TextureName,
     pub texture_region: Rect,
@@ -17,6 +23,8 @@ pub struct Viewshed {
     pub range: i32,
     pub must_recalculate: bool
 }
-pub struct Name {
+pub struct Named {
     pub name: String
 }
+
+pub struct BlocksTile {}

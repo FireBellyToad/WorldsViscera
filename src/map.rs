@@ -13,6 +13,7 @@ pub struct Map {
     pub rooms: Vec<Rect>,
     pub revealed_tiles: Vec<bool>,
     pub visible_tiles: Vec<bool>,
+    pub blocked_tiles: Vec<bool>,
 }
 #[derive(Clone, PartialEq)]
 pub enum TileType {
@@ -28,6 +29,7 @@ impl Map {
             rooms: Vec::new(),
             revealed_tiles: vec![false; (MAP_WIDTH * MAP_HEIGHT) as usize],
             visible_tiles: vec![false; (MAP_WIDTH * MAP_HEIGHT) as usize],
+            blocked_tiles: vec![false; (MAP_WIDTH * MAP_HEIGHT) as usize],
         };
 
         // Generate new seed, or else it will always generate the same layout
@@ -97,6 +99,29 @@ impl Map {
         }
     }
 
+    pub fn get_adjacent_passable_tiles(&self, x_pos: i32, y_pos: i32) -> Vec<(i32, i32)> {
+        let mut adjacent_passable_tiles = Vec::new();
+
+        for x in x_pos - 1..=x_pos + 1 {
+            for y in y_pos - 1..=y_pos + 1 {
+                if !self.blocked_tiles[get_index_from_xy(x, y)] {
+                    adjacent_passable_tiles.push((x, y));
+                }
+            }
+        }
+
+        adjacent_passable_tiles
+    }
+
+    pub fn populate_blocked(&mut self) {
+        for (index, tile) in self.tiles.iter_mut().enumerate() {
+            match tile {
+                TileType::Floor => {self.blocked_tiles[index] = false}
+                _ => {self.blocked_tiles[index] = true}
+            } 
+        }
+    }
+
     /// Create new empty test map
     pub fn _new_test_map() -> Self {
         let mut map = Map {
@@ -104,6 +129,7 @@ impl Map {
             rooms: Vec::new(),
             revealed_tiles: vec![false; (MAP_WIDTH * MAP_HEIGHT) as usize],
             visible_tiles: vec![false; (MAP_WIDTH * MAP_HEIGHT) as usize],
+            blocked_tiles: vec![false; (MAP_WIDTH * MAP_HEIGHT) as usize],
         };
 
         // Create bondaries
