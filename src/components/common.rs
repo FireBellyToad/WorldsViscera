@@ -7,11 +7,6 @@ pub struct Position {
     pub y: i32,
 }
 
-pub struct Target {
-    pub x: i32,
-    pub y: i32,
-}
-
 
 pub struct Renderable {
     pub texture_name: TextureName,

@@ -4,12 +4,15 @@ use hecs::World;
 pub enum RunState {
     SystemsRunning,
     WaitingPlayerInput,
+    PlayerTurn,
+    MonsterTurn,
+    GameOver,
 }
 
 // Game state struct
 pub struct EngineState {
     pub ecs_world: World, // World of ECS, where the framework lives
-    pub run_state: RunState
+    pub run_state: RunState,
 }
 
 // State implementations

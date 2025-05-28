@@ -2,9 +2,10 @@ use std::collections::HashMap;
 
 use assets::TextureName;
 use components::{
-    common::{BlocksTile, Named, Position, Renderable, Target, Viewshed},
+    combat::{CombatStats, Damageable},
+    common::{BlocksTile, Named, Position, Renderable, Viewshed},
     monster::Monster,
-    player::{player_input, Player, VIEW_RADIUS},
+    player::{Player, VIEW_RADIUS, player_input},
 };
 use constants::*;
 use engine::{
@@ -14,7 +15,9 @@ use engine::{
 use hecs::{EntityBuilder, World};
 use macroquad::prelude::*;
 use map::{Map, get_index_from_xy};
-use systems::{fov::FovSystem, map_indexing::MapIndexing, monster_ai::MonsterAI};
+use systems::{
+    damage_manager::DamageManager, fov::FovSystem, map_indexing::MapIndexing, monster_ai::MonsterAI,
+};
 
 mod assets;
 mod components;
@@ -61,13 +64,28 @@ async fn main() {
         if game_engine.next_tick() {
             // Run system only while not paused, or else wait for player input.
             // Make the whole game turn based
-            if game_state.run_state == RunState::SystemsRunning {
-                FovSystem::calculate_fov(&game_state.ecs_world);
-                MonsterAI::act(&game_state.ecs_world);
-                MapIndexing::index_map(&game_state.ecs_world);
-                game_state.run_state = RunState::WaitingPlayerInput
-            } else {
-                game_state.run_state = player_input(&game_state.ecs_world);
+
+            match game_state.run_state {
+                RunState::SystemsRunning => {
+                    game_state.run_state =
+                        do_game_logic(&mut game_state, RunState::WaitingPlayerInput);
+                }
+                RunState::WaitingPlayerInput => {
+                    game_state.run_state = player_input(&game_state.ecs_world)
+                }
+                RunState::PlayerTurn => {
+                    game_state.run_state = do_game_logic(&mut game_state, RunState::MonsterTurn);
+                }
+                RunState::MonsterTurn => {
+                    MonsterAI::act(&game_state.ecs_world);                    
+                    game_state.run_state = do_game_logic(&mut game_state, RunState::SystemsRunning);
+                }
+                RunState::GameOver => {
+                    // Quit game on Q
+                    if is_key_pressed(KeyCode::Q) {
+                        break;
+                    }
+                }
             }
 
             next_frame().await;
@@ -103,10 +121,19 @@ fn create_ecs_world() -> World {
             range: VIEW_RADIUS,
             must_recalculate: true,
         },
-        Target {
-            x: map.rooms[0].center()[0] as i32,
-            y: map.rooms[0].center()[1] as i32,
+        Named {
+            name: String::from("Player"),
         },
+        CombatStats {
+            //TOdO Random
+            current_stamina: 6,
+            max_stamina: 6,
+            armor: 2,
+            attack_dice: 6,
+            current_toughness: 10,
+            max_toughness: 10,
+        },
+        Damageable { damage_received: 0 },
     );
 
     world.spawn(player_entity);
@@ -136,7 +163,17 @@ fn create_ecs_world() -> World {
             Named {
                 name: String::from(format!("Deep one #{index}")),
             },
-            BlocksTile{}
+            BlocksTile {},
+            CombatStats {
+                //TOdO Random
+                current_stamina: 3,
+                max_stamina: 3,
+                armor: 1,
+                attack_dice: 4,
+                current_toughness: 8,
+                max_toughness: 8,
+            },
+            Damageable { damage_received: 0 },
         );
         monsters.push(monster_entity);
     }
@@ -149,11 +186,34 @@ fn create_ecs_world() -> World {
     world
 }
 
+fn do_game_logic(game_state: &mut EngineState, next_state: RunState) -> RunState {
+    let game_over;
+    DamageManager::manage_damage(&game_state.ecs_world);
+    game_over = DamageManager::remove_dead(&mut game_state.ecs_world);
+    //Proceed on game logic ifis not Game Over
+    if !game_over {
+        FovSystem::calculate_fov(&game_state.ecs_world);
+        MapIndexing::index_map(&game_state.ecs_world);
+        return next_state;
+    } else {
+        return RunState::GameOver;
+    }
+}
+
 fn render_game(game_state: &EngineState, assets: &HashMap<TextureName, Texture2D>) {
-    let mut maps = game_state.ecs_world.query::<&Map>();
-    for (_entity, map) in &mut maps {
-        map.draw_map(assets);
-        draw_renderables(&game_state.ecs_world, &assets, &map);
+    match game_state.run_state {
+        RunState::GameOver => {
+            draw_rectangle(0.0, 0.0, 64.0, 32.0, BLACK);
+            draw_text("YOU ARE DEAD", 32.0, 64.0, 64.0, WHITE);
+            draw_text("Press Q to exit", 32.0, 96.0, 32.0, WHITE);
+        }
+        _ => {
+            let mut maps = game_state.ecs_world.query::<&Map>();
+            for (_entity, map) in &mut maps {
+                map.draw_map(assets);
+                draw_renderables(&game_state.ecs_world, &assets, &map);
+            }
+        }
     }
 }
 

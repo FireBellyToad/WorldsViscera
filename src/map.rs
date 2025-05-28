@@ -3,6 +3,7 @@ use std::{
     collections::HashMap,
 };
 
+use hecs::Entity;
 use macroquad::prelude::*;
 
 use crate::{assets::TextureName, constants::*};
@@ -14,6 +15,7 @@ pub struct Map {
     pub revealed_tiles: Vec<bool>,
     pub visible_tiles: Vec<bool>,
     pub blocked_tiles: Vec<bool>,
+    pub tile_content: Vec<Vec<Entity>>,
 }
 #[derive(Clone, PartialEq)]
 pub enum TileType {
@@ -30,6 +32,7 @@ impl Map {
             revealed_tiles: vec![false; (MAP_WIDTH * MAP_HEIGHT) as usize],
             visible_tiles: vec![false; (MAP_WIDTH * MAP_HEIGHT) as usize],
             blocked_tiles: vec![false; (MAP_WIDTH * MAP_HEIGHT) as usize],
+            tile_content: vec![Vec::new(); (MAP_WIDTH * MAP_HEIGHT) as usize],
         };
 
         // Generate new seed, or else it will always generate the same layout
@@ -116,9 +119,9 @@ impl Map {
     pub fn populate_blocked(&mut self) {
         for (index, tile) in self.tiles.iter_mut().enumerate() {
             match tile {
-                TileType::Floor => {self.blocked_tiles[index] = false}
-                _ => {self.blocked_tiles[index] = true}
-            } 
+                TileType::Floor => self.blocked_tiles[index] = false,
+                _ => self.blocked_tiles[index] = true,
+            }
         }
     }
 
@@ -130,6 +133,7 @@ impl Map {
             revealed_tiles: vec![false; (MAP_WIDTH * MAP_HEIGHT) as usize],
             visible_tiles: vec![false; (MAP_WIDTH * MAP_HEIGHT) as usize],
             blocked_tiles: vec![false; (MAP_WIDTH * MAP_HEIGHT) as usize],
+            tile_content: vec![Vec::new(); (MAP_WIDTH * MAP_HEIGHT) as usize],
         };
 
         // Create bondaries
@@ -152,7 +156,8 @@ impl Map {
         for x in 0..MAP_WIDTH {
             for y in 0..MAP_HEIGHT {
                 let tile_to_draw = get_index_from_xy(x, y);
-                let tile_index = self.get_tile_index(&self.tiles[tile_to_draw]) * TILE_SIZE as f32;
+                let tile_index =
+                    get_tile_sprite_sheet_index(&self.tiles[tile_to_draw]) * TILE_SIZE as f32;
 
                 if self.revealed_tiles[tile_to_draw] {
                     let mut alpha = DARKGRAY;
@@ -180,17 +185,25 @@ impl Map {
         }
     }
 
-    fn get_tile_index(&self, tile_type: &TileType) -> f32 {
-        match tile_type {
-            TileType::Floor => 0.0,
-            TileType::Wall => 1.0,
-        }
-    }
-
-    // Return true if cannot see through
+    /// Return true if cannot see through a tile
     pub fn is_tile_opaque(&self, x: i32, y: i32) -> bool {
         let index = get_index_from_xy(x, y);
         self.tiles[index] == TileType::Wall
+    }
+
+    // Clears content index for this map
+    pub fn clear_content_index(&mut self) {
+        for content in self.tile_content.iter_mut() {
+            content.clear();
+        }
+    }
+}
+
+/// Return a index inside the tile sheet
+fn get_tile_sprite_sheet_index(tile_type: &TileType) -> f32 {
+    match tile_type {
+        TileType::Floor => 0.0,
+        TileType::Wall => 1.0,
     }
 }
 
