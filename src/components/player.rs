@@ -51,7 +51,7 @@ fn try_move_player(delta_x: i32, delta_y: i32, ecs_world: &World) {
                     // Attack it
                     let damage = max(
                         0,
-                        RandomUtils::dice(1, player_stats.attack_dice) - target_stats.armor,
+                        RandomUtils::dice(1, player_stats.unarmed_attack_dice) - target_stats.base_armor,
                     );
                     game_log.entries.push(format!("You punch {} for {} damage", target_name.name, damage));
                     target.damage_received += damage;

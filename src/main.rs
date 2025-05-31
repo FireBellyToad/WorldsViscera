@@ -2,10 +2,8 @@ use std::collections::HashMap;
 
 use assets::TextureName;
 use components::{
-    combat::{CombatStats, Damageable},
-    common::{BlocksTile, GameLog, Named, Position, Renderable, Viewshed},
-    monster::Monster,
-    player::{Player, VIEW_RADIUS, player_input},
+    common::GameLog,
+    player::player_input,
 };
 use constants::*;
 use draw::Draw;
@@ -16,6 +14,7 @@ use engine::{
 use hecs::{EntityBuilder, World};
 use macroquad::prelude::*;
 use map::Map;
+use spawner::Spawn;
 use systems::{
     damage_manager::DamageManager, fov::FovSystem, map_indexing::MapIndexing, monster_ai::MonsterAI,
 };
@@ -26,6 +25,7 @@ mod constants;
 mod draw;
 mod engine;
 mod map;
+mod spawner;
 mod systems;
 mod utils;
 
@@ -111,84 +111,11 @@ fn create_ecs_world() -> World {
 
     let map: Map = Map::new_dungeon_map();
 
-    let player_entity = (
-        Player {},
-        Position {
-            x: map.rooms[0].center()[0] as i32,
-            y: map.rooms[0].center()[1] as i32,
-        },
-        Renderable {
-            texture_name: TextureName::Creatures,
-            texture_region: Rect {
-                x: 0.0,
-                y: 0.0,
-                w: TILE_SIZE as f32,
-                h: TILE_SIZE as f32,
-            },
-        },
-        Viewshed {
-            visible_tiles: Vec::new(),
-            range: VIEW_RADIUS,
-            must_recalculate: true,
-        },
-        Named {
-            name: String::from("Player"),
-        },
-        CombatStats {
-            //TOdO Random
-            current_stamina: 6,
-            max_stamina: 6,
-            armor: 2,
-            attack_dice: 6,
-            current_toughness: 10,
-            max_toughness: 10,
-        },
-        Damageable { damage_received: 0 },
-    );
+    Spawn::player(&mut world, &map);
 
-    world.spawn(player_entity);
-
-    let mut monsters = Vec::new();
-    for (index, room) in map.rooms.iter().skip(1).enumerate() {
-        let monster_entity = (
-            Monster {},
-            Position {
-                x: room.center()[0] as i32,
-                y: room.center()[1] as i32,
-            },
-            Renderable {
-                texture_name: TextureName::Creatures,
-                texture_region: Rect {
-                    x: 1.0 * TILE_SIZE as f32, //TODO fix
-                    y: 0.0,
-                    w: TILE_SIZE as f32,
-                    h: TILE_SIZE as f32,
-                },
-            },
-            Viewshed {
-                visible_tiles: Vec::new(),
-                range: VIEW_RADIUS,
-                must_recalculate: true,
-            },
-            Named {
-                name: String::from(format!("Deep one #{index}")),
-            },
-            BlocksTile {},
-            CombatStats {
-                //TOdO Random
-                current_stamina: 3,
-                max_stamina: 3,
-                armor: 1,
-                attack_dice: 4,
-                current_toughness: 8,
-                max_toughness: 8,
-            },
-            Damageable { damage_received: 0 },
-        );
-        monsters.push(monster_entity);
+    for room in map.rooms.iter().skip(1) {
+        Spawn::random_monster(&mut world, room.center()[0] as i32, room.center()[1] as i32);
     }
-
-    world.spawn_batch(monsters);
 
     let map_entity = builder.add(map).build();
     world.spawn(map_entity);

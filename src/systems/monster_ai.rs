@@ -64,12 +64,12 @@ impl MonsterAI {
                     if distance < 1.5 {
                         let damage = max(
                             0,
-                            RandomUtils::dice(1, monster_stats.attack_dice) - player_stats.armor,
+                            RandomUtils::dice(1, monster_stats.unarmed_attack_dice) - player_stats.base_armor,
                         );
 
                         // Add game log
                         game_log.entries.push(format!(
-                            "{} licks your skin for {} damage",
+                            "{} hits you for {} damage",
                             named.name, damage
                         ));
 

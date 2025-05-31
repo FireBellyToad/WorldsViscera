@@ -112,7 +112,7 @@ impl Draw {
                     + 32
                     + (UI_BORDER * 2)
                     + (MAP_HEIGHT * TILE_SIZE)
-                    + (index as i32 * 32)) as f32, 
+                    + ((MAX_MESSAGES_IN_LOG-index) as i32 * 32)) as f32, 
                 FONT_SIZE,
                 WHITE,
             );

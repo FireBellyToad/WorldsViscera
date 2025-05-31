@@ -21,4 +21,15 @@ impl RandomUtils {
     pub fn d20() -> i32 {
         Self::dice(1,20)
     }
+
+    /// Roll a d6. Will be used a lot
+    pub fn d6() -> i32 {
+        Self::dice(1,6)
+    }
+
+
+    /// Roll 3d6. Will be used a lot
+    pub fn stat_roll() -> i32 {
+        Self::dice(3,6)
+    }
 }
