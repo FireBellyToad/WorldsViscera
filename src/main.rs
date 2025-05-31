@@ -1,17 +1,14 @@
 use std::collections::HashMap;
 
 use assets::TextureName;
-use components::{
-    common::GameLog,
-    player::player_input,
-};
+use components::{common::GameLog, player::player_input};
 use constants::*;
 use draw::Draw;
 use engine::{
     gameengine::GameEngine,
     state::{EngineState, RunState},
 };
-use hecs::{EntityBuilder, World};
+use hecs::World;
 use macroquad::prelude::*;
 use map::Map;
 use spawner::Spawn;
@@ -86,6 +83,10 @@ async fn main() {
                     // Quit game on Q
                     if is_key_pressed(KeyCode::Q) {
                         break;
+                    } else if is_key_pressed(KeyCode::R) {
+                        game_state.ecs_world.clear();
+                        game_state.run_state = RunState::SystemsRunning;
+                        populate_world(&mut game_state.ecs_world)
                     }
                 }
             }
@@ -99,10 +100,15 @@ async fn main() {
 
 fn create_ecs_world() -> World {
     let mut world = World::new();
-    let mut builder = EntityBuilder::new();
 
+    populate_world(&mut world);
+
+    world
+}
+
+fn populate_world(ecs_world: &mut World){
     //Add Game log to world
-    world.spawn((
+    ecs_world.spawn((
         0u8,
         GameLog {
             entries: vec!["Welcome to World's Viscera".to_string()],
@@ -111,16 +117,14 @@ fn create_ecs_world() -> World {
 
     let map: Map = Map::new_dungeon_map();
 
-    Spawn::player(&mut world, &map);
+    Spawn::player(ecs_world, &map);
 
     for room in map.rooms.iter().skip(1) {
-        Spawn::random_monster(&mut world, room.center()[0] as i32, room.center()[1] as i32);
+        Spawn::random_monster(ecs_world, room.center()[0] as i32, room.center()[1] as i32);
     }
-
-    let map_entity = builder.add(map).build();
-    world.spawn(map_entity);
-
-    world
+    
+    // Add map
+    ecs_world.spawn((0u8,map));
 }
 
 fn do_game_logic(game_state: &mut EngineState, next_state: RunState) -> RunState {

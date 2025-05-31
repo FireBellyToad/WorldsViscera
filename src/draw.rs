@@ -154,6 +154,6 @@ impl Draw {
     fn game_over() {
         draw_rectangle(0.0, 0.0, 64.0, 32.0, BLACK);
         draw_text("YOU ARE DEAD", 32.0, 64.0, FONT_SIZE * 2.0, WHITE);
-        draw_text("Press Q to exit", 32.0, 96.0, FONT_SIZE, WHITE);
+        draw_text("Press R to restart, Q to exit", 32.0, 96.0, FONT_SIZE, WHITE);
     }
 }
