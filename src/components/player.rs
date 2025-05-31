@@ -6,10 +6,11 @@ use macroquad::input::{KeyCode, get_key_pressed};
 use crate::{
     constants::{MAP_HEIGHT, MAP_WIDTH},
     engine::state::RunState,
-    map::{get_index_from_xy, Map}, utils::random_util::RandomUtils,
+    map::{Map, get_index_from_xy},
+    utils::random_util::RandomUtils,
 };
 
-use super::combat::{CombatStats, Damageable};
+use super::{combat::{CombatStats, Damageable}, common::GameLog};
 use super::common::{Named, Position, Viewshed};
 
 /// Player constants
@@ -23,8 +24,15 @@ pub struct Player {}
 ///
 fn try_move_player(delta_x: i32, delta_y: i32, ecs_world: &World) {
     let mut players = ecs_world.query::<(&Player, &mut Position, &mut Viewshed, &CombatStats)>();
+
     let mut map_query = ecs_world.query::<&Map>();
     let (_e, map) = map_query.iter().last().expect("Map is not in hecs::World");
+
+    let mut game_log_query = ecs_world.query::<&mut GameLog>();
+    let (_e, game_log) = game_log_query
+        .iter()
+        .last()
+        .expect("Game log is not in hecs::World");
 
     for (_e, (_p, position, viewshed, player_stats)) in &mut players {
         let destination_index = get_index_from_xy(position.x + delta_x, position.y + delta_y);
@@ -41,8 +49,11 @@ fn try_move_player(delta_x: i32, delta_y: i32, ecs_world: &World) {
                 None => {}
                 Some((target, target_stats, target_name)) => {
                     // Attack it
-                    let damage = max (0, RandomUtils::dice(1, player_stats.attack_dice) - target_stats.armor);
-                    println!("You punch {} for {} damage", target_name.name, damage);
+                    let damage = max(
+                        0,
+                        RandomUtils::dice(1, player_stats.attack_dice) - target_stats.armor,
+                    );
+                    game_log.entries.push(format!("You punch {} for {} damage", target_name.name, damage));
                     target.damage_received += damage;
                     return;
                 }

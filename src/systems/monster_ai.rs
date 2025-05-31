@@ -3,8 +3,13 @@ use std::cmp::max;
 use hecs::World;
 
 use crate::{
-    components::{combat::{CombatStats, Damageable}, common::*, monster::Monster, player::Player},
-    map::{get_index_from_xy, Map},
+    components::{
+        combat::{CombatStats, Damageable},
+        common::*,
+        monster::Monster,
+        player::Player,
+    },
+    map::{Map, get_index_from_xy},
     utils::{pathfinding_utils::PathfindingUtils, point::Point, random_util::RandomUtils},
 };
 
@@ -20,11 +25,18 @@ impl MonsterAI {
         let mut map_query = ecs_world.query::<&mut Map>();
         let (_e, map) = map_query.iter().last().expect("Map is not in hecs::World");
 
-        let mut player_query = ecs_world.query::<(&Player, &mut Damageable, &Position, &CombatStats)>();
-        let (_e, (_p,player, player_position, player_stats)) = player_query
+        let mut player_query =
+            ecs_world.query::<(&Player, &mut Damageable, &Position, &CombatStats)>();
+        let (_e, (_p, player, player_position, player_stats)) = player_query
             .iter()
             .last()
             .expect("Player is not in hecs::World");
+
+        let mut game_log_query = ecs_world.query::<&mut GameLog>();
+        let (_e, game_log) = game_log_query
+            .iter()
+            .last()
+            .expect("Game log is not in hecs::World");
 
         // For each viewshed position monster component join
         for (_e, (viewshed, _monster, position, named, monster_stats)) in &mut named_monsters {
@@ -54,7 +66,13 @@ impl MonsterAI {
                             0,
                             RandomUtils::dice(1, monster_stats.attack_dice) - player_stats.armor,
                         );
-                        println!("{} licks your skin for {} damage", named.name, damage);
+
+                        // Add game log
+                        game_log.entries.push(format!(
+                            "{} licks your skin for {} damage",
+                            named.name, damage
+                        ));
+
                         player.damage_received += damage;
                     } else {
                         viewshed.must_recalculate = true;

@@ -5,7 +5,7 @@ use hecs::{Entity, World};
 use crate::{
     components::{
         combat::{CombatStats, Damageable},
-        common::Named,
+        common::{GameLog, Named},
         player::Player,
     },
     utils::random_util::RandomUtils,
@@ -37,22 +37,30 @@ impl DamageManager {
 
         // Scope for keeping borrow checker quiet
         {
+            let mut game_log_query = ecs_world.query::<&mut GameLog>();
+            let (_e, game_log) = game_log_query
+                .iter()
+                .last()
+                .expect("Game log is not in hecs::World");
+
             let mut damageables = ecs_world.query::<(&CombatStats, &Named, &mut Damageable)>();
             for (entity, (stats, named, damageable)) in &mut damageables {
-
                 // if has been damaged and Stamina is 0, do a thougness saving throw or die.
                 // On 0 or less toughness, die anyway
                 if stats.current_stamina == 0 && damageable.damage_received > 0 {
                     let saving_throw_roll = RandomUtils::d20();
-                    println!(
+
+                    game_log.entries.push(format!(
                         "{}  saving with {} against thougness {} / {}",
                         named.name, saving_throw_roll, stats.current_toughness, stats.max_toughness
-                    );
+                    ));
                     if stats.current_toughness < 1 || saving_throw_roll > stats.current_toughness {
                         dead_entities.push(entity);
-                        println!("{} dies!", named.name);
+                        game_log.entries.push(format!("{} dies!", named.name));
                     } else if stats.current_toughness > 0 {
-                        println!("{} staggers in pain!", named.name)
+                        game_log
+                            .entries
+                            .push(format!("{} staggers in pain!", named.name));
                     }
                 }
                 // Reset damage_received

@@ -3,18 +3,19 @@ use std::collections::HashMap;
 use assets::TextureName;
 use components::{
     combat::{CombatStats, Damageable},
-    common::{BlocksTile, Named, Position, Renderable, Viewshed},
+    common::{BlocksTile, GameLog, Named, Position, Renderable, Viewshed},
     monster::Monster,
     player::{Player, VIEW_RADIUS, player_input},
 };
 use constants::*;
+use draw::Draw;
 use engine::{
     gameengine::GameEngine,
     state::{EngineState, RunState},
 };
 use hecs::{EntityBuilder, World};
 use macroquad::prelude::*;
-use map::{Map, get_index_from_xy};
+use map::Map;
 use systems::{
     damage_manager::DamageManager, fov::FovSystem, map_indexing::MapIndexing, monster_ai::MonsterAI,
 };
@@ -22,6 +23,7 @@ use systems::{
 mod assets;
 mod components;
 mod constants;
+mod draw;
 mod engine;
 mod map;
 mod systems;
@@ -77,7 +79,7 @@ async fn main() {
                     game_state.run_state = do_game_logic(&mut game_state, RunState::MonsterTurn);
                 }
                 RunState::MonsterTurn => {
-                    MonsterAI::act(&game_state.ecs_world);                    
+                    MonsterAI::act(&game_state.ecs_world);
                     game_state.run_state = do_game_logic(&mut game_state, RunState::SystemsRunning);
                 }
                 RunState::GameOver => {
@@ -91,13 +93,21 @@ async fn main() {
             next_frame().await;
         }
 
-        render_game(&game_state, &assets);
+        Draw::render_game(&game_state, &assets);
     }
 }
 
 fn create_ecs_world() -> World {
     let mut world = World::new();
     let mut builder = EntityBuilder::new();
+
+    //Add Game log to world
+    world.spawn((
+        0u8,
+        GameLog {
+            entries: vec!["Welcome to World's Viscera".to_string()],
+        },
+    ));
 
     let map: Map = Map::new_dungeon_map();
 
@@ -197,47 +207,5 @@ fn do_game_logic(game_state: &mut EngineState, next_state: RunState) -> RunState
         return next_state;
     } else {
         return RunState::GameOver;
-    }
-}
-
-fn render_game(game_state: &EngineState, assets: &HashMap<TextureName, Texture2D>) {
-    match game_state.run_state {
-        RunState::GameOver => {
-            draw_rectangle(0.0, 0.0, 64.0, 32.0, BLACK);
-            draw_text("YOU ARE DEAD", 32.0, 64.0, 64.0, WHITE);
-            draw_text("Press Q to exit", 32.0, 96.0, 32.0, WHITE);
-        }
-        _ => {
-            let mut maps = game_state.ecs_world.query::<&Map>();
-            for (_entity, map) in &mut maps {
-                map.draw_map(assets);
-                draw_renderables(&game_state.ecs_world, &assets, &map);
-            }
-        }
-    }
-}
-
-fn draw_renderables(world: &World, assets: &HashMap<TextureName, Texture2D>, map: &Map) {
-    //Get all entities in readonly
-    let mut renderables_with_position = world.query::<(&Renderable, &Position)>();
-
-    for (_entity, (renderable, position)) in &mut renderables_with_position {
-        let texture_to_render = assets
-            .get(&renderable.texture_name)
-            .expect("Texture not found");
-
-        if map.visible_tiles[get_index_from_xy(position.x, position.y)] {
-            // Take the texture and draw only the wanted tile ( DrawTextureParams.source )
-            draw_texture_ex(
-                texture_to_render,
-                (UI_BORDER + (position.x * TILE_SIZE)) as f32,
-                (UI_BORDER + (position.y * TILE_SIZE)) as f32,
-                WHITE, // Seems like White color is needed to normal render
-                DrawTextureParams {
-                    source: Some(renderable.texture_region),
-                    ..Default::default()
-                },
-            );
-        }
     }
 }
