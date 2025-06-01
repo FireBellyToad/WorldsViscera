@@ -106,10 +106,13 @@ fn create_ecs_world() -> World {
     world
 }
 
-fn populate_world(ecs_world: &mut World){
+fn populate_world(ecs_world: &mut World) {
+    // Generate new seed, or else it will always generate the same things
+    rand::srand(macroquad::miniquad::date::now() as _);
+
     //Add Game log to world
     ecs_world.spawn((
-        0u8,
+        true,
         GameLog {
             entries: vec!["Welcome to World's Viscera".to_string()],
         },
@@ -120,11 +123,11 @@ fn populate_world(ecs_world: &mut World){
     Spawn::player(ecs_world, &map);
 
     for room in map.rooms.iter().skip(1) {
-        Spawn::random_monster(ecs_world, room.center()[0] as i32, room.center()[1] as i32);
+        Spawn::in_room(ecs_world, room);
     }
-    
+
     // Add map
-    ecs_world.spawn((0u8,map));
+    ecs_world.spawn((true, map));
 }
 
 fn do_game_logic(game_state: &mut EngineState, next_state: RunState) -> RunState {

@@ -1,5 +1,9 @@
+use std::cmp::max;
+use std::collections::HashSet;
+
 use hecs::World;
 use macroquad::math::Rect;
+use macroquad::rand;
 
 use crate::assets::TextureName;
 use crate::components::combat::*;
@@ -17,11 +21,10 @@ pub struct Spawn {}
 impl Spawn {
     /// Spawn player
     pub fn player(ecs_world: &mut World, map: &Map) {
-
         // Roll appropriate stats
         let rolled_toughness = RandomUtils::stat_roll();
         // TODO Player with Soldier background must have 1+2d3 starting stamina
-        let rolled_stamina = RandomUtils::d6()+1;
+        let rolled_stamina = RandomUtils::d6() + 1;
 
         let player_entity = (
             Player {},
@@ -60,7 +63,7 @@ impl Spawn {
 
         ecs_world.spawn(player_entity);
     }
-    
+
     /// Spawn a random monster
     pub fn random_monster(ecs_world: &mut World, x: i32, y: i32) {
         let dice_roll = RandomUtils::dice(1, 4);
@@ -141,5 +144,36 @@ impl Spawn {
         );
 
         ecs_world.spawn(monster_entity);
+    }
+
+    /// Spawn entities inside a room
+    pub fn in_room(ecs_world: &mut World, room: &Rect) {
+        let mut monster_spawn_points: HashSet<usize> = HashSet::new();
+
+        let monster_number = RandomUtils::dice(1, MAX_MONSTERS_ON_ROOM_START) - 1;
+
+        println!("monster to spawn {monster_number}");
+        // Generate span points within room
+        for _m in 0..monster_number {
+            for _t in 0..MAX_SPAWN_TENTANTIVES {
+                let x = (room.x + RandomUtils::dice(1, room.w as i32 - 1) as f32) as usize;
+                let y = (room.y + RandomUtils::dice(1, room.h as i32 - 1) as f32) as usize;
+                let index = (y * MAP_WIDTH as usize) + x;
+
+                // avoid duplicate spawnpoints
+                if monster_spawn_points.insert(index) {
+                    break;
+                }
+            }
+        }
+
+        println!("inserted values {:?}", monster_spawn_points);
+
+        // Actually spawn the monsters
+        for &index in monster_spawn_points.iter() {
+            let x = index % MAP_WIDTH as usize;
+            let y = index / MAP_WIDTH as usize;
+            Self::random_monster(ecs_world, x as i32, y as i32);
+        }
     }
 }

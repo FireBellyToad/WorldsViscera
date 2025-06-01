@@ -35,9 +35,6 @@ impl Map {
             tile_content: vec![Vec::new(); (MAP_WIDTH * MAP_HEIGHT) as usize],
         };
 
-        // Generate new seed, or else it will always generate the same layout
-        rand::srand(macroquad::miniquad::date::now() as _);
-
         const MAX_ROOMS: i32 = 30;
         const MIN_SIZE: i32 = 3;
         const MAX_SIZE: i32 = 8;
@@ -77,8 +74,8 @@ impl Map {
     }
 
     fn apply_room_to_map(&mut self, room: &Rect) {
-        for y in room.y as i32 + 1..=(room.y + room.h) as i32 {
-            for x in room.x as i32 + 1..=(room.x + room.w) as i32 {
+        for y in room.y as i32 + 1..(room.y + room.h) as i32 {
+            for x in room.x as i32 + 1..(room.x + room.w) as i32 {
                 self.tiles[get_index_from_xy(x, y)] = TileType::Floor;
             }
         }
@@ -134,7 +131,7 @@ impl Map {
     }
 
     /// Create new empty test map
-    pub fn _new_test_map() -> Self {
+    pub fn _new_arena_map() -> Self {
         let mut map = Map {
             tiles: vec![TileType::Floor; (MAP_WIDTH * MAP_HEIGHT) as usize],
             rooms: Vec::new(),
