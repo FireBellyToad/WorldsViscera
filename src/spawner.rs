@@ -1,13 +1,13 @@
-use std::cmp::max;
 use std::collections::HashSet;
 
 use hecs::World;
 use macroquad::math::Rect;
-use macroquad::rand;
 
 use crate::assets::TextureName;
 use crate::components::combat::*;
 use crate::components::common::*;
+use crate::components::items::Edible;
+use crate::components::items::Item;
 use crate::components::monster::Monster;
 use crate::components::player::Player;
 use crate::components::player::VIEW_RADIUS;
@@ -62,6 +62,64 @@ impl Spawn {
         );
 
         ecs_world.spawn(player_entity);
+    }
+
+    /// Spawn entities inside a room
+    pub fn in_room(ecs_world: &mut World, room: &Rect) {
+        // Monsters
+        let mut monster_spawn_points: HashSet<usize> = HashSet::new();
+        let monster_number = RandomUtils::dice(1, MAX_MONSTERS_ON_ROOM_START) - 1;
+
+        println!("monster to spawn {monster_number}");
+        // Generate spawn points within room
+        for _m in 0..monster_number {
+            for _t in 0..MAX_SPAWN_TENTANTIVES {
+                let x = (room.x + RandomUtils::dice(1, room.w as i32 - 1) as f32) as usize;
+                let y = (room.y + RandomUtils::dice(1, room.h as i32 - 1) as f32) as usize;
+                let index = (y * MAP_WIDTH as usize) + x;
+
+                // avoid duplicate spawnpoints
+                if monster_spawn_points.insert(index) {
+                    break;
+                }
+            }
+        }
+
+        println!("monster_spawn_points values {:?}", monster_spawn_points);
+
+        // Actually spawn the monsters
+        for &index in monster_spawn_points.iter() {
+            let x = index % MAP_WIDTH as usize;
+            let y = index / MAP_WIDTH as usize;
+            Self::random_monster(ecs_world, x as i32, y as i32);
+        }
+
+        // Items
+        let mut item_spawn_points: HashSet<usize> = HashSet::new();
+        let items_number = RandomUtils::dice(1, MAX_ITEMS_ON_ROOM_START) - 1;
+
+        println!("items_number to spawn {items_number}");
+        // Generate span points within room
+        for _i in 0..items_number {
+            for _t in 0..MAX_SPAWN_TENTANTIVES {
+                let x = (room.x + RandomUtils::dice(1, room.w as i32 - 1) as f32) as usize;
+                let y = (room.y + RandomUtils::dice(1, room.h as i32 - 1) as f32) as usize;
+                let index = (y * MAP_WIDTH as usize) + x;
+
+                // avoid duplicate spawnpoints
+                if item_spawn_points.insert(index) {
+                    break;
+                }
+            }
+        }
+        println!("item_spawn_points values {:?}", item_spawn_points);
+
+        // Actually spawn the potions
+        for &index in item_spawn_points.iter() {
+            let x = index % MAP_WIDTH as usize;
+            let y = index / MAP_WIDTH as usize;
+            Self::meat(ecs_world, x as i32, y as i32);
+        }
     }
 
     /// Spawn a random monster
@@ -146,34 +204,27 @@ impl Spawn {
         ecs_world.spawn(monster_entity);
     }
 
-    /// Spawn entities inside a room
-    pub fn in_room(ecs_world: &mut World, room: &Rect) {
-        let mut monster_spawn_points: HashSet<usize> = HashSet::new();
+    fn meat(ecs_world: &mut World, x: i32, y: i32) {
+        let meat = (
+            Position { x, y },
+            Renderable {
+                texture_name: TextureName::Items,
+                texture_region: Rect {
+                    x: 0.0, //TODO fix
+                    y: 0.0,
+                    w: TILE_SIZE as f32,
+                    h: TILE_SIZE as f32,
+                },
+            },
+            Named {
+                name: String::from("Fresh meat"),
+            },
+            Item {},
+            Edible {
+                nutrition_amount: 6,
+            },
+        );
 
-        let monster_number = RandomUtils::dice(1, MAX_MONSTERS_ON_ROOM_START) - 1;
-
-        println!("monster to spawn {monster_number}");
-        // Generate span points within room
-        for _m in 0..monster_number {
-            for _t in 0..MAX_SPAWN_TENTANTIVES {
-                let x = (room.x + RandomUtils::dice(1, room.w as i32 - 1) as f32) as usize;
-                let y = (room.y + RandomUtils::dice(1, room.h as i32 - 1) as f32) as usize;
-                let index = (y * MAP_WIDTH as usize) + x;
-
-                // avoid duplicate spawnpoints
-                if monster_spawn_points.insert(index) {
-                    break;
-                }
-            }
-        }
-
-        println!("inserted values {:?}", monster_spawn_points);
-
-        // Actually spawn the monsters
-        for &index in monster_spawn_points.iter() {
-            let x = index % MAP_WIDTH as usize;
-            let y = index / MAP_WIDTH as usize;
-            Self::random_monster(ecs_world, x as i32, y as i32);
-        }
+        ecs_world.spawn(meat);
     }
 }

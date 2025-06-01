@@ -1,7 +1,4 @@
-use std::collections::HashMap;
-
-use assets::TextureName;
-use components::{common::GameLog, player::player_input};
+use components::{common::GameLog, player::Player};
 use constants::*;
 use draw::Draw;
 use engine::{
@@ -9,11 +6,13 @@ use engine::{
     state::{EngineState, RunState},
 };
 use hecs::World;
+use loader::Load;
 use macroquad::prelude::*;
 use map::Map;
 use spawner::Spawn;
 use systems::{
-    damage_manager::DamageManager, fov::FovSystem, map_indexing::MapIndexing, monster_ai::MonsterAI,
+    damage_manager::DamageManager, fov::FovSystem, item_collection::ItemCollection,
+    map_indexing::MapIndexing, monster_ai::MonsterAI,
 };
 
 mod assets;
@@ -21,6 +20,7 @@ mod components;
 mod constants;
 mod draw;
 mod engine;
+mod loader;
 mod map;
 mod spawner;
 mod systems;
@@ -42,15 +42,7 @@ fn get_game_configuration() -> Conf {
 #[macroquad::main(get_game_configuration)]
 async fn main() {
     //Load resources inside map
-    let mut assets = HashMap::new();
-    assets.insert(
-        TextureName::Creatures,
-        load_texture("assets/creatures.png").await.unwrap(),
-    );
-    assets.insert(
-        TextureName::Tiles,
-        load_texture("assets/tiles.png").await.unwrap(),
-    );
+    let assets = Load::assets().await;
 
     //Init ECS
     let mut game_engine = GameEngine::new();
@@ -70,7 +62,7 @@ async fn main() {
                         do_game_logic(&mut game_state, RunState::WaitingPlayerInput);
                 }
                 RunState::WaitingPlayerInput => {
-                    game_state.run_state = player_input(&game_state.ecs_world)
+                    game_state.run_state = Player::player_input(&mut game_state.ecs_world)
                 }
                 RunState::PlayerTurn => {
                     game_state.run_state = do_game_logic(&mut game_state, RunState::MonsterTurn);
@@ -87,6 +79,13 @@ async fn main() {
                         game_state.ecs_world.clear();
                         game_state.run_state = RunState::SystemsRunning;
                         populate_world(&mut game_state.ecs_world)
+                    }
+                }
+                RunState::ShowInventory => {
+                    Draw::inventory(&mut game_state.ecs_world);
+                    //TODO refactor
+                    if is_key_pressed(KeyCode::Escape) {
+                        game_state.run_state = RunState::WaitingPlayerInput;
                     }
                 }
             }
@@ -138,6 +137,7 @@ fn do_game_logic(game_state: &mut EngineState, next_state: RunState) -> RunState
     if !game_over {
         FovSystem::calculate_fov(&game_state.ecs_world);
         MapIndexing::index_map(&game_state.ecs_world);
+        ItemCollection::run(&mut game_state.ecs_world);
         return next_state;
     } else {
         return RunState::GameOver;

@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use hecs::World;
 use macroquad::{
-    color::{BLACK, RED, WHITE, YELLOW},
+    color::{BLACK, Color, RED, WHITE, YELLOW},
     shapes::draw_rectangle,
     text::draw_text,
     texture::{DrawTextureParams, Texture2D, draw_texture_ex},
@@ -12,12 +12,13 @@ use crate::{
     assets::TextureName,
     components::{
         combat::CombatStats,
-        common::{GameLog, Position, Renderable},
+        common::{GameLog, Named, Position, Renderable},
+        items::{InBackback, Item},
         player::Player,
     },
     constants::*,
     engine::state::{EngineState, RunState},
-    map::{get_index_from_xy, Map},
+    map::{Map, get_index_from_xy},
 };
 
 pub struct Draw {}
@@ -75,23 +76,35 @@ impl Draw {
             .expect("Player is not in hecs::World");
         let mut text_color = WHITE;
 
+        // Draw Stamina (STA)
         if player_stats.current_stamina == 0 {
             text_color = RED;
         } else if player_stats.current_stamina <= player_stats.max_stamina / 2 {
             text_color = YELLOW;
         }
 
-        draw_text(
+        Self::draw_stat_text(
             format!(
-                "STA: {} / {} \t TOU {} / {}",
-                player_stats.current_stamina,
-                player_stats.max_stamina,
-                player_stats.current_toughness,
-                player_stats.max_toughness
+                "STA: {} / {}",
+                player_stats.current_stamina, player_stats.max_stamina
             ),
-            (HUD_BORDER + HEADER_LEFT_SPAN + UI_BORDER) as f32,
-            (HUD_BORDER + UI_BORDER + MAP_HEIGHT * TILE_SIZE) as f32,
-            FONT_SIZE,
+            0,
+            text_color,
+        );
+
+        // Draw Toughness (TOU)
+        text_color = WHITE;
+
+        if player_stats.current_toughness < player_stats.max_toughness {
+            text_color = YELLOW;
+        }
+
+        Self::draw_stat_text(
+            format!(
+                "TOU {} / {}",
+                player_stats.current_toughness, player_stats.max_toughness
+            ),
+            160,
             text_color,
         );
 
@@ -102,7 +115,7 @@ impl Draw {
             .iter()
             .last()
             .expect("Game log is not in hecs::World");
-        
+
         // Going backwards to get last message on top
         for (index, message) in game_log.entries.iter().rev().enumerate() {
             draw_text(
@@ -112,7 +125,7 @@ impl Draw {
                     + 32
                     + (UI_BORDER * 2)
                     + (MAP_HEIGHT * TILE_SIZE)
-                    + ((MAX_MESSAGES_IN_LOG-index) as i32 * 32)) as f32, 
+                    + ((MAX_MESSAGES_IN_LOG - index) as i32 * 32)) as f32,
                 FONT_SIZE,
                 WHITE,
             );
@@ -122,6 +135,47 @@ impl Draw {
                 break;
             }
         }
+    }
+
+    pub fn inventory(ecs_world: &World) {
+        let mut player_query = ecs_world.query::<&Player>();
+        let (player_entity, _p) = player_query
+            .iter()
+            .last()
+            .expect("Player is not in hecs::World");
+
+        //Inventory = Named items in backpack of the Player
+        let mut inventory_query = ecs_world.query::<(&Named, &Item, &InBackback)>();
+        let inventory: Vec<(hecs::Entity, (&Named, &Item, &InBackback))> = inventory_query
+            .iter()
+            .filter(|(_e, (_n, _i, in_backpack))| in_backpack.owner.id() == player_entity.id()) //
+            .collect::<Vec<_>>();
+
+        // ------- Background Rectangle -----------
+        draw_rectangle(64.0, 128.0, 512.0, 512.0, WHITE);
+        draw_rectangle(64.0 + 4.0, 128.0 + 4.0, 512.0 - 8.0, 512.0 - 8.0, BLACK);
+
+
+        // ------- Item List -----------
+        for (index, (_e, (named, _i, _b))) in inventory.iter().enumerate() {
+            draw_text(
+                format!("{} - {}", index+1, named.name),
+                64.0 + 16.0,
+                128.0 + 64.0 + (FONT_SIZE * index as f32),
+                FONT_SIZE,
+                WHITE,
+            );
+        }
+    }
+
+    fn draw_stat_text(text: String, left_pad: i32, text_color: Color) {
+        draw_text(
+            text,
+            (HUD_BORDER + HEADER_LEFT_SPAN + UI_BORDER + left_pad) as f32,
+            (HUD_BORDER + UI_BORDER + MAP_HEIGHT * TILE_SIZE) as f32,
+            FONT_SIZE,
+            text_color,
+        );
     }
 
     /// Draw all Renderable entities in World
@@ -154,6 +208,12 @@ impl Draw {
     fn game_over() {
         draw_rectangle(0.0, 0.0, 64.0, 32.0, BLACK);
         draw_text("YOU ARE DEAD", 32.0, 64.0, FONT_SIZE * 2.0, WHITE);
-        draw_text("Press R to restart, Q to exit", 32.0, 96.0, FONT_SIZE, WHITE);
+        draw_text(
+            "Press R to restart, Q to exit",
+            32.0,
+            96.0,
+            FONT_SIZE,
+            WHITE,
+        );
     }
 }

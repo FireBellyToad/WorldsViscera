@@ -25,5 +25,5 @@ pub const SECONDS_TO_WAIT: f32 = 0.1;
 
 /// Spawning related constants
 pub const MAX_MONSTERS_ON_ROOM_START: i32 = 4;
-pub const MAX_ITEMS_ON_ROOM_START: i32 = 2;
+pub const MAX_ITEMS_ON_ROOM_START: i32 = 3;
 pub const MAX_SPAWN_TENTANTIVES: i32 = 10;

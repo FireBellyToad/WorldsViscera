@@ -4,5 +4,6 @@
 #[derive(Hash,Eq, PartialEq)]
 pub enum TextureName {
     Creatures,
-    Tiles
+    Tiles,
+    Items
 }
