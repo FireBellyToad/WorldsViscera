@@ -102,13 +102,21 @@ impl Map {
         }
     }
 
-    pub fn get_adjacent_passable_tiles(&self, x_pos: i32, y_pos: i32) -> Vec<(i32, i32)> {
+    pub fn get_adjacent_passable_tiles(
+        &self,
+        x_pos: i32,
+        y_pos: i32,
+        use_manhattan_distance: bool,
+    ) -> Vec<(i32, i32)> {
         let mut adjacent_passable_tiles = Vec::new();
 
         for x in x_pos - 1..=x_pos + 1 {
             for y in y_pos - 1..=y_pos + 1 {
-                if !self.blocked_tiles[get_index_from_xy(x, y)] {
-                    adjacent_passable_tiles.push((x, y));
+                //Manhattan Distance
+                if !use_manhattan_distance || (x == x_pos || y == y_pos) {
+                    if !self.blocked_tiles[get_index_from_xy(x, y)] {
+                        adjacent_passable_tiles.push((x, y));
+                    }
                 }
             }
         }

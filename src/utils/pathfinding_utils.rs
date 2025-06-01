@@ -24,7 +24,7 @@ impl PathfindingUtils {
             // .map(|p| (p, 1)) associate a pathfinding cost of 1 for each square
             // new not-passable tiles must be implemented inside "map.get_adjacent_passable_tiles(x, y)"
             |&(x, y)| {
-                map.get_adjacent_passable_tiles(x, y)
+                map.get_adjacent_passable_tiles(x, y, true)
                     .into_iter()
                     .map(|passable_tile| (passable_tile, 1))
             },
