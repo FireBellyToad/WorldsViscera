@@ -82,7 +82,7 @@ async fn main() {
                     }
                 }
                 RunState::ShowInventory => {
-                    Draw::inventory(&mut game_state.ecs_world);
+                    clear_input_queue();
                     //TODO refactor
                     if is_key_pressed(KeyCode::Escape) {
                         game_state.run_state = RunState::WaitingPlayerInput;

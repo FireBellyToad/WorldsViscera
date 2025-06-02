@@ -26,9 +26,8 @@ pub struct Draw {}
 impl Draw {
     pub fn render_game(game_state: &EngineState, assets: &HashMap<TextureName, Texture2D>) {
         match game_state.run_state {
-            RunState::GameOver => {
-                Draw::game_over();
-            }
+            RunState::ShowInventory => Draw::inventory(&game_state.ecs_world),
+            RunState::GameOver => Draw::game_over(),
             _ => {
                 let mut maps = game_state.ecs_world.query::<&Map>();
                 for (_entity, map) in &mut maps {
@@ -37,11 +36,11 @@ impl Draw {
                 }
             }
         }
-        Draw::hud(&game_state.ecs_world);
+        Draw::game_log(&game_state.ecs_world);
     }
 
     /// Draw HUD
-    fn hud(ecs_world: &World) {
+    fn game_log(ecs_world: &World) {
         // ------- Background Rectangle -----------
         draw_rectangle(
             UI_BORDER as f32,
@@ -60,7 +59,7 @@ impl Draw {
 
         // ------- Stat Text header -----------
         draw_rectangle(
-            (60 + UI_BORDER) as f32,
+            (HEADER_LEFT_SPAN + HUD_BORDER) as f32,
             (MAP_HEIGHT * TILE_SIZE - UI_BORDER) as f32,
             HEADER_WIDTH as f32,
             HEADER_HEIGHT as f32,
@@ -152,20 +151,57 @@ impl Draw {
             .collect::<Vec<_>>();
 
         // ------- Background Rectangle -----------
-        draw_rectangle(64.0, 128.0, 512.0, 512.0, WHITE);
-        draw_rectangle(64.0 + 4.0, 128.0 + 4.0, 512.0 - 8.0, 512.0 - 8.0, BLACK);
+        draw_rectangle(INVENTORY_X as f32, INVENTORY_Y as f32, 512.0, 512.0, WHITE);
+        draw_rectangle(
+            (INVENTORY_X + HUD_BORDER) as f32,
+            (INVENTORY_Y + HUD_BORDER) as f32,
+            (INVENTORY_SIZE - UI_BORDER) as f32,
+            (INVENTORY_SIZE - UI_BORDER) as f32,
+            BLACK,
+        );
 
+        // ------- Header -----------
+        draw_rectangle(
+            (INVENTORY_X + INVENTORY_LEFT_SPAN) as f32,
+            (INVENTORY_Y - UI_BORDER) as f32,
+            INVENTORY_HEADER_WIDTH as f32,
+            HEADER_HEIGHT as f32,
+            BLACK,
+        );
+        draw_text(
+            "Inventory",
+            (INVENTORY_X + INVENTORY_LEFT_SPAN + HUD_BORDER) as f32,
+            (INVENTORY_Y + UI_BORDER) as f32,
+            FONT_SIZE,
+            WHITE,
+        );
 
         // ------- Item List -----------
         for (index, (_e, (named, _i, _b))) in inventory.iter().enumerate() {
             draw_text(
-                format!("{} - {}", index+1, named.name),
-                64.0 + 16.0,
-                128.0 + 64.0 + (FONT_SIZE * index as f32),
+                format!("{} - {}", index + 1, named.name),
+                (INVENTORY_X + UI_BORDER * 2) as f32,
+                (INVENTORY_Y + INVENTORY_TOP_SPAN) as f32 + (FONT_SIZE * index as f32),
                 FONT_SIZE,
                 WHITE,
             );
         }
+
+        // ------- Footer -----------
+        draw_rectangle(
+            (INVENTORY_X + INVENTORY_LEFT_SPAN) as f32,
+            (INVENTORY_Y + INVENTORY_SIZE - UI_BORDER) as f32,
+            INVENTORY_FOOTER_WIDTH as f32,
+            HEADER_HEIGHT as f32,
+            BLACK,
+        );
+        draw_text(
+            "ESC to cancel",
+            (INVENTORY_X + INVENTORY_LEFT_SPAN + HUD_BORDER) as f32,
+            (INVENTORY_Y + INVENTORY_SIZE + HUD_BORDER) as f32,
+            FONT_SIZE,
+            WHITE,
+        );
     }
 
     fn draw_stat_text(text: String, left_pad: i32, text_color: Color) {

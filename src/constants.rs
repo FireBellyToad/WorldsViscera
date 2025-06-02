@@ -14,6 +14,15 @@ pub const HEADER_LEFT_SPAN: i32 = 64;
 
 pub const MAX_MESSAGES_IN_LOG: usize = 4;
 
+/// Inventory related constants
+pub const INVENTORY_X: i32 = 64;
+pub const INVENTORY_Y: i32 = 128;
+pub const INVENTORY_SIZE: i32 = 512;
+pub const INVENTORY_HEADER_WIDTH: i32 = 136;
+pub const INVENTORY_FOOTER_WIDTH: i32 = 186;
+pub const INVENTORY_LEFT_SPAN: i32 = 20;
+pub const INVENTORY_TOP_SPAN: i32 = 48;
+
 /// UI related constants
 pub const UI_BORDER: i32 = 8;
 pub const WINDOW_WIDTH: i32 = (UI_BORDER * 2) + (MAP_WIDTH * TILE_SIZE);

@@ -1,7 +1,7 @@
 use std::cmp::{max, min};
 
 use hecs::{Entity, World};
-use macroquad::input::{KeyCode, get_key_pressed};
+use macroquad::input::{clear_input_queue, get_key_pressed, KeyCode};
 
 use crate::{
     constants::{MAP_HEIGHT, MAP_WIDTH},
@@ -105,7 +105,9 @@ impl Player {
                 KeyCode::P => Self::pick_up(ecs_world),
 
                 //Show Inventory
-                KeyCode::I => return RunState::ShowInventory,
+                KeyCode::I => {
+                    return RunState::ShowInventory;
+                },
 
                 _ => return RunState::WaitingPlayerInput,
             },

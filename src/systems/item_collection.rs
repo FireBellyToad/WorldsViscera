@@ -1,4 +1,3 @@
-use std::fmt::format;
 
 use hecs::{Entity, World};
 
@@ -11,7 +10,7 @@ pub struct ItemCollection {}
 
 impl ItemCollection {
     pub fn run(ecs_world: &mut World) {
-        
+
         let mut item_owner_list: Vec<(Entity, Entity)> = Vec::new();
 
         // Scope for keeping borrow checker quiet
