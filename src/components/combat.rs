@@ -1,3 +1,4 @@
+use hecs::Entity;
 
 pub struct CombatStats {
     pub current_stamina: i32,
@@ -8,6 +9,10 @@ pub struct CombatStats {
     pub unarmed_attack_dice: i32,
 }
 
-pub struct Damageable {
-    pub damage_received:i32,
+pub struct SufferingDamage {
+    pub damage_received: i32,
+}
+
+pub struct WantsToMelee {
+    pub target: Entity,
 }

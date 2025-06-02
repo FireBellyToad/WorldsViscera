@@ -8,10 +8,10 @@ use crate::{
     utils::point::Point,
 };
 
-pub struct FovSystem {}
+pub struct FovCalculator {}
 
-impl FovSystem {
-    pub fn calculate_fov(ecs_world: &World) {
+impl FovCalculator {
+    pub fn run(ecs_world: &World) {
 
         let player_entity_id = Player::get_player_id(ecs_world);
 

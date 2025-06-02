@@ -1,4 +1,4 @@
-use components::{common::GameLog, player::Player};
+use components::{common::{GameLog}, player::Player};
 use constants::*;
 use draw::Draw;
 use engine::{
@@ -12,7 +12,7 @@ use macroquad::prelude::*;
 use map::Map;
 use spawner::Spawn;
 use systems::{
-    damage_manager::DamageManager, eating_edibles::EatingEdibles, fov::FovSystem, item_collection::ItemCollection, map_indexing::MapIndexing, monster_ai::MonsterAI
+    damage_manager::DamageManager, eating_edibles::EatingEdibles, fov::FovCalculator, item_collection::ItemCollection, map_indexing::MapIndexing, melee_manager::MeleeManager, monster_ai::MonsterAI
 };
 
 mod assets;
@@ -69,7 +69,7 @@ async fn main() {
                     game_state.run_state = do_game_logic(&mut game_state, RunState::MonsterTurn);
                 }
                 RunState::MonsterTurn => {
-                    MonsterAI::act(&game_state.ecs_world);
+                    MonsterAI::act(&mut game_state.ecs_world);
                     game_state.run_state = do_game_logic(&mut game_state, RunState::SystemsRunning);
                 }
                 RunState::GameOver => {
@@ -129,14 +129,16 @@ fn populate_world(ecs_world: &mut World) {
 
 fn do_game_logic(game_state: &mut EngineState, next_state: RunState) -> RunState {
     let game_over;
-    DamageManager::manage_damage(&game_state.ecs_world);
+    MeleeManager::run(&mut game_state.ecs_world);
+    DamageManager::run(&game_state.ecs_world);
     game_over = DamageManager::remove_dead(&mut game_state.ecs_world);
     //Proceed on game logic ifis not Game Over
     if !game_over {
-        FovSystem::calculate_fov(&game_state.ecs_world);
-        MapIndexing::index_map(&game_state.ecs_world);
+        FovCalculator::run(&game_state.ecs_world);
+        MapIndexing::run(&game_state.ecs_world);
         ItemCollection::run(&mut game_state.ecs_world);
         EatingEdibles::run(&mut game_state.ecs_world);
+        
         return next_state;
     } else {
         return RunState::GameOver;

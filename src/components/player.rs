@@ -1,22 +1,21 @@
 use std::cmp::{max, min};
 
 use hecs::{Entity, World};
-use macroquad::input::{KeyCode, get_key_pressed};
+use macroquad::input::{clear_input_queue, get_key_pressed, KeyCode};
 
 use crate::{
     constants::{MAP_HEIGHT, MAP_WIDTH},
     engine::state::RunState,
     map::{Map, get_index_from_xy},
-    utils::random_util::RandomUtils,
 };
 
 use super::{
-    combat::{CombatStats, Damageable},
+    combat::{CombatStats, WantsToMelee},
     common::GameLog,
     items::WantsItem,
 };
 use super::{
-    common::{Named, Position, Viewshed},
+    common::{Position, Viewshed},
     items::Item,
 };
 
@@ -30,55 +29,44 @@ impl Player {
     ///
     /// Try to move player
     ///
-    fn try_move_player(delta_x: i32, delta_y: i32, ecs_world: &World) {
-        let mut players =
-            ecs_world.query::<(&Player, &mut Position, &mut Viewshed, &CombatStats)>();
+    fn try_move_player(delta_x: i32, delta_y: i32, ecs_world: &mut World) {
+        let mut attacker_target: Option<(Entity, Entity)> = None;
 
-        let mut map_query = ecs_world.query::<&Map>();
-        let (_e, map) = map_query.iter().last().expect("Map is not in hecs::World");
+        // Scope for keeping borrow checker quiet
+        {
+            let mut players = ecs_world.query::<(&Player, &mut Position, &mut Viewshed)>();
 
-        let mut game_log_query = ecs_world.query::<&mut GameLog>();
-        let (_e, game_log) = game_log_query
-            .iter()
-            .last()
-            .expect("Game log is not in hecs::World");
+            let mut map_query = ecs_world.query::<&Map>();
+            let (_e, map) = map_query.iter().last().expect("Map is not in hecs::World");
 
-        for (_e, (_p, position, viewshed, player_stats)) in &mut players {
-            let destination_index = get_index_from_xy(position.x + delta_x, position.y + delta_y);
+            for (player_entity, (_p, position, viewshed)) in &mut players {
+                let destination_index =
+                    get_index_from_xy(position.x + delta_x, position.y + delta_y);
 
-            //Search for potential targets
-            for &potential_target in map.tile_content[destination_index].iter() {
-                // Has potential target the CombatStats Component?
-                let mut target = ecs_world
-                    .query_one::<(&mut Damageable, &CombatStats, &Named)>(potential_target)
-                    .unwrap();
+                //Search for potential targets (must have CombatStats component)
+                for &potential_target in map.tile_content[destination_index].iter() {
+                    let has_combat_stats = ecs_world
+                        .satisfies::<&CombatStats>(potential_target)
+                        .unwrap();
 
-                // Possibily attack, impeding movement
-                match target.get() {
-                    None => {}
-                    Some((target, target_stats, target_name)) => {
-                        // Attack it
-                        let damage = max(
-                            0,
-                            RandomUtils::dice(1, player_stats.unarmed_attack_dice)
-                                - target_stats.base_armor,
-                        );
-                        game_log.entries.push(format!(
-                            "You punch {} for {} damage",
-                            target_name.name, damage
-                        ));
-                        target.damage_received += damage;
-                        return;
+                    if has_combat_stats {
+                        attacker_target = Some((player_entity, potential_target));
                     }
                 }
-            }
 
-            // Move if destination is not blocked
-            if !map.blocked_tiles[destination_index] {
-                position.x = min(MAP_WIDTH - 1, max(0, position.x + delta_x));
-                position.y = min(MAP_HEIGHT - 1, max(0, position.y + delta_y));
-                viewshed.must_recalculate = true;
+                // Move if not attacking or destination is not blocked
+                if attacker_target.is_none() && !map.blocked_tiles[destination_index] {
+                    position.x = min(MAP_WIDTH - 1, max(0, position.x + delta_x));
+                    position.y = min(MAP_HEIGHT - 1, max(0, position.y + delta_y));
+                    viewshed.must_recalculate = true;
+                }
             }
+        }
+
+        // Attack if needed
+        if attacker_target.is_some() {
+            let (attacker, target) = attacker_target.unwrap();
+            let _ = ecs_world.insert_one(attacker, WantsToMelee { target });
         }
     }
 
@@ -102,10 +90,14 @@ impl Player {
                 KeyCode::Kp1 => Self::try_move_player(-1, 1, ecs_world),
 
                 //Pick up
-                KeyCode::P => Self::pick_up(ecs_world),
+                KeyCode::P => {
+                    Self::pick_up(ecs_world);
+                    clear_input_queue();
+                }
 
                 //Show Inventory
                 KeyCode::I => {
+                    clear_input_queue();
                     return RunState::ShowInventory;
                 }
 
@@ -144,12 +136,7 @@ impl Player {
             None => {}
             Some(item) => {
                 picked_something = true;
-                let _ = ecs_world.insert_one(
-                    player_entity,
-                    WantsItem {
-                        item: item,
-                    },
-                );
+                let _ = ecs_world.insert_one(player_entity, WantsItem { item: item });
             }
         }
 
@@ -173,7 +160,7 @@ impl Player {
             .iter()
             .last()
             .expect("Player is not in hecs::World");
-        
+
         player_entity.id()
     }
 }

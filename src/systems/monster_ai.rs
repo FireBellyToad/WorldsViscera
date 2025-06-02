@@ -1,16 +1,11 @@
-use std::cmp::max;
-
-use hecs::World;
+use hecs::{Entity, World};
 
 use crate::{
     components::{
-        combat::{CombatStats, Damageable},
-        common::*,
-        monster::Monster,
-        player::Player,
+        combat::WantsToMelee, common::*, monster::Monster, player::Player
     },
-    map::{Map, get_index_from_xy},
-    utils::{pathfinding_utils::PathfindingUtils, point::Point, random_util::RandomUtils},
+    map::{get_index_from_xy, Map},
+    utils::{pathfinding_utils::PathfindingUtils, point::Point},
 };
 
 /// Monster AI struct
@@ -18,76 +13,68 @@ pub struct MonsterAI {}
 
 impl MonsterAI {
     /// Monster acting function
-    pub fn act(ecs_world: &World) {
-        let mut named_monsters =
-            ecs_world.query::<(&mut Viewshed, &Monster, &mut Position, &Named, &CombatStats)>();
+    pub fn act(ecs_world: &mut World) {
+        let mut attacker_target_list: Vec<(Entity, Entity)> = Vec::new();
 
-        let mut map_query = ecs_world.query::<&mut Map>();
-        let (_e, map) = map_query.iter().last().expect("Map is not in hecs::World");
+        // Scope for keeping borrow checker quiet
+        {
+            let mut named_monsters = ecs_world.query::<(&mut Viewshed, &Monster, &mut Position)>();
 
-        let mut player_query =
-            ecs_world.query::<(&Player, &mut Damageable, &Position, &CombatStats)>();
-        let (_e, (_p, player, player_position, player_stats)) = player_query
-            .iter()
-            .last()
-            .expect("Player is not in hecs::World");
+            let mut map_query = ecs_world.query::<&mut Map>();
+            let (_e, map) = map_query.iter().last().expect("Map is not in hecs::World");
 
-        let mut game_log_query = ecs_world.query::<&mut GameLog>();
-        let (_e, game_log) = game_log_query
-            .iter()
-            .last()
-            .expect("Game log is not in hecs::World");
+            let mut player_query = ecs_world.query::<(&Player, &Position)>();
+            let (player_entity, (_p, player_position)) = player_query
+                .iter()
+                .last()
+                .expect("Player is not in hecs::World");
 
-        // For each viewshed position monster component join
-        for (_e, (viewshed, _monster, position, named, monster_stats)) in &mut named_monsters {
-            //If enemy can see player, follow him and try to attack when close enough
-            if viewshed.visible_tiles.contains(&Point {
-                x: player_position.x,
-                y: player_position.y,
-            }) {
-                let pathfinding_result = PathfindingUtils::a_star_wrapper(
-                    position.x,
-                    position.y,
-                    player_position.x,
-                    player_position.y,
-                    map,
-                );
+            // For each viewshed position monster component join
+            for (monster_entity, (viewshed, _monster, position)) in &mut named_monsters {
+                //If enemy can see player, follow him and try to attack when close enough
+                if viewshed.visible_tiles.contains(&Point {
+                    x: player_position.x,
+                    y: player_position.y,
+                }) {
+                    let pathfinding_result = PathfindingUtils::a_star_wrapper(
+                        position.x,
+                        position.y,
+                        player_position.x,
+                        player_position.y,
+                        map,
+                    );
 
-                //If can actually reach the player
-                if pathfinding_result.is_some() {
-                    let distance = ((position.x.abs_diff(player_position.x).pow(2)
-                        + position.y.abs_diff(player_position.y).pow(2))
-                        as f32)
-                        .sqrt();
+                    //If can actually reach the player
+                    if pathfinding_result.is_some() {
+                        let distance = ((position.x.abs_diff(player_position.x).pow(2)
+                            + position.y.abs_diff(player_position.y).pow(2))
+                            as f32)
+                            .sqrt();
 
-                    //Attack or move
-                    if distance < 1.5 {
-                        let damage = max(
-                            0,
-                            RandomUtils::dice(1, monster_stats.unarmed_attack_dice) - player_stats.base_armor,
-                        );
+                        //Attack or move
+                        if distance < 1.5 {
+                            attacker_target_list.push((monster_entity, player_entity));
+                        } else {
+                            viewshed.must_recalculate = true;
+                            let (path, _c) = pathfinding_result.unwrap();
 
-                        // Add game log
-                        game_log.entries.push(format!(
-                            "{} hits you for {} damage",
-                            named.name, damage
-                        ));
-
-                        player.damage_received += damage;
-                    } else {
-                        viewshed.must_recalculate = true;
-                        let (path, _c) = pathfinding_result.unwrap();
-
-                        // Avoid overlap with other monsters and player
-                        if path.len() > 1 {
-                            map.blocked_tiles[get_index_from_xy(position.x, position.y)] = false;
-                            position.x = path[1].0;
-                            position.y = path[1].1;
-                            map.blocked_tiles[get_index_from_xy(position.x, position.y)] = true;
+                            // Avoid overlap with other monsters and player
+                            if path.len() > 1 {
+                                map.blocked_tiles[get_index_from_xy(position.x, position.y)] =
+                                    false;
+                                position.x = path[1].0;
+                                position.y = path[1].1;
+                                map.blocked_tiles[get_index_from_xy(position.x, position.y)] = true;
+                            }
                         }
                     }
                 }
             }
+        }
+
+        // Attack if needed
+        for (attacker, target) in attacker_target_list {
+            let _ = ecs_world.insert_one(attacker, WantsToMelee { target });
         }
     }
 }

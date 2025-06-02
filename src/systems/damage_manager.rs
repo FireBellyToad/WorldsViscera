@@ -4,7 +4,7 @@ use hecs::{Entity, World};
 
 use crate::{
     components::{
-        combat::{CombatStats, Damageable},
+        combat::{CombatStats, SufferingDamage},
         common::{GameLog, Named},
         player::Player,
     },
@@ -15,8 +15,8 @@ pub struct DamageManager {}
 
 impl DamageManager {
     ///
-    pub fn manage_damage(ecs_world: &World) {
-        let mut damageables = ecs_world.query::<(&mut Damageable, &mut CombatStats)>();
+    pub fn run(ecs_world: &World) {
+        let mut damageables = ecs_world.query::<(&mut SufferingDamage, &mut CombatStats)>();
 
         for (_e, (damageable, stats)) in &mut damageables {
             stats.current_stamina -= damageable.damage_received;
@@ -43,7 +43,7 @@ impl DamageManager {
                 .last()
                 .expect("Game log is not in hecs::World");
 
-            let mut damageables = ecs_world.query::<(&CombatStats, &Named, &mut Damageable)>();
+            let mut damageables = ecs_world.query::<(&CombatStats, &Named, &mut SufferingDamage)>();
             for (entity, (stats, named, damageable)) in &mut damageables {
                 // if has been damaged and Stamina is 0, do a thougness saving throw or die.
                 // On 0 or less toughness, die anyway

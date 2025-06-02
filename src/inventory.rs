@@ -79,17 +79,11 @@ impl Inventory {
             if selected_item_entity.is_some() {
                 
                 let item_entity = selected_item_entity.unwrap();
-                let result = ecs_world.insert_one(
+                let _ = ecs_world.insert_one(
                     user_entity.unwrap(),
                     WantsToEat {
                         edible: item_entity,
                     },
-                );
-                println!(
-                    "eater {} eats {} result {:?}",
-                    item_entity.id(),
-                    item_entity.id(),
-                    result
                 );
                 return RunState::PlayerTurn;
             }
@@ -143,7 +137,7 @@ impl Inventory {
             let y = (INVENTORY_Y + INVENTORY_TOP_SPAN) as f32 + (FONT_SIZE * index as f32);
 
             draw_text(
-                format!("{} - \t - {}", OPTION_TO_CHAR_MAP[index], named.name),
+                format!("{} : \t - {}", OPTION_TO_CHAR_MAP[index], named.name),
                 x,
                 y,
                 FONT_SIZE,

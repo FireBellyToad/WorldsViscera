@@ -58,7 +58,7 @@ impl Spawn {
                 current_toughness: rolled_toughness,
                 max_toughness: rolled_toughness,
             },
-            Damageable { damage_received: 0 },
+            SufferingDamage { damage_received: 0 },
         );
 
         ecs_world.spawn(player_entity);
@@ -198,7 +198,7 @@ impl Spawn {
             Named { name: name },
             BlocksTile {},
             combat_stats,
-            Damageable { damage_received: 0 },
+            SufferingDamage { damage_received: 0 },
         );
 
         ecs_world.spawn(monster_entity);

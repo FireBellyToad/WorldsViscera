@@ -8,7 +8,7 @@ use crate::{
 pub struct MapIndexing {}
 
 impl MapIndexing {
-    pub fn index_map(ecs_world: &World) {
+    pub fn run(ecs_world: &World) {
         let mut entites = ecs_world.query::<&Position>();
         let mut blockers = ecs_world.query::<(&Position, &BlocksTile)>();
         let mut map_query = ecs_world.query::<&mut Map>();

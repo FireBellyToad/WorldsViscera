@@ -4,3 +4,4 @@ pub mod map_indexing;
 pub mod damage_manager;
 pub mod item_collection;
 pub mod eating_edibles;
+pub mod melee_manager;
