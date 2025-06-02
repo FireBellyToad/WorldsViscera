@@ -17,7 +17,7 @@ impl MapIndexing {
         map.populate_blocked();
         map.clear_content_index();
         //index all blocked tiles
-        for (_e, (position, _blocks)) in &mut blockers {
+        for (_e, (position, _b)) in &mut blockers {
             let index = get_index_from_xy(position.x, position.y);
             map.blocked_tiles[index] = true;
         }

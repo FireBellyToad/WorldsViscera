@@ -13,3 +13,9 @@ pub struct InBackback {
 pub struct WantsItem {
     pub item: Entity
 }
+pub struct WantsToEat {
+    pub item: Entity
+}
+pub struct WantsToDrop {
+    pub item: Entity
+}

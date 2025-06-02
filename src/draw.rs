@@ -13,7 +13,7 @@ use crate::{
         combat::CombatStats,
         common::{GameLog, Position, Renderable},
         player::Player,
-    }, constants::*, engine::state::{EngineState, RunState}, inventory::Inventory, map::{get_index_from_xy, Map}
+    }, constants::*, engine::state::{EngineState, RunState}, inventory::{Inventory, InventoryAction}, map::{get_index_from_xy, Map}
 };
 
 pub struct Draw {}
@@ -30,9 +30,11 @@ impl Draw {
                 }
 
                 //Overlay
-                if game_state.run_state == RunState::ShowInventory {
-                  Inventory::draw(assets, &game_state.ecs_world);  
-                } 
+                match  game_state.run_state {
+                    RunState::ShowInventory => Inventory::draw(assets, &game_state.ecs_world, InventoryAction::Eat),
+                    RunState::ShowDropInventory => Inventory::draw(assets, &game_state.ecs_world, InventoryAction::Drop),
+                    _ => {}
+                }
             }
         }
         Draw::game_log(&game_state.ecs_world);

@@ -7,7 +7,8 @@ pub enum RunState {
     PlayerTurn,
     MonsterTurn,
     GameOver,
-    ShowInventory
+    ShowInventory,
+    ShowDropInventory
 }
 
 // Game state struct

@@ -3,36 +3,42 @@ use std::collections::HashMap;
 use hecs::{Entity, World};
 use macroquad::{
     color::{BLACK, WHITE},
-    input::{clear_input_queue, get_char_pressed, is_key_pressed, KeyCode},
+    input::{KeyCode, clear_input_queue, get_char_pressed, is_key_pressed},
     math::Rect,
     shapes::draw_rectangle,
     text::draw_text,
-    texture::{draw_texture_ex, DrawTextureParams, Texture2D},
+    texture::{DrawTextureParams, Texture2D, draw_texture_ex},
 };
 
 use crate::{
     assets::TextureName,
     components::{
-        common::{Named, WantsToEat},
-        items::{InBackback, Item},
+        common::Named,
+        items::{InBackback, Item, WantsToDrop, WantsToEat},
         player::Player,
     },
     constants::*,
     engine::state::RunState,
 };
 
+#[derive(PartialEq,Debug)]
+pub enum InventoryAction {
+    Eat,
+    Drop,
+}
+
 pub struct Inventory {}
 
 impl Inventory {
     /// Handle inventory input
-    pub fn handle_input(ecs_world: &mut World) -> RunState {
+    pub fn handle_input(ecs_world: &mut World, mode: InventoryAction) -> RunState {
+        println!("mode {:?}", mode);
         if is_key_pressed(KeyCode::Escape) {
-            // Exit inventory, clear queue to avoid to reopen on cancel 
+            // Exit inventory, clear queue to avoid to reopen on cancel
             // caused by char input queue
             clear_input_queue();
             return RunState::WaitingPlayerInput;
         } else {
-
             //Any other key
             let mut selected_item_entity: Option<Entity> = None;
             let mut user_entity: Option<Entity> = None;
@@ -44,8 +50,7 @@ impl Inventory {
                     let search_result = OPTION_TO_CHAR_MAP.iter().position(|l| *l == letterkey);
 
                     // is the selection valid?
-                    if search_result.is_some()
-                    {
+                    if search_result.is_some() {
                         let selected_item_index = search_result.unwrap();
 
                         let mut player_query = ecs_world.query::<&Player>();
@@ -71,29 +76,37 @@ impl Inventory {
                             user_entity = Some(player_entity);
                         }
                     }
-                    println!("Player does not have item for selection \"{}\"", letterkey);
                 }
             }
 
             // Use selected item
             if selected_item_entity.is_some() {
-                
-                let item_entity = selected_item_entity.unwrap();
-                let _ = ecs_world.insert_one(
-                    user_entity.unwrap(),
-                    WantsToEat {
-                        edible: item_entity,
-                    },
-                );
+                let item: Entity = selected_item_entity.unwrap();
+                match mode {
+                    InventoryAction::Eat => {
+                        let _ = ecs_world.insert_one(user_entity.unwrap(), WantsToEat { item });
+                    }
+                    InventoryAction::Drop => {
+                        let _ = ecs_world.insert_one(user_entity.unwrap(), WantsToDrop { item });
+                    }
+                };
+
                 return RunState::PlayerTurn;
             }
         }
 
         // Keep inventory showing if invalid or no item has been selected
-        RunState::ShowInventory
+        match mode {
+            InventoryAction::Eat => RunState::ShowInventory,
+            InventoryAction::Drop => RunState::ShowDropInventory,
+        }
     }
 
-    pub fn draw(assets: &HashMap<TextureName, Texture2D>, ecs_world: &World) {
+    pub fn draw(
+        assets: &HashMap<TextureName, Texture2D>,
+        ecs_world: &World,
+        mode: InventoryAction,
+    ) {
         let texture_to_render = assets.get(&TextureName::Items).expect("Texture not found");
 
         let player_id = Player::get_player_id(ecs_world);
@@ -116,15 +129,31 @@ impl Inventory {
         );
 
         // ------- Header -----------
+        let mut header_width = INVENTORY_HEADER_WIDTH;
+        //FIXME this is shitty, improve
+        if mode == InventoryAction::Drop {
+            header_width += UI_BORDER;
+        }
         draw_rectangle(
             (INVENTORY_X + INVENTORY_LEFT_SPAN) as f32,
             (INVENTORY_Y - UI_BORDER) as f32,
-            INVENTORY_HEADER_WIDTH as f32,
+            header_width as f32,
             HEADER_HEIGHT as f32,
             BLACK,
         );
+
+        let header_text;
+        match mode {
+            InventoryAction::Eat => {
+                header_text = "Eat what?";
+            }
+            InventoryAction::Drop => {
+                header_text = "Drop what?";
+            }
+        }
+
         draw_text(
-            "Inventory",
+            header_text,
             (INVENTORY_X + INVENTORY_LEFT_SPAN + HUD_BORDER) as f32,
             (INVENTORY_Y + UI_BORDER) as f32,
             FONT_SIZE,

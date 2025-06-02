@@ -4,7 +4,7 @@ use std::cmp::min;
 use hecs::{Entity, World};
 
 use crate::components::{combat::{CombatStats}, 
-    common::{GameLog, Named, WantsToEat}, items::Edible}
+    common::{GameLog, Named}, items::{WantsToEat,Edible}}
 ;
 
 pub struct EatingEdibles {}
@@ -27,15 +27,16 @@ impl EatingEdibles {
 
             for (eater, (wants_to_eat, combat_stats)) in &mut eaters {
                 // Pick up and keep track of the owner
-                eater_eaten_list.push((eater, wants_to_eat.edible));
+                eater_eaten_list.push((eater, wants_to_eat.item));
 
                 //TODO must not heal!
-                let edible_nutrition = ecs_world.get::<&Edible>(wants_to_eat.edible).unwrap();
+                //TODO also check if is really edible
+                let edible_nutrition = ecs_world.get::<&Edible>(wants_to_eat.item).unwrap();
                 combat_stats.current_stamina = min(combat_stats.max_stamina, combat_stats.current_stamina + edible_nutrition.nutrition_amount);
                 
                 // Show appropriate log messages
                 let named_eater = ecs_world.get::<&Named>(eater).unwrap();
-                let named_edible = ecs_world.get::<&Named>(wants_to_eat.edible).unwrap();
+                let named_edible = ecs_world.get::<&Named>(wants_to_eat.item).unwrap();
 
                 game_log.entries.push(format!(
                     "{} eat the {}",

@@ -1,4 +1,3 @@
-use hecs::Entity;
 use macroquad::math::Rect;
 
 use crate::{assets::TextureName, utils::point::Point};
@@ -23,8 +22,4 @@ pub struct BlocksTile {}
 
 pub struct GameLog {
     pub entries: Vec<String>
-}
-
-pub struct WantsToEat {
-    pub edible: Entity
 }

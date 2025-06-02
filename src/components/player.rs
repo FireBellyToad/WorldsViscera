@@ -95,10 +95,16 @@ impl Player {
                     clear_input_queue();
                 }
 
-                //Show Inventory
-                KeyCode::I => {
+                //Eat item
+                KeyCode::E => {
                     clear_input_queue();
                     return RunState::ShowInventory;
+                }
+
+                //Drop item
+                KeyCode::D => {
+                    clear_input_queue();
+                    return RunState::ShowDropInventory;
                 }
 
                 _ => return RunState::WaitingPlayerInput,
