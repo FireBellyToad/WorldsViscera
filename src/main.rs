@@ -6,6 +6,7 @@ use engine::{
     state::{EngineState, RunState},
 };
 use hecs::World;
+use inventory::Inventory;
 use loader::Load;
 use macroquad::prelude::*;
 use map::Map;
@@ -20,6 +21,7 @@ mod components;
 mod constants;
 mod draw;
 mod engine;
+mod inventory;
 mod loader;
 mod map;
 mod spawner;
@@ -82,11 +84,7 @@ async fn main() {
                     }
                 }
                 RunState::ShowInventory => {
-                    clear_input_queue();
-                    //TODO refactor
-                    if is_key_pressed(KeyCode::Escape) {
-                        game_state.run_state = RunState::WaitingPlayerInput;
-                    }
+                    game_state.run_state = Inventory::handle_input();
                 }
             }
 

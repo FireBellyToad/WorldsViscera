@@ -155,7 +155,7 @@ impl Map {
     }
 
     /// Draws map
-    pub fn draw_map(&self, assets: &HashMap<TextureName, Texture2D>) {
+    pub fn draw(&self, assets: &HashMap<TextureName, Texture2D>) {
         let texture_to_render = assets.get(&TextureName::Tiles).expect("Texture not found");
 
         for x in 0..MAP_WIDTH {

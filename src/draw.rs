@@ -9,16 +9,11 @@ use macroquad::{
 };
 
 use crate::{
-    assets::TextureName,
-    components::{
+    assets::TextureName, components::{
         combat::CombatStats,
-        common::{GameLog, Named, Position, Renderable},
-        items::{InBackback, Item},
+        common::{GameLog, Position, Renderable},
         player::Player,
-    },
-    constants::*,
-    engine::state::{EngineState, RunState},
-    map::{Map, get_index_from_xy},
+    }, constants::*, engine::state::{EngineState, RunState}, inventory::Inventory, map::{get_index_from_xy, Map}
 };
 
 pub struct Draw {}
@@ -26,14 +21,18 @@ pub struct Draw {}
 impl Draw {
     pub fn render_game(game_state: &EngineState, assets: &HashMap<TextureName, Texture2D>) {
         match game_state.run_state {
-            RunState::ShowInventory => Draw::inventory(&game_state.ecs_world),
             RunState::GameOver => Draw::game_over(),
             _ => {
                 let mut maps = game_state.ecs_world.query::<&Map>();
                 for (_entity, map) in &mut maps {
-                    map.draw_map(assets);
+                    map.draw(assets);
                     Draw::renderables(&game_state.ecs_world, &assets, &map);
                 }
+
+                //Overlay
+                if game_state.run_state == RunState::ShowInventory {
+                  Inventory::draw(assets, &game_state.ecs_world);  
+                } 
             }
         }
         Draw::game_log(&game_state.ecs_world);
@@ -134,74 +133,6 @@ impl Draw {
                 break;
             }
         }
-    }
-
-    pub fn inventory(ecs_world: &World) {
-        let mut player_query = ecs_world.query::<&Player>();
-        let (player_entity, _p) = player_query
-            .iter()
-            .last()
-            .expect("Player is not in hecs::World");
-
-        //Inventory = Named items in backpack of the Player
-        let mut inventory_query = ecs_world.query::<(&Named, &Item, &InBackback)>();
-        let inventory: Vec<(hecs::Entity, (&Named, &Item, &InBackback))> = inventory_query
-            .iter()
-            .filter(|(_e, (_n, _i, in_backpack))| in_backpack.owner.id() == player_entity.id()) //
-            .collect::<Vec<_>>();
-
-        // ------- Background Rectangle -----------
-        draw_rectangle(INVENTORY_X as f32, INVENTORY_Y as f32, 512.0, 512.0, WHITE);
-        draw_rectangle(
-            (INVENTORY_X + HUD_BORDER) as f32,
-            (INVENTORY_Y + HUD_BORDER) as f32,
-            (INVENTORY_SIZE - UI_BORDER) as f32,
-            (INVENTORY_SIZE - UI_BORDER) as f32,
-            BLACK,
-        );
-
-        // ------- Header -----------
-        draw_rectangle(
-            (INVENTORY_X + INVENTORY_LEFT_SPAN) as f32,
-            (INVENTORY_Y - UI_BORDER) as f32,
-            INVENTORY_HEADER_WIDTH as f32,
-            HEADER_HEIGHT as f32,
-            BLACK,
-        );
-        draw_text(
-            "Inventory",
-            (INVENTORY_X + INVENTORY_LEFT_SPAN + HUD_BORDER) as f32,
-            (INVENTORY_Y + UI_BORDER) as f32,
-            FONT_SIZE,
-            WHITE,
-        );
-
-        // ------- Item List -----------
-        for (index, (_e, (named, _i, _b))) in inventory.iter().enumerate() {
-            draw_text(
-                format!("{} - {}", index + 1, named.name),
-                (INVENTORY_X + UI_BORDER * 2) as f32,
-                (INVENTORY_Y + INVENTORY_TOP_SPAN) as f32 + (FONT_SIZE * index as f32),
-                FONT_SIZE,
-                WHITE,
-            );
-        }
-
-        // ------- Footer -----------
-        draw_rectangle(
-            (INVENTORY_X + INVENTORY_LEFT_SPAN) as f32,
-            (INVENTORY_Y + INVENTORY_SIZE - UI_BORDER) as f32,
-            INVENTORY_FOOTER_WIDTH as f32,
-            HEADER_HEIGHT as f32,
-            BLACK,
-        );
-        draw_text(
-            "ESC to cancel",
-            (INVENTORY_X + INVENTORY_LEFT_SPAN + HUD_BORDER) as f32,
-            (INVENTORY_Y + INVENTORY_SIZE + HUD_BORDER) as f32,
-            FONT_SIZE,
-            WHITE,
-        );
     }
 
     fn draw_stat_text(text: String, left_pad: i32, text_color: Color) {
