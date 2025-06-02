@@ -12,11 +12,8 @@ pub struct FovSystem {}
 
 impl FovSystem {
     pub fn calculate_fov(ecs_world: &World) {
-        let mut player_query = ecs_world.query::<&Player>();
-        let (player_entity, _player) = player_query
-            .iter()
-            .last()
-            .expect("Player is not in hecs::World");
+
+        let player_entity_id = Player::get_player_id(ecs_world);
 
         let mut map_query = ecs_world.query::<&mut Map>();
         let (_e, map) = map_query.iter().last().expect("Map is not in hecs::World");
@@ -52,7 +49,7 @@ impl FovSystem {
                 );
 
                 //recalculate rendered view if entity is Player
-                if entity.id() == player_entity.id() {
+                if entity.id() == player_entity_id {
                     map.visible_tiles.fill(false);
                     for &tile in viewshed.visible_tiles.iter() {
                         let index = get_index_from_xy(tile.x, tile.y);

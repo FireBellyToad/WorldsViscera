@@ -11,6 +11,5 @@ pub struct InBackback {
 }
 
 pub struct WantsItem {
-    pub collected_by: Entity,
     pub item: Entity
 }

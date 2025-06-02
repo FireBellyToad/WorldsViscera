@@ -33,7 +33,7 @@ impl DamageManager {
     /// Check which entities are dead and removes them. Returns true if Player is dead
     pub fn remove_dead(ecs_world: &mut World) -> bool {
         let mut dead_entities: Vec<Entity> = Vec::new();
-        let player_entity_id ;
+        let player_entity_id = Player::get_player_id(ecs_world) ;
 
         // Scope for keeping borrow checker quiet
         {
@@ -66,16 +66,6 @@ impl DamageManager {
                 // Reset damage_received
                 damageable.damage_received = 0;
             }
-        }
-
-        // Scope for keeping borrow checker quiet
-        {
-            let mut player_query = ecs_world.query::<&Player>();
-            let (entity, _player) = player_query
-                .iter()
-                .last()
-                .expect("Player is not in hecs::World");
-            player_entity_id = entity.id();
         }
 
         //Remove all dead entities, stop game if player is dead

@@ -29,7 +29,7 @@ impl ItemCollection {
                 // Pick up and keep track of the owner
                 item_owner_list.push((wants_item.item, collector));
 
-                // Store appropriate log messages
+                // Show appropriate log messages
                 let named_owner = ecs_world.get::<&Named>(collector).unwrap();
                 let named_item = ecs_world.get::<&Named>(wants_item.item).unwrap();
 

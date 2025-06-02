@@ -12,8 +12,7 @@ use macroquad::prelude::*;
 use map::Map;
 use spawner::Spawn;
 use systems::{
-    damage_manager::DamageManager, fov::FovSystem, item_collection::ItemCollection,
-    map_indexing::MapIndexing, monster_ai::MonsterAI,
+    damage_manager::DamageManager, eating_edibles::EatingEdibles, fov::FovSystem, item_collection::ItemCollection, map_indexing::MapIndexing, monster_ai::MonsterAI
 };
 
 mod assets;
@@ -80,11 +79,12 @@ async fn main() {
                     } else if is_key_pressed(KeyCode::R) {
                         game_state.ecs_world.clear();
                         game_state.run_state = RunState::SystemsRunning;
-                        populate_world(&mut game_state.ecs_world)
+                        populate_world(&mut game_state.ecs_world);
+                        clear_input_queue();
                     }
                 }
                 RunState::ShowInventory => {
-                    game_state.run_state = Inventory::handle_input();
+                    game_state.run_state = Inventory::handle_input(&mut game_state.ecs_world);
                 }
             }
 
@@ -136,6 +136,7 @@ fn do_game_logic(game_state: &mut EngineState, next_state: RunState) -> RunState
         FovSystem::calculate_fov(&game_state.ecs_world);
         MapIndexing::index_map(&game_state.ecs_world);
         ItemCollection::run(&mut game_state.ecs_world);
+        EatingEdibles::run(&mut game_state.ecs_world);
         return next_state;
     } else {
         return RunState::GameOver;

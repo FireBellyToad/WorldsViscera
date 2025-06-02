@@ -1,7 +1,7 @@
 use std::cmp::{max, min};
 
 use hecs::{Entity, World};
-use macroquad::input::{clear_input_queue, get_key_pressed, KeyCode};
+use macroquad::input::{KeyCode, get_key_pressed};
 
 use crate::{
     constants::{MAP_HEIGHT, MAP_WIDTH},
@@ -107,7 +107,7 @@ impl Player {
                 //Show Inventory
                 KeyCode::I => {
                     return RunState::ShowInventory;
-                },
+                }
 
                 _ => return RunState::WaitingPlayerInput,
             },
@@ -147,7 +147,6 @@ impl Player {
                 let _ = ecs_world.insert_one(
                     player_entity,
                     WantsItem {
-                        collected_by: player_entity,
                         item: item,
                     },
                 );
@@ -165,5 +164,16 @@ impl Player {
                 .entries
                 .push(String::from("There is nothing here to pick up"));
         }
+    }
+
+    /// Extract Player's entity id from world and return it with copy
+    pub fn get_player_id(ecs_world: &World) -> u32 {
+        let mut player_query = ecs_world.query::<&Player>();
+        let (player_entity, _p) = player_query
+            .iter()
+            .last()
+            .expect("Player is not in hecs::World");
+        
+        player_entity.id()
     }
 }

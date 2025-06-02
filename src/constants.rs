@@ -22,6 +22,12 @@ pub const INVENTORY_HEADER_WIDTH: i32 = 136;
 pub const INVENTORY_FOOTER_WIDTH: i32 = 186;
 pub const INVENTORY_LEFT_SPAN: i32 = 20;
 pub const INVENTORY_TOP_SPAN: i32 = 48;
+pub const OPTION_TO_CHAR_MAP: [char; 52] = [
+    'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
+    'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
+    'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
+    'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
+];
 
 /// UI related constants
 pub const UI_BORDER: i32 = 8;
