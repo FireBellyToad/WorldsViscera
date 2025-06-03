@@ -7,7 +7,8 @@ pub struct Edible {
 }
 
 pub struct InBackback {
-    pub owner: Entity
+    pub owner: Entity,
+    pub assigned_char: char
 }
 
 pub struct WantsItem {

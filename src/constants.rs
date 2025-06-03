@@ -18,7 +18,6 @@ pub const MAX_MESSAGES_IN_LOG: usize = 4;
 pub const INVENTORY_X: i32 = 64;
 pub const INVENTORY_Y: i32 = 128;
 pub const INVENTORY_SIZE: i32 = 512;
-pub const INVENTORY_HEADER_WIDTH: i32 = 136;
 pub const INVENTORY_FOOTER_WIDTH: i32 = 186;
 pub const INVENTORY_LEFT_SPAN: i32 = 20;
 pub const INVENTORY_TOP_SPAN: i32 = 48;
@@ -39,6 +38,6 @@ pub const FONT_SIZE: f32 = 32.0;
 pub const SECONDS_TO_WAIT: f32 = 0.1;
 
 /// Spawning related constants
-pub const MAX_MONSTERS_ON_ROOM_START: i32 = 4;
-pub const MAX_ITEMS_ON_ROOM_START: i32 = 3;
+pub const MAX_MONSTERS_ON_ROOM_START: i32 = 3;
+pub const MAX_ITEMS_ON_ROOM_START: i32 = 2;
 pub const MAX_SPAWN_TENTANTIVES: i32 = 10;

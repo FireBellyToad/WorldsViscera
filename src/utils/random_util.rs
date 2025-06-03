@@ -11,7 +11,7 @@ impl RandomUtils {
         let mut result = 0;
          
         for _throw in 0..number {
-            result += gen_range(1,size);
+            result += gen_range(1,size+1);
         }
 
         result

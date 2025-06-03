@@ -70,7 +70,6 @@ impl Spawn {
         let mut monster_spawn_points: HashSet<usize> = HashSet::new();
         let monster_number = RandomUtils::dice(1, MAX_MONSTERS_ON_ROOM_START) - 1;
 
-        println!("monster to spawn {monster_number}");
         // Generate spawn points within room
         for _m in 0..monster_number {
             for _t in 0..MAX_SPAWN_TENTANTIVES {
@@ -85,8 +84,6 @@ impl Spawn {
             }
         }
 
-        println!("monster_spawn_points values {:?}", monster_spawn_points);
-
         // Actually spawn the monsters
         for &index in monster_spawn_points.iter() {
             let x = index % MAP_WIDTH as usize;
@@ -98,7 +95,6 @@ impl Spawn {
         let mut item_spawn_points: HashSet<usize> = HashSet::new();
         let items_number = RandomUtils::dice(1, MAX_ITEMS_ON_ROOM_START) - 1;
 
-        println!("items_number to spawn {items_number}");
         // Generate span points within room
         for _i in 0..items_number {
             for _t in 0..MAX_SPAWN_TENTANTIVES {
@@ -112,13 +108,12 @@ impl Spawn {
                 }
             }
         }
-        println!("item_spawn_points values {:?}", item_spawn_points);
 
         // Actually spawn the potions
         for &index in item_spawn_points.iter() {
             let x = index % MAP_WIDTH as usize;
             let y = index / MAP_WIDTH as usize;
-            Self::meat(ecs_world, x as i32, y as i32);
+            Self::random_item(ecs_world, x as i32, y as i32);
         }
     }
 
@@ -204,6 +199,16 @@ impl Spawn {
         ecs_world.spawn(monster_entity);
     }
 
+    /// Spawn a random monster
+    pub fn random_item(ecs_world: &mut World, x: i32, y: i32) {
+        let dice_roll = RandomUtils::dice(1, 2);
+        // Dvergar is stronger, shuold be less common
+        match dice_roll {
+            1 => Self::wand(ecs_world, x, y),
+            _ => Self::meat(ecs_world, x, y),
+        }
+    }
+
     fn meat(ecs_world: &mut World, x: i32, y: i32) {
         let meat = (
             Position { x, y },
@@ -226,5 +231,26 @@ impl Spawn {
         );
 
         ecs_world.spawn(meat);
+    }    
+
+    fn wand(ecs_world: &mut World, x: i32, y: i32) {
+        let wand = (
+            Position { x, y },
+            Renderable {
+                texture_name: TextureName::Items,
+                texture_region: Rect {
+                    x: 32.0, //TODO fix
+                    y: 0.0,
+                    w: TILE_SIZE as f32,
+                    h: TILE_SIZE as f32,
+                },
+            },
+            Named {
+                name: String::from("Thunder wand"),
+            },
+            Item {},
+        );
+
+        ecs_world.spawn(wand);
     }
 }

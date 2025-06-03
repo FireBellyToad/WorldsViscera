@@ -13,7 +13,7 @@ use macroquad::{
 use crate::{
     assets::TextureName,
     components::{
-        common::Named,
+        common::{GameLog, Named},
         items::{InBackback, Item, WantsToDrop, WantsToEat},
         player::Player,
     },
@@ -21,7 +21,7 @@ use crate::{
     engine::state::RunState,
 };
 
-#[derive(PartialEq,Debug)]
+#[derive(PartialEq, Debug)]
 pub enum InventoryAction {
     Eat,
     Drop,
@@ -32,7 +32,6 @@ pub struct Inventory {}
 impl Inventory {
     /// Handle inventory input
     pub fn handle_input(ecs_world: &mut World, mode: InventoryAction) -> RunState {
-        println!("mode {:?}", mode);
         if is_key_pressed(KeyCode::Escape) {
             // Exit inventory, clear queue to avoid to reopen on cancel
             // caused by char input queue
@@ -46,35 +45,39 @@ impl Inventory {
             match get_char_pressed() {
                 None => {}
                 Some(letterkey) => {
-                    // Get the selection and use the item
-                    let search_result = OPTION_TO_CHAR_MAP.iter().position(|l| *l == letterkey);
+                    let mut player_query = ecs_world.query::<&Player>();
+                    let (player_entity, _p) = player_query
+                        .iter()
+                        .last()
+                        .expect("Player is not in hecs::World");
 
-                    // is the selection valid?
-                    if search_result.is_some() {
-                        let selected_item_index = search_result.unwrap();
+                    //Log
+                    let mut game_log_query = ecs_world.query::<&mut GameLog>();
+                    let (_e, game_log) = game_log_query
+                        .iter()
+                        .last()
+                        .expect("Game log is not in hecs::World");
 
-                        let mut player_query = ecs_world.query::<&Player>();
-                        let (player_entity, _p) = player_query
+                    //Inventory = Named items in backpack of the Player assigned to the pressed char key
+                    let mut inventory_query = ecs_world.query::<(&Named, &Item, &InBackback)>();
+                    let inventory: Vec<(hecs::Entity, (&Named, &Item, &InBackback))> =
+                        inventory_query
                             .iter()
-                            .last()
-                            .expect("Player is not in hecs::World");
+                            .filter(|(_e, (_n, _i, in_backpack))| {
+                                in_backpack.owner.id() == player_entity.id()
+                                    && in_backpack.assigned_char == letterkey
+                            })
+                            .collect::<Vec<_>>();
 
-                        //Inventory = Named items in backpack of the Player
-                        let mut inventory_query = ecs_world.query::<(&Named, &Item, &InBackback)>();
-                        let inventory: Vec<(hecs::Entity, (&Named, &Item, &InBackback))> =
-                            inventory_query
-                                .iter()
-                                .filter(|(_e, (_n, _i, in_backpack))| {
-                                    in_backpack.owner.id() == player_entity.id()
-                                }) //
-                                .collect::<Vec<_>>();
-
-                        // Validating char input
-                        if selected_item_index < inventory.len() {
-                            let (item_entity, (_n, _i, _b)) = inventory[selected_item_index];
-                            selected_item_entity = Some(item_entity);
-                            user_entity = Some(player_entity);
-                        }
+                    // Validating char input
+                    if !inventory.is_empty() {
+                        let (item_entity, (_n, _i, _b)) = inventory[0];
+                        selected_item_entity = Some(item_entity);
+                        user_entity = Some(player_entity);
+                    } else {
+                        game_log
+                            .entries
+                            .push(format!("No item available for letter {letterkey}"));
                     }
                 }
             }
@@ -91,6 +94,8 @@ impl Inventory {
                     }
                 };
 
+                //Avoid strange behaviors 
+                clear_input_queue();
                 return RunState::PlayerTurn;
             }
         }
@@ -113,10 +118,13 @@ impl Inventory {
 
         //Inventory = Named items in backpack of the Player
         let mut inventory_query = ecs_world.query::<(&Named, &Item, &InBackback)>();
-        let inventory: Vec<(hecs::Entity, (&Named, &Item, &InBackback))> = inventory_query
+        let mut inventory: Vec<(hecs::Entity, (&Named, &Item, &InBackback))> = inventory_query
             .iter()
             .filter(|(_e, (_n, _i, in_backpack))| in_backpack.owner.id() == player_id) //
             .collect::<Vec<_>>();
+
+        //Sort alphabetically by assigned char
+        inventory.sort_by_key(|k| k.1.2.assigned_char);
 
         // ------- Background Rectangle -----------
         draw_rectangle(INVENTORY_X as f32, INVENTORY_Y as f32, 512.0, 512.0, WHITE);
@@ -129,19 +137,6 @@ impl Inventory {
         );
 
         // ------- Header -----------
-        let mut header_width = INVENTORY_HEADER_WIDTH;
-        //FIXME this is shitty, improve
-        if mode == InventoryAction::Drop {
-            header_width += UI_BORDER;
-        }
-        draw_rectangle(
-            (INVENTORY_X + INVENTORY_LEFT_SPAN) as f32,
-            (INVENTORY_Y - UI_BORDER) as f32,
-            header_width as f32,
-            HEADER_HEIGHT as f32,
-            BLACK,
-        );
-
         let header_text;
         match mode {
             InventoryAction::Eat => {
@@ -152,6 +147,14 @@ impl Inventory {
             }
         }
 
+        draw_rectangle(
+            (INVENTORY_X + INVENTORY_LEFT_SPAN) as f32,
+            (INVENTORY_Y - UI_BORDER) as f32,
+            header_text.len() as f32 * 15.0,
+            HEADER_HEIGHT as f32,
+            BLACK,
+        );
+
         draw_text(
             header_text,
             (INVENTORY_X + INVENTORY_LEFT_SPAN + HUD_BORDER) as f32,
@@ -161,12 +164,12 @@ impl Inventory {
         );
 
         // ------- Item List -----------
-        for (index, (_e, (named, _i, _b))) in inventory.iter().enumerate() {
+        for (index, (_e, (named, _i, in_backpack))) in inventory.iter().enumerate() {
             let x = (INVENTORY_X + UI_BORDER * 2) as f32;
             let y = (INVENTORY_Y + INVENTORY_TOP_SPAN) as f32 + (FONT_SIZE * index as f32);
 
             draw_text(
-                format!("{} : \t - {}", OPTION_TO_CHAR_MAP[index], named.name),
+                format!("{} : \t - {}", in_backpack.assigned_char, named.name),
                 x,
                 y,
                 FONT_SIZE,
