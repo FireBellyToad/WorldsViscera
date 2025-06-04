@@ -3,17 +3,15 @@ use std::collections::HashSet;
 use hecs::World;
 use macroquad::math::Rect;
 
-use crate::assets::TextureName;
+use crate::components::map::Map;
+use crate::utils::assets::TextureName;
 use crate::components::combat::*;
 use crate::components::common::*;
-use crate::components::items::Edible;
-use crate::components::items::Item;
+use crate::components::items::{Edible, Invokable, Item};
 use crate::components::monster::Monster;
 use crate::components::player::Player;
-use crate::components::player::VIEW_RADIUS;
 use crate::constants::*;
-use crate::map::Map;
-use crate::utils::random_util::RandomUtils;
+use crate::utils::roll::Roll;
 
 /// Spawner of game entities
 pub struct Spawn {}
@@ -22,9 +20,9 @@ impl Spawn {
     /// Spawn player
     pub fn player(ecs_world: &mut World, map: &Map) {
         // Roll appropriate stats
-        let rolled_toughness = RandomUtils::stat_roll();
+        let rolled_toughness = Roll::stat();
         // TODO Player with Soldier background must have 1+2d3 starting stamina
-        let rolled_stamina = RandomUtils::d6() + 1;
+        let rolled_stamina = Roll::d6() + 1;
 
         let player_entity = (
             Player {},
@@ -68,13 +66,13 @@ impl Spawn {
     pub fn in_room(ecs_world: &mut World, room: &Rect) {
         // Monsters
         let mut monster_spawn_points: HashSet<usize> = HashSet::new();
-        let monster_number = RandomUtils::dice(1, MAX_MONSTERS_ON_ROOM_START) - 1;
+        let monster_number = Roll::dice(1, MAX_MONSTERS_ON_ROOM_START) - 1;
 
         // Generate spawn points within room
         for _m in 0..monster_number {
             for _t in 0..MAX_SPAWN_TENTANTIVES {
-                let x = (room.x + RandomUtils::dice(1, room.w as i32 - 1) as f32) as usize;
-                let y = (room.y + RandomUtils::dice(1, room.h as i32 - 1) as f32) as usize;
+                let x = (room.x + Roll::dice(1, room.w as i32 - 1) as f32) as usize;
+                let y = (room.y + Roll::dice(1, room.h as i32 - 1) as f32) as usize;
                 let index = (y * MAP_WIDTH as usize) + x;
 
                 // avoid duplicate spawnpoints
@@ -93,13 +91,13 @@ impl Spawn {
 
         // Items
         let mut item_spawn_points: HashSet<usize> = HashSet::new();
-        let items_number = RandomUtils::dice(1, MAX_ITEMS_ON_ROOM_START) - 1;
+        let items_number = Roll::dice(1, MAX_ITEMS_ON_ROOM_START) - 1;
 
         // Generate span points within room
         for _i in 0..items_number {
             for _t in 0..MAX_SPAWN_TENTANTIVES {
-                let x = (room.x + RandomUtils::dice(1, room.w as i32 - 1) as f32) as usize;
-                let y = (room.y + RandomUtils::dice(1, room.h as i32 - 1) as f32) as usize;
+                let x = (room.x + Roll::dice(1, room.w as i32 - 1) as f32) as usize;
+                let y = (room.y + Roll::dice(1, room.h as i32 - 1) as f32) as usize;
                 let index = (y * MAP_WIDTH as usize) + x;
 
                 // avoid duplicate spawnpoints
@@ -119,7 +117,7 @@ impl Spawn {
 
     /// Spawn a random monster
     pub fn random_monster(ecs_world: &mut World, x: i32, y: i32) {
-        let dice_roll = RandomUtils::dice(1, 4);
+        let dice_roll = Roll::dice(1, 4);
 
         // Dvergar is stronger, shuold be less common
         match dice_roll {
@@ -140,7 +138,7 @@ impl Spawn {
                 current_toughness: 8,
                 max_toughness: 8,
             },
-            1.0,
+            1.0, //TODO fix
             x,
             y,
         );
@@ -158,7 +156,7 @@ impl Spawn {
                 current_toughness: 10,
                 max_toughness: 10,
             },
-            2.0,
+            2.0, //TODO fix
             x,
             y,
         );
@@ -179,7 +177,7 @@ impl Spawn {
             Renderable {
                 texture_name: TextureName::Creatures,
                 texture_region: Rect {
-                    x: tile_index * TILE_SIZE as f32, //TODO fix
+                    x: tile_index * TILE_SIZE as f32,
                     y: 0.0,
                     w: TILE_SIZE as f32,
                     h: TILE_SIZE as f32,
@@ -201,21 +199,22 @@ impl Spawn {
 
     /// Spawn a random monster
     pub fn random_item(ecs_world: &mut World, x: i32, y: i32) {
-        let dice_roll = RandomUtils::dice(1, 2);
+        let dice_roll = Roll::dice(1, 2);
         // Dvergar is stronger, shuold be less common
         match dice_roll {
             1 => Self::wand(ecs_world, x, y),
-            _ => Self::meat(ecs_world, x, y),
+            _ => Self::wand(ecs_world, x, y),
         }
     }
 
     fn meat(ecs_world: &mut World, x: i32, y: i32) {
+        let item_tile_index = 0;
         let meat = (
             Position { x, y },
             Renderable {
                 texture_name: TextureName::Items,
                 texture_region: Rect {
-                    x: 0.0, //TODO fix
+                    x: (item_tile_index * TILE_SIZE) as f32,
                     y: 0.0,
                     w: TILE_SIZE as f32,
                     h: TILE_SIZE as f32,
@@ -224,22 +223,23 @@ impl Spawn {
             Named {
                 name: String::from("Fresh meat"),
             },
-            Item {},
+            Item { item_tile_index },
             Edible {
                 nutrition_amount: 6,
             },
         );
 
         ecs_world.spawn(meat);
-    }    
+    }
 
     fn wand(ecs_world: &mut World, x: i32, y: i32) {
+        let item_tile_index = 1;
         let wand = (
             Position { x, y },
             Renderable {
                 texture_name: TextureName::Items,
                 texture_region: Rect {
-                    x: 32.0, //TODO fix
+                    x: (item_tile_index * TILE_SIZE) as f32,
                     y: 0.0,
                     w: TILE_SIZE as f32,
                     h: TILE_SIZE as f32,
@@ -248,7 +248,13 @@ impl Spawn {
             Named {
                 name: String::from("Thunder wand"),
             },
-            Item {},
+            Item { item_tile_index },
+            Invokable {},
+            Ranged { range: 6 },
+            InflictsDamage {
+                number_of_dices: 2,
+                dice_size: 4,
+            },
         );
 
         ecs_world.spawn(wand);

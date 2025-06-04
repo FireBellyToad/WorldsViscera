@@ -1,10 +1,10 @@
 use macroquad::rand::gen_range;
 
-pub struct RandomUtils {}
+pub struct Roll {}
 
 
 /// Random Utils to wrap macroquad::rand
-impl RandomUtils {
+impl Roll {
 
     /// Roll a size-faced number of dice
     pub fn dice(number: i32, size: i32) -> i32{
@@ -29,7 +29,7 @@ impl RandomUtils {
 
 
     /// Roll 3d6. Will be used a lot
-    pub fn stat_roll() -> i32 {
+    pub fn stat() -> i32 {
         Self::dice(3,6)
     }
 }

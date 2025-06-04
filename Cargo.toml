@@ -8,3 +8,4 @@ hecs = "0.10"
 macroquad = { path = "../visceraquad" }
 adam_fov_rs = "0.4"
 pathfinding = "4.14.0"
+bresenham = "0.1.1"

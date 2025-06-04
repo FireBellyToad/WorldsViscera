@@ -1,3 +1,3 @@
-pub mod point;
-pub mod pathfinding_utils;
-pub mod random_util;
+pub mod pathfinding;
+pub mod roll;
+pub mod assets;

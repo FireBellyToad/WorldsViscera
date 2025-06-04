@@ -6,7 +6,7 @@ use std::{
 use hecs::Entity;
 use macroquad::prelude::*;
 
-use crate::{assets::TextureName, constants::*};
+use crate::{constants::*, utils::assets::TextureName};
 
 /// Map Struct and implementations
 pub struct Map {
@@ -166,9 +166,11 @@ impl Map {
 
                 if self.revealed_tiles[tile_to_draw] {
                     let mut alpha = DARKGRAY;
+
                     if self.visible_tiles[tile_to_draw] {
                         alpha = WHITE;
                     }
+                    
                     // Take the texture and draw only the wanted tile ( DrawTextureParams.source )
                     draw_texture_ex(
                         texture_to_render,

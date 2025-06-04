@@ -7,8 +7,10 @@ pub enum RunState {
     PlayerTurn,
     MonsterTurn,
     GameOver,
-    ShowInventory,
-    ShowDropInventory
+    ShowEatInventory,
+    ShowDropInventory,
+    ShowInvokeInventory,
+    MouseTargeting,
 }
 
 // Game state struct

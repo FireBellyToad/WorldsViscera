@@ -41,3 +41,8 @@ pub const SECONDS_TO_WAIT: f32 = 0.1;
 pub const MAX_MONSTERS_ON_ROOM_START: i32 = 3;
 pub const MAX_ITEMS_ON_ROOM_START: i32 = 2;
 pub const MAX_SPAWN_TENTANTIVES: i32 = 10;
+
+/// Player constants
+pub const VIEW_RADIUS: i32 = 4;
+pub const TARGET_RADIUS: f32 = 8.0;
+pub const TARGET_THICKNESS: f32 = 3.0;

@@ -1,8 +1,16 @@
 use std::collections::HashMap;
 
-use macroquad::texture::{Texture2D, load_texture};
+use macroquad::texture::{load_texture, Texture2D};
 
-use crate::assets::TextureName;
+
+
+// Needed for hashmap
+#[derive(Hash,Eq, PartialEq)]
+pub enum TextureName {
+    Creatures,
+    Tiles,
+    Items
+}
 
 pub struct Load {}
 

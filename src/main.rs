@@ -1,4 +1,4 @@
-use components::{common::{GameLog}, player::Player};
+use components::{common::GameLog, player::Player};
 use constants::*;
 use draw::Draw;
 use engine::{
@@ -7,22 +7,21 @@ use engine::{
 };
 use hecs::World;
 use inventory::Inventory;
-use loader::Load;
 use macroquad::prelude::*;
-use map::Map;
 use spawner::Spawn;
 use systems::{
-    damage_manager::DamageManager, eating_edibles::EatingEdibles, fov::FovCalculator, item_collection::ItemCollection, item_dropping::ItemDropping, map_indexing::MapIndexing, melee_manager::MeleeManager, monster_ai::MonsterAI
+    damage_manager::DamageManager, eating_edibles::EatingEdibles, fov::FovCalculator,
+    item_collection::ItemCollection, item_dropping::ItemDropping, map_indexing::MapIndexing,
+    melee_manager::MeleeManager, monster_ai::MonsterAI,
 };
 
-mod assets;
+use crate::{components::map::Map, inventory::InventoryAction, utils::assets::Load};
+
 mod components;
 mod constants;
 mod draw;
 mod engine;
 mod inventory;
-mod loader;
-mod map;
 mod spawner;
 mod systems;
 mod utils;
@@ -63,7 +62,7 @@ async fn main() {
                         do_game_logic(&mut game_state, RunState::WaitingPlayerInput);
                 }
                 RunState::WaitingPlayerInput => {
-                    game_state.run_state = Player::player_input(&mut game_state.ecs_world)
+                    game_state.run_state = Player::checks_keyboard_input(&mut game_state.ecs_world)
                 }
                 RunState::PlayerTurn => {
                     game_state.run_state = do_game_logic(&mut game_state, RunState::MonsterTurn);
@@ -83,11 +82,20 @@ async fn main() {
                         clear_input_queue();
                     }
                 }
-                RunState::ShowInventory => {
-                    game_state.run_state = Inventory::handle_input(&mut game_state.ecs_world,inventory::InventoryAction::Eat);
+                RunState::ShowEatInventory => {
+                    game_state.run_state =
+                        Inventory::handle_input(&mut game_state.ecs_world, InventoryAction::Eat);
                 }
                 RunState::ShowDropInventory => {
-                    game_state.run_state = Inventory::handle_input(&mut game_state.ecs_world, inventory::InventoryAction::Drop);
+                    game_state.run_state =
+                        Inventory::handle_input(&mut game_state.ecs_world, InventoryAction::Drop);
+                }
+                RunState::ShowInvokeInventory => {
+                    game_state.run_state =
+                        Inventory::handle_input(&mut game_state.ecs_world, InventoryAction::Invoke);
+                }
+                RunState::MouseTargeting => {
+                    game_state.run_state = Player::checks_mouse_input(&mut game_state.ecs_world);
                 }
             }
 
@@ -118,7 +126,7 @@ fn populate_world(ecs_world: &mut World) {
         },
     ));
 
-    let map: Map = Map::new_dungeon_map();
+    let map = Map::new_dungeon_map();
 
     Spawn::player(ecs_world, &map);
 
@@ -142,7 +150,7 @@ fn do_game_logic(game_state: &mut EngineState, next_state: RunState) -> RunState
         ItemCollection::run(&mut game_state.ecs_world);
         ItemDropping::run(&mut game_state.ecs_world);
         EatingEdibles::run(&mut game_state.ecs_world);
-        
+
         return next_state;
     } else {
         return RunState::GameOver;

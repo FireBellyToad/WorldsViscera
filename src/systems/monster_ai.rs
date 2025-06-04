@@ -1,11 +1,9 @@
 use hecs::{Entity, World};
 
 use crate::{
-    components::{
-        combat::WantsToMelee, common::*, monster::Monster, player::Player
-    },
-    map::{get_index_from_xy, Map},
-    utils::{pathfinding_utils::PathfindingUtils, point::Point},
+    components::{combat::WantsToMelee, common::*, monster::Monster, player::Player, map::{Map, get_index_from_xy}},
+    systems::fov::Point,
+    utils::pathfinding::Pathfinding,
 };
 
 /// Monster AI struct
@@ -36,7 +34,7 @@ impl MonsterAI {
                     x: player_position.x,
                     y: player_position.y,
                 }) {
-                    let pathfinding_result = PathfindingUtils::a_star_wrapper(
+                    let pathfinding_result = Pathfinding::dijkstra_wrapper(
                         position.x,
                         position.y,
                         player_position.x,

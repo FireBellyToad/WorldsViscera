@@ -8,7 +8,7 @@ use crate::{
         common::{GameLog, Named},
         player::Player,
     },
-    utils::random_util::RandomUtils,
+    utils::roll::Roll,
 };
 
 pub struct DamageManager {}
@@ -48,7 +48,7 @@ impl DamageManager {
                 // if has been damaged and Stamina is 0, do a thougness saving throw or die.
                 // On 0 or less toughness, die anyway
                 if stats.current_stamina == 0 && damageable.damage_received > 0 {
-                    let saving_throw_roll = RandomUtils::d20();
+                    let saving_throw_roll = Roll::d20();
 
                     game_log.entries.push(format!(
                         "{} saving with {} against thougness {} / {}",

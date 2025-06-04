@@ -2,17 +2,16 @@ use adam_fov_rs::{IVec2, compute_fov};
 use hecs::World;
 
 use crate::{
-    components::{common::*, player::Player},
+    components::{common::*, map::{get_index_from_xy, Map}, player::Player},
     constants::{MAP_HEIGHT, MAP_WIDTH},
-    map::{get_index_from_xy, Map},
-    utils::point::Point,
 };
+
+use adam_fov_rs::{GridPoint};
 
 pub struct FovCalculator {}
 
 impl FovCalculator {
     pub fn run(ecs_world: &World) {
-
         let player_entity_id = Player::get_player_id(ecs_world);
 
         let mut map_query = ecs_world.query::<&mut Map>();
@@ -59,5 +58,16 @@ impl FovCalculator {
                 }
             }
         }
+    }
+}
+#[derive(Clone, Copy, PartialEq, Debug)]
+pub struct Point {
+    pub x: i32,
+    pub y: i32,
+}
+
+impl GridPoint for Point {
+    fn xy(&self) -> adam_fov_rs::IVec2 {
+        IVec2::new(self.x, self.y)
     }
 }

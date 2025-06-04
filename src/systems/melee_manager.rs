@@ -7,7 +7,7 @@ use crate::{
         combat::{CombatStats, SufferingDamage, WantsToMelee},
         common::{GameLog, Named},
     },
-    utils::random_util::RandomUtils,
+    utils::roll::Roll,
 };
 
 pub struct MeleeManager {}
@@ -36,7 +36,7 @@ impl MeleeManager {
 
                 let damage_roll = max(
                     0,
-                    RandomUtils::dice(1, attacker_stats.unarmed_attack_dice)
+                    Roll::dice(1, attacker_stats.unarmed_attack_dice)
                         - target_stats.base_armor,
                 );
 

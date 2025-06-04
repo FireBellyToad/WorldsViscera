@@ -1,12 +1,18 @@
 use std::cmp::{max, min};
 
 use hecs::{Entity, World};
-use macroquad::input::{clear_input_queue, get_key_pressed, KeyCode};
+use macroquad::input::{
+    KeyCode, MouseButton, clear_input_queue, get_key_pressed, is_mouse_button_down, mouse_position,
+};
 
 use crate::{
-    constants::{MAP_HEIGHT, MAP_WIDTH},
+    components::{
+        combat::WantsToZap,
+        items::WantsToInvoke,
+        map::{Map, get_index_from_xy},
+    },
+    constants::{MAP_HEIGHT, MAP_WIDTH, TILE_SIZE},
     engine::state::RunState,
-    map::{Map, get_index_from_xy},
 };
 
 use super::{
@@ -18,9 +24,6 @@ use super::{
     common::{Position, Viewshed},
     items::Item,
 };
-
-/// Player constants
-pub const VIEW_RADIUS: i32 = 8;
 
 /// Player struct
 pub struct Player {}
@@ -73,7 +76,7 @@ impl Player {
     ///
     /// Handle player input
     ///
-    pub fn player_input(ecs_world: &mut World) -> RunState {
+    pub fn checks_keyboard_input(ecs_world: &mut World) -> RunState {
         // Player movement
         match get_key_pressed() {
             None => return RunState::WaitingPlayerInput, // Nothing happened
@@ -98,7 +101,7 @@ impl Player {
                 //Eat item
                 KeyCode::E => {
                     clear_input_queue();
-                    return RunState::ShowInventory;
+                    return RunState::ShowEatInventory;
                 }
 
                 //Drop item
@@ -107,11 +110,43 @@ impl Player {
                     return RunState::ShowDropInventory;
                 }
 
+                //Invoke item
+                KeyCode::I => {
+                    clear_input_queue();
+                    return RunState::ShowInvokeInventory;
+                }
+
                 _ => return RunState::WaitingPlayerInput,
             },
         }
 
         RunState::PlayerTurn
+    }
+
+    /// Checks mouse input
+    pub fn checks_mouse_input(ecs_world: &mut World) -> RunState {
+
+        if is_mouse_button_down(MouseButton::Left) {
+            let (mouse_x, mouse_y) = mouse_position();
+
+            let rounded_x = mouse_x as i32 / TILE_SIZE;
+            let rounded_y = mouse_y as i32 / TILE_SIZE;
+            println!("Shoot at {rounded_x} {rounded_y}");
+
+            let player_entity = Self::get_player_entity(&ecs_world);
+
+            let _ = ecs_world.remove_one::<WantsToInvoke>(player_entity);
+
+            let _ = ecs_world.insert_one(
+                player_entity,
+                WantsToZap {
+                    target: (rounded_x, rounded_y),
+                },
+            );
+            return RunState::PlayerTurn;
+        }
+
+        RunState::MouseTargeting
     }
 
     fn pick_up(ecs_world: &mut World) {
@@ -159,14 +194,18 @@ impl Player {
         }
     }
 
-    /// Extract Player's entity id from world and return it with copy
-    pub fn get_player_id(ecs_world: &World) -> u32 {
+    /// Extract Player's entity from world and return it with copy
+    pub fn get_player_entity(ecs_world: &World) -> Entity {
         let mut player_query = ecs_world.query::<&Player>();
         let (player_entity, _p) = player_query
             .iter()
             .last()
             .expect("Player is not in hecs::World");
 
-        player_entity.id()
+        player_entity
+    }
+    /// Extract Player's entity id from world and return it with copy
+    pub fn get_player_id(ecs_world: &World) -> u32 {
+        Player::get_player_entity(ecs_world).id()
     }
 }

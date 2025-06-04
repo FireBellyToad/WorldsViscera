@@ -1,9 +1,6 @@
 use hecs::World;
 
-use crate::{
-    components::common::*,
-    map::{Map, get_index_from_xy},
-};
+use crate::components::{common::*, map::{get_index_from_xy, Map}};
 
 pub struct MapIndexing {}
 

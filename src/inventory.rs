@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use hecs::{Entity, World};
+use hecs::{Component, Entity, World};
 use macroquad::{
     color::{BLACK, WHITE},
     input::{KeyCode, clear_input_queue, get_char_pressed, is_key_pressed},
@@ -11,20 +11,18 @@ use macroquad::{
 };
 
 use crate::{
-    assets::TextureName,
     components::{
         common::{GameLog, Named},
-        items::{InBackback, Item, WantsToDrop, WantsToEat},
+        items::{Edible, InBackback, Invokable, Item, WantsToDrop, WantsToEat, WantsToInvoke},
         player::Player,
-    },
-    constants::*,
-    engine::state::RunState,
+    }, constants::*, engine::state::RunState, utils::assets::TextureName
 };
 
 #[derive(PartialEq, Debug)]
 pub enum InventoryAction {
     Eat,
     Drop,
+    Invoke
 }
 
 pub struct Inventory {}
@@ -83,6 +81,7 @@ impl Inventory {
             }
 
             // Use selected item
+            let mut new_run_state = RunState::PlayerTurn;
             if selected_item_entity.is_some() {
                 let item: Entity = selected_item_entity.unwrap();
                 match mode {
@@ -92,18 +91,22 @@ impl Inventory {
                     InventoryAction::Drop => {
                         let _ = ecs_world.insert_one(user_entity.unwrap(), WantsToDrop { item });
                     }
+                    InventoryAction::Invoke => {
+                        new_run_state = RunState::MouseTargeting;
+                    }
                 };
 
-                //Avoid strange behaviors 
+                //Avoid strange behaviors
                 clear_input_queue();
-                return RunState::PlayerTurn;
+                return new_run_state;
             }
         }
 
         // Keep inventory showing if invalid or no item has been selected
         match mode {
-            InventoryAction::Eat => RunState::ShowInventory,
+            InventoryAction::Eat => RunState::ShowEatInventory,
             InventoryAction::Drop => RunState::ShowDropInventory,
+            InventoryAction::Invoke => RunState::ShowInvokeInventory,
         }
     }
 
@@ -114,17 +117,24 @@ impl Inventory {
     ) {
         let texture_to_render = assets.get(&TextureName::Items).expect("Texture not found");
 
-        let player_id = Player::get_player_id(ecs_world);
-
         //Inventory = Named items in backpack of the Player
-        let mut inventory_query = ecs_world.query::<(&Named, &Item, &InBackback)>();
-        let mut inventory: Vec<(hecs::Entity, (&Named, &Item, &InBackback))> = inventory_query
-            .iter()
-            .filter(|(_e, (_n, _i, in_backpack))| in_backpack.owner.id() == player_id) //
-            .collect::<Vec<_>>();
+        let inventory: Vec<(String, char, i32)>;
+        let header_text;
 
-        //Sort alphabetically by assigned char
-        inventory.sort_by_key(|k| k.1.2.assigned_char);
+        match mode {
+            InventoryAction::Eat => {
+                header_text = "Eat what?";
+                inventory = Self::get_all_in_backpack_filtered_by::<Edible>(ecs_world);
+            }
+            InventoryAction::Invoke => {
+                header_text = "Invoke what?";
+                inventory = Self::get_all_in_backpack_filtered_by::<Invokable>(ecs_world);
+            }
+            InventoryAction::Drop => {
+                header_text = "Drop what?";
+                inventory = Self::get_all_in_backpack(ecs_world);
+            }
+        }
 
         // ------- Background Rectangle -----------
         draw_rectangle(INVENTORY_X as f32, INVENTORY_Y as f32, 512.0, 512.0, WHITE);
@@ -137,16 +147,6 @@ impl Inventory {
         );
 
         // ------- Header -----------
-        let header_text;
-        match mode {
-            InventoryAction::Eat => {
-                header_text = "Eat what?";
-            }
-            InventoryAction::Drop => {
-                header_text = "Drop what?";
-            }
-        }
-
         draw_rectangle(
             (INVENTORY_X + INVENTORY_LEFT_SPAN) as f32,
             (INVENTORY_Y - UI_BORDER) as f32,
@@ -164,12 +164,12 @@ impl Inventory {
         );
 
         // ------- Item List -----------
-        for (index, (_e, (named, _i, in_backpack))) in inventory.iter().enumerate() {
+        for (index, (item_name, assigned_char, item_tile)) in inventory.iter().enumerate() {
             let x = (INVENTORY_X + UI_BORDER * 2) as f32;
             let y = (INVENTORY_Y + INVENTORY_TOP_SPAN) as f32 + (FONT_SIZE * index as f32);
 
             draw_text(
-                format!("{} : \t - {}", in_backpack.assigned_char, named.name),
+                format!("{} : \t - {}", assigned_char, item_name),
                 x,
                 y,
                 FONT_SIZE,
@@ -183,7 +183,7 @@ impl Inventory {
                 WHITE,
                 DrawTextureParams {
                     source: Some(Rect {
-                        x: 0.0, // TODO refactor
+                        x: (item_tile * TILE_SIZE) as f32,
                         y: 0.0,
                         w: TILE_SIZE as f32,
                         h: TILE_SIZE as f32,
@@ -208,5 +208,53 @@ impl Inventory {
             FONT_SIZE,
             WHITE,
         );
+    }
+
+    /// Get all items in backpack for UI
+    fn get_all_in_backpack(ecs_world: &World) -> Vec<(String, char, i32)> {
+        let player_id = Player::get_player_id(ecs_world);
+        let mut inventory_query = ecs_world.query::<(&Named, &Item, &InBackback)>();
+        let mut inventory = inventory_query
+            .iter()
+            .filter(|(_e, (_n, _i, in_backpack))| in_backpack.owner.id() == player_id)
+            .map(|(_e, (named, item, in_backpack))| {
+                (
+                    named.name.clone(),
+                    in_backpack.assigned_char,
+                    item.item_tile_index,
+                )
+            })
+            .collect::<Vec<(String, char, i32)>>();
+
+        //Sort alphabetically by assigned char
+        inventory.sort_by_key(|k| k.1);
+        inventory
+    }
+
+    /// Get all items in backpack with a certain component T for UI
+    fn get_all_in_backpack_filtered_by<T: Component>(
+        ecs_world: &World,
+    ) -> Vec<(String, char, i32)> {
+        let player_id = Player::get_player_id(ecs_world);
+
+        let mut inventory_query = ecs_world
+            .query::<(&Named, &Item, &InBackback)>()
+            .with::<&T>();
+
+        let mut inventory = inventory_query
+            .iter()
+            .filter(|(_e, (_n, _i, in_backpack))| in_backpack.owner.id() == player_id)
+            .map(|(_e, (named, item, in_backpack))| {
+                (
+                    named.name.clone(),
+                    in_backpack.assigned_char,
+                    item.item_tile_index,
+                )
+            }) //
+            .collect::<Vec<(String, char, i32)>>();
+
+        //Sort alphabetically by assigned char
+        inventory.sort_by_key(|k| k.1);
+        inventory
     }
 }

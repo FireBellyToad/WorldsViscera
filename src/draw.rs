@@ -3,17 +3,23 @@ use std::collections::HashMap;
 use hecs::World;
 use macroquad::{
     color::{BLACK, Color, RED, WHITE, YELLOW},
-    shapes::draw_rectangle,
+    input::mouse_position,
+    shapes::{draw_circle, draw_circle_lines, draw_rectangle},
     text::draw_text,
     texture::{DrawTextureParams, Texture2D, draw_texture_ex},
 };
 
 use crate::{
-    assets::TextureName, components::{
+    components::{
         combat::CombatStats,
         common::{GameLog, Position, Renderable},
+        map::{Map, get_index_from_xy},
         player::Player,
-    }, constants::*, engine::state::{EngineState, RunState}, inventory::{Inventory, InventoryAction}, map::{get_index_from_xy, Map}
+    },
+    constants::*,
+    engine::state::{EngineState, RunState},
+    inventory::{Inventory, InventoryAction},
+    utils::assets::TextureName,
 };
 
 pub struct Draw {}
@@ -30,9 +36,19 @@ impl Draw {
                 }
 
                 //Overlay
-                match  game_state.run_state {
-                    RunState::ShowInventory => Inventory::draw(assets, &game_state.ecs_world, InventoryAction::Eat),
-                    RunState::ShowDropInventory => Inventory::draw(assets, &game_state.ecs_world, InventoryAction::Drop),
+                match game_state.run_state {
+                    RunState::ShowEatInventory => {
+                        Inventory::draw(assets, &game_state.ecs_world, InventoryAction::Eat)
+                    }
+                    RunState::ShowDropInventory => {
+                        Inventory::draw(assets, &game_state.ecs_world, InventoryAction::Drop)
+                    }
+                    RunState::ShowInvokeInventory => {
+                        Inventory::draw(assets, &game_state.ecs_world, InventoryAction::Invoke)
+                    }
+                    RunState::MouseTargeting => {
+                        Draw::targeting();
+                    }
                     _ => {}
                 }
             }
@@ -183,6 +199,21 @@ impl Draw {
             96.0,
             FONT_SIZE,
             WHITE,
+        );
+    }
+
+    /// Draw target on tile where mouse is poiting
+    fn targeting() {
+        let (mouse_x, mouse_y) = mouse_position();
+        let rounded_x = mouse_x as i32 / TILE_SIZE;
+        let rounded_y = mouse_y as i32 / TILE_SIZE;
+
+        draw_circle_lines(
+            (UI_BORDER + (rounded_x * TILE_SIZE) + TILE_SIZE / 2) as f32,
+            (UI_BORDER + (rounded_y * TILE_SIZE) + TILE_SIZE / 2) as f32,
+            TARGET_RADIUS,
+            TARGET_THICKNESS,
+            RED,
         );
     }
 }
