@@ -4,7 +4,7 @@ use hecs::World;
 use macroquad::{
     color::{BLACK, Color, RED, WHITE, YELLOW},
     input::mouse_position,
-    shapes::{draw_circle_lines, draw_rectangle, draw_rectangle_lines},
+    shapes::{draw_rectangle, draw_rectangle_lines},
     text::draw_text,
     texture::{DrawTextureParams, Texture2D, draw_texture_ex},
 };
@@ -12,14 +12,13 @@ use macroquad::{
 use crate::{
     components::{
         combat::CombatStats,
-        common::{GameLog, Position, Renderable, Viewshed},
+        common::{GameLog, Position, Renderable},
         map::{Map, get_index_from_xy},
         player::Player,
     },
     constants::*,
     engine::state::{EngineState, RunState},
     inventory::{Inventory, InventoryAction},
-    systems::fov::Point,
     utils::assets::TextureName,
 };
 

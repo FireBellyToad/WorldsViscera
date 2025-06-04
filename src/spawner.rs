@@ -206,11 +206,11 @@ impl Spawn {
 
     /// Spawn a random monster
     pub fn random_item(ecs_world: &mut World, x: i32, y: i32) {
-        let dice_roll = Roll::dice(1, 2);
+        let dice_roll = Roll::dice(1, 3);
         // Dvergar is stronger, shuold be less common
         match dice_roll {
             1 => Self::wand(ecs_world, x, y),
-            _ => Self::wand(ecs_world, x, y),
+            _ => Self::meat(ecs_world, x, y),
         }
     }
 
@@ -257,7 +257,6 @@ impl Spawn {
             },
             Item { item_tile_index },
             Invokable {},
-            Ranged { range: 6 },
             InflictsDamage {
                 number_of_dices: 2,
                 dice_size: 4,

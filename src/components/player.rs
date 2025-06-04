@@ -8,7 +8,6 @@ use macroquad::input::{
 use crate::{
     components::{
         combat::WantsToZap,
-        items::WantsToInvoke,
         map::{get_index_from_xy, Map},
     },
     constants::*,
@@ -125,7 +124,7 @@ impl Player {
 
     /// Checks mouse input
     pub fn checks_mouse_input(ecs_world: &mut World) -> RunState {
-        /// TODO ESC for exiting
+        // TODO ESC for exiting
         if is_mouse_button_down(MouseButton::Left) {
             let (mouse_x, mouse_y) = mouse_position();
 

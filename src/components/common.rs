@@ -1,6 +1,6 @@
 use macroquad::math::Rect;
 
-use crate::{systems::fov::Point, utils::assets::TextureName};
+use crate::utils::assets::TextureName;
 
 pub struct Position {
     pub x: i32,

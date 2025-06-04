@@ -8,7 +8,6 @@ use crate::{
         monster::Monster,
         player::Player,
     },
-    systems::fov::Point,
     utils::pathfinding::Pathfinding,
 };
 

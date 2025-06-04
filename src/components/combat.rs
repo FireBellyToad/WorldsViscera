@@ -23,10 +23,6 @@ pub struct WantsToZap{
     pub target: (i32,i32),
 }
 
-pub struct Ranged {
-    pub range: i32,
-}
-
 pub struct InflictsDamage {
     pub number_of_dices: i32,
     pub dice_size: i32,
