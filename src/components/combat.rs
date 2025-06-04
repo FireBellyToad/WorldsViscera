@@ -5,6 +5,8 @@ pub struct CombatStats {
     pub max_stamina: i32,
     pub current_toughness: i32,
     pub max_toughness: i32,
+    pub current_dexterity: i32,
+    pub max_dexterity: i32,
     pub base_armor: i32,
     pub unarmed_attack_dice: i32,
 }

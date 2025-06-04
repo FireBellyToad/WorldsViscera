@@ -2,6 +2,7 @@
 pub const MAP_WIDTH: i32 = 40;
 pub const MAP_HEIGHT: i32 = 25;
 pub const TILE_SIZE: i32 = 32;
+pub const TILE_SIZE_F32: f32 = TILE_SIZE as f32;
 
 /// Hud related constants
 pub const HUD_WIDTH: i32 = MAP_WIDTH * TILE_SIZE;
@@ -30,6 +31,7 @@ pub const OPTION_TO_CHAR_MAP: [char; 52] = [
 
 /// UI related constants
 pub const UI_BORDER: i32 = 8;
+pub const UI_BORDER_F32: f32 = UI_BORDER as f32;
 pub const WINDOW_WIDTH: i32 = (UI_BORDER * 2) + (MAP_WIDTH * TILE_SIZE);
 pub const WINDOW_HEIGHT: i32 = (UI_BORDER * 2) + (MAP_HEIGHT * TILE_SIZE) + HUD_HEIGHT;
 pub const FONT_SIZE: f32 = 32.0;
@@ -44,5 +46,5 @@ pub const MAX_SPAWN_TENTANTIVES: i32 = 10;
 
 /// Player constants
 pub const VIEW_RADIUS: i32 = 4;
-pub const TARGET_RADIUS: f32 = 8.0;
-pub const TARGET_THICKNESS: f32 = 3.0;
+pub const TARGET_RADIUS: f32 = 32.0;
+pub const TARGET_THICKNESS: f32 = 32.0;

@@ -162,7 +162,7 @@ impl Map {
             for y in 0..MAP_HEIGHT {
                 let tile_to_draw = get_index_from_xy(x, y);
                 let tile_index =
-                    get_tile_sprite_sheet_index(&self.tiles[tile_to_draw]) * TILE_SIZE as f32;
+                    get_tile_sprite_sheet_index(&self.tiles[tile_to_draw]) * TILE_SIZE_F32;
 
                 if self.revealed_tiles[tile_to_draw] {
                     let mut alpha = DARKGRAY;
@@ -181,8 +181,8 @@ impl Map {
                             source: Some(Rect {
                                 x: tile_index,
                                 y: 0.0,
-                                w: TILE_SIZE as f32,
-                                h: TILE_SIZE as f32,
+                                w: TILE_SIZE_F32,
+                                h: TILE_SIZE_F32,
                             }),
                             ..Default::default()
                         },

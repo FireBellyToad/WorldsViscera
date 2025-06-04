@@ -15,14 +15,17 @@ use crate::{
         common::{GameLog, Named},
         items::{Edible, InBackback, Invokable, Item, WantsToDrop, WantsToEat, WantsToInvoke},
         player::Player,
-    }, constants::*, engine::state::RunState, utils::assets::TextureName
+    },
+    constants::*,
+    engine::state::RunState,
+    utils::assets::TextureName,
 };
 
 #[derive(PartialEq, Debug)]
 pub enum InventoryAction {
     Eat,
     Drop,
-    Invoke
+    Invoke,
 }
 
 pub struct Inventory {}
@@ -92,6 +95,7 @@ impl Inventory {
                         let _ = ecs_world.insert_one(user_entity.unwrap(), WantsToDrop { item });
                     }
                     InventoryAction::Invoke => {
+                        let _ = ecs_world.insert_one(user_entity.unwrap(), WantsToInvoke { item });
                         new_run_state = RunState::MouseTargeting;
                     }
                 };
@@ -185,8 +189,8 @@ impl Inventory {
                     source: Some(Rect {
                         x: (item_tile * TILE_SIZE) as f32,
                         y: 0.0,
-                        w: TILE_SIZE as f32,
-                        h: TILE_SIZE as f32,
+                        w: TILE_SIZE_F32,
+                        h: TILE_SIZE_F32,
                     }),
                     ..Default::default()
                 },

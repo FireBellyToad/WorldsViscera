@@ -2,11 +2,15 @@ use adam_fov_rs::{IVec2, compute_fov};
 use hecs::World;
 
 use crate::{
-    components::{common::*, map::{get_index_from_xy, Map}, player::Player},
+    components::{
+        common::*,
+        map::{Map, get_index_from_xy},
+        player::Player,
+    },
     constants::{MAP_HEIGHT, MAP_WIDTH},
 };
 
-use adam_fov_rs::{GridPoint};
+use adam_fov_rs::GridPoint;
 
 pub struct FovCalculator {}
 
@@ -29,10 +33,7 @@ impl FovCalculator {
                 let is_opaque = |position: IVec2| map.is_tile_opaque(position[0], position[1]);
                 // Utility lambda for setting visible tiles
                 let set_to_visible = |position: IVec2| {
-                    viewshed.visible_tiles.push(Point {
-                        x: position[0],
-                        y: position[1],
-                    });
+                    viewshed.visible_tiles.push((position[0], position[1]));
                 };
 
                 // Calculate Fov
@@ -50,8 +51,8 @@ impl FovCalculator {
                 //recalculate rendered view if entity is Player
                 if entity.id() == player_entity_id {
                     map.visible_tiles.fill(false);
-                    for &tile in viewshed.visible_tiles.iter() {
-                        let index = get_index_from_xy(tile.x, tile.y);
+                    for &(x, y) in viewshed.visible_tiles.iter() {
+                        let index = get_index_from_xy(x, y);
                         map.revealed_tiles[index] = true;
                         map.visible_tiles[index] = true;
                     }

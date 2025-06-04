@@ -15,7 +15,7 @@ use systems::{
     melee_manager::MeleeManager, monster_ai::MonsterAI,
 };
 
-use crate::{components::map::Map, inventory::InventoryAction, utils::assets::Load};
+use crate::{components::map::Map, inventory::InventoryAction, systems::zap_manager::ZapManager, utils::assets::Load};
 
 mod components;
 mod constants;
@@ -140,6 +140,7 @@ fn populate_world(ecs_world: &mut World) {
 
 fn do_game_logic(game_state: &mut EngineState, next_state: RunState) -> RunState {
     let game_over;
+    ZapManager::run(&mut game_state.ecs_world);
     MeleeManager::run(&mut game_state.ecs_world);
     DamageManager::run(&game_state.ecs_world);
     game_over = DamageManager::remove_dead(&mut game_state.ecs_world);

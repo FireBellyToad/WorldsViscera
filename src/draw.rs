@@ -4,7 +4,7 @@ use hecs::World;
 use macroquad::{
     color::{BLACK, Color, RED, WHITE, YELLOW},
     input::mouse_position,
-    shapes::{draw_circle, draw_circle_lines, draw_rectangle},
+    shapes::{draw_circle_lines, draw_rectangle, draw_rectangle_lines},
     text::draw_text,
     texture::{DrawTextureParams, Texture2D, draw_texture_ex},
 };
@@ -12,13 +12,14 @@ use macroquad::{
 use crate::{
     components::{
         combat::CombatStats,
-        common::{GameLog, Position, Renderable},
+        common::{GameLog, Position, Renderable, Viewshed},
         map::{Map, get_index_from_xy},
         player::Player,
     },
     constants::*,
     engine::state::{EngineState, RunState},
     inventory::{Inventory, InventoryAction},
+    systems::fov::Point,
     utils::assets::TextureName,
 };
 
@@ -26,11 +27,11 @@ pub struct Draw {}
 
 impl Draw {
     pub fn render_game(game_state: &EngineState, assets: &HashMap<TextureName, Texture2D>) {
+        let mut maps = game_state.ecs_world.query::<&Map>();
         match game_state.run_state {
             RunState::GameOver => Draw::game_over(),
             _ => {
-                let mut maps = game_state.ecs_world.query::<&Map>();
-                for (_entity, map) in &mut maps {
+                for (_e, map) in &mut maps {
                     map.draw(assets);
                     Draw::renderables(&game_state.ecs_world, &assets, &map);
                 }
@@ -47,7 +48,7 @@ impl Draw {
                         Inventory::draw(assets, &game_state.ecs_world, InventoryAction::Invoke)
                     }
                     RunState::MouseTargeting => {
-                        Draw::targeting();
+                        Draw::targeting(&game_state.ecs_world);
                     }
                     _ => {}
                 }
@@ -60,7 +61,7 @@ impl Draw {
     fn game_log(ecs_world: &World) {
         // ------- Background Rectangle -----------
         draw_rectangle(
-            UI_BORDER as f32,
+            UI_BORDER_F32,
             (MAP_HEIGHT * TILE_SIZE) as f32,
             HUD_WIDTH as f32,
             HUD_HEIGHT as f32,
@@ -203,17 +204,27 @@ impl Draw {
     }
 
     /// Draw target on tile where mouse is poiting
-    fn targeting() {
+    fn targeting(ecs_world: &World) {
         let (mouse_x, mouse_y) = mouse_position();
-        let rounded_x = mouse_x as i32 / TILE_SIZE;
-        let rounded_y = mouse_y as i32 / TILE_SIZE;
 
-        draw_circle_lines(
-            (UI_BORDER + (rounded_x * TILE_SIZE) + TILE_SIZE / 2) as f32,
-            (UI_BORDER + (rounded_y * TILE_SIZE) + TILE_SIZE / 2) as f32,
-            TARGET_RADIUS,
-            TARGET_THICKNESS,
-            RED,
-        );
+        let mut map_query = ecs_world.query::<&Map>();
+        let (_e, map) = map_query.iter().last().expect("Map is not in hecs::World");
+
+        let rounded_x = (((mouse_x - UI_BORDER_F32) / TILE_SIZE_F32).ceil() - 1.0) as i32;
+        let rounded_y = (((mouse_y - UI_BORDER_F32) / TILE_SIZE_F32).ceil() - 1.0) as i32;
+
+        // TODO show something indicating mouse usability
+        // Draw target if tile is visible
+        let index = get_index_from_xy(rounded_x, rounded_y);
+        if map.visible_tiles.len() > index && map.visible_tiles[index] {
+            draw_rectangle_lines(
+                (UI_BORDER + (rounded_x * TILE_SIZE)) as f32,
+                (UI_BORDER + (rounded_y * TILE_SIZE)) as f32,
+                TARGET_RADIUS,
+                TARGET_THICKNESS,
+                3.0,
+                RED,
+            );
+        }
     }
 }

@@ -6,3 +6,4 @@ pub mod item_collection;
 pub mod item_dropping;
 pub mod eating_edibles;
 pub mod melee_manager;
+pub mod zap_manager;

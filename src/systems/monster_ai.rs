@@ -1,7 +1,13 @@
 use hecs::{Entity, World};
 
 use crate::{
-    components::{combat::WantsToMelee, common::*, monster::Monster, player::Player, map::{Map, get_index_from_xy}},
+    components::{
+        combat::WantsToMelee,
+        common::*,
+        map::{Map, get_index_from_xy},
+        monster::Monster,
+        player::Player,
+    },
     systems::fov::Point,
     utils::pathfinding::Pathfinding,
 };
@@ -30,10 +36,10 @@ impl MonsterAI {
             // For each viewshed position monster component join
             for (monster_entity, (viewshed, _monster, position)) in &mut named_monsters {
                 //If enemy can see player, follow him and try to attack when close enough
-                if viewshed.visible_tiles.contains(&Point {
-                    x: player_position.x,
-                    y: player_position.y,
-                }) {
+                if viewshed
+                    .visible_tiles
+                    .contains(&(player_position.x, player_position.y))
+                {
                     let pathfinding_result = Pathfinding::dijkstra_wrapper(
                         position.x,
                         position.y,

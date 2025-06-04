@@ -11,7 +11,7 @@ pub struct Renderable {
     pub texture_region: Rect
 }
 pub struct Viewshed {
-    pub visible_tiles: Vec<Point>,
+    pub visible_tiles: Vec<(i32,i32)>,
     pub range: i32,
     pub must_recalculate: bool,
 }

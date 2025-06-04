@@ -9,9 +9,9 @@ use crate::{
     components::{
         combat::WantsToZap,
         items::WantsToInvoke,
-        map::{Map, get_index_from_xy},
+        map::{get_index_from_xy, Map},
     },
-    constants::{MAP_HEIGHT, MAP_WIDTH, TILE_SIZE},
+    constants::*,
     engine::state::RunState,
 };
 
@@ -125,17 +125,14 @@ impl Player {
 
     /// Checks mouse input
     pub fn checks_mouse_input(ecs_world: &mut World) -> RunState {
-
+        /// TODO ESC for exiting
         if is_mouse_button_down(MouseButton::Left) {
             let (mouse_x, mouse_y) = mouse_position();
 
-            let rounded_x = mouse_x as i32 / TILE_SIZE;
-            let rounded_y = mouse_y as i32 / TILE_SIZE;
-            println!("Shoot at {rounded_x} {rounded_y}");
+            let rounded_x = (((mouse_x - UI_BORDER_F32) / TILE_SIZE_F32).ceil() - 1.0) as i32;
+            let rounded_y = (((mouse_y - UI_BORDER_F32) / TILE_SIZE_F32).ceil() - 1.0) as i32;
 
             let player_entity = Self::get_player_entity(&ecs_world);
-
-            let _ = ecs_world.remove_one::<WantsToInvoke>(player_entity);
 
             let _ = ecs_world.insert_one(
                 player_entity,

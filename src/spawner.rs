@@ -21,6 +21,7 @@ impl Spawn {
     pub fn player(ecs_world: &mut World, map: &Map) {
         // Roll appropriate stats
         let rolled_toughness = Roll::stat();
+        let rolled_dexterity = Roll::stat();
         // TODO Player with Soldier background must have 1+2d3 starting stamina
         let rolled_stamina = Roll::d6() + 1;
 
@@ -35,8 +36,8 @@ impl Spawn {
                 texture_region: Rect {
                     x: 0.0,
                     y: 0.0,
-                    w: TILE_SIZE as f32,
-                    h: TILE_SIZE as f32,
+                    w: TILE_SIZE_F32,
+                    h: TILE_SIZE_F32,
                 },
             },
             Viewshed {
@@ -55,6 +56,8 @@ impl Spawn {
                 unarmed_attack_dice: 6,
                 current_toughness: rolled_toughness,
                 max_toughness: rolled_toughness,
+                current_dexterity: rolled_dexterity,
+                max_dexterity: rolled_dexterity,
             },
             SufferingDamage { damage_received: 0 },
         );
@@ -137,6 +140,8 @@ impl Spawn {
                 unarmed_attack_dice: 4,
                 current_toughness: 8,
                 max_toughness: 8,
+                current_dexterity: 10,
+                max_dexterity: 10,
             },
             1.0, //TODO fix
             x,
@@ -155,6 +160,8 @@ impl Spawn {
                 unarmed_attack_dice: 6,
                 current_toughness: 10,
                 max_toughness: 10,
+                current_dexterity: 8,
+                max_dexterity: 8,
             },
             2.0, //TODO fix
             x,
@@ -177,10 +184,10 @@ impl Spawn {
             Renderable {
                 texture_name: TextureName::Creatures,
                 texture_region: Rect {
-                    x: tile_index * TILE_SIZE as f32,
+                    x: tile_index * TILE_SIZE_F32,
                     y: 0.0,
-                    w: TILE_SIZE as f32,
-                    h: TILE_SIZE as f32,
+                    w: TILE_SIZE_F32,
+                    h: TILE_SIZE_F32,
                 },
             },
             Viewshed {
@@ -216,8 +223,8 @@ impl Spawn {
                 texture_region: Rect {
                     x: (item_tile_index * TILE_SIZE) as f32,
                     y: 0.0,
-                    w: TILE_SIZE as f32,
-                    h: TILE_SIZE as f32,
+                    w: TILE_SIZE_F32,
+                    h: TILE_SIZE_F32,
                 },
             },
             Named {
@@ -241,8 +248,8 @@ impl Spawn {
                 texture_region: Rect {
                     x: (item_tile_index * TILE_SIZE) as f32,
                     y: 0.0,
-                    w: TILE_SIZE as f32,
-                    h: TILE_SIZE as f32,
+                    w: TILE_SIZE_F32,
+                    h: TILE_SIZE_F32,
                 },
             },
             Named {
