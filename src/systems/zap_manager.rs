@@ -1,4 +1,3 @@
-
 use hecs::{Entity, World};
 
 use crate::{
@@ -16,6 +15,7 @@ pub struct ZapManager {}
 impl ZapManager {
     pub fn run(ecs_world: &mut World) {
         let mut wants_to_zap_list: Vec<Entity> = Vec::new();
+        let mut invokable_list: Vec<Entity> = Vec::new();
 
         // Scope for keeping borrow checker quiet
         {
@@ -33,7 +33,6 @@ impl ZapManager {
             let (_e, map) = map_query.iter().last().expect("Map is not in hecs::World");
 
             for (zapper, (wants_zap, wants_invoke)) in &mut zappers {
-
                 let index = get_index_from_xy(wants_zap.target.0, wants_zap.target.1);
                 let target_list = &map.tile_content[index];
 
@@ -44,6 +43,7 @@ impl ZapManager {
 
                     //Sum damage, keeping in mind that could not have SufferingDamage component
                     if target_damage.is_ok() {
+                        
                         let damage_roll =
                             Roll::dice(item_damage.number_of_dices, item_damage.dice_size);
                         let saving_throw_roll = Roll::d20();
@@ -70,18 +70,24 @@ impl ZapManager {
                             "{} zaps the {} for {} damage",
                             named_attacker.name, named_target.name, damage_roll
                         ));
-
-                        wants_to_zap_list.push(zapper);
-                    }
+                    };
                 }
+
+                // prepare lists for removal
+                wants_to_zap_list.push(zapper);
+                invokable_list.push(wants_invoke.item)
             }
         }
 
-        // Remove owner's will to attack
+        // Remove owner's will to invoke and zap
         for zapper in wants_to_zap_list {
             let _ = ecs_world.remove_one::<WantsToInvoke>(zapper);
             let _ = ecs_world.remove_one::<WantsToZap>(zapper);
-            // TODO handle consumability
+        }
+
+        // Remove invokable item: is consumed!
+        for invokable in invokable_list {
+            let _ = ecs_world.despawn(invokable);
         }
     }
 }
