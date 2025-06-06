@@ -182,8 +182,8 @@ impl Inventory {
             // Take the texture and draw only the wanted tile ( DrawTextureParams.source )
             draw_texture_ex(
                 texture_to_render,
-                (UI_BORDER + (x as i32 + TILE_SIZE + HUD_BORDER)) as f32,
-                (UI_BORDER + (y as i32 - TILE_SIZE - UI_BORDER)) as f32,
+                (UI_BORDER + (x as i32 + TILE_SIZE + ITEM_INVENTORY_LEFT_SPAN + HUD_BORDER)) as f32,
+                (UI_BORDER + (y as i32 - TILE_SIZE - ITEM_INVENTORY_TOP_SPAN)) as f32,
                 WHITE,
                 DrawTextureParams {
                     source: Some(Rect {

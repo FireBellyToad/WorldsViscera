@@ -124,6 +124,22 @@ impl Draw {
             text_color,
         );
 
+        // Draw Dexterity (DEX)
+        text_color = WHITE;
+
+        if player_stats.current_dexterity < player_stats.max_dexterity {
+            text_color = YELLOW;
+        }
+
+        Self::draw_stat_text(
+            format!(
+                "DEX {} / {}",
+                player_stats.current_dexterity, player_stats.max_dexterity
+            ),
+            330,
+            text_color,
+        );
+
         // ------- Messages log  -----------
 
         let mut game_log_query = ecs_world.query::<&GameLog>();
@@ -219,8 +235,8 @@ impl Draw {
             draw_rectangle_lines(
                 (UI_BORDER + (rounded_x * TILE_SIZE)) as f32,
                 (UI_BORDER + (rounded_y * TILE_SIZE)) as f32,
-                TARGET_RADIUS,
-                TARGET_THICKNESS,
+                TILE_SIZE_F32,
+                TILE_SIZE_F32,
                 3.0,
                 RED,
             );

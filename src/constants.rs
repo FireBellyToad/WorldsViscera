@@ -1,7 +1,7 @@
 /// Map related constats
-pub const MAP_WIDTH: i32 = 40;
-pub const MAP_HEIGHT: i32 = 25;
-pub const TILE_SIZE: i32 = 32;
+pub const MAP_WIDTH: i32 = 56;
+pub const MAP_HEIGHT: i32 = 35;
+pub const TILE_SIZE: i32 = 24;
 pub const TILE_SIZE_F32: f32 = TILE_SIZE as f32;
 
 /// Hud related constants
@@ -28,6 +28,8 @@ pub const OPTION_TO_CHAR_MAP: [char; 52] = [
     'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
     'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
 ];
+pub const ITEM_INVENTORY_LEFT_SPAN:i32 = 12;
+pub const ITEM_INVENTORY_TOP_SPAN:i32 = 10;
 
 /// UI related constants
 pub const UI_BORDER: i32 = 8;
@@ -46,5 +48,3 @@ pub const MAX_SPAWN_TENTANTIVES: i32 = 10;
 
 /// Player constants
 pub const VIEW_RADIUS: i32 = 4;
-pub const TARGET_RADIUS: f32 = 32.0;
-pub const TARGET_THICKNESS: f32 = 32.0;
