@@ -15,7 +15,12 @@ use systems::{
     melee_manager::MeleeManager, monster_ai::MonsterAI,
 };
 
-use crate::{components::map::Map, inventory::InventoryAction, systems::zap_manager::ZapManager, utils::assets::Load};
+use crate::{
+    components::{combat::StaminaHeal, map::Map},
+    inventory::InventoryAction,
+    systems::{stamina_healing::StaminaHealing, zap_manager::ZapManager},
+    utils::assets::Load,
+};
 
 mod components;
 mod constants;
@@ -58,18 +63,21 @@ async fn main() {
 
             match game_state.run_state {
                 RunState::SystemsRunning => {
+                    do_timed_game_logic(&mut game_state);
                     game_state.run_state =
-                        do_game_logic(&mut game_state, RunState::WaitingPlayerInput);
+                        do_time_free_game_logic(&mut game_state, RunState::WaitingPlayerInput);
                 }
                 RunState::WaitingPlayerInput => {
                     game_state.run_state = Player::checks_keyboard_input(&mut game_state.ecs_world)
                 }
                 RunState::PlayerTurn => {
-                    game_state.run_state = do_game_logic(&mut game_state, RunState::MonsterTurn);
+                    game_state.run_state =
+                        do_time_free_game_logic(&mut game_state, RunState::MonsterTurn);
                 }
                 RunState::MonsterTurn => {
                     MonsterAI::act(&mut game_state.ecs_world);
-                    game_state.run_state = do_game_logic(&mut game_state, RunState::SystemsRunning);
+                    game_state.run_state =
+                        do_time_free_game_logic(&mut game_state, RunState::SystemsRunning);
                 }
                 RunState::GameOver => {
                     // Quit game on Q
@@ -95,7 +103,8 @@ async fn main() {
                         Inventory::handle_input(&mut game_state.ecs_world, InventoryAction::Invoke);
                 }
                 RunState::MouseTargeting => {
-                    game_state.run_state = Player::checks_input_for_targeting(&mut game_state.ecs_world);
+                    game_state.run_state =
+                        Player::checks_input_for_targeting(&mut game_state.ecs_world);
                 }
             }
 
@@ -138,7 +147,11 @@ fn populate_world(ecs_world: &mut World) {
     ecs_world.spawn((true, map));
 }
 
-fn do_game_logic(game_state: &mut EngineState, next_state: RunState) -> RunState {
+fn do_timed_game_logic(game_state: &mut EngineState) {
+    StaminaHealing::run(&mut game_state.ecs_world);
+}
+
+fn do_time_free_game_logic(game_state: &mut EngineState, next_state: RunState) -> RunState {
     let game_over;
     ZapManager::run(&mut game_state.ecs_world);
     MeleeManager::run(&mut game_state.ecs_world);
@@ -151,7 +164,6 @@ fn do_game_logic(game_state: &mut EngineState, next_state: RunState) -> RunState
         ItemCollection::run(&mut game_state.ecs_world);
         ItemDropping::run(&mut game_state.ecs_world);
         EatingEdibles::run(&mut game_state.ecs_world);
-
         return next_state;
     } else {
         return RunState::GameOver;

@@ -61,6 +61,7 @@ impl Spawn {
                 max_dexterity: rolled_dexterity,
             },
             SufferingDamage { damage_received: 0 },
+            StaminaHeal { counter: 0 },
         );
 
         ecs_world.spawn(player_entity);
@@ -201,6 +202,7 @@ impl Spawn {
             BlocksTile {},
             combat_stats,
             SufferingDamage { damage_received: 0 },
+            StaminaHeal { counter: 0 },
         );
 
         ecs_world.spawn(monster_entity);

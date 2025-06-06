@@ -4,10 +4,11 @@ use hecs::{Entity, World};
 
 use crate::{
     components::{
-        combat::{CombatStats, SufferingDamage},
+        combat::{CombatStats, StaminaHeal, SufferingDamage},
         common::{GameLog, Named},
         player::Player,
     },
+    constants::MAX_STAMINA_HEAL_COUNTER,
     utils::roll::Roll,
 };
 
@@ -33,7 +34,7 @@ impl DamageManager {
     /// Check which entities are dead and removes them. Returns true if Player is dead
     pub fn remove_dead(ecs_world: &mut World) -> bool {
         let mut dead_entities: Vec<Entity> = Vec::new();
-        let player_entity_id = Player::get_player_id(ecs_world) ;
+        let player_entity_id = Player::get_player_id(ecs_world);
 
         // Scope for keeping borrow checker quiet
         {
@@ -61,6 +62,12 @@ impl DamageManager {
                         game_log
                             .entries
                             .push(format!("{} staggers in pain!", named.name));
+                    }
+                    
+                    // If can heal stamina, reset counter
+                    let regen = ecs_world.get::<&mut StaminaHeal>(entity);
+                    if regen.is_ok() {
+                        regen.unwrap().counter = MAX_STAMINA_HEAL_COUNTER;
                     }
                 }
                 // Reset damage_received

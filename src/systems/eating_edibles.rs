@@ -30,9 +30,8 @@ impl EatingEdibles {
                 eater_eaten_list.push((eater, wants_to_eat.item));
 
                 //TODO must not heal!
-                //TODO also check if is really edible
                 let edible_nutrition = ecs_world.get::<&Edible>(wants_to_eat.item).unwrap();
-                combat_stats.current_stamina = min(combat_stats.max_stamina, combat_stats.current_stamina + edible_nutrition.nutrition_amount);
+                combat_stats.current_stamina = min(combat_stats.max_toughness, combat_stats.current_toughness + edible_nutrition.nutrition_amount);
                 
                 // Show appropriate log messages
                 let named_eater = ecs_world.get::<&Named>(eater).unwrap();
