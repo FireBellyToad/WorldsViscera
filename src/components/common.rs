@@ -8,7 +8,8 @@ pub struct Position {
 }
 pub struct Renderable {
     pub texture_name: TextureName,
-    pub texture_region: Rect
+    pub texture_region: Rect,
+    pub z_index: i32
 }
 pub struct Viewshed {
     pub visible_tiles: Vec<(i32,i32)>,

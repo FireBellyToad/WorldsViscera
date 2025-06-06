@@ -184,7 +184,10 @@ impl Draw {
         //Get all entities in readonly
         let mut renderables_with_position = world.query::<(&Renderable, &Position)>();
 
-        for (_entity, (renderable, position)) in &mut renderables_with_position {
+        let mut renderables_vec: Vec<(hecs::Entity, (&Renderable, &Position))> = renderables_with_position.iter().collect();
+        renderables_vec.sort_by_key(|(_e,(renderable,_p))| {renderable.z_index});
+
+        for (_e, (renderable, position)) in renderables_vec {
             let texture_to_render = assets
                 .get(&renderable.texture_name)
                 .expect("Texture not found");

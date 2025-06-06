@@ -3,14 +3,14 @@ use std::collections::HashSet;
 use hecs::World;
 use macroquad::math::Rect;
 
-use crate::components::map::Map;
-use crate::utils::assets::TextureName;
 use crate::components::combat::*;
 use crate::components::common::*;
 use crate::components::items::{Edible, Invokable, Item};
+use crate::components::map::Map;
 use crate::components::monster::Monster;
 use crate::components::player::Player;
 use crate::constants::*;
+use crate::utils::assets::TextureName;
 use crate::utils::roll::Roll;
 
 /// Spawner of game entities
@@ -39,6 +39,7 @@ impl Spawn {
                     w: TILE_SIZE_F32,
                     h: TILE_SIZE_F32,
                 },
+                z_index: 1,
             },
             Viewshed {
                 visible_tiles: Vec::new(),
@@ -189,6 +190,7 @@ impl Spawn {
                     w: TILE_SIZE_F32,
                     h: TILE_SIZE_F32,
                 },
+                z_index: 1,
             },
             Viewshed {
                 visible_tiles: Vec::new(),
@@ -226,6 +228,7 @@ impl Spawn {
                     w: TILE_SIZE_F32,
                     h: TILE_SIZE_F32,
                 },
+                z_index: 0,
             },
             Named {
                 name: String::from("Fresh meat"),
@@ -251,6 +254,7 @@ impl Spawn {
                     w: TILE_SIZE_F32,
                     h: TILE_SIZE_F32,
                 },
+                z_index: 0,
             },
             Named {
                 name: String::from("Thunder wand"),
