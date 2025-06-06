@@ -95,7 +95,7 @@ async fn main() {
                         Inventory::handle_input(&mut game_state.ecs_world, InventoryAction::Invoke);
                 }
                 RunState::MouseTargeting => {
-                    game_state.run_state = Player::checks_mouse_input(&mut game_state.ecs_world);
+                    game_state.run_state = Player::checks_input_for_targeting(&mut game_state.ecs_world);
                 }
             }
 

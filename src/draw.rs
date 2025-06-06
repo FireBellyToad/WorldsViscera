@@ -220,6 +220,7 @@ impl Draw {
 
     /// Draw target on tile where mouse is poiting
     fn targeting(ecs_world: &World) {
+        draw_text("Use mouse to aim, ESC to cancel", 24.0, 48.0, FONT_SIZE, WHITE);
         let (mouse_x, mouse_y) = mouse_position();
 
         let mut map_query = ecs_world.query::<&Map>();
@@ -228,7 +229,6 @@ impl Draw {
         let rounded_x = (((mouse_x - UI_BORDER_F32) / TILE_SIZE_F32).ceil() - 1.0) as i32;
         let rounded_y = (((mouse_y - UI_BORDER_F32) / TILE_SIZE_F32).ceil() - 1.0) as i32;
 
-        // TODO show something indicating mouse usability
         // Draw target if tile is visible
         let index = get_index_from_xy(rounded_x, rounded_y);
         if map.visible_tiles.len() > index && map.visible_tiles[index] {

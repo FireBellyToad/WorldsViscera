@@ -2,13 +2,14 @@ use std::cmp::{max, min};
 
 use hecs::{Entity, World};
 use macroquad::input::{
-    KeyCode, MouseButton, clear_input_queue, get_key_pressed, is_mouse_button_down, mouse_position,
+    KeyCode, MouseButton, clear_input_queue, get_key_pressed, is_key_down, is_mouse_button_down,
+    mouse_position,
 };
 
 use crate::{
     components::{
         combat::WantsToZap,
-        map::{get_index_from_xy, Map},
+        map::{Map, get_index_from_xy},
     },
     constants::*,
     engine::state::RunState,
@@ -91,6 +92,9 @@ impl Player {
                 KeyCode::Kp3 => Self::try_move_player(1, 1, ecs_world),
                 KeyCode::Kp1 => Self::try_move_player(-1, 1, ecs_world),
 
+                // Skip turn doing nothing
+                KeyCode::Period | KeyCode::Space => {return RunState::MonsterTurn} 
+
                 //Pick up
                 KeyCode::P => {
                     Self::pick_up(ecs_world);
@@ -123,9 +127,12 @@ impl Player {
     }
 
     /// Checks mouse input
-    pub fn checks_mouse_input(ecs_world: &mut World) -> RunState {
-        // TODO ESC for exiting
-        if is_mouse_button_down(MouseButton::Left) {
+    pub fn checks_input_for_targeting(ecs_world: &mut World) -> RunState {
+
+        // ESC for escaping targeting without using Invokable
+        if is_key_down(KeyCode::Escape) {
+            return RunState::WaitingPlayerInput;
+        } else if is_mouse_button_down(MouseButton::Left) {
             let (mouse_x, mouse_y) = mouse_position();
 
             let rounded_x = (((mouse_x - UI_BORDER_F32) / TILE_SIZE_F32).ceil() - 1.0) as i32;
