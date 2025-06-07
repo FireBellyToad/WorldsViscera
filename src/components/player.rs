@@ -8,7 +8,8 @@ use macroquad::input::{
 
 use crate::{
     components::{
-        combat::{CanAutomaticallyHeal, WantsToZap},
+        combat::WantsToZap,
+        health::CanAutomaticallyHeal,
         map::{Map, get_index_from_xy},
     },
     constants::*,
@@ -213,12 +214,11 @@ impl Player {
 
     /// Reset heal counter. Usually when the player did anything but wait
     pub fn reset_heal_counter(ecs_world: &World) {
-        
         let mut players =
             ecs_world.query::<(&Player, &mut CombatStats, &mut CanAutomaticallyHeal)>();
         for (_e, (_p, stats, can_heal)) in &mut players {
             if stats.current_stamina < stats.max_stamina {
-                can_heal.counter = MAX_STAMINA_HEAL_COUNTER
+                can_heal.tick_counter = MAX_STAMINA_HEAL_TICK_COUNTER
             }
         }
     }

@@ -1,10 +1,6 @@
-
-use std::cmp::min;
-
 use hecs::{Entity, World};
 
-use crate::components::{combat::{CombatStats}, 
-    common::{GameLog, Named}, items::{WantsToEat,Edible}}
+use crate::{components::{common::{GameLog, Named}, health::Hunger, items::{Edible, WantsToEat}}, utils::roll::Roll}
 ;
 
 pub struct EatingEdibles {}
@@ -16,7 +12,7 @@ impl EatingEdibles {
         // Scope for keeping borrow checker quiet
         {
             // List of entities that want to collect items
-            let mut eaters = ecs_world.query::<(&WantsToEat, &mut CombatStats)>();
+            let mut eaters = ecs_world.query::<(&WantsToEat, &mut Hunger)>();
 
             //Log all the pick ups
             let mut game_log_query = ecs_world.query::<&mut GameLog>();
@@ -25,13 +21,12 @@ impl EatingEdibles {
                 .last()
                 .expect("Game log is not in hecs::World");
 
-            for (eater, (wants_to_eat, combat_stats)) in &mut eaters {
+            for (eater, (wants_to_eat, hunger)) in &mut eaters {
                 // Pick up and keep track of the owner
                 eater_eaten_list.push((eater, wants_to_eat.item));
 
-                //TODO must not heal!
                 let edible_nutrition = ecs_world.get::<&Edible>(wants_to_eat.item).unwrap();
-                combat_stats.current_stamina = min(combat_stats.max_toughness, combat_stats.current_toughness + edible_nutrition.nutrition_amount);
+                hunger.tick_counter += Roll::dice(edible_nutrition.nutrition_dice_number, edible_nutrition.nutrition_dice_size);
                 
                 // Show appropriate log messages
                 let named_eater = ecs_world.get::<&Named>(eater).unwrap();

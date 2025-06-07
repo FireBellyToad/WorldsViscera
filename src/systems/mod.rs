@@ -8,3 +8,4 @@ pub mod eating_edibles;
 pub mod melee_manager;
 pub mod zap_manager;
 pub mod automatic_healing;
+pub mod hunger_check;

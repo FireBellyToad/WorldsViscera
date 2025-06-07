@@ -5,7 +5,7 @@ use macroquad::{
     color::{BLACK, Color, RED, WHITE, YELLOW},
     input::mouse_position,
     shapes::{draw_rectangle, draw_rectangle_lines},
-    text::draw_text,
+    text::{self, draw_text},
     texture::{DrawTextureParams, Texture2D, draw_texture_ex},
 };
 
@@ -13,12 +13,14 @@ use crate::{
     components::{
         combat::CombatStats,
         common::{GameLog, Position, Renderable},
+        health::Hunger,
         map::{Map, get_index_from_xy},
         player::Player,
     },
     constants::*,
     engine::state::{EngineState, RunState},
     inventory::{Inventory, InventoryAction},
+    systems::hunger_check::HungerStatus,
     utils::assets::TextureName,
 };
 
@@ -85,8 +87,8 @@ impl Draw {
 
         // ------- Stat Text  -----------
 
-        let mut player_query = ecs_world.query::<(&Player, &CombatStats)>();
-        let (_e, (_p, player_stats)) = player_query
+        let mut player_query = ecs_world.query::<(&Player, &CombatStats, &Hunger)>();
+        let (_e, (_p, player_stats, hunger)) = player_query
             .iter()
             .last()
             .expect("Player is not in hecs::World");
@@ -101,7 +103,7 @@ impl Draw {
 
         Self::draw_stat_text(
             format!(
-                "STA: {} / {}",
+                "STA: {}/{}",
                 player_stats.current_stamina, player_stats.max_stamina
             ),
             0,
@@ -117,10 +119,10 @@ impl Draw {
 
         Self::draw_stat_text(
             format!(
-                "TOU {} / {}",
+                "TOU {}/{}",
                 player_stats.current_toughness, player_stats.max_toughness
             ),
-            160,
+            140,
             text_color,
         );
 
@@ -133,12 +135,15 @@ impl Draw {
 
         Self::draw_stat_text(
             format!(
-                "DEX {} / {}",
+                "DEX {}/{}",
                 player_stats.current_dexterity, player_stats.max_dexterity
             ),
-            330,
+            300,
             text_color,
         );
+
+        // TODO improve
+        Self::draw_hunger_text(&hunger.current_status);
 
         // ------- Messages log  -----------
 
@@ -179,13 +184,32 @@ impl Draw {
         );
     }
 
+    fn draw_hunger_text(hunger_status: &HungerStatus) {
+        let text_color;
+
+        match hunger_status {
+            HungerStatus::Hungry => text_color = YELLOW,
+            HungerStatus::Starved => text_color = RED,
+            _ => text_color = WHITE,
+        }
+
+        draw_text(
+            format!("Hunger:{:?}", hunger_status),
+            (HUD_BORDER + HEADER_LEFT_SPAN + UI_BORDER + 450) as f32,
+            (HUD_BORDER + UI_BORDER + MAP_HEIGHT * TILE_SIZE) as f32,
+            FONT_SIZE,
+            text_color,
+        );
+    }
+
     /// Draw all Renderable entities in World
     fn renderables(world: &World, assets: &HashMap<TextureName, Texture2D>, map: &Map) {
         //Get all entities in readonly
         let mut renderables_with_position = world.query::<(&Renderable, &Position)>();
 
-        let mut renderables_vec: Vec<(hecs::Entity, (&Renderable, &Position))> = renderables_with_position.iter().collect();
-        renderables_vec.sort_by_key(|(_e,(renderable,_p))| {renderable.z_index});
+        let mut renderables_vec: Vec<(hecs::Entity, (&Renderable, &Position))> =
+            renderables_with_position.iter().collect();
+        renderables_vec.sort_by_key(|(_e, (renderable, _p))| renderable.z_index);
 
         for (_e, (renderable, position)) in renderables_vec {
             let texture_to_render = assets
@@ -223,7 +247,13 @@ impl Draw {
 
     /// Draw target on tile where mouse is poiting
     fn targeting(ecs_world: &World) {
-        draw_text("Use mouse to aim, ESC to cancel", 24.0, 48.0, FONT_SIZE, WHITE);
+        draw_text(
+            "Use mouse to aim, ESC to cancel",
+            24.0,
+            48.0,
+            FONT_SIZE,
+            WHITE,
+        );
         let (mouse_x, mouse_y) = mouse_position();
 
         let mut map_query = ecs_world.query::<&Map>();

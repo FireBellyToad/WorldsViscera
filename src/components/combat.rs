@@ -10,10 +10,6 @@ pub struct CombatStats {
     pub base_armor: i32,
     pub unarmed_attack_dice: i32,
 }
-pub struct CanAutomaticallyHeal {
-    pub counter: i32,
-}
-
 
 pub struct SufferingDamage {
     pub damage_received: i32,

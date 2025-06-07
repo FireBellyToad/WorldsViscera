@@ -9,7 +9,7 @@ pub const HUD_WIDTH: i32 = MAP_WIDTH * TILE_SIZE;
 pub const HUD_HEIGHT: i32 = 192 + UI_BORDER;
 pub const HUD_BORDER: i32 = 4;
 
-pub const HEADER_WIDTH: i32 = 512;
+pub const HEADER_WIDTH: i32 = 675;
 pub const HEADER_HEIGHT: i32 = 24;
 pub const HEADER_LEFT_SPAN: i32 = 64;
 
@@ -48,4 +48,5 @@ pub const MAX_SPAWN_TENTANTIVES: i32 = 10;
 
 /// Player constants
 pub const VIEW_RADIUS: i32 = 4;
-pub const MAX_STAMINA_HEAL_COUNTER:i32 = 4;
+pub const MAX_STAMINA_HEAL_TICK_COUNTER:i32 = 4;
+pub const MAX_HUNGER_TICK_COUNTER:i32 = 51;

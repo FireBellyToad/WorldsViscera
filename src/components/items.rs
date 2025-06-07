@@ -5,7 +5,8 @@ pub struct Item {
 }
 
 pub struct Edible {
-    pub nutrition_amount: i32,
+    pub nutrition_dice_number: i32,
+    pub nutrition_dice_size: i32,
 }
 
 pub struct InBackback {

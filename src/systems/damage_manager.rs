@@ -4,11 +4,9 @@ use hecs::{Entity, World};
 
 use crate::{
     components::{
-        combat::{CombatStats, CanAutomaticallyHeal, SufferingDamage},
-        common::{GameLog, Named},
-        player::Player,
+        combat::{CombatStats, SufferingDamage}, common::{GameLog, Named}, health::CanAutomaticallyHeal, player::Player
     },
-    constants::MAX_STAMINA_HEAL_COUNTER,
+    constants::MAX_STAMINA_HEAL_TICK_COUNTER,
     utils::roll::Roll,
 };
 
@@ -52,7 +50,7 @@ impl DamageManager {
                     let saving_throw_roll = Roll::d20();
 
                     game_log.entries.push(format!(
-                        "{} saving with {} against thougness {} / {}",
+                        "{} saving with {} against toughness {} / {}",
                         named.name, saving_throw_roll, stats.current_toughness, stats.max_toughness
                     ));
                     if stats.current_toughness < 1 || saving_throw_roll > stats.current_toughness {
@@ -67,7 +65,7 @@ impl DamageManager {
                     // If can heal stamina, reset counter
                     let regen = ecs_world.get::<&mut CanAutomaticallyHeal>(entity);
                     if regen.is_ok() {
-                        regen.unwrap().counter = MAX_STAMINA_HEAL_COUNTER+2;
+                        regen.unwrap().tick_counter = MAX_STAMINA_HEAL_TICK_COUNTER+2;
                     }
                 }
                 // Reset damage_received

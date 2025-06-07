@@ -18,7 +18,7 @@ use systems::{
 use crate::{
     components::map::Map,
     inventory::InventoryAction,
-    systems::{automatic_healing::AutomaticHealing, zap_manager::ZapManager},
+    systems::{automatic_healing::AutomaticHealing, hunger_check::HungerCheck, zap_manager::ZapManager},
     utils::assets::Load,
 };
 
@@ -151,6 +151,7 @@ fn populate_world(ecs_world: &mut World) {
 
 fn do_timed_game_logic(game_state: &mut EngineState) {
     AutomaticHealing::run(&mut game_state.ecs_world);
+    HungerCheck::run(&mut game_state.ecs_world);
 }
 
 fn do_time_free_game_logic(game_state: &mut EngineState, next_state: RunState) -> RunState {

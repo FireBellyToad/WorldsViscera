@@ -5,11 +5,14 @@ use macroquad::math::Rect;
 
 use crate::components::combat::*;
 use crate::components::common::*;
+use crate::components::health::CanAutomaticallyHeal;
+use crate::components::health::Hunger;
 use crate::components::items::{Edible, Invokable, Item};
 use crate::components::map::Map;
 use crate::components::monster::Monster;
 use crate::components::player::Player;
 use crate::constants::*;
+use crate::systems::hunger_check::HungerStatus;
 use crate::utils::assets::TextureName;
 use crate::utils::roll::Roll;
 
@@ -50,10 +53,9 @@ impl Spawn {
                 name: String::from("Player"),
             },
             CombatStats {
-                //TOdO Random
                 current_stamina: rolled_stamina,
                 max_stamina: rolled_stamina,
-                base_armor: 2,
+                base_armor: 0,
                 unarmed_attack_dice: 6,
                 current_toughness: rolled_toughness,
                 max_toughness: rolled_toughness,
@@ -61,7 +63,8 @@ impl Spawn {
                 max_dexterity: rolled_dexterity,
             },
             SufferingDamage { damage_received: 0 },
-            CanAutomaticallyHeal { counter: 0 },
+            CanAutomaticallyHeal { tick_counter: 0 },
+            Hunger { tick_counter: MAX_HUNGER_TICK_COUNTER, current_status: HungerStatus::Normal },
         );
 
         ecs_world.spawn(player_entity);
@@ -201,7 +204,7 @@ impl Spawn {
             Named { name: name },
             BlocksTile {},
             combat_stats,
-            SufferingDamage { damage_received: 0 }
+            SufferingDamage { damage_received: 0 },
         );
 
         ecs_world.spawn(monster_entity);
@@ -236,7 +239,8 @@ impl Spawn {
             },
             Item { item_tile_index },
             Edible {
-                nutrition_amount: 3,
+                nutrition_dice_number: 6,
+                nutrition_dice_size: 8,
             },
         );
 
