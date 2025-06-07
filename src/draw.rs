@@ -5,7 +5,7 @@ use macroquad::{
     color::{BLACK, Color, RED, WHITE, YELLOW},
     input::mouse_position,
     shapes::{draw_rectangle, draw_rectangle_lines},
-    text::{self, draw_text},
+    text::draw_text,
     texture::{DrawTextureParams, Texture2D, draw_texture_ex},
 };
 

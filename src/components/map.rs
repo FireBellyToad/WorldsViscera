@@ -3,7 +3,7 @@ use std::{
     collections::{HashMap, HashSet},
 };
 
-use hecs::{Entity, World};
+use hecs::Entity;
 use macroquad::prelude::*;
 
 use crate::{constants::*, utils::assets::TextureName};

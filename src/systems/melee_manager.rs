@@ -5,8 +5,7 @@ use hecs::{Entity, World};
 use crate::{
     components::{
         combat::{CombatStats, SufferingDamage, WantsToMelee},
-        common::{GameLog, Named, Position},
-        map::Map,
+        common::{GameLog, Named},
     },
     utils::roll::Roll,
 };
