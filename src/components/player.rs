@@ -8,7 +8,7 @@ use macroquad::input::{
 
 use crate::{
     components::{
-        combat::WantsToZap,
+        combat::{CanAutomaticallyHeal, WantsToZap},
         map::{Map, get_index_from_xy},
     },
     constants::*,
@@ -92,8 +92,8 @@ impl Player {
                 KeyCode::Kp3 => Self::try_move_player(1, 1, ecs_world),
                 KeyCode::Kp1 => Self::try_move_player(-1, 1, ecs_world),
 
-                // Skip turn doing nothing
-                KeyCode::Period | KeyCode::Space => {return RunState::MonsterTurn} 
+                // Skip turn doing nothing, so you can heal
+                KeyCode::Period | KeyCode::Space => return RunState::MonsterTurn,
 
                 //Pick up
                 KeyCode::P => {
@@ -128,7 +128,6 @@ impl Player {
 
     /// Checks mouse input
     pub fn checks_input_for_targeting(ecs_world: &mut World) -> RunState {
-
         // ESC for escaping targeting without using Invokable
         if is_key_down(KeyCode::Escape) {
             return RunState::WaitingPlayerInput;
@@ -210,5 +209,17 @@ impl Player {
     /// Extract Player's entity id from world and return it with copy
     pub fn get_player_id(ecs_world: &World) -> u32 {
         Player::get_player_entity(ecs_world).id()
+    }
+
+    /// Reset heal counter. Usually when the player did anything but wait
+    pub fn reset_heal_counter(ecs_world: &World) {
+        
+        let mut players =
+            ecs_world.query::<(&Player, &mut CombatStats, &mut CanAutomaticallyHeal)>();
+        for (_e, (_p, stats, can_heal)) in &mut players {
+            if stats.current_stamina < stats.max_stamina {
+                can_heal.counter = MAX_STAMINA_HEAL_COUNTER
+            }
+        }
     }
 }

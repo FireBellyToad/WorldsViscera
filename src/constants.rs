@@ -48,4 +48,4 @@ pub const MAX_SPAWN_TENTANTIVES: i32 = 10;
 
 /// Player constants
 pub const VIEW_RADIUS: i32 = 4;
-pub const MAX_STAMINA_HEAL_COUNTER:i32 = 9;
+pub const MAX_STAMINA_HEAL_COUNTER:i32 = 4;

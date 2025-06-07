@@ -16,9 +16,9 @@ use systems::{
 };
 
 use crate::{
-    components::{combat::StaminaHeal, map::Map},
+    components::map::Map,
     inventory::InventoryAction,
-    systems::{stamina_healing::StaminaHealing, zap_manager::ZapManager},
+    systems::{automatic_healing::AutomaticHealing, zap_manager::ZapManager},
     utils::assets::Load,
 };
 
@@ -63,14 +63,16 @@ async fn main() {
 
             match game_state.run_state {
                 RunState::SystemsRunning => {
-                    do_timed_game_logic(&mut game_state);
                     game_state.run_state =
                         do_time_free_game_logic(&mut game_state, RunState::WaitingPlayerInput);
+                    do_timed_game_logic(&mut game_state);
                 }
                 RunState::WaitingPlayerInput => {
                     game_state.run_state = Player::checks_keyboard_input(&mut game_state.ecs_world)
                 }
                 RunState::PlayerTurn => {
+                    // Reset heal counter if the player did not wait
+                    Player::reset_heal_counter(&mut game_state.ecs_world);
                     game_state.run_state =
                         do_time_free_game_logic(&mut game_state, RunState::MonsterTurn);
                 }
@@ -148,7 +150,7 @@ fn populate_world(ecs_world: &mut World) {
 }
 
 fn do_timed_game_logic(game_state: &mut EngineState) {
-    StaminaHealing::run(&mut game_state.ecs_world);
+    AutomaticHealing::run(&mut game_state.ecs_world);
 }
 
 fn do_time_free_game_logic(game_state: &mut EngineState, next_state: RunState) -> RunState {

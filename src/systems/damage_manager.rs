@@ -4,7 +4,7 @@ use hecs::{Entity, World};
 
 use crate::{
     components::{
-        combat::{CombatStats, StaminaHeal, SufferingDamage},
+        combat::{CombatStats, CanAutomaticallyHeal, SufferingDamage},
         common::{GameLog, Named},
         player::Player,
     },
@@ -65,9 +65,9 @@ impl DamageManager {
                     }
                     
                     // If can heal stamina, reset counter
-                    let regen = ecs_world.get::<&mut StaminaHeal>(entity);
+                    let regen = ecs_world.get::<&mut CanAutomaticallyHeal>(entity);
                     if regen.is_ok() {
-                        regen.unwrap().counter = MAX_STAMINA_HEAL_COUNTER;
+                        regen.unwrap().counter = MAX_STAMINA_HEAL_COUNTER+2;
                     }
                 }
                 // Reset damage_received

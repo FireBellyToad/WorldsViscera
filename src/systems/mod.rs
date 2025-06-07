@@ -7,4 +7,4 @@ pub mod item_dropping;
 pub mod eating_edibles;
 pub mod melee_manager;
 pub mod zap_manager;
-pub mod stamina_healing;
+pub mod automatic_healing;

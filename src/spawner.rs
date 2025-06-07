@@ -61,7 +61,7 @@ impl Spawn {
                 max_dexterity: rolled_dexterity,
             },
             SufferingDamage { damage_received: 0 },
-            StaminaHeal { counter: 0 },
+            CanAutomaticallyHeal { counter: 0 },
         );
 
         ecs_world.spawn(player_entity);
@@ -201,8 +201,7 @@ impl Spawn {
             Named { name: name },
             BlocksTile {},
             combat_stats,
-            SufferingDamage { damage_received: 0 },
-            StaminaHeal { counter: 0 },
+            SufferingDamage { damage_received: 0 }
         );
 
         ecs_world.spawn(monster_entity);
@@ -237,7 +236,7 @@ impl Spawn {
             },
             Item { item_tile_index },
             Edible {
-                nutrition_amount: 6,
+                nutrition_amount: 3,
             },
         );
 
