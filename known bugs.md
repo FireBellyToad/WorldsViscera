@@ -1,1 +1,0 @@
-- game crashes when targeting not valid tile

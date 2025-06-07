@@ -143,15 +143,29 @@ impl Player {
             let rounded_x = (((mouse_x - UI_BORDER_F32) / TILE_SIZE_F32).ceil() - 1.0) as i32;
             let rounded_y = (((mouse_y - UI_BORDER_F32) / TILE_SIZE_F32).ceil() - 1.0) as i32;
 
+            let mut is_valid_tile = false;
+            // Scope for keeping borrow checker quiet
+            {
+                let mut map_query = ecs_world.query::<&Map>();
+                let (_e, map) = map_query.iter().last().expect("Map is not in hecs::World");
+                // Make sure that we are targeting a valid tile
+                let index = Map::get_index_from_xy(rounded_x, rounded_y);
+                if index < map.visible_tiles.len() {
+                    is_valid_tile = map.visible_tiles[index];
+                }
+            }
+
             let player_entity = Self::get_player_entity(&ecs_world);
 
-            let _ = ecs_world.insert_one(
-                player_entity,
-                WantsToZap {
-                    target: (rounded_x, rounded_y),
-                },
-            );
-            return RunState::PlayerTurn;
+            if is_valid_tile {
+                let _ = ecs_world.insert_one(
+                    player_entity,
+                    WantsToZap {
+                        target: (rounded_x, rounded_y),
+                    },
+                );
+                return RunState::PlayerTurn;
+            }
         }
 
         RunState::MouseTargeting
