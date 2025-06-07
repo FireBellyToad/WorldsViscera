@@ -60,20 +60,23 @@ impl Inventory {
                         .expect("Game log is not in hecs::World");
 
                     //Inventory = Named items in backpack of the Player assigned to the pressed char key
-                    let mut inventory_query = ecs_world.query::<(&Named, &Item, &InBackback)>();
-                    let inventory: Vec<(hecs::Entity, (&Named, &Item, &InBackback))> =
-                        inventory_query
-                            .iter()
-                            .filter(|(_e, (_n, _i, in_backpack))| {
-                                in_backpack.owner.id() == player_entity.id()
-                                    && in_backpack.assigned_char == letterkey
-                            })
-                            .collect::<Vec<_>>();
+                    let inventory: Vec<(Entity, String, char, i32)>;
+                    match mode {
+                        InventoryAction::Eat => {
+                            inventory = Self::get_all_in_backpack_filtered_by::<Edible>(ecs_world);
+                        }
+                        InventoryAction::Invoke => {
+                            inventory =
+                                Self::get_all_in_backpack_filtered_by::<Invokable>(ecs_world);
+                        }
+                        InventoryAction::Drop => {
+                            inventory = Self::get_all_in_backpack(ecs_world);
+                        }
+                    }
 
                     // Validating char input
                     if !inventory.is_empty() {
-                        let (item_entity, (_n, _i, _b)) = inventory[0];
-                        selected_item_entity = Some(item_entity);
+                        selected_item_entity = Some(inventory[0].0);
                         user_entity = Some(player_entity);
                     } else {
                         game_log
@@ -122,7 +125,7 @@ impl Inventory {
         let texture_to_render = assets.get(&TextureName::Items).expect("Texture not found");
 
         //Inventory = Named items in backpack of the Player
-        let inventory: Vec<(String, char, i32)>;
+        let inventory: Vec<(Entity,String, char, i32)>;
         let header_text;
 
         match mode {
@@ -168,7 +171,7 @@ impl Inventory {
         );
 
         // ------- Item List -----------
-        for (index, (item_name, assigned_char, item_tile)) in inventory.iter().enumerate() {
+        for (index, (_e,item_name, assigned_char, item_tile)) in inventory.iter().enumerate() {
             let x = (INVENTORY_X + UI_BORDER * 2) as f32;
             let y = (INVENTORY_Y + INVENTORY_TOP_SPAN) as f32 + (FONT_SIZE * index as f32);
 
@@ -215,30 +218,31 @@ impl Inventory {
     }
 
     /// Get all items in backpack for UI
-    fn get_all_in_backpack(ecs_world: &World) -> Vec<(String, char, i32)> {
+    fn get_all_in_backpack(ecs_world: &World) -> Vec<(Entity,String, char, i32)> {
         let player_id = Player::get_player_id(ecs_world);
         let mut inventory_query = ecs_world.query::<(&Named, &Item, &InBackback)>();
         let mut inventory = inventory_query
             .iter()
             .filter(|(_e, (_n, _i, in_backpack))| in_backpack.owner.id() == player_id)
-            .map(|(_e, (named, item, in_backpack))| {
+            .map(|(entity, (named, item, in_backpack))| {
                 (
+                    entity,
                     named.name.clone(),
                     in_backpack.assigned_char,
                     item.item_tile_index,
                 )
             })
-            .collect::<Vec<(String, char, i32)>>();
+            .collect::<Vec<(Entity,String, char, i32)>>();
 
         //Sort alphabetically by assigned char
-        inventory.sort_by_key(|k| k.1);
+        inventory.sort_by_key(|k| k.2);
         inventory
     }
 
     /// Get all items in backpack with a certain component T for UI
     fn get_all_in_backpack_filtered_by<T: Component>(
         ecs_world: &World,
-    ) -> Vec<(String, char, i32)> {
+    ) -> Vec<(Entity, String, char, i32)> {
         let player_id = Player::get_player_id(ecs_world);
 
         let mut inventory_query = ecs_world
@@ -248,17 +252,18 @@ impl Inventory {
         let mut inventory = inventory_query
             .iter()
             .filter(|(_e, (_n, _i, in_backpack))| in_backpack.owner.id() == player_id)
-            .map(|(_e, (named, item, in_backpack))| {
+            .map(|(entity, (named, item, in_backpack))| {
                 (
+                    entity,
                     named.name.clone(),
                     in_backpack.assigned_char,
                     item.item_tile_index,
                 )
             }) //
-            .collect::<Vec<(String, char, i32)>>();
+            .collect::<Vec<(Entity, String, char, i32)>>();
 
         //Sort alphabetically by assigned char
-        inventory.sort_by_key(|k| k.1);
+        inventory.sort_by_key(|k| k.2);
         inventory
     }
 }

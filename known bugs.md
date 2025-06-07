@@ -1,3 +1,1 @@
-- game crashes when eating something not edible, even if not seen on invertory
 - game crashes when targeting not valid tile
-- you can invoke edibles, wasting them
