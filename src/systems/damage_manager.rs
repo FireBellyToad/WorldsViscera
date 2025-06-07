@@ -4,7 +4,11 @@ use hecs::{Entity, World};
 
 use crate::{
     components::{
-        combat::{CombatStats, SufferingDamage}, common::{GameLog, Named}, health::CanAutomaticallyHeal, player::Player
+        combat::{CombatStats, SufferingDamage},
+        common::{GameLog, Named, Position},
+        health::CanAutomaticallyHeal,
+        map::Map,
+        player::Player,
     },
     constants::MAX_STAMINA_HEAL_TICK_COUNTER,
     utils::roll::Roll,
@@ -15,16 +19,32 @@ pub struct DamageManager {}
 impl DamageManager {
     ///
     pub fn run(ecs_world: &World) {
-        let mut damageables = ecs_world.query::<(&mut SufferingDamage, &mut CombatStats)>();
+        let mut damageables =
+            ecs_world.query::<(&mut SufferingDamage, &mut CombatStats, &Position)>();
 
-        for (_e, (damageable, stats)) in &mut damageables {
-            stats.current_stamina -= damageable.damage_received;
+        let mut map_query = ecs_world.query::<&mut Map>();
+        let (_e, map) = map_query.iter().last().expect("Map is not in hecs::World");
 
-            //Decrease stamina. If less then 0, delta is subtracted from toughness
-            if stats.current_stamina < 0 {
-                // We add a negative value
-                stats.current_toughness += stats.current_stamina;
-                stats.current_stamina = max(0, stats.current_stamina);
+        for (damaged_entity, (damageable, stats, position)) in &mut damageables {
+            if damageable.damage_received > 0 {
+                stats.current_stamina -= damageable.damage_received;
+
+                //Decrease stamina. If less then 0, delta is subtracted from toughness
+                if stats.current_stamina < 0 {
+                    // We add a negative value
+                    stats.current_toughness += stats.current_stamina;
+                    stats.current_stamina = max(0, stats.current_stamina);
+                }
+
+                // If can heal stamina, reset counter
+                let regen = ecs_world.get::<&mut CanAutomaticallyHeal>(damaged_entity);
+                if regen.is_ok() {
+                    regen.unwrap().tick_counter = MAX_STAMINA_HEAL_TICK_COUNTER + 2;
+                }
+
+                //Drench the tile with blood
+                map.bloodied_tiles
+                    .insert(Map::get_index_from_xy(position.x, position.y));
             }
         }
     }
@@ -60,12 +80,6 @@ impl DamageManager {
                         game_log
                             .entries
                             .push(format!("{} staggers in pain!", named.name));
-                    }
-                    
-                    // If can heal stamina, reset counter
-                    let regen = ecs_world.get::<&mut CanAutomaticallyHeal>(entity);
-                    if regen.is_ok() {
-                        regen.unwrap().tick_counter = MAX_STAMINA_HEAL_TICK_COUNTER+2;
                     }
                 }
                 // Reset damage_received

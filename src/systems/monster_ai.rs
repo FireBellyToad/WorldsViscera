@@ -4,7 +4,7 @@ use crate::{
     components::{
         combat::WantsToMelee,
         common::*,
-        map::{Map, get_index_from_xy},
+        map::{Map},
         monster::Monster,
         player::Player,
     },
@@ -63,11 +63,11 @@ impl MonsterAI {
 
                             // Avoid overlap with other monsters and player
                             if path.len() > 1 {
-                                map.blocked_tiles[get_index_from_xy(position.x, position.y)] =
+                                map.blocked_tiles[Map::get_index_from_xy(position.x, position.y)] =
                                     false;
                                 position.x = path[1].0;
                                 position.y = path[1].1;
-                                map.blocked_tiles[get_index_from_xy(position.x, position.y)] = true;
+                                map.blocked_tiles[Map::get_index_from_xy(position.x, position.y)] = true;
                             }
                         }
                     }

@@ -240,7 +240,7 @@ impl Spawn {
             Item { item_tile_index },
             Edible {
                 nutrition_dice_number: 6,
-                nutrition_dice_size: 8,
+                nutrition_dice_size: 12,
             },
         );
 

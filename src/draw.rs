@@ -14,7 +14,7 @@ use crate::{
         combat::CombatStats,
         common::{GameLog, Position, Renderable},
         health::Hunger,
-        map::{Map, get_index_from_xy},
+        map::Map,
         player::Player,
     },
     constants::*,
@@ -216,7 +216,7 @@ impl Draw {
                 .get(&renderable.texture_name)
                 .expect("Texture not found");
 
-            if map.visible_tiles[get_index_from_xy(position.x, position.y)] {
+            if map.visible_tiles[Map::get_index_from_xy(position.x, position.y)] {
                 // Take the texture and draw only the wanted tile ( DrawTextureParams.source )
                 draw_texture_ex(
                     texture_to_render,
@@ -263,7 +263,7 @@ impl Draw {
         let rounded_y = (((mouse_y - UI_BORDER_F32) / TILE_SIZE_F32).ceil() - 1.0) as i32;
 
         // Draw target if tile is visible
-        let index = get_index_from_xy(rounded_x, rounded_y);
+        let index = Map::get_index_from_xy(rounded_x, rounded_y);
         if map.visible_tiles.len() > index && map.visible_tiles[index] {
             draw_rectangle_lines(
                 (UI_BORDER + (rounded_x * TILE_SIZE)) as f32,

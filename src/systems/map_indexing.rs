@@ -1,6 +1,6 @@
 use hecs::World;
 
-use crate::components::{common::*, map::{get_index_from_xy, Map}};
+use crate::components::{common::*, map::Map};
 
 pub struct MapIndexing {}
 
@@ -15,13 +15,13 @@ impl MapIndexing {
         map.clear_content_index();
         //index all blocked tiles
         for (_e, (position, _b)) in &mut blockers {
-            let index = get_index_from_xy(position.x, position.y);
+            let index = Map::get_index_from_xy(position.x, position.y);
             map.blocked_tiles[index] = true;
         }
 
         //index all the things in the map based on their position
         for (entity, position) in &mut entites {
-            let index = get_index_from_xy(position.x, position.y);
+            let index = Map::get_index_from_xy(position.x, position.y);
             map.tile_content[index].push(entity);
         }
     }

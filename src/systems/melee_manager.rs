@@ -5,7 +5,8 @@ use hecs::{Entity, World};
 use crate::{
     components::{
         combat::{CombatStats, SufferingDamage, WantsToMelee},
-        common::{GameLog, Named},
+        common::{GameLog, Named, Position},
+        map::Map,
     },
     utils::roll::Roll,
 };
@@ -32,7 +33,7 @@ impl MeleeManager {
                 let attacker_stats = ecs_world.get::<&CombatStats>(attacker).unwrap();
                 let target_stats = ecs_world.get::<&CombatStats>(wants_melee.target).unwrap();
                 let target_damage = ecs_world.get::<&mut SufferingDamage>(wants_melee.target);
-                
+
                 //Sum damage, keeping in mind that could not have SufferingDamage component
                 if target_damage.is_ok() {
                     let damage_roll = max(

@@ -1,9 +1,9 @@
 use std::{
     cmp::{max, min},
-    collections::HashMap,
+    collections::{HashMap, HashSet},
 };
 
-use hecs::Entity;
+use hecs::{Entity, World};
 use macroquad::prelude::*;
 
 use crate::{constants::*, utils::assets::TextureName};
@@ -16,6 +16,7 @@ pub struct Map {
     pub visible_tiles: Vec<bool>,
     pub blocked_tiles: Vec<bool>,
     pub tile_content: Vec<Vec<Entity>>,
+    pub bloodied_tiles: HashSet<usize>,
 }
 #[derive(Clone, PartialEq)]
 pub enum TileType {
@@ -33,6 +34,7 @@ impl Map {
             visible_tiles: vec![false; (MAP_WIDTH * MAP_HEIGHT) as usize],
             blocked_tiles: vec![false; (MAP_WIDTH * MAP_HEIGHT) as usize],
             tile_content: vec![Vec::new(); (MAP_WIDTH * MAP_HEIGHT) as usize],
+            bloodied_tiles: HashSet::new(),
         };
 
         const MAX_ROOMS: i32 = 30;
@@ -76,14 +78,14 @@ impl Map {
     fn apply_room_to_map(&mut self, room: &Rect) {
         for y in room.y as i32 + 1..(room.y + room.h) as i32 {
             for x in room.x as i32 + 1..(room.x + room.w) as i32 {
-                self.tiles[get_index_from_xy(x, y)] = TileType::Floor;
+                self.tiles[Self::get_index_from_xy(x, y)] = TileType::Floor;
             }
         }
     }
 
     fn apply_horizontal_corridor(&mut self, x1: i32, x2: i32, y: i32) {
         for x in min(x1, x2)..=max(x1, x2) {
-            let idx = get_index_from_xy(x, y);
+            let idx = Self::get_index_from_xy(x, y);
             if idx > 0 && idx < (MAP_WIDTH * MAP_HEIGHT) as usize {
                 self.tiles[idx as usize] = TileType::Floor;
             }
@@ -92,7 +94,7 @@ impl Map {
 
     fn apply_vertical_corridor(&mut self, y1: i32, y2: i32, x: i32) {
         for y in min(y1, y2)..=max(y1, y2) {
-            let idx = get_index_from_xy(x, y);
+            let idx = Self::get_index_from_xy(x, y);
             if idx > 0 && idx < (MAP_WIDTH * MAP_HEIGHT) as usize {
                 self.tiles[idx as usize] = TileType::Floor;
             }
@@ -111,7 +113,7 @@ impl Map {
             for y in y_pos - 1..=y_pos + 1 {
                 //Manhattan Distance
                 if !use_manhattan_distance || (x == x_pos || y == y_pos) {
-                    if !self.blocked_tiles[get_index_from_xy(x, y)] {
+                    if !self.blocked_tiles[Self::get_index_from_xy(x, y)] {
                         adjacent_passable_tiles.push((x, y));
                     }
                 }
@@ -139,13 +141,14 @@ impl Map {
             visible_tiles: vec![false; (MAP_WIDTH * MAP_HEIGHT) as usize],
             blocked_tiles: vec![false; (MAP_WIDTH * MAP_HEIGHT) as usize],
             tile_content: vec![Vec::new(); (MAP_WIDTH * MAP_HEIGHT) as usize],
+            bloodied_tiles: HashSet::new(),
         };
 
         // Create bondaries
         for x in 0..MAP_WIDTH {
             for y in 0..MAP_HEIGHT {
                 if x == 0 || y == 0 || x == MAP_WIDTH - 1 || y == MAP_HEIGHT - 1 {
-                    let index = get_index_from_xy(x, y);
+                    let index = Self::get_index_from_xy(x, y);
                     map.tiles[index] = TileType::Wall
                 }
             }
@@ -160,17 +163,20 @@ impl Map {
 
         for x in 0..MAP_WIDTH {
             for y in 0..MAP_HEIGHT {
-                let tile_to_draw = get_index_from_xy(x, y);
+                let tile_to_draw = Self::get_index_from_xy(x, y);
                 let tile_index =
-                    get_tile_sprite_sheet_index(&self.tiles[tile_to_draw]) * TILE_SIZE_F32;
+                    Self::get_tile_sprite_sheet_index(&self.tiles[tile_to_draw]) * TILE_SIZE_F32;
 
                 if self.revealed_tiles[tile_to_draw] {
                     let mut alpha = DARKGRAY;
 
                     if self.visible_tiles[tile_to_draw] {
                         alpha = WHITE;
+                        if self.bloodied_tiles.contains(&tile_to_draw) {
+                            Self::draw_blood_blots(x, y);
+                        }
                     }
-                    
+
                     // Take the texture and draw only the wanted tile ( DrawTextureParams.source )
                     draw_texture_ex(
                         texture_to_render,
@@ -194,7 +200,7 @@ impl Map {
 
     /// Return true if cannot see through a tile
     pub fn is_tile_opaque(&self, x: i32, y: i32) -> bool {
-        let index = get_index_from_xy(x, y);
+        let index = Self::get_index_from_xy(x, y);
         self.tiles[index] == TileType::Wall
     }
 
@@ -204,16 +210,50 @@ impl Map {
             content.clear();
         }
     }
-}
 
-/// Return a index inside the tile sheet
-fn get_tile_sprite_sheet_index(tile_type: &TileType) -> f32 {
-    match tile_type {
-        TileType::Floor => 0.0,
-        TileType::Wall => 1.0,
+    /// Return a index inside the tile sheet
+    fn get_tile_sprite_sheet_index(tile_type: &TileType) -> f32 {
+        match tile_type {
+            TileType::Floor => 0.0,
+            TileType::Wall => 1.0,
+        }
     }
-}
 
-pub fn get_index_from_xy(x: i32, y: i32) -> usize {
-    ((y * MAP_WIDTH) + x) as usize
+    pub fn get_index_from_xy(x: i32, y: i32) -> usize {
+        ((y * MAP_WIDTH) + x) as usize
+    }
+
+    fn draw_blood_blots(x: i32, y: i32) {
+        draw_circle(
+            (UI_BORDER + (x * TILE_SIZE) + TILE_SIZE / 2) as f32 - 6.0,
+            (UI_BORDER + (y * TILE_SIZE) + TILE_SIZE / 2) as f32 - 7.0,
+            2.0,
+            Color::from_rgba(255, 10, 10, 32),
+        );
+        draw_circle(
+            (UI_BORDER + (x * TILE_SIZE) + TILE_SIZE / 2) as f32 + 4.0,
+            (UI_BORDER + (y * TILE_SIZE) + TILE_SIZE / 2) as f32 - 4.0,
+            2.0,
+            Color::from_rgba(255, 10, 10, 32),
+        );
+        draw_circle(
+            (UI_BORDER + (x * TILE_SIZE) + TILE_SIZE / 2) as f32 - 5.0,
+            (UI_BORDER + (y * TILE_SIZE) + TILE_SIZE / 2) as f32 + 4.0,
+            1.0,
+            Color::from_rgba(255, 10, 10, 32),
+        );
+        draw_circle(
+            (UI_BORDER + (x * TILE_SIZE) + TILE_SIZE / 2) as f32 + 3.0,
+            (UI_BORDER + (y * TILE_SIZE) + TILE_SIZE / 2) as f32 + 5.0,
+            2.0,
+            Color::from_rgba(255, 10, 10, 32),
+        );
+
+        draw_circle(
+            (UI_BORDER + (x * TILE_SIZE) + TILE_SIZE / 2) as f32,
+            (UI_BORDER + (y * TILE_SIZE) + TILE_SIZE / 2) as f32,
+            4.0,
+            Color::from_rgba(255, 10, 10, 32),
+        );
+    }
 }

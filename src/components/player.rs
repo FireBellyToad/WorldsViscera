@@ -7,11 +7,7 @@ use macroquad::input::{
 };
 
 use crate::{
-    components::{
-        combat::WantsToZap,
-        health::CanAutomaticallyHeal,
-        map::{Map, get_index_from_xy},
-    },
+    components::{combat::WantsToZap, health::CanAutomaticallyHeal, map::Map},
     constants::*,
     engine::state::RunState,
 };
@@ -33,7 +29,7 @@ impl Player {
     ///
     /// Try to move player
     ///
-    fn try_move_player(delta_x: i32, delta_y: i32, ecs_world: &mut World) {
+    fn try_move_player(delta_x: i32, delta_y: i32, ecs_world: &mut World) -> RunState {
         let mut attacker_target: Option<(Entity, Entity)> = None;
 
         // Scope for keeping borrow checker quiet
@@ -45,7 +41,7 @@ impl Player {
 
             for (player_entity, (_p, position, viewshed)) in &mut players {
                 let destination_index =
-                    get_index_from_xy(position.x + delta_x, position.y + delta_y);
+                    Map::get_index_from_xy(position.x + delta_x, position.y + delta_y);
 
                 //Search for potential targets (must have CombatStats component)
                 for &potential_target in map.tile_content[destination_index].iter() {
@@ -59,10 +55,15 @@ impl Player {
                 }
 
                 // Move if not attacking or destination is not blocked
-                if attacker_target.is_none() && !map.blocked_tiles[destination_index] {
-                    position.x = min(MAP_WIDTH - 1, max(0, position.x + delta_x));
-                    position.y = min(MAP_HEIGHT - 1, max(0, position.y + delta_y));
-                    viewshed.must_recalculate = true;
+                if attacker_target.is_none() {
+                    if !map.blocked_tiles[destination_index] {
+                        position.x = min(MAP_WIDTH - 1, max(0, position.x + delta_x));
+                        position.y = min(MAP_HEIGHT - 1, max(0, position.y + delta_y));
+                        viewshed.must_recalculate = true;
+                        return RunState::PlayerTurn;
+                    } else {
+                        return RunState::WaitingPlayerInput;
+                    }
                 }
             }
         }
@@ -71,27 +72,31 @@ impl Player {
         if attacker_target.is_some() {
             let (attacker, target) = attacker_target.unwrap();
             let _ = ecs_world.insert_one(attacker, WantsToMelee { target });
+            return RunState::PlayerTurn;
         }
+
+        RunState::WaitingPlayerInput
     }
 
     ///
     /// Handle player input
     ///
     pub fn checks_keyboard_input(ecs_world: &mut World) -> RunState {
+        let mut run_state = RunState::PlayerTurn;
         // Player movement
         match get_key_pressed() {
-            None => return RunState::WaitingPlayerInput, // Nothing happened
+            None => run_state = RunState::WaitingPlayerInput, // Nothing happened
             Some(key) => match key {
-                KeyCode::Kp4 | KeyCode::Left => Self::try_move_player(-1, 0, ecs_world),
-                KeyCode::Kp6 | KeyCode::Right => Self::try_move_player(1, 0, ecs_world),
-                KeyCode::Kp8 | KeyCode::Up => Self::try_move_player(0, -1, ecs_world),
-                KeyCode::Kp2 | KeyCode::Down => Self::try_move_player(0, 1, ecs_world),
+                KeyCode::Kp4 | KeyCode::Left => run_state = Self::try_move_player(-1, 0, ecs_world),
+                KeyCode::Kp6 | KeyCode::Right => run_state = Self::try_move_player(1, 0, ecs_world),
+                KeyCode::Kp8 | KeyCode::Up => run_state = Self::try_move_player(0, -1, ecs_world),
+                KeyCode::Kp2 | KeyCode::Down => run_state = Self::try_move_player(0, 1, ecs_world),
 
                 // Diagonals
-                KeyCode::Kp9 => Self::try_move_player(1, -1, ecs_world),
-                KeyCode::Kp7 => Self::try_move_player(-1, -1, ecs_world),
-                KeyCode::Kp3 => Self::try_move_player(1, 1, ecs_world),
-                KeyCode::Kp1 => Self::try_move_player(-1, 1, ecs_world),
+                KeyCode::Kp9 => run_state = Self::try_move_player(1, -1, ecs_world),
+                KeyCode::Kp7 => run_state = Self::try_move_player(-1, -1, ecs_world),
+                KeyCode::Kp3 => run_state = Self::try_move_player(1, 1, ecs_world),
+                KeyCode::Kp1 => run_state = Self::try_move_player(-1, 1, ecs_world),
 
                 // Skip turn doing nothing, so you can heal
                 KeyCode::Period | KeyCode::Space => return RunState::MonsterTurn,
@@ -105,26 +110,26 @@ impl Player {
                 //Eat item
                 KeyCode::E => {
                     clear_input_queue();
-                    return RunState::ShowEatInventory;
+                    run_state = RunState::ShowEatInventory;
                 }
 
                 //Drop item
                 KeyCode::D => {
                     clear_input_queue();
-                    return RunState::ShowDropInventory;
+                    run_state = RunState::ShowDropInventory;
                 }
 
                 //Invoke item
                 KeyCode::I => {
                     clear_input_queue();
-                    return RunState::ShowInvokeInventory;
+                    run_state = RunState::ShowInvokeInventory;
                 }
 
-                _ => return RunState::WaitingPlayerInput,
+                _ => run_state = RunState::WaitingPlayerInput,
             },
         }
 
-        RunState::PlayerTurn
+        run_state
     }
 
     /// Checks mouse input

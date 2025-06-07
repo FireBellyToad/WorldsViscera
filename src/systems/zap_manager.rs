@@ -5,7 +5,7 @@ use crate::{
         combat::{CombatStats, InflictsDamage, SufferingDamage, WantsToZap},
         common::{GameLog, Named},
         items::WantsToInvoke,
-        map::{Map, get_index_from_xy},
+        map::Map,
     },
     utils::roll::Roll,
 };
@@ -33,7 +33,7 @@ impl ZapManager {
             let (_e, map) = map_query.iter().last().expect("Map is not in hecs::World");
 
             for (zapper, (wants_zap, wants_invoke)) in &mut zappers {
-                let index = get_index_from_xy(wants_zap.target.0, wants_zap.target.1);
+                let index = Map::get_index_from_xy(wants_zap.target.0, wants_zap.target.1);
                 let target_list = &map.tile_content[index];
 
                 for &target in target_list {
@@ -43,7 +43,6 @@ impl ZapManager {
 
                     //Sum damage, keeping in mind that could not have SufferingDamage component
                     if target_damage.is_ok() {
-                        
                         let damage_roll =
                             Roll::dice(item_damage.number_of_dices, item_damage.dice_size);
                         let saving_throw_roll = Roll::d20();

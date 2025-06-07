@@ -2,11 +2,7 @@ use adam_fov_rs::{IVec2, compute_fov};
 use hecs::World;
 
 use crate::{
-    components::{
-        common::*,
-        map::{Map, get_index_from_xy},
-        player::Player,
-    },
+    components::{common::*, map::Map, player::Player},
     constants::{MAP_HEIGHT, MAP_WIDTH},
 };
 
@@ -52,7 +48,7 @@ impl FovCalculator {
                 if entity.id() == player_entity_id {
                     map.visible_tiles.fill(false);
                     for &(x, y) in viewshed.visible_tiles.iter() {
-                        let index = get_index_from_xy(x, y);
+                        let index = Map::get_index_from_xy(x, y);
                         map.revealed_tiles[index] = true;
                         map.visible_tiles[index] = true;
                     }
