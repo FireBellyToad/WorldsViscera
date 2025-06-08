@@ -2,8 +2,9 @@ use adam_fov_rs::{IVec2, compute_fov};
 use hecs::World;
 
 use crate::{
-    components::{common::*, map::Map, player::Player},
+    components::{common::*, player::Player},
     constants::{MAP_HEIGHT, MAP_WIDTH},
+    maps::map::GameMap,
 };
 
 use adam_fov_rs::GridPoint;
@@ -14,8 +15,11 @@ impl FovCalculator {
     pub fn run(ecs_world: &World) {
         let player_entity_id = Player::get_player_id(ecs_world);
 
-        let mut map_query = ecs_world.query::<&mut Map>();
-        let (_e, map) = map_query.iter().last().expect("Map is not in hecs::World");
+        let mut map_query = ecs_world.query::<&mut GameMap>();
+        let (_e, map) = map_query
+            .iter()
+            .last()
+            .expect("GameMap is not in hecs::World");
 
         //Deconstruct data into tuple
         let mut viewsheds = ecs_world.query::<(&mut Viewshed, &Position)>();
@@ -48,7 +52,7 @@ impl FovCalculator {
                 if entity.id() == player_entity_id {
                     map.visible_tiles.fill(false);
                     for &(x, y) in viewshed.visible_tiles.iter() {
-                        let index = Map::get_index_from_xy(x, y);
+                        let index = GameMap::get_index_from_xy(x, y);
                         map.revealed_tiles[index] = true;
                         map.visible_tiles[index] = true;
                     }

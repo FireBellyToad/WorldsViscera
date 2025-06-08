@@ -1,27 +1,25 @@
 use std::collections::HashSet;
 
-use hecs::World;
-use macroquad::math::Rect;
-
-use crate::components::combat::*;
-use crate::components::common::*;
-use crate::components::health::CanAutomaticallyHeal;
-use crate::components::health::Hunger;
+use crate::components::combat::{CombatStats, InflictsDamage, SufferingDamage};
+use crate::components::common::{BlocksTile, Named, Position, Renderable, Viewshed};
+use crate::components::health::{CanAutomaticallyHeal, Hunger};
 use crate::components::items::{Edible, Invokable, Item};
-use crate::components::map::Map;
 use crate::components::monster::Monster;
 use crate::components::player::Player;
 use crate::constants::*;
+use crate::maps::map::GameMap;
 use crate::systems::hunger_check::HungerStatus;
 use crate::utils::assets::TextureName;
 use crate::utils::roll::Roll;
+use hecs::World;
+use macroquad::math::Rect;
 
 /// Spawner of game entities
 pub struct Spawn {}
 
 impl Spawn {
     /// Spawn player
-    pub fn player(ecs_world: &mut World, map: &Map) {
+    pub fn player(ecs_world: &mut World, map: &GameMap) {
         // Roll appropriate stats
         let rolled_toughness = Roll::stat();
         let rolled_dexterity = Roll::stat();
@@ -64,7 +62,10 @@ impl Spawn {
             },
             SufferingDamage { damage_received: 0 },
             CanAutomaticallyHeal { tick_counter: 0 },
-            Hunger { tick_counter: MAX_HUNGER_TICK_COUNTER, current_status: HungerStatus::Normal },
+            Hunger {
+                tick_counter: MAX_HUNGER_TICK_COUNTER,
+                current_status: HungerStatus::Normal,
+            },
         );
 
         ecs_world.spawn(player_entity);

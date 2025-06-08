@@ -8,8 +8,8 @@ use macroquad::prelude::*;
 
 use crate::{constants::*, utils::assets::TextureName};
 
-/// Map Struct and implementations
-pub struct Map {
+/// GameMap Struct and implementations
+pub struct GameMap {
     pub tiles: Vec<TileType>,
     pub rooms: Vec<Rect>,
     pub revealed_tiles: Vec<bool>,
@@ -24,10 +24,10 @@ pub enum TileType {
     Wall,
 }
 
-impl Map {
+impl GameMap {
     /// Create new dungeon map (needed?)
     pub fn new_dungeon_map() -> Self {
-        let mut map = Map {
+        let mut map = GameMap {
             tiles: vec![TileType::Wall; (MAP_WIDTH * MAP_HEIGHT) as usize],
             rooms: Vec::new(),
             revealed_tiles: vec![false; (MAP_WIDTH * MAP_HEIGHT) as usize],
@@ -134,7 +134,7 @@ impl Map {
 
     /// Create new empty test map
     pub fn _new_arena_map() -> Self {
-        let mut map = Map {
+        let mut map = GameMap {
             tiles: vec![TileType::Floor; (MAP_WIDTH * MAP_HEIGHT) as usize],
             rooms: Vec::new(),
             revealed_tiles: vec![false; (MAP_WIDTH * MAP_HEIGHT) as usize],

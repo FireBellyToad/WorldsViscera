@@ -7,9 +7,10 @@ use macroquad::input::{
 };
 
 use crate::{
-    components::{combat::WantsToZap, health::CanAutomaticallyHeal, map::Map},
+    components::{combat::WantsToZap, health::CanAutomaticallyHeal},
     constants::*,
     engine::state::RunState,
+    maps::map::GameMap,
 };
 
 use super::{
@@ -36,12 +37,15 @@ impl Player {
         {
             let mut players = ecs_world.query::<(&Player, &mut Position, &mut Viewshed)>();
 
-            let mut map_query = ecs_world.query::<&Map>();
-            let (_e, map) = map_query.iter().last().expect("Map is not in hecs::World");
+            let mut map_query = ecs_world.query::<&GameMap>();
+            let (_e, map) = map_query
+                .iter()
+                .last()
+                .expect("GameMap is not in hecs::World");
 
             for (player_entity, (_p, position, viewshed)) in &mut players {
                 let destination_index =
-                    Map::get_index_from_xy(position.x + delta_x, position.y + delta_y);
+                    GameMap::get_index_from_xy(position.x + delta_x, position.y + delta_y);
 
                 //Search for potential targets (must have CombatStats component)
                 for &potential_target in map.tile_content[destination_index].iter() {
@@ -146,10 +150,13 @@ impl Player {
             let mut is_valid_tile = false;
             // Scope for keeping borrow checker quiet
             {
-                let mut map_query = ecs_world.query::<&Map>();
-                let (_e, map) = map_query.iter().last().expect("Map is not in hecs::World");
+                let mut map_query = ecs_world.query::<&GameMap>();
+                let (_e, map) = map_query
+                    .iter()
+                    .last()
+                    .expect("GameMap is not in hecs::World");
                 // Make sure that we are targeting a valid tile
-                let index = Map::get_index_from_xy(rounded_x, rounded_y);
+                let index = GameMap::get_index_from_xy(rounded_x, rounded_y);
                 if index < map.visible_tiles.len() {
                     is_valid_tile = map.visible_tiles[index];
                 }

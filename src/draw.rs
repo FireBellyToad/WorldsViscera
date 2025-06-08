@@ -14,12 +14,12 @@ use crate::{
         combat::CombatStats,
         common::{GameLog, Position, Renderable},
         health::Hunger,
-        map::Map,
         player::Player,
     },
     constants::*,
     engine::state::{EngineState, RunState},
     inventory::{Inventory, InventoryAction},
+    maps::map::GameMap,
     systems::hunger_check::HungerStatus,
     utils::assets::TextureName,
 };
@@ -28,7 +28,7 @@ pub struct Draw {}
 
 impl Draw {
     pub fn render_game(game_state: &EngineState, assets: &HashMap<TextureName, Texture2D>) {
-        let mut maps = game_state.ecs_world.query::<&Map>();
+        let mut maps = game_state.ecs_world.query::<&GameMap>();
         match game_state.run_state {
             RunState::GameOver => Draw::game_over(),
             _ => {
@@ -203,7 +203,7 @@ impl Draw {
     }
 
     /// Draw all Renderable entities in World
-    fn renderables(world: &World, assets: &HashMap<TextureName, Texture2D>, map: &Map) {
+    fn renderables(world: &World, assets: &HashMap<TextureName, Texture2D>, map: &GameMap) {
         //Get all entities in readonly
         let mut renderables_with_position = world.query::<(&Renderable, &Position)>();
 
@@ -216,7 +216,7 @@ impl Draw {
                 .get(&renderable.texture_name)
                 .expect("Texture not found");
 
-            if map.visible_tiles[Map::get_index_from_xy(position.x, position.y)] {
+            if map.visible_tiles[GameMap::get_index_from_xy(position.x, position.y)] {
                 // Take the texture and draw only the wanted tile ( DrawTextureParams.source )
                 draw_texture_ex(
                     texture_to_render,
@@ -256,14 +256,17 @@ impl Draw {
         );
         let (mouse_x, mouse_y) = mouse_position();
 
-        let mut map_query = ecs_world.query::<&Map>();
-        let (_e, map) = map_query.iter().last().expect("Map is not in hecs::World");
+        let mut map_query = ecs_world.query::<&GameMap>();
+        let (_e, map) = map_query
+            .iter()
+            .last()
+            .expect("GameMap is not in hecs::World");
 
         let rounded_x = (((mouse_x - UI_BORDER_F32) / TILE_SIZE_F32).ceil() - 1.0) as i32;
         let rounded_y = (((mouse_y - UI_BORDER_F32) / TILE_SIZE_F32).ceil() - 1.0) as i32;
 
         // Draw target if tile is visible
-        let index = Map::get_index_from_xy(rounded_x, rounded_y);
+        let index = GameMap::get_index_from_xy(rounded_x, rounded_y);
         if map.visible_tiles.len() > index && map.visible_tiles[index] {
             draw_rectangle_lines(
                 (UI_BORDER + (rounded_x * TILE_SIZE)) as f32,

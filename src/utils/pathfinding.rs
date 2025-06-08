@@ -1,6 +1,6 @@
 use pathfinding::prelude::dijkstra;
 
-use crate::components::map::Map;
+use crate::maps::map::GameMap;
 
 pub struct Pathfinding {}
 
@@ -14,7 +14,7 @@ impl Pathfinding {
         origin_y: i32,
         goal_x: i32,
         goal_y: i32,
-        map: &Map,
+        map: &GameMap,
     ) -> Option<(Vec<(i32, i32)>, u32)> {
         //Calling dijkstra and get result
         dijkstra(

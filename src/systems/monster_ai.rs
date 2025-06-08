@@ -1,13 +1,8 @@
 use hecs::{Entity, World};
 
 use crate::{
-    components::{
-        combat::WantsToMelee,
-        common::*,
-        map::{Map},
-        monster::Monster,
-        player::Player,
-    },
+    components::{combat::WantsToMelee, common::*, monster::Monster, player::Player},
+    maps::map::GameMap,
     utils::pathfinding::Pathfinding,
 };
 
@@ -23,8 +18,11 @@ impl MonsterAI {
         {
             let mut named_monsters = ecs_world.query::<(&mut Viewshed, &Monster, &mut Position)>();
 
-            let mut map_query = ecs_world.query::<&mut Map>();
-            let (_e, map) = map_query.iter().last().expect("Map is not in hecs::World");
+            let mut map_query = ecs_world.query::<&mut GameMap>();
+            let (_e, map) = map_query
+                .iter()
+                .last()
+                .expect("GameMap is not in hecs::World");
 
             let mut player_query = ecs_world.query::<(&Player, &Position)>();
             let (player_entity, (_p, player_position)) = player_query
@@ -63,11 +61,12 @@ impl MonsterAI {
 
                             // Avoid overlap with other monsters and player
                             if path.len() > 1 {
-                                map.blocked_tiles[Map::get_index_from_xy(position.x, position.y)] =
-                                    false;
+                                map.blocked_tiles
+                                    [GameMap::get_index_from_xy(position.x, position.y)] = false;
                                 position.x = path[1].0;
                                 position.y = path[1].1;
-                                map.blocked_tiles[Map::get_index_from_xy(position.x, position.y)] = true;
+                                map.blocked_tiles
+                                    [GameMap::get_index_from_xy(position.x, position.y)] = true;
                             }
                         }
                     }

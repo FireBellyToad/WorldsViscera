@@ -1,4 +1,4 @@
-/// Map related constats
+/// GameMap related constats
 pub const MAP_WIDTH: i32 = 56;
 pub const MAP_HEIGHT: i32 = 35;
 pub const TILE_SIZE: i32 = 24;
