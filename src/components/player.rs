@@ -108,7 +108,6 @@ impl Player {
                 //Pick up
                 KeyCode::P => {
                     Self::pick_up(ecs_world);
-                    clear_input_queue();
                 }
 
                 //Eat item

@@ -28,8 +28,8 @@ impl GameMapBuilder for ArenaMapBuilder {
         map.player_spawn_point = GameMap::get_index_from_xy(MAP_WIDTH / 2, MAP_HEIGHT / 2);
 
         // Generate monster and items spawn points within each room
-        let monster_number = Roll::dice(1, MAX_MONSTERS_ON_ROOM_START) - 1;
-        let items_number = Roll::dice(1, MAX_ITEMS_ON_ROOM_START) - 1;
+        let monster_number = Roll::dice(1, MAX_MONSTERS_ON_ROOM_START);
+        let items_number = Roll::dice(1, MAX_ITEMS_ON_ROOM_START);
 
         for _m in 0..monster_number {
             for _t in 0..MAX_SPAWN_TENTANTIVES {
