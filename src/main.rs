@@ -143,10 +143,7 @@ fn populate_world(ecs_world: &mut World) {
     let map = DungeonMapBuilder::build();
 
     Spawn::player(ecs_world, &map);
-
-    for room in map.rooms.iter().skip(1) {
-        Spawn::in_room(ecs_world, room);
-    }
+    Spawn::everyhing_in_map(ecs_world, &map);
 
     // Add map
     ecs_world.spawn((true, map));

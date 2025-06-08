@@ -1,5 +1,3 @@
-use std::collections::HashSet;
-
 use crate::components::combat::{CombatStats, InflictsDamage, SufferingDamage};
 use crate::components::common::{BlocksTile, Named, Position, Renderable, Viewshed};
 use crate::components::health::{CanAutomaticallyHeal, Hunger};
@@ -72,52 +70,15 @@ impl Spawn {
     }
 
     /// Spawn entities inside a room
-    pub fn in_room(ecs_world: &mut World, room: &Rect) {
-        // Monsters
-        let mut monster_spawn_points: HashSet<usize> = HashSet::new();
-        let monster_number = Roll::dice(1, MAX_MONSTERS_ON_ROOM_START) - 1;
-
-        // Generate spawn points within room
-        for _m in 0..monster_number {
-            for _t in 0..MAX_SPAWN_TENTANTIVES {
-                let x = (room.x + Roll::dice(1, room.w as i32 - 1) as f32) as usize;
-                let y = (room.y + Roll::dice(1, room.h as i32 - 1) as f32) as usize;
-                let index = (y * MAP_WIDTH as usize) + x;
-
-                // avoid duplicate spawnpoints
-                if monster_spawn_points.insert(index) {
-                    break;
-                }
-            }
-        }
-
+    pub fn everyhing_in_map(ecs_world: &mut World, map: &GameMap) {
         // Actually spawn the monsters
-        for &index in monster_spawn_points.iter() {
+        for &index in map.monster_spawn_points.iter() {
             let x = index % MAP_WIDTH as usize;
             let y = index / MAP_WIDTH as usize;
             Self::random_monster(ecs_world, x as i32, y as i32);
         }
-
-        // Items
-        let mut item_spawn_points: HashSet<usize> = HashSet::new();
-        let items_number = Roll::dice(1, MAX_ITEMS_ON_ROOM_START) - 1;
-
-        // Generate span points within room
-        for _i in 0..items_number {
-            for _t in 0..MAX_SPAWN_TENTANTIVES {
-                let x = (room.x + Roll::dice(1, room.w as i32 - 1) as f32) as usize;
-                let y = (room.y + Roll::dice(1, room.h as i32 - 1) as f32) as usize;
-                let index = (y * MAP_WIDTH as usize) + x;
-
-                // avoid duplicate spawnpoints
-                if item_spawn_points.insert(index) {
-                    break;
-                }
-            }
-        }
-
         // Actually spawn the potions
-        for &index in item_spawn_points.iter() {
+        for &index in map.item_spawn_points.iter() {
             let x = index % MAP_WIDTH as usize;
             let y = index / MAP_WIDTH as usize;
             Self::random_item(ecs_world, x as i32, y as i32);

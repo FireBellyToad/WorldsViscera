@@ -20,6 +20,8 @@ pub struct GameMap {
     pub blocked_tiles: Vec<bool>,
     pub tile_content: Vec<Vec<Entity>>,
     pub bloodied_tiles: HashSet<usize>,
+    pub monster_spawn_points: HashSet<usize>,
+    pub item_spawn_points: HashSet<usize>,
 }
 
 /// GameMap Simplementations
@@ -34,6 +36,8 @@ impl GameMap {
             blocked_tiles: vec![false; (MAP_WIDTH * MAP_HEIGHT) as usize],
             tile_content: vec![Vec::new(); (MAP_WIDTH * MAP_HEIGHT) as usize],
             bloodied_tiles: HashSet::new(),
+            monster_spawn_points: HashSet::new(),
+            item_spawn_points: HashSet::new(),
         }
     }
 

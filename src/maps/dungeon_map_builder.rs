@@ -8,6 +8,7 @@ use crate::{
         GameMapBuilder,
         game_map::{GameMap, TileType},
     },
+    utils::roll::Roll,
 };
 
 /// Builds a simple dungeon-like map made of rooms and corridors
@@ -50,6 +51,38 @@ impl GameMapBuilder for DungeonMapBuilder {
                 }
 
                 map.rooms.push(new_room);
+            }
+        }
+
+        // Generate monster and items spawn points within each room
+        for &room in map.rooms.iter().skip(1) {
+            let monster_number = Roll::dice(1, MAX_MONSTERS_ON_ROOM_START) - 1;
+            let items_number = Roll::dice(1, MAX_ITEMS_ON_ROOM_START) - 1;
+
+            for _m in 0..monster_number {
+                for _t in 0..MAX_SPAWN_TENTANTIVES {
+                    let x = (room.x + Roll::dice(1, room.w as i32 - 1) as f32) as usize;
+                    let y = (room.y + Roll::dice(1, room.h as i32 - 1) as f32) as usize;
+                    let index = (y * MAP_WIDTH as usize) + x;
+
+                    // avoid duplicate spawnpoints
+                    if map.monster_spawn_points.insert(index) {
+                        break;
+                    }
+                }
+            }
+
+            for _i in 0..items_number {
+                for _t in 0..MAX_SPAWN_TENTANTIVES {
+                    let x = (room.x + Roll::dice(1, room.w as i32 - 1) as f32) as usize;
+                    let y = (room.y + Roll::dice(1, room.h as i32 - 1) as f32) as usize;
+                    let index = (y * MAP_WIDTH as usize) + x;
+
+                    // avoid duplicate spawnpoints
+                    if map.item_spawn_points.insert(index) {
+                        break;
+                    }
+                }
             }
         }
 
