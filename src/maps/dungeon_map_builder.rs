@@ -54,6 +54,11 @@ impl GameMapBuilder for DungeonMapBuilder {
             }
         }
 
+        // Set player spawn point
+        let first_room_center = map.rooms[0].center();
+        map.player_spawn_point =
+            GameMap::get_index_from_xy_f32(first_room_center[0], first_room_center[1]);
+            
         // Generate monster and items spawn points within each room
         for &room in map.rooms.iter().skip(1) {
             let monster_number = Roll::dice(1, MAX_MONSTERS_ON_ROOM_START) - 1;
@@ -61,9 +66,9 @@ impl GameMapBuilder for DungeonMapBuilder {
 
             for _m in 0..monster_number {
                 for _t in 0..MAX_SPAWN_TENTANTIVES {
-                    let x = (room.x + Roll::dice(1, room.w as i32 - 1) as f32) as usize;
-                    let y = (room.y + Roll::dice(1, room.h as i32 - 1) as f32) as usize;
-                    let index = (y * MAP_WIDTH as usize) + x;
+                    let x = room.x + Roll::dice(1, room.w as i32 - 1) as f32;
+                    let y = room.y + Roll::dice(1, room.h as i32 - 1) as f32;
+                    let index = GameMap::get_index_from_xy_f32(x, y);
 
                     // avoid duplicate spawnpoints
                     if map.monster_spawn_points.insert(index) {
@@ -74,9 +79,9 @@ impl GameMapBuilder for DungeonMapBuilder {
 
             for _i in 0..items_number {
                 for _t in 0..MAX_SPAWN_TENTANTIVES {
-                    let x = (room.x + Roll::dice(1, room.w as i32 - 1) as f32) as usize;
-                    let y = (room.y + Roll::dice(1, room.h as i32 - 1) as f32) as usize;
-                    let index = (y * MAP_WIDTH as usize) + x;
+                    let x = room.x + Roll::dice(1, room.w as i32 - 1) as f32;
+                    let y = room.y + Roll::dice(1, room.h as i32 - 1) as f32;
+                    let index = GameMap::get_index_from_xy_f32(x, y);
 
                     // avoid duplicate spawnpoints
                     if map.item_spawn_points.insert(index) {

@@ -17,7 +17,9 @@ use systems::{
 
 use crate::{
     inventory::InventoryAction,
-    maps::{GameMapBuilder, dungeon_map_builder::DungeonMapBuilder},
+    maps::{
+        GameMapBuilder, arena_map_builder::ArenaMapBuilder, dungeon_map_builder::DungeonMapBuilder,
+    },
     systems::{
         automatic_healing::AutomaticHealing, hunger_check::HungerCheck, zap_manager::ZapManager,
     },
@@ -140,7 +142,7 @@ fn populate_world(ecs_world: &mut World) {
         },
     ));
 
-    let map = DungeonMapBuilder::build();
+    let map = ArenaMapBuilder::build();
 
     Spawn::player(ecs_world, &map);
     Spawn::everyhing_in_map(ecs_world, &map);

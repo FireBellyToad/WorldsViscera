@@ -23,12 +23,14 @@ impl Spawn {
         let rolled_dexterity = Roll::stat();
         // TODO Player with Soldier background must have 1+2d3 starting stamina
         let rolled_stamina = Roll::d6() + 1;
+        
+        let (spawn_x, spawn_y) = GameMap::get_xy_from_index(map.player_spawn_point);
 
         let player_entity = (
             Player {},
             Position {
-                x: map.rooms[0].center()[0] as i32,
-                y: map.rooms[0].center()[1] as i32,
+                x: spawn_x,
+                y: spawn_y,
             },
             Renderable {
                 texture_name: TextureName::Creatures,
@@ -73,14 +75,12 @@ impl Spawn {
     pub fn everyhing_in_map(ecs_world: &mut World, map: &GameMap) {
         // Actually spawn the monsters
         for &index in map.monster_spawn_points.iter() {
-            let x = index % MAP_WIDTH as usize;
-            let y = index / MAP_WIDTH as usize;
+            let (x, y) = GameMap::get_xy_from_index(index);
             Self::random_monster(ecs_world, x as i32, y as i32);
         }
         // Actually spawn the potions
         for &index in map.item_spawn_points.iter() {
-            let x = index % MAP_WIDTH as usize;
-            let y = index / MAP_WIDTH as usize;
+            let (x, y) = GameMap::get_xy_from_index(index);
             Self::random_item(ecs_world, x as i32, y as i32);
         }
     }

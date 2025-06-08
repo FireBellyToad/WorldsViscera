@@ -20,6 +20,7 @@ pub struct GameMap {
     pub blocked_tiles: Vec<bool>,
     pub tile_content: Vec<Vec<Entity>>,
     pub bloodied_tiles: HashSet<usize>,
+    pub player_spawn_point: usize,
     pub monster_spawn_points: HashSet<usize>,
     pub item_spawn_points: HashSet<usize>,
 }
@@ -35,6 +36,7 @@ impl GameMap {
             visible_tiles: vec![false; (MAP_WIDTH * MAP_HEIGHT) as usize],
             blocked_tiles: vec![false; (MAP_WIDTH * MAP_HEIGHT) as usize],
             tile_content: vec![Vec::new(); (MAP_WIDTH * MAP_HEIGHT) as usize],
+            player_spawn_point: 0,
             bloodied_tiles: HashSet::new(),
             monster_spawn_points: HashSet::new(),
             item_spawn_points: HashSet::new(),
@@ -98,5 +100,17 @@ impl GameMap {
     /// trasfroms x,y position into a vector index
     pub fn get_index_from_xy(x: i32, y: i32) -> usize {
         ((y * MAP_WIDTH) + x) as usize
+    }
+
+    /// trasfroms x,y position into a vector index, using usizes
+    pub fn get_index_from_xy_f32(x: f32, y: f32) -> usize {
+        ((y as i32 * MAP_WIDTH) + x as i32) as usize
+    }
+
+    /// trasfroms x,y position into a vector index, using usizes
+    pub fn get_xy_from_index(index: usize) -> (i32, i32) {
+        let x = index % MAP_WIDTH as usize;
+        let y = index / MAP_WIDTH as usize;
+        (x as i32, y as i32)
     }
 }
