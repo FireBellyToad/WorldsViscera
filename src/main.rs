@@ -16,9 +16,11 @@ use systems::{
 };
 
 use crate::{
-    maps::game_map::GameMap,
     inventory::InventoryAction,
-    systems::{automatic_healing::AutomaticHealing, hunger_check::HungerCheck, zap_manager::ZapManager},
+    maps::{GameMapBuilder, dungeon_map_builder::DungeonMapBuilder},
+    systems::{
+        automatic_healing::AutomaticHealing, hunger_check::HungerCheck, zap_manager::ZapManager,
+    },
     utils::assets::Load,
 };
 
@@ -27,10 +29,10 @@ mod constants;
 mod draw;
 mod engine;
 mod inventory;
+mod maps;
 mod spawner;
 mod systems;
 mod utils;
-mod maps;
 
 //Game configuration
 fn get_game_configuration() -> Conf {
@@ -138,7 +140,7 @@ fn populate_world(ecs_world: &mut World) {
         },
     ));
 
-    let map = GameMap::new_dungeon_map();
+    let map = DungeonMapBuilder::build();
 
     Spawn::player(ecs_world, &map);
 

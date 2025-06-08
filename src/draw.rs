@@ -2,9 +2,10 @@ use std::collections::HashMap;
 
 use hecs::World;
 use macroquad::{
-    color::{BLACK, Color, RED, WHITE, YELLOW},
+    color::{BLACK, Color, DARKGRAY, RED, WHITE, YELLOW},
     input::mouse_position,
-    shapes::{draw_rectangle, draw_rectangle_lines},
+    math::Rect,
+    shapes::{draw_circle, draw_rectangle, draw_rectangle_lines},
     text::draw_text,
     texture::{DrawTextureParams, Texture2D, draw_texture_ex},
 };
@@ -33,7 +34,7 @@ impl Draw {
             RunState::GameOver => Draw::game_over(),
             _ => {
                 for (_e, map) in &mut maps {
-                    map.draw(assets);
+                    Draw::map(&map, assets);
                     Draw::renderables(&game_state.ecs_world, &assets, &map);
                 }
 
@@ -277,5 +278,82 @@ impl Draw {
                 RED,
             );
         }
+    }
+
+    /// Draws map
+    pub fn map(game_map: &GameMap, assets: &HashMap<TextureName, Texture2D>) {
+        let texture_to_render = assets.get(&TextureName::Tiles).expect("Texture not found");
+
+        for x in 0..MAP_WIDTH {
+            for y in 0..MAP_HEIGHT {
+                let tile_to_draw = GameMap::get_index_from_xy(x, y);
+                let tile_index =
+                    GameMap::get_tile_sprite_sheet_index(&game_map.tiles[tile_to_draw])
+                        * TILE_SIZE_F32;
+
+                if game_map.revealed_tiles[tile_to_draw] {
+                    let mut alpha = DARKGRAY;
+
+                    if game_map.visible_tiles[tile_to_draw] {
+                        alpha = WHITE;
+                        if game_map.bloodied_tiles.contains(&tile_to_draw) {
+                            Draw::draw_blood_blots(x, y);
+                        }
+                    }
+
+                    // Take the texture and draw only the wanted tile ( DrawTextureParams.source )
+                    draw_texture_ex(
+                        texture_to_render,
+                        (UI_BORDER + (x * TILE_SIZE)) as f32,
+                        (UI_BORDER + (y * TILE_SIZE)) as f32,
+                        alpha,
+                        DrawTextureParams {
+                            source: Some(Rect {
+                                x: tile_index,
+                                y: 0.0,
+                                w: TILE_SIZE_F32,
+                                h: TILE_SIZE_F32,
+                            }),
+                            ..Default::default()
+                        },
+                    );
+                }
+            }
+        }
+    }
+
+    /// Utility for drawing blood blots
+    pub fn draw_blood_blots(x: i32, y: i32) {
+        draw_circle(
+            (UI_BORDER + (x * TILE_SIZE) + TILE_SIZE / 2) as f32 - 6.0,
+            (UI_BORDER + (y * TILE_SIZE) + TILE_SIZE / 2) as f32 - 7.0,
+            2.0,
+            Color::from_rgba(255, 10, 10, 32),
+        );
+        draw_circle(
+            (UI_BORDER + (x * TILE_SIZE) + TILE_SIZE / 2) as f32 + 4.0,
+            (UI_BORDER + (y * TILE_SIZE) + TILE_SIZE / 2) as f32 - 4.0,
+            2.0,
+            Color::from_rgba(255, 10, 10, 32),
+        );
+        draw_circle(
+            (UI_BORDER + (x * TILE_SIZE) + TILE_SIZE / 2) as f32 - 5.0,
+            (UI_BORDER + (y * TILE_SIZE) + TILE_SIZE / 2) as f32 + 4.0,
+            1.0,
+            Color::from_rgba(255, 10, 10, 32),
+        );
+        draw_circle(
+            (UI_BORDER + (x * TILE_SIZE) + TILE_SIZE / 2) as f32 + 3.0,
+            (UI_BORDER + (y * TILE_SIZE) + TILE_SIZE / 2) as f32 + 5.0,
+            2.0,
+            Color::from_rgba(255, 10, 10, 32),
+        );
+
+        draw_circle(
+            (UI_BORDER + (x * TILE_SIZE) + TILE_SIZE / 2) as f32,
+            (UI_BORDER + (y * TILE_SIZE) + TILE_SIZE / 2) as f32,
+            4.0,
+            Color::from_rgba(255, 10, 10, 32),
+        );
     }
 }

@@ -1,17 +1,9 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 
 use hecs::Entity;
-use macroquad::{
-    color::{Color, DARKGRAY, WHITE},
-    math::Rect,
-    shapes::draw_circle,
-    texture::{DrawTextureParams, Texture2D, draw_texture_ex},
-};
+use macroquad::math::Rect;
 
-use crate::{
-    constants::{MAP_HEIGHT, MAP_WIDTH, TILE_SIZE, TILE_SIZE_F32, UI_BORDER},
-    utils::assets::TextureName,
-};
+use crate::constants::{MAP_HEIGHT, MAP_WIDTH};
 
 #[derive(Clone, PartialEq)]
 pub enum TileType {
@@ -19,7 +11,7 @@ pub enum TileType {
     Wall,
 }
 
-/// GameMap Struct and implementations
+/// GameMap Struct
 pub struct GameMap {
     pub tiles: Vec<TileType>,
     pub rooms: Vec<Rect>,
@@ -30,7 +22,22 @@ pub struct GameMap {
     pub bloodied_tiles: HashSet<usize>,
 }
 
+/// GameMap Simplementations
 impl GameMap {
+    /// Create new empty map
+    pub fn new() -> GameMap {
+        GameMap {
+            tiles: vec![TileType::Wall; (MAP_WIDTH * MAP_HEIGHT) as usize],
+            rooms: Vec::new(),
+            revealed_tiles: vec![false; (MAP_WIDTH * MAP_HEIGHT) as usize],
+            visible_tiles: vec![false; (MAP_WIDTH * MAP_HEIGHT) as usize],
+            blocked_tiles: vec![false; (MAP_WIDTH * MAP_HEIGHT) as usize],
+            tile_content: vec![Vec::new(); (MAP_WIDTH * MAP_HEIGHT) as usize],
+            bloodied_tiles: HashSet::new(),
+        }
+    }
+
+    /// Gets which tile adjacent from a x,y position is passable
     pub fn get_adjacent_passable_tiles(
         &self,
         x_pos: i32,
@@ -53,52 +60,12 @@ impl GameMap {
         adjacent_passable_tiles
     }
 
+    /// Populates the blocked tiles vector appropiately (true = is blocked )
     pub fn populate_blocked(&mut self) {
         for (index, tile) in self.tiles.iter_mut().enumerate() {
             match tile {
                 TileType::Floor => self.blocked_tiles[index] = false,
                 _ => self.blocked_tiles[index] = true,
-            }
-        }
-    }
-
-    /// Draws map
-    pub fn draw(&self, assets: &HashMap<TextureName, Texture2D>) {
-        let texture_to_render = assets.get(&TextureName::Tiles).expect("Texture not found");
-
-        for x in 0..MAP_WIDTH {
-            for y in 0..MAP_HEIGHT {
-                let tile_to_draw = Self::get_index_from_xy(x, y);
-                let tile_index =
-                    Self::get_tile_sprite_sheet_index(&self.tiles[tile_to_draw]) * TILE_SIZE_F32;
-
-                if self.revealed_tiles[tile_to_draw] {
-                    let mut alpha = DARKGRAY;
-
-                    if self.visible_tiles[tile_to_draw] {
-                        alpha = WHITE;
-                        if self.bloodied_tiles.contains(&tile_to_draw) {
-                            Self::draw_blood_blots(x, y);
-                        }
-                    }
-
-                    // Take the texture and draw only the wanted tile ( DrawTextureParams.source )
-                    draw_texture_ex(
-                        texture_to_render,
-                        (UI_BORDER + (x * TILE_SIZE)) as f32,
-                        (UI_BORDER + (y * TILE_SIZE)) as f32,
-                        alpha,
-                        DrawTextureParams {
-                            source: Some(Rect {
-                                x: tile_index,
-                                y: 0.0,
-                                w: TILE_SIZE_F32,
-                                h: TILE_SIZE_F32,
-                            }),
-                            ..Default::default()
-                        },
-                    );
-                }
             }
         }
     }
@@ -109,7 +76,7 @@ impl GameMap {
         self.tiles[index] == TileType::Wall
     }
 
-    // Clears content index for this map
+    /// Clears content index for this map
     pub fn clear_content_index(&mut self) {
         for content in self.tile_content.iter_mut() {
             content.clear();
@@ -117,48 +84,15 @@ impl GameMap {
     }
 
     /// Return a index inside the tile sheet
-    fn get_tile_sprite_sheet_index(tile_type: &TileType) -> f32 {
+    pub fn get_tile_sprite_sheet_index(tile_type: &TileType) -> f32 {
         match tile_type {
             TileType::Floor => 0.0,
             TileType::Wall => 1.0,
         }
     }
 
+    /// trasfroms x,y position into a vector index
     pub fn get_index_from_xy(x: i32, y: i32) -> usize {
         ((y * MAP_WIDTH) + x) as usize
-    }
-
-    fn draw_blood_blots(x: i32, y: i32) {
-        draw_circle(
-            (UI_BORDER + (x * TILE_SIZE) + TILE_SIZE / 2) as f32 - 6.0,
-            (UI_BORDER + (y * TILE_SIZE) + TILE_SIZE / 2) as f32 - 7.0,
-            2.0,
-            Color::from_rgba(255, 10, 10, 32),
-        );
-        draw_circle(
-            (UI_BORDER + (x * TILE_SIZE) + TILE_SIZE / 2) as f32 + 4.0,
-            (UI_BORDER + (y * TILE_SIZE) + TILE_SIZE / 2) as f32 - 4.0,
-            2.0,
-            Color::from_rgba(255, 10, 10, 32),
-        );
-        draw_circle(
-            (UI_BORDER + (x * TILE_SIZE) + TILE_SIZE / 2) as f32 - 5.0,
-            (UI_BORDER + (y * TILE_SIZE) + TILE_SIZE / 2) as f32 + 4.0,
-            1.0,
-            Color::from_rgba(255, 10, 10, 32),
-        );
-        draw_circle(
-            (UI_BORDER + (x * TILE_SIZE) + TILE_SIZE / 2) as f32 + 3.0,
-            (UI_BORDER + (y * TILE_SIZE) + TILE_SIZE / 2) as f32 + 5.0,
-            2.0,
-            Color::from_rgba(255, 10, 10, 32),
-        );
-
-        draw_circle(
-            (UI_BORDER + (x * TILE_SIZE) + TILE_SIZE / 2) as f32,
-            (UI_BORDER + (y * TILE_SIZE) + TILE_SIZE / 2) as f32,
-            4.0,
-            Color::from_rgba(255, 10, 10, 32),
-        );
     }
 }
