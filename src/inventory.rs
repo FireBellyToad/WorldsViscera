@@ -75,8 +75,12 @@ impl Inventory {
                     }
 
                     // Validating char input
-                    if !inventory.is_empty() {
-                        selected_item_entity = Some(inventory[0].0);
+                    let item_selected = inventory
+                        .iter()
+                        .find(|(_e, _n, assigned_char, _t)| *assigned_char == letterkey);
+
+                    if item_selected.is_some() {
+                        selected_item_entity = Some(item_selected.unwrap().0);
                         user_entity = Some(player_entity);
                     } else {
                         game_log
@@ -125,7 +129,7 @@ impl Inventory {
         let texture_to_render = assets.get(&TextureName::Items).expect("Texture not found");
 
         //Inventory = Named items in backpack of the Player
-        let inventory: Vec<(Entity,String, char, i32)>;
+        let inventory: Vec<(Entity, String, char, i32)>;
         let header_text;
 
         match mode {
@@ -171,7 +175,7 @@ impl Inventory {
         );
 
         // ------- Item List -----------
-        for (index, (_e,item_name, assigned_char, item_tile)) in inventory.iter().enumerate() {
+        for (index, (_e, item_name, assigned_char, item_tile)) in inventory.iter().enumerate() {
             let x = (INVENTORY_X + UI_BORDER * 2) as f32;
             let y = (INVENTORY_Y + INVENTORY_TOP_SPAN) as f32 + (FONT_SIZE * index as f32);
 
@@ -218,7 +222,7 @@ impl Inventory {
     }
 
     /// Get all items in backpack for UI
-    fn get_all_in_backpack(ecs_world: &World) -> Vec<(Entity,String, char, i32)> {
+    fn get_all_in_backpack(ecs_world: &World) -> Vec<(Entity, String, char, i32)> {
         let player_id = Player::get_player_id(ecs_world);
         let mut inventory_query = ecs_world.query::<(&Named, &Item, &InBackback)>();
         let mut inventory = inventory_query
@@ -232,7 +236,7 @@ impl Inventory {
                     item.item_tile_index,
                 )
             })
-            .collect::<Vec<(Entity,String, char, i32)>>();
+            .collect::<Vec<(Entity, String, char, i32)>>();
 
         //Sort alphabetically by assigned char
         inventory.sort_by_key(|k| k.2);

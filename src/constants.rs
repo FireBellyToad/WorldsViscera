@@ -23,13 +23,12 @@ pub const INVENTORY_FOOTER_WIDTH: i32 = 186;
 pub const INVENTORY_LEFT_SPAN: i32 = 20;
 pub const INVENTORY_TOP_SPAN: i32 = 48;
 pub const OPTION_TO_CHAR_MAP: [char; 52] = [
-    'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
-    'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
-    'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
-    'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
+    'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's',
+    't', 'u', 'v', 'w', 'x', 'y', 'z', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L',
+    'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
 ];
-pub const ITEM_INVENTORY_LEFT_SPAN:i32 = 12;
-pub const ITEM_INVENTORY_TOP_SPAN:i32 = 10;
+pub const ITEM_INVENTORY_LEFT_SPAN: i32 = 12;
+pub const ITEM_INVENTORY_TOP_SPAN: i32 = 10;
 
 /// UI related constants
 pub const UI_BORDER: i32 = 8;
@@ -43,10 +42,10 @@ pub const SECONDS_TO_WAIT: f32 = 0.1;
 
 /// Spawning related constants
 pub const MAX_MONSTERS_ON_ROOM_START: i32 = 3;
-pub const MAX_ITEMS_ON_ROOM_START: i32 = 25;
+pub const MAX_ITEMS_ON_ROOM_START: i32 = 2;
 pub const MAX_SPAWN_TENTANTIVES: i32 = 10;
 
 /// Player constants
 pub const VIEW_RADIUS: i32 = 4;
-pub const MAX_STAMINA_HEAL_TICK_COUNTER:i32 = 4;
-pub const MAX_HUNGER_TICK_COUNTER:i32 = 101;
+pub const MAX_STAMINA_HEAL_TICK_COUNTER: i32 = 4;
+pub const MAX_HUNGER_TICK_COUNTER: i32 = 101;
