@@ -97,8 +97,6 @@ impl HungerCheck {
                         }
                     }
                 }
-                println!(" hunger.tick_counter {}", hunger.tick_counter);
-                println!(" hunger.current_status {:?}", hunger.current_status);
             }
         }
     }

@@ -56,7 +56,9 @@ impl GameMap {
             for y in y_pos - 1..=y_pos + 1 {
                 //Manhattan Distance
                 if !use_manhattan_distance || (x == x_pos || y == y_pos) {
-                    if !self.blocked_tiles[Self::get_index_from_xy(x, y)] {
+                    let index = Self::get_index_from_xy(x, y);
+                    // Safety check is needed for map borders
+                    if self.blocked_tiles.len() > index && !self.blocked_tiles[index] {
                         adjacent_passable_tiles.push((x, y));
                     }
                 }

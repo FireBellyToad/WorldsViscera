@@ -33,9 +33,9 @@ impl GameMapBuilder for ArenaMapBuilder {
 
         for _m in 0..monster_number {
             for _t in 0..MAX_SPAWN_TENTANTIVES {
-                let x = (Roll::dice(1, MAP_WIDTH as i32 - 1) as f32) as usize;
-                let y = (Roll::dice(1, MAP_HEIGHT as i32 - 1) as f32) as usize;
-                let index = (y * MAP_WIDTH as usize) + x;
+                let x = Roll::dice(1, MAP_WIDTH as i32 - 1) as f32;
+                let y = Roll::dice(1, MAP_HEIGHT as i32 - 1) as f32;
+                let index = GameMap::get_index_from_xy_f32(x, y);
 
                 // avoid duplicate spawnpoints
                 if map.monster_spawn_points.insert(index) {
@@ -46,9 +46,9 @@ impl GameMapBuilder for ArenaMapBuilder {
 
         for _i in 0..items_number {
             for _t in 0..MAX_SPAWN_TENTANTIVES {
-                let x = (Roll::dice(1, MAP_WIDTH as i32 - 1) as f32) as usize;
-                let y = (Roll::dice(1, MAP_HEIGHT as i32 - 1) as f32) as usize;
-                let index = (y * MAP_WIDTH as usize) + x;
+                let x = Roll::dice(1, MAP_WIDTH as i32 - 1) as f32;
+                let y = Roll::dice(1, MAP_HEIGHT as i32 - 1) as f32;
+                let index = GameMap::get_index_from_xy_f32(x, y);
 
                 // avoid duplicate spawnpoints
                 if map.item_spawn_points.insert(index) {

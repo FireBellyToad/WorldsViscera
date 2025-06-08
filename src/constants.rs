@@ -46,6 +46,10 @@ pub const MAX_ITEMS_ON_ROOM_START: i32 = 2;
 pub const MAX_SPAWN_TENTANTIVES: i32 = 10;
 
 /// Player constants
-pub const VIEW_RADIUS: i32 = 4;
+pub const VIEW_RADIUS: i32 = 15;
 pub const MAX_STAMINA_HEAL_TICK_COUNTER: i32 = 4;
 pub const MAX_HUNGER_TICK_COUNTER: i32 = 101;
+
+/// Drunken Walk related constants
+pub const DRUNKEN_WALK_MAX_FLOOR_TILES: i32 = 150;
+pub const DRUNKEN_WALK_MAX_ITERATIONS: i32 = 4;
