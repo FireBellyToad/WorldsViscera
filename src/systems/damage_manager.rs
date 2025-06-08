@@ -8,7 +8,7 @@ use crate::{
         common::{GameLog, Named, Position},
         health::CanAutomaticallyHeal,
         player::Player,
-    }, constants::MAX_STAMINA_HEAL_TICK_COUNTER, maps::map::GameMap, utils::roll::Roll
+    }, constants::MAX_STAMINA_HEAL_TICK_COUNTER, maps::game_map::GameMap, utils::roll::Roll
 };
 
 pub struct DamageManager {}

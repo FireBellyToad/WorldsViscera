@@ -7,7 +7,7 @@ use crate::components::items::{Edible, Invokable, Item};
 use crate::components::monster::Monster;
 use crate::components::player::Player;
 use crate::constants::*;
-use crate::maps::map::GameMap;
+use crate::maps::game_map::GameMap;
 use crate::systems::hunger_check::HungerStatus;
 use crate::utils::assets::TextureName;
 use crate::utils::roll::Roll;

@@ -1,6 +1,6 @@
 use hecs::World;
 
-use crate::{components::common::*, maps::map::GameMap};
+use crate::{components::common::*, maps::game_map::GameMap};
 
 pub struct MapIndexing {}
 

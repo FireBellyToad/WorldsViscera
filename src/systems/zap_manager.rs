@@ -6,7 +6,7 @@ use crate::{
         common::{GameLog, Named},
         items::WantsToInvoke,
     },
-        maps::map::GameMap,
+        maps::game_map::GameMap,
     utils::roll::Roll,
 };
 

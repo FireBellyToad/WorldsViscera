@@ -16,7 +16,7 @@ use systems::{
 };
 
 use crate::{
-    maps::map::GameMap,
+    maps::game_map::GameMap,
     inventory::InventoryAction,
     systems::{automatic_healing::AutomaticHealing, hunger_check::HungerCheck, zap_manager::ZapManager},
     utils::assets::Load,

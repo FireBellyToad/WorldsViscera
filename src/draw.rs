@@ -19,7 +19,7 @@ use crate::{
     constants::*,
     engine::state::{EngineState, RunState},
     inventory::{Inventory, InventoryAction},
-    maps::map::GameMap,
+    maps::game_map::GameMap,
     systems::hunger_check::HungerStatus,
     utils::assets::TextureName,
 };

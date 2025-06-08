@@ -2,7 +2,7 @@ use hecs::{Entity, World};
 
 use crate::{
     components::{combat::WantsToMelee, common::*, monster::Monster, player::Player},
-    maps::map::GameMap,
+    maps::game_map::GameMap,
     utils::pathfinding::Pathfinding,
 };
 

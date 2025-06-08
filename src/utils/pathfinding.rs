@@ -1,6 +1,6 @@
 use pathfinding::prelude::dijkstra;
 
-use crate::maps::map::GameMap;
+use crate::maps::game_map::GameMap;
 
 pub struct Pathfinding {}
 

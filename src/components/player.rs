@@ -10,7 +10,7 @@ use crate::{
     components::{combat::WantsToZap, health::CanAutomaticallyHeal},
     constants::*,
     engine::state::RunState,
-    maps::map::GameMap,
+    maps::game_map::GameMap,
 };
 
 use super::{

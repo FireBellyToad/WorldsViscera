@@ -4,7 +4,7 @@ use hecs::World;
 use crate::{
     components::{common::*, player::Player},
     constants::{MAP_HEIGHT, MAP_WIDTH},
-    maps::map::GameMap,
+    maps::game_map::GameMap,
 };
 
 use adam_fov_rs::GridPoint;
