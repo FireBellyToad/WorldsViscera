@@ -43,6 +43,7 @@ impl MonsterAI {
                         player_position.x,
                         player_position.y,
                         map,
+                        true,
                     );
 
                     //If can actually reach the player

@@ -21,9 +21,9 @@ impl Spawn {
         // Roll appropriate stats
         let rolled_toughness = Roll::stat();
         let rolled_dexterity = Roll::stat();
-        // TODO Player with Soldier background must have 1+2d3 starting stamina
-        let rolled_stamina = Roll::d6() + 1;
-        
+        // TODO Player with Soldier background must have 2+2d3 starting stamina
+        let rolled_stamina = Roll::d6() + 2;
+
         let (spawn_x, spawn_y) = GameMap::get_xy_from_index(map.player_spawn_point);
 
         let player_entity = (
@@ -44,7 +44,7 @@ impl Spawn {
             },
             Viewshed {
                 visible_tiles: Vec::new(),
-                range: VIEW_RADIUS,
+                range: BASE_VIEW_RADIUS,
                 must_recalculate: true,
             },
             Named {
@@ -160,7 +160,7 @@ impl Spawn {
             },
             Viewshed {
                 visible_tiles: Vec::new(),
-                range: VIEW_RADIUS,
+                range: BASE_VIEW_RADIUS,
                 must_recalculate: true,
             },
             Named { name: name },

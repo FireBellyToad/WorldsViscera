@@ -64,14 +64,14 @@ impl Draw {
         // ------- Background Rectangle -----------
         draw_rectangle(
             UI_BORDER_F32,
-            (MAP_HEIGHT * TILE_SIZE) as f32,
+            (MAP_HEIGHT * TILE_SIZE) as f32 + 2.0 * UI_BORDER as f32,
             HUD_WIDTH as f32,
             HUD_HEIGHT as f32,
             WHITE,
         );
         draw_rectangle(
             (HUD_BORDER + UI_BORDER) as f32,
-            (HUD_BORDER + MAP_HEIGHT * TILE_SIZE) as f32,
+            (HUD_BORDER + MAP_HEIGHT * TILE_SIZE) as f32 + 2.0 * UI_BORDER as f32,
             (HUD_WIDTH - UI_BORDER) as f32,
             (HUD_HEIGHT - UI_BORDER) as f32,
             BLACK,
@@ -80,7 +80,7 @@ impl Draw {
         // ------- Stat Text header -----------
         draw_rectangle(
             (HEADER_LEFT_SPAN + HUD_BORDER) as f32,
-            (MAP_HEIGHT * TILE_SIZE - UI_BORDER) as f32,
+            (MAP_HEIGHT * TILE_SIZE) as f32 + UI_BORDER as f32,
             HEADER_WIDTH as f32,
             HEADER_HEIGHT as f32,
             BLACK,
@@ -161,7 +161,7 @@ impl Draw {
                 (HUD_BORDER + (UI_BORDER * 2)) as f32,
                 (HUD_BORDER
                     + 32
-                    + (UI_BORDER * 2)
+                    + (UI_BORDER * 4)
                     + (MAP_HEIGHT * TILE_SIZE)
                     + ((MAX_MESSAGES_IN_LOG - index) as i32 * 32)) as f32,
                 FONT_SIZE,
@@ -179,7 +179,7 @@ impl Draw {
         draw_text(
             text,
             (HUD_BORDER + HEADER_LEFT_SPAN + UI_BORDER + left_pad) as f32,
-            (HUD_BORDER + UI_BORDER + MAP_HEIGHT * TILE_SIZE) as f32,
+            (HUD_BORDER + UI_BORDER * 3 + MAP_HEIGHT * TILE_SIZE) as f32,
             FONT_SIZE,
             text_color,
         );
@@ -197,7 +197,7 @@ impl Draw {
         draw_text(
             format!("Hunger:{:?}", hunger_status),
             (HUD_BORDER + HEADER_LEFT_SPAN + UI_BORDER + 450) as f32,
-            (HUD_BORDER + UI_BORDER + MAP_HEIGHT * TILE_SIZE) as f32,
+            (HUD_BORDER + UI_BORDER * 3 + MAP_HEIGHT * TILE_SIZE) as f32,
             FONT_SIZE,
             text_color,
         );

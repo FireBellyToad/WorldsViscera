@@ -15,6 +15,7 @@ impl Pathfinding {
         goal_x: i32,
         goal_y: i32,
         map: &GameMap,
+        use_manhattan_distance: bool,
     ) -> Option<(Vec<(i32, i32)>, u32)> {
         //Calling dijkstra and get result
         dijkstra(
@@ -24,7 +25,7 @@ impl Pathfinding {
             // .map(|p| (p, 1)) associate a pathfinding cost of 1 for each square
             // new not-passable tiles must be implemented inside "map.get_adjacent_passable_tiles(x, y)"
             |&(x, y)| {
-                map.get_adjacent_passable_tiles(x, y, true)
+                map.get_adjacent_passable_tiles(x, y, use_manhattan_distance)
                     .into_iter()
                     .map(|passable_tile| (passable_tile, 1))
             },
