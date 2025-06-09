@@ -3,11 +3,11 @@ use hecs::{Entity, World};
 use crate::{
     components::{
         combat::{CombatStats, InflictsDamage, SufferingDamage, WantsToZap},
-        common::{GameLog, Named},
+        common::{GameLog, Named, Position},
         items::WantsToInvoke,
     },
-        maps::game_map::GameMap,
-    utils::roll::Roll,
+    maps::game_map::GameMap,
+    utils::{particle_animation::ParticleAnimation, roll::Roll},
 };
 
 pub struct ZapManager {}
@@ -16,11 +16,12 @@ impl ZapManager {
     pub fn run(ecs_world: &mut World) {
         let mut wants_to_zap_list: Vec<Entity> = Vec::new();
         let mut invokable_list: Vec<Entity> = Vec::new();
+        let mut particle_animations: Vec<ParticleAnimation> = Vec::new();
 
         // Scope for keeping borrow checker quiet
         {
             // List of entities that want to collect items
-            let mut zappers = ecs_world.query::<(&WantsToZap, &WantsToInvoke)>();
+            let mut zappers = ecs_world.query::<(&WantsToZap, &WantsToInvoke, &Position)>();
 
             //Log all the pick ups
             let mut game_log_query = ecs_world.query::<&mut GameLog>();
@@ -30,11 +31,25 @@ impl ZapManager {
                 .expect("Game log is not in hecs::World");
 
             let mut map_query = ecs_world.query::<&GameMap>();
-            let (_e, map) = map_query.iter().last().expect("GameMap is not in hecs::World");
+            let (_e, map) = map_query
+                .iter()
+                .last()
+                .expect("GameMap is not in hecs::World");
 
-            for (zapper, (wants_zap, wants_invoke)) in &mut zappers {
+            for (zapper, (wants_zap, wants_invoke, zapper_position)) in &mut zappers {
                 let index = GameMap::get_index_from_xy(wants_zap.target.0, wants_zap.target.1);
                 let target_list = &map.tile_content[index];
+
+                // Do not draw if zapping himself
+                if zapper_position.x != wants_zap.target.0
+                    || zapper_position.y != wants_zap.target.1
+                {
+                    // TODO why here we do not use the line effect in gameplay?
+                    particle_animations.push(ParticleAnimation::new_line(
+                        (zapper_position.x, zapper_position.y),
+                        (wants_zap.target.0, wants_zap.target.1),
+                    ));
+                }
 
                 for &target in target_list {
                     let target_stats = ecs_world.get::<&CombatStats>(target).unwrap();
@@ -82,6 +97,10 @@ impl ZapManager {
         for zapper in wants_to_zap_list {
             let _ = ecs_world.remove_one::<WantsToInvoke>(zapper);
             let _ = ecs_world.remove_one::<WantsToZap>(zapper);
+        }
+
+        for particle in particle_animations {
+            let _ = ecs_world.spawn((true, particle));
         }
 
         // Remove invokable item: is consumed!

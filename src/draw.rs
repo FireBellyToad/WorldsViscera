@@ -22,7 +22,7 @@ use crate::{
     inventory::{Inventory, InventoryAction},
     maps::game_map::GameMap,
     systems::hunger_check::HungerStatus,
-    utils::assets::TextureName,
+    utils::{assets::TextureName, particle_animation::ParticleAnimation},
 };
 
 pub struct Draw {}
@@ -51,6 +51,12 @@ impl Draw {
                     }
                     RunState::MouseTargeting => {
                         Draw::targeting(&game_state.ecs_world);
+                    }
+                    RunState::DrawParticles => {
+                        let mut animations = game_state.ecs_world.query::<&mut ParticleAnimation>();
+                        for a in &mut animations {
+                            Draw::particles(a.1);
+                        }
                     }
                     _ => {}
                 }
@@ -355,5 +361,23 @@ impl Draw {
             4.0,
             Color::from_rgba(255, 10, 10, 32),
         );
+    }
+
+    /// Draw particles
+    pub fn particles(animation: &mut ParticleAnimation) {
+
+        if animation.current_frame < animation.frames.len() {
+            let frame_to_render = &animation.frames[animation.current_frame];
+
+            for (x, y) in frame_to_render {
+                // TODO use assets
+                draw_circle(
+                    (UI_BORDER + (x * TILE_SIZE) + TILE_SIZE / 2) as f32,
+                    (UI_BORDER + (y * TILE_SIZE) + TILE_SIZE / 2) as f32,
+                    5.0,
+                    YELLOW,
+                );
+            }
+        }
     }
 }
