@@ -5,10 +5,15 @@ use hecs::{Entity, World};
 use crate::{
     components::{
         combat::{CombatStats, SufferingDamage},
-        common::{GameLog, Named, Position},
+        common::{GameLog, Named, Position, ProduceCorpse},
         health::CanAutomaticallyHeal,
+        items::Edible,
         player::Player,
-    }, constants::MAX_STAMINA_HEAL_TICK_COUNTER, maps::game_map::GameMap, utils::roll::Roll
+    },
+    constants::MAX_STAMINA_HEAL_TICK_COUNTER,
+    maps::game_map::GameMap,
+    spawner::Spawn,
+    utils::roll::Roll,
 };
 
 pub struct DamageManager {}
@@ -20,7 +25,10 @@ impl DamageManager {
             ecs_world.query::<(&mut SufferingDamage, &mut CombatStats, &Position)>();
 
         let mut map_query = ecs_world.query::<&mut GameMap>();
-        let (_e, map) = map_query.iter().last().expect("GameMap is not in hecs::World");
+        let (_e, map) = map_query
+            .iter()
+            .last()
+            .expect("GameMap is not in hecs::World");
 
         for (damaged_entity, (damageable, stats, position)) in &mut damageables {
             if damageable.damage_received > 0 {
@@ -48,7 +56,7 @@ impl DamageManager {
 
     /// Check which entities are dead and removes them. Returns true if Player is dead
     pub fn remove_dead(ecs_world: &mut World) -> bool {
-        let mut dead_entities: Vec<Entity> = Vec::new();
+        let mut dead_entities: Vec<(Entity, String, i32, (i32, i32))> = Vec::new();
         let player_entity_id = Player::get_player_id(ecs_world);
 
         // Scope for keeping borrow checker quiet
@@ -59,8 +67,9 @@ impl DamageManager {
                 .last()
                 .expect("Game log is not in hecs::World");
 
-            let mut damageables = ecs_world.query::<(&CombatStats, &Named, &mut SufferingDamage)>();
-            for (entity, (stats, named, damageable)) in &mut damageables {
+            let mut damageables =
+                ecs_world.query::<(&CombatStats, &Named, &mut SufferingDamage, &Position)>();
+            for (entity, (stats, named, damageable, position)) in &mut damageables {
                 // if has been damaged and Stamina is 0, do a thougness saving throw or die.
                 // On 0 or less toughness, die anyway
                 if stats.current_stamina == 0 && damageable.damage_received > 0 {
@@ -71,7 +80,19 @@ impl DamageManager {
                         named.name, saving_throw_roll, stats.current_toughness, stats.max_toughness
                     ));
                     if stats.current_toughness < 1 || saving_throw_roll > stats.current_toughness {
-                        dead_entities.push(entity);
+                        //Prepare data for potential corpse
+                        let mut corpse_probability = 0;
+                        let produce_corpse = ecs_world.get::<&ProduceCorpse>(entity);
+                        if produce_corpse.is_ok() {
+                            corpse_probability = produce_corpse.unwrap().probability;
+                        }
+
+                        dead_entities.push((
+                            entity,
+                            named.name.clone(),
+                            corpse_probability,
+                            (position.x, position.y),
+                        ));
                         game_log.entries.push(format!("{} dies!", named.name));
                     } else if stats.current_toughness > 0 {
                         game_log
@@ -85,10 +106,24 @@ impl DamageManager {
         }
 
         //Remove all dead entities, stop game if player is dead
-        for ent in dead_entities {
+        for (ent, name, corpse_probability, (x, y)) in dead_entities {
             if ent.id() == player_entity_id {
                 //Game over!
                 return true;
+            }
+
+            if Roll::d100() < corpse_probability {
+                // Create corpse
+                Spawn::corpse(
+                    ecs_world,
+                    x,
+                    y,
+                    name,
+                    Edible {
+                        nutrition_dice_number: 3,
+                        nutrition_dice_size: 12,
+                    },
+                );
             }
 
             ecs_world

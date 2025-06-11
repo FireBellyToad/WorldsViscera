@@ -70,7 +70,7 @@ impl HungerCheck {
                                     damage_starving_entity.unwrap().damage_received += 1;
                                     game_log
                                         .entries
-                                        .push(format!("You are wasted away by starvation!"));
+                                        .push(format!("Starvation wastes you away!"));
                                 }
                             }
                         }
@@ -78,10 +78,15 @@ impl HungerCheck {
                 } else if hunger.tick_counter > MAX_HUNGER_TICK_COUNTER {
                     // If eating something, keep delta and increase status
                     // Do not do a double step (FIXME think about it)
-                    hunger.tick_counter = min(MAX_HUNGER_TICK_COUNTER, hunger.tick_counter - MAX_HUNGER_TICK_COUNTER);
+                    hunger.tick_counter = min(
+                        MAX_HUNGER_TICK_COUNTER,
+                        hunger.tick_counter - MAX_HUNGER_TICK_COUNTER,
+                    );
                     match hunger.current_status {
                         HungerStatus::Satiated => {
-                            // TODO VOMIT!
+                            hunger.tick_counter = MAX_HUNGER_TICK_COUNTER - Roll::dice(3, 10);
+                            hunger.current_status = HungerStatus::Normal;
+                            game_log.entries.push(format!("You ate too much and vomit!"));
                         }
                         HungerStatus::Normal => {
                             hunger.current_status = HungerStatus::Satiated;

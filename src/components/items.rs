@@ -31,3 +31,8 @@ pub struct WantsToInvoke {
 
 pub struct Invokable {}
 
+pub struct Perishable {
+    pub rot_counter: i32,
+}
+
+pub struct Rotten {}

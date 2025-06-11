@@ -1,7 +1,7 @@
 use crate::components::combat::{CombatStats, InflictsDamage, SufferingDamage};
-use crate::components::common::{BlocksTile, Named, Position, Renderable, Viewshed};
+use crate::components::common::{BlocksTile, Named, Position, ProduceCorpse, Renderable, Viewshed};
 use crate::components::health::{CanAutomaticallyHeal, Hunger};
-use crate::components::items::{Edible, Invokable, Item};
+use crate::components::items::{Edible, Invokable, Item, Perishable};
 use crate::components::monster::Monster;
 use crate::components::player::Player;
 use crate::constants::*;
@@ -167,6 +167,9 @@ impl Spawn {
             BlocksTile {},
             combat_stats,
             SufferingDamage { damage_received: 0 },
+            ProduceCorpse{
+                probability: 50
+            },
         );
 
         ecs_world.spawn(monster_entity);
@@ -178,9 +181,37 @@ impl Spawn {
         // Dvergar is stronger, shuold be less common
         match dice_roll {
             1 => Self::wand(ecs_world, x, y),
-            _ => Self::meat(ecs_world, x, y),
+            _ => Self::wand(ecs_world, x, y),
         }
     }
+
+    pub fn corpse(ecs_world: &mut World, x: i32, y: i32, name: String, edible: Edible) {
+        let item_tile_index = 0;
+        let meat = (
+            Position { x, y },
+            Renderable {
+                texture_name: TextureName::Items,
+                texture_region: Rect {
+                    x: (item_tile_index * TILE_SIZE) as f32,
+                    y: 0.0,
+                    w: TILE_SIZE_F32,
+                    h: TILE_SIZE_F32,
+                },
+                z_index: 0,
+            },
+            Named {
+                name: String::from(format!("{} corpse",name)),
+            },
+            Item { item_tile_index },
+            edible,
+            Perishable{
+                rot_counter: 51,
+            }
+        );
+
+        ecs_world.spawn(meat);
+    }
+
 
     fn meat(ecs_world: &mut World, x: i32, y: i32) {
         let item_tile_index = 0;

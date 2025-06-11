@@ -9,10 +9,10 @@ pub struct Position {
 pub struct Renderable {
     pub texture_name: TextureName,
     pub texture_region: Rect,
-    pub z_index: i32
+    pub z_index: i32,
 }
 pub struct Viewshed {
-    pub visible_tiles: Vec<(i32,i32)>,
+    pub visible_tiles: Vec<(i32, i32)>,
     pub range: i32,
     pub must_recalculate: bool,
 }
@@ -20,6 +20,10 @@ pub struct Named {
     pub name: String,
 }
 pub struct BlocksTile {}
+
+pub struct ProduceCorpse {
+   pub probability: i32,
+}
 
 pub struct GameLog {
     pub entries: Vec<String>,
