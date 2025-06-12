@@ -19,7 +19,8 @@ use crate::{
     inventory::InventoryAction,
     maps::{GameMapBuilder, drunken_walk_map_builder::DrunkenWalkMapBuilder},
     systems::{
-        automatic_healing::AutomaticHealing, hunger_check::HungerCheck, zap_manager::ZapManager,
+        automatic_healing::AutomaticHealing, decay_manager::DecayManager,
+        hunger_check::HungerCheck, zap_manager::ZapManager,
     },
     utils::assets::Load,
 };
@@ -56,7 +57,7 @@ async fn main() {
     let mut game_engine = GameEngine::new();
     let mut game_state = EngineState {
         ecs_world: create_ecs_world(),
-        run_state: RunState::SystemsRunning,
+        run_state: RunState::RoundStart,
     };
 
     loop {
@@ -65,13 +66,13 @@ async fn main() {
             // Make the whole game turn based
 
             match game_state.run_state {
-                RunState::SystemsRunning => {
+                RunState::RoundStart => {
                     game_state.run_state =
                         do_time_free_game_logic(&mut game_state, RunState::WaitingPlayerInput);
                     do_timed_game_logic(&mut game_state);
                 }
                 RunState::WaitingPlayerInput => {
-                    game_state.run_state = Player::checks_keyboard_input(&mut game_state.ecs_world)
+                    game_state.run_state = Player::checks_keyboard_input(&mut game_state.ecs_world);
                 }
                 RunState::PlayerTurn => {
                     // Reset heal counter if the player did not wait
@@ -82,7 +83,7 @@ async fn main() {
                 RunState::MonsterTurn => {
                     MonsterAI::act(&mut game_state.ecs_world);
                     game_state.run_state =
-                        do_time_free_game_logic(&mut game_state, RunState::SystemsRunning);
+                        do_time_free_game_logic(&mut game_state, RunState::RoundStart);
                 }
                 RunState::GameOver => {
                     // Quit game on Q
@@ -90,9 +91,9 @@ async fn main() {
                         break;
                     } else if is_key_pressed(KeyCode::R) {
                         game_state.ecs_world.clear();
-                        game_state.run_state = RunState::SystemsRunning;
                         populate_world(&mut game_state.ecs_world);
                         clear_input_queue();
+                        game_state.run_state = RunState::RoundStart;
                     }
                 }
                 RunState::ShowEatInventory => {
@@ -131,7 +132,6 @@ fn create_ecs_world() -> World {
 fn populate_world(ecs_world: &mut World) {
     // Generate new seed, or else it will always generate the same things
     rand::srand(macroquad::miniquad::date::now() as _);
-
     //Add Game log to world
     ecs_world.spawn((
         true,
@@ -151,6 +151,7 @@ fn populate_world(ecs_world: &mut World) {
 
 fn do_timed_game_logic(game_state: &mut EngineState) {
     AutomaticHealing::run(&mut game_state.ecs_world);
+    DecayManager::run(&mut game_state.ecs_world);
     HungerCheck::run(&mut game_state.ecs_world);
 }
 

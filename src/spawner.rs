@@ -21,8 +21,8 @@ impl Spawn {
         // Roll appropriate stats
         let rolled_toughness = Roll::stat();
         let rolled_dexterity = Roll::stat();
-        // TODO Player with Soldier background must have 2+2d3 starting stamina
-        let rolled_stamina = Roll::d6() + 2;
+        // TODO Player with Soldier background must have 5+2d3 starting stamina
+        let rolled_stamina = Roll::d6() + 5;
 
         let (spawn_x, spawn_y) = GameMap::get_xy_from_index(map.player_spawn_point);
 
@@ -205,7 +205,7 @@ impl Spawn {
             Item { item_tile_index },
             edible,
             Perishable{
-                rot_counter: 51,
+                rot_counter: STARTING_ROT_COUNTER + Roll::d20(),
             }
         );
 

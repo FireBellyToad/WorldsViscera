@@ -9,3 +9,4 @@ pub mod melee_manager;
 pub mod zap_manager;
 pub mod automatic_healing;
 pub mod hunger_check;
+pub mod decay_manager;

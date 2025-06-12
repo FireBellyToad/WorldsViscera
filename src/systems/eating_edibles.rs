@@ -1,7 +1,16 @@
 use hecs::{Entity, World};
 
-use crate::{components::{common::{GameLog, Named}, health::Hunger, items::{Edible, WantsToEat}}, utils::roll::Roll}
-;
+use crate::{
+    components::{
+        common::{GameLog, Named},
+        health::Hunger,
+        items::{Edible, Rotten, WantsToEat},
+    },
+    constants::MAX_HUNGER_TICK_COUNTER,
+    maps::game_map::GameMap,
+    systems::hunger_check::HungerStatus,
+    utils::roll::Roll,
+};
 
 pub struct EatingEdibles {}
 
@@ -26,8 +35,7 @@ impl EatingEdibles {
                 eater_eaten_list.push((eater, wants_to_eat.item));
 
                 let edible_nutrition = ecs_world.get::<&Edible>(wants_to_eat.item).unwrap();
-                hunger.tick_counter += Roll::dice(edible_nutrition.nutrition_dice_number, edible_nutrition.nutrition_dice_size);
-                
+
                 // Show appropriate log messages
                 let named_eater = ecs_world.get::<&Named>(eater).unwrap();
                 let named_edible = ecs_world.get::<&Named>(wants_to_eat.item).unwrap();
@@ -36,9 +44,36 @@ impl EatingEdibles {
                     "{} eat the {}",
                     named_eater.name, named_edible.name
                 ));
+
+                // Is it rotten? Then vomit badly
+                // TODO vomit MORE BADLY
+                let is_rotten = ecs_world.get::<&Rotten>(wants_to_eat.item).is_ok();
+                if is_rotten {
+                    hunger.tick_counter -= Roll::dice(3, 10);
+                    match hunger.current_status {
+                        HungerStatus::Satiated => {
+                            hunger.current_status = HungerStatus::Normal;
+                        }
+                        HungerStatus::Normal => {
+                            hunger.current_status = HungerStatus::Hungry;
+                        }
+                        HungerStatus::Hungry => {
+                            hunger.current_status = HungerStatus::Starved;
+                        }
+                        HungerStatus::Starved => {}
+                    }
+                    game_log
+                        .entries
+                        .push(format!("You ate rotten food! You vomit!"));
+                } else {
+                    hunger.tick_counter += Roll::dice(
+                        edible_nutrition.nutrition_dice_number,
+                        edible_nutrition.nutrition_dice_size,
+                    );
+                }
             }
         }
-        
+
         for (eater, eaten) in eater_eaten_list {
             // Despawn item from World
             let _ = ecs_world.despawn(eaten);

@@ -47,7 +47,7 @@ impl GameMapBuilder for DrunkenWalkMapBuilder {
                 life_counter += 1;
                 current_position = (dest_x, dest_y);
             }
-            current_position = (Roll::dice(1, MAP_WIDTH - 1), Roll::dice(1, MAP_HEIGHT - 1));
+            current_position = (Roll::dice(1, MAP_WIDTH - 2), Roll::dice(1, MAP_HEIGHT - 2));
         }
 
         // Make sure whe have boundaries

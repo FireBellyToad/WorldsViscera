@@ -116,6 +116,12 @@ impl Player {
                     run_state = RunState::ShowEatInventory;
                 }
 
+                //DEBUG ONLY KILL
+                KeyCode::K => {
+                    run_state = RunState::GameOver;
+                }
+
+
                 //Drop item
                 KeyCode::D => {
                     clear_input_queue();

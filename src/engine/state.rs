@@ -1,8 +1,8 @@
 use hecs::World;
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Debug)]
 pub enum RunState {
-    SystemsRunning,
+    RoundStart,
     WaitingPlayerInput,
     PlayerTurn,
     MonsterTurn,

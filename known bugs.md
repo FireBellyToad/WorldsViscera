@@ -1,1 +1,2 @@
-- Sometimes the drunken walk level generation loops infinitely
+- Player can spawn on monster
+- Sometimes the map have unconnected rooms
