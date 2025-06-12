@@ -161,7 +161,7 @@ impl Inventory {
         draw_rectangle(
             (INVENTORY_X + INVENTORY_LEFT_SPAN) as f32,
             (INVENTORY_Y - UI_BORDER) as f32,
-            header_text.len() as f32 * 15.0,
+            header_text.len() as f32 * LETTER_SIZE,
             HEADER_HEIGHT as f32,
             BLACK,
         );

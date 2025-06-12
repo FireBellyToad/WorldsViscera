@@ -6,8 +6,6 @@ use crate::{
         health::Hunger,
         items::{Edible, Rotten, WantsToEat},
     },
-    constants::MAX_HUNGER_TICK_COUNTER,
-    maps::game_map::GameMap,
     systems::hunger_check::HungerStatus,
     utils::roll::Roll,
 };

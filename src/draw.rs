@@ -78,73 +78,8 @@ impl Draw {
         );
 
         // ------- Stat Text header -----------
-        draw_rectangle(
-            (HEADER_LEFT_SPAN + HUD_BORDER) as f32,
-            (MAP_HEIGHT * TILE_SIZE) as f32 + UI_BORDER as f32,
-            HEADER_WIDTH as f32,
-            HEADER_HEIGHT as f32,
-            BLACK,
-        );
 
-        // ------- Stat Text  -----------
-
-        let mut player_query = ecs_world.query::<(&Player, &CombatStats, &Hunger)>();
-        let (_e, (_p, player_stats, hunger)) = player_query
-            .iter()
-            .last()
-            .expect("Player is not in hecs::World");
-        let mut text_color = WHITE;
-
-        // Draw Stamina (STA)
-        if player_stats.current_stamina == 0 {
-            text_color = RED;
-        } else if player_stats.current_stamina <= player_stats.max_stamina / 2 {
-            text_color = YELLOW;
-        }
-
-        Self::draw_stat_text(
-            format!(
-                "STA: {}/{}",
-                player_stats.current_stamina, player_stats.max_stamina
-            ),
-            0,
-            text_color,
-        );
-
-        // Draw Toughness (TOU)
-        text_color = WHITE;
-
-        if player_stats.current_toughness < player_stats.max_toughness {
-            text_color = YELLOW;
-        }
-
-        Self::draw_stat_text(
-            format!(
-                "TOU {}/{}",
-                player_stats.current_toughness, player_stats.max_toughness
-            ),
-            140,
-            text_color,
-        );
-
-        // Draw Dexterity (DEX)
-        text_color = WHITE;
-
-        if player_stats.current_dexterity < player_stats.max_dexterity {
-            text_color = YELLOW;
-        }
-
-        Self::draw_stat_text(
-            format!(
-                "DEX {}/{}",
-                player_stats.current_dexterity, player_stats.max_dexterity
-            ),
-            300,
-            text_color,
-        );
-
-        // TODO improve
-        Self::draw_hunger_text(&hunger.current_status);
+        Draw::hud_header(ecs_world);
 
         // ------- Messages log  -----------
 
@@ -175,18 +110,86 @@ impl Draw {
         }
     }
 
-    fn draw_stat_text(text: String, left_pad: i32, text_color: Color) {
-        draw_text(
-            text,
-            (HUD_BORDER + HEADER_LEFT_SPAN + UI_BORDER + left_pad) as f32,
-            (HUD_BORDER + UI_BORDER * 3 + MAP_HEIGHT * TILE_SIZE) as f32,
-            FONT_SIZE,
+    fn hud_header(ecs_world: &World){
+        let mut player_query = ecs_world.query::<(&Player, &CombatStats, &Hunger)>();
+        let (_e, (_p, player_stats, hunger)) = player_query
+            .iter()
+            .last()
+            .expect("Player is not in hecs::World");
+
+        let sta_text = format!(
+            "STA: {}/{}",
+            player_stats.current_stamina, player_stats.max_stamina
+        );
+        let sta_text_len = sta_text.len();
+
+        let tou_text = format!(
+            "TOU {}/{}",
+            player_stats.current_toughness, player_stats.max_toughness
+        );
+        let tou_text_len = tou_text.len();
+
+        let dex_text = format!(
+            "DEX {}/{}",
+            player_stats.current_dexterity, player_stats.max_dexterity
+        );
+        let dex_text_len = dex_text.len();
+
+        let hunger_status = &hunger.current_status;
+        let hunger_text = format!("Hunger:{:?}", hunger_status);
+        let hunger_text_len = hunger_text.len();
+
+        draw_rectangle(
+            (HEADER_LEFT_SPAN + HUD_BORDER) as f32,
+            (MAP_HEIGHT * TILE_SIZE) as f32 + UI_BORDER as f32,
+            4.0 * LETTER_SIZE
+                - HUD_BORDER as f32 * 3.0
+                + (sta_text_len as f32 * LETTER_SIZE)
+                + (tou_text_len as f32 * LETTER_SIZE)
+                + (dex_text_len as f32 * LETTER_SIZE)
+                + (hunger_text_len as f32 * LETTER_SIZE),
+            HEADER_HEIGHT as f32,
+            BLACK,
+        );
+
+        let mut text_color = WHITE;
+
+        // Draw Stamina (STA)
+        if player_stats.current_stamina == 0 {
+            text_color = RED;
+        } else if player_stats.current_stamina <= player_stats.max_stamina / 2 {
+            text_color = YELLOW;
+        }
+
+        Self::draw_stat_text(sta_text, 0.0, text_color);
+
+        // Draw Toughness (TOU)
+        text_color = WHITE;
+
+        if player_stats.current_toughness < player_stats.max_toughness {
+            text_color = YELLOW;
+        }
+
+        Self::draw_stat_text(
+            tou_text,
+            LETTER_SIZE + (sta_text_len as f32 * LETTER_SIZE),
             text_color,
         );
-    }
 
-    fn draw_hunger_text(hunger_status: &HungerStatus) {
-        let text_color;
+        // Draw Dexterity (DEX)
+        text_color = WHITE;
+
+        if player_stats.current_dexterity < player_stats.max_dexterity {
+            text_color = YELLOW;
+        }
+
+        Self::draw_stat_text(
+            dex_text,
+            2.0 * LETTER_SIZE
+                + (sta_text_len as f32 * LETTER_SIZE)
+                + (tou_text_len as f32 * LETTER_SIZE),
+            text_color,
+        );
 
         match hunger_status {
             HungerStatus::Hungry => text_color = YELLOW,
@@ -194,9 +197,21 @@ impl Draw {
             _ => text_color = WHITE,
         }
 
+        // TODO improve
+        Self::draw_stat_text(
+            hunger_text,
+            3.0 * LETTER_SIZE
+                + (sta_text_len as f32 * LETTER_SIZE)
+                + (tou_text_len as f32 * LETTER_SIZE)
+                + (dex_text_len as f32 * LETTER_SIZE),
+            text_color,
+        );
+    }
+
+    fn draw_stat_text(text: String, left_pad: f32, text_color: Color) {
         draw_text(
-            format!("Hunger:{:?}", hunger_status),
-            (HUD_BORDER + HEADER_LEFT_SPAN + UI_BORDER + 450) as f32,
+            text,
+            (HUD_BORDER + HEADER_LEFT_SPAN + UI_BORDER) as f32 + left_pad,
             (HUD_BORDER + UI_BORDER * 3 + MAP_HEIGHT * TILE_SIZE) as f32,
             FONT_SIZE,
             text_color,
