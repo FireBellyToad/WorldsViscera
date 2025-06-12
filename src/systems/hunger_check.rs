@@ -91,15 +91,19 @@ impl HungerCheck {
                         HungerStatus::Satiated => {
                             if Roll::d20() <= stats.current_toughness {
                                 hunger.tick_counter = MAX_HUNGER_TICK_COUNTER;
-                                game_log
-                                    .entries
-                                    .push(format!("You ate too much and feel slightly nauseous"));
+                                if hungry_entity.id() == player_id {
+                                    game_log.entries.push(format!(
+                                        "You ate too much and feel slightly nauseous"
+                                    ));
+                                }
                             } else {
                                 hunger.tick_counter = MAX_HUNGER_TICK_COUNTER - Roll::dice(3, 10);
                                 hunger.current_status = HungerStatus::Normal;
-                                game_log
-                                    .entries
-                                    .push(format!("You ate too much and vomit!"));
+                                if hungry_entity.id() == player_id {
+                                    game_log
+                                        .entries
+                                        .push(format!("You ate too much and vomit!"));
+                                }
                             }
                         }
                         HungerStatus::Normal => {
