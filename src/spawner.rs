@@ -160,7 +160,7 @@ impl Spawn {
             },
             Viewshed {
                 visible_tiles: Vec::new(),
-                range: BASE_VIEW_RADIUS,
+                range: BASE_MONSTER_VIEW_RADIUS,
                 must_recalculate: true,
             },
             Named { name: name },
@@ -207,34 +207,6 @@ impl Spawn {
             Perishable{
                 rot_counter: STARTING_ROT_COUNTER + Roll::d20(),
             }
-        );
-
-        ecs_world.spawn(meat);
-    }
-
-
-    fn meat(ecs_world: &mut World, x: i32, y: i32) {
-        let item_tile_index = 0;
-        let meat = (
-            Position { x, y },
-            Renderable {
-                texture_name: TextureName::Items,
-                texture_region: Rect {
-                    x: (item_tile_index * TILE_SIZE) as f32,
-                    y: 0.0,
-                    w: TILE_SIZE_F32,
-                    h: TILE_SIZE_F32,
-                },
-                z_index: 0,
-            },
-            Named {
-                name: String::from("Fresh meat"),
-            },
-            Item { item_tile_index },
-            Edible {
-                nutrition_dice_number: 6,
-                nutrition_dice_size: 12,
-            },
         );
 
         ecs_world.spawn(meat);

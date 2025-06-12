@@ -9,7 +9,6 @@ pub const HUD_WIDTH: i32 = MAP_WIDTH * TILE_SIZE;
 pub const HUD_HEIGHT: i32 = 192 + UI_BORDER;
 pub const HUD_BORDER: i32 = 4;
 
-pub const HEADER_WIDTH: i32 = 675;
 pub const HEADER_HEIGHT: i32 = 24;
 pub const HEADER_LEFT_SPAN: i32 = 64;
 
@@ -42,7 +41,7 @@ pub const LETTER_SIZE: f32 = 15.0;
 pub const SECONDS_TO_WAIT: f32 = 0.1;
 
 /// Spawning related constants
-pub const MAX_MONSTERS_ON_ROOM_START: i32 = 30;
+pub const MAX_MONSTERS_ON_ROOM_START: i32 = 5;
 pub const MAX_ITEMS_ON_ROOM_START: i32 = 2;
 pub const MAX_SPAWN_TENTANTIVES: i32 = 10;
 
@@ -57,3 +56,6 @@ pub const DRUNKEN_WALK_MAX_ITERATIONS: i32 = 50;
 
 /// Item related constants
 pub const STARTING_ROT_COUNTER: i32 = 51;
+
+/// Monsters related constats
+pub const BASE_MONSTER_VIEW_RADIUS: i32 = 8;

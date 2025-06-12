@@ -1,2 +1,1 @@
-- Player can spawn on monster
 - Sometimes the map have unconnected rooms

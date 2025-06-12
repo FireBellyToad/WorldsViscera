@@ -3,7 +3,12 @@ use std::cmp::{max, min};
 use hecs::World;
 
 use crate::{
-    components::{combat::SufferingDamage, common::GameLog, health::Hunger, player::Player},
+    components::{
+        combat::{CombatStats, SufferingDamage},
+        common::GameLog,
+        health::Hunger,
+        player::Player,
+    },
     constants::MAX_HUNGER_TICK_COUNTER,
     utils::roll::Roll,
 };
@@ -25,7 +30,7 @@ impl HungerCheck {
         // Scope for keeping borrow checker quiet
         {
             // List of entities that has stats
-            let mut hungry_entities = ecs_world.query::<&mut Hunger>();
+            let mut hungry_entities = ecs_world.query::<(&mut Hunger, &CombatStats)>();
 
             let player_id = Player::get_player_id(ecs_world);
 
@@ -36,7 +41,7 @@ impl HungerCheck {
                 .last()
                 .expect("Game log is not in hecs::World");
 
-            for (hungry_entity, hunger) in &mut hungry_entities {
+            for (hungry_entity, (hunger, stats)) in &mut hungry_entities {
                 // When clock is depleted, decrease fed status
                 // TODO Calculate penalties
                 hunger.tick_counter = max(0, hunger.tick_counter - 1);
@@ -84,9 +89,18 @@ impl HungerCheck {
                     );
                     match hunger.current_status {
                         HungerStatus::Satiated => {
-                            hunger.tick_counter = MAX_HUNGER_TICK_COUNTER - Roll::dice(3, 10);
-                            hunger.current_status = HungerStatus::Normal;
-                            game_log.entries.push(format!("You ate too much and vomit!"));
+                            if Roll::d20() <= stats.current_toughness {
+                                hunger.tick_counter = MAX_HUNGER_TICK_COUNTER;
+                                game_log
+                                    .entries
+                                    .push(format!("You ate too much and feel slightly nauseous"));
+                            } else {
+                                hunger.tick_counter = MAX_HUNGER_TICK_COUNTER - Roll::dice(3, 10);
+                                hunger.current_status = HungerStatus::Normal;
+                                game_log
+                                    .entries
+                                    .push(format!("You ate too much and vomit!"));
+                            }
                         }
                         HungerStatus::Normal => {
                             hunger.current_status = HungerStatus::Satiated;

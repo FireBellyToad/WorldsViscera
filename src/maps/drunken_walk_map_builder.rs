@@ -65,8 +65,8 @@ impl GameMapBuilder for DrunkenWalkMapBuilder {
         map.player_spawn_point = map.tiles.len() / 2;
         // TODO stairs
         while map.tiles[map.player_spawn_point] == TileType::Wall {
-            try_x = Roll::dice(1, MAP_WIDTH - 1);
-            try_y = Roll::dice(1, MAP_HEIGHT - 1);
+            try_x = Roll::dice(1, MAP_WIDTH - 2);
+            try_y = Roll::dice(1, MAP_HEIGHT - 2);
             map.player_spawn_point = GameMap::get_index_from_xy(try_x, try_y);
         }
 
@@ -76,14 +76,16 @@ impl GameMapBuilder for DrunkenWalkMapBuilder {
 
         for _m in 0..monster_number {
             for _t in 0..MAX_SPAWN_TENTANTIVES {
-                let x = Roll::dice(1, MAP_WIDTH as i32 - 1) as f32;
-                let y = Roll::dice(1, MAP_HEIGHT as i32 - 1) as f32;
+                let x = Roll::dice(1, MAP_WIDTH as i32 - 2) as f32;
+                let y = Roll::dice(1, MAP_HEIGHT as i32 - 2) as f32;
                 let index = GameMap::get_index_from_xy_f32(x, y);
 
-                // avoid duplicate spawnpoints
-                if map.tiles[GameMap::get_index_from_xy_f32(x, y)] != TileType::Wall {
-                    if map.monster_spawn_points.insert(index) {
-                        break;
+                // avoid walls, player and duplicate spawnpoints
+                if index != map.player_spawn_point {
+                    if map.tiles[GameMap::get_index_from_xy_f32(x, y)] != TileType::Wall {
+                        if map.monster_spawn_points.insert(index) {
+                            break;
+                        }
                     }
                 }
             }
@@ -91,14 +93,16 @@ impl GameMapBuilder for DrunkenWalkMapBuilder {
 
         for _i in 0..items_number {
             for _t in 0..MAX_SPAWN_TENTANTIVES {
-                let x = Roll::dice(1, MAP_WIDTH as i32 - 1) as f32;
-                let y = Roll::dice(1, MAP_HEIGHT as i32 - 1) as f32;
+                let x = Roll::dice(1, MAP_WIDTH as i32 - 2) as f32;
+                let y = Roll::dice(1, MAP_HEIGHT as i32 - 2) as f32;
                 let index = GameMap::get_index_from_xy_f32(x, y);
 
-                // avoid duplicate spawnpoints
-                if map.tiles[GameMap::get_index_from_xy_f32(x, y)] != TileType::Wall {
-                    if map.item_spawn_points.insert(index) {
-                        break;
+                // avoid walls, player and duplicate spawnpoints
+                if index != map.player_spawn_point {
+                    if map.tiles[GameMap::get_index_from_xy_f32(x, y)] != TileType::Wall {
+                        if map.item_spawn_points.insert(index) {
+                            break;
+                        }
                     }
                 }
             }
