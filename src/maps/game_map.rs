@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
 use hecs::Entity;
 use macroquad::math::Rect;
@@ -10,6 +10,10 @@ pub enum TileType {
     Floor,
     Wall,
 }
+pub enum ParticleType {
+    Blood,
+    Vomit,
+}
 
 /// GameMap Struct
 pub struct GameMap {
@@ -19,7 +23,7 @@ pub struct GameMap {
     pub visible_tiles: Vec<bool>,
     pub blocked_tiles: Vec<bool>,
     pub tile_content: Vec<Vec<Entity>>,
-    pub bloodied_tiles: HashSet<usize>,
+    pub particle_tiles: HashMap<usize,ParticleType>,
     pub player_spawn_point: usize,
     pub monster_spawn_points: HashSet<usize>,
     pub item_spawn_points: HashSet<usize>,
@@ -37,7 +41,7 @@ impl GameMap {
             blocked_tiles: vec![false; (MAP_WIDTH * MAP_HEIGHT) as usize],
             tile_content: vec![Vec::new(); (MAP_WIDTH * MAP_HEIGHT) as usize],
             player_spawn_point: 0,
-            bloodied_tiles: HashSet::new(),
+            particle_tiles: HashMap::new(),
             monster_spawn_points: HashSet::new(),
             item_spawn_points: HashSet::new(),
         }

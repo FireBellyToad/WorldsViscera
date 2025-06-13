@@ -2,10 +2,12 @@ use hecs::{Entity, World};
 
 use crate::{
     components::{
-        common::{GameLog, Named},
+        common::{GameLog, Named, Position},
         health::Hunger,
         items::{Edible, Rotten, WantsToEat},
+        player::Player,
     },
+    maps::game_map::{GameMap, ParticleType},
     systems::hunger_check::HungerStatus,
     utils::roll::Roll,
 };
@@ -19,7 +21,15 @@ impl EatingEdibles {
         // Scope for keeping borrow checker quiet
         {
             // List of entities that want to collect items
-            let mut eaters = ecs_world.query::<(&WantsToEat, &mut Hunger)>();
+            let mut eaters = ecs_world.query::<(&WantsToEat, &mut Hunger, &Position)>();
+
+            let player_id = Player::get_player_id(ecs_world);
+
+            let mut map_query = ecs_world.query::<&mut GameMap>();
+            let (_e, map) = map_query
+                .iter()
+                .last()
+                .expect("GameMap is not in hecs::World");
 
             //Log all the pick ups
             let mut game_log_query = ecs_world.query::<&mut GameLog>();
@@ -28,7 +38,7 @@ impl EatingEdibles {
                 .last()
                 .expect("Game log is not in hecs::World");
 
-            for (eater, (wants_to_eat, hunger)) in &mut eaters {
+            for (eater, (wants_to_eat, hunger, position)) in &mut eaters {
                 // Pick up and keep track of the owner
                 eater_eaten_list.push((eater, wants_to_eat.item));
 
@@ -60,9 +70,17 @@ impl EatingEdibles {
                         }
                         HungerStatus::Starved => {}
                     }
-                    game_log
-                        .entries
-                        .push(format!("You ate rotten food! You vomit!"));
+
+                    if eater.id() == player_id {
+                        game_log
+                            .entries
+                            .push(format!("You ate rotten food! You vomit!"));
+                    }
+                    
+                    map.particle_tiles.insert(
+                        GameMap::get_index_from_xy(position.x, position.y),
+                        ParticleType::Vomit,
+                    );
                 } else {
                     hunger.tick_counter += Roll::dice(
                         edible_nutrition.nutrition_dice_number,

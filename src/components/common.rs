@@ -21,9 +21,7 @@ pub struct Named {
 }
 pub struct BlocksTile {}
 
-pub struct ProduceCorpse {
-   pub probability: i32,
-}
+pub struct ProduceCorpse {}
 
 pub struct GameLog {
     pub entries: Vec<String>,

@@ -167,9 +167,7 @@ impl Spawn {
             BlocksTile {},
             combat_stats,
             SufferingDamage { damage_received: 0 },
-            ProduceCorpse{
-                probability: 50
-            },
+            ProduceCorpse {},
         );
 
         ecs_world.spawn(monster_entity);
@@ -200,13 +198,13 @@ impl Spawn {
                 z_index: 0,
             },
             Named {
-                name: String::from(format!("{} corpse",name)),
+                name: String::from(format!("{} corpse", name)),
             },
             Item { item_tile_index },
             edible,
-            Perishable{
+            Perishable {
                 rot_counter: STARTING_ROT_COUNTER + Roll::d20(),
-            }
+            },
         );
 
         ecs_world.spawn(meat);

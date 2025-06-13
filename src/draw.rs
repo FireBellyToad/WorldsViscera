@@ -2,12 +2,12 @@ use std::collections::HashMap;
 
 use hecs::World;
 use macroquad::{
-    color::{BLACK, Color, DARKGRAY, RED, WHITE, YELLOW},
+    color::{Color, BLACK, DARKGRAY, GREEN, ORANGE, RED, WHITE, YELLOW},
     input::mouse_position,
     math::Rect,
     shapes::{draw_circle, draw_rectangle, draw_rectangle_lines},
     text::draw_text,
-    texture::{DrawTextureParams, Texture2D, draw_texture_ex},
+    texture::{draw_texture_ex, DrawTextureParams, Texture2D},
 };
 
 use crate::{
@@ -20,7 +20,7 @@ use crate::{
     constants::*,
     engine::state::{EngineState, RunState},
     inventory::{Inventory, InventoryAction},
-    maps::game_map::GameMap,
+    maps::game_map::{GameMap, ParticleType},
     systems::hunger_check::HungerStatus,
     utils::assets::TextureName,
 };
@@ -311,8 +311,8 @@ impl Draw {
 
                     if game_map.visible_tiles[tile_to_draw] {
                         alpha = WHITE;
-                        if game_map.bloodied_tiles.contains(&tile_to_draw) {
-                            Draw::draw_blood_blots(x, y);
+                        if game_map.particle_tiles.contains_key(&tile_to_draw) {
+                            Draw::draw_particles(x, y,game_map.particle_tiles.get(&tile_to_draw).unwrap());
                         }
                     }
 
@@ -338,37 +338,44 @@ impl Draw {
     }
 
     /// Utility for drawing blood blots
-    pub fn draw_blood_blots(x: i32, y: i32) {
+    pub fn draw_particles(x: i32, y: i32, particle_type: &ParticleType) {
+        let color;
+
+        match particle_type {
+            ParticleType::Blood => color =Color::from_rgba(255, 10, 10, 32),
+            ParticleType::Vomit => color = ORANGE,
+        } 
+
         draw_circle(
             (UI_BORDER + (x * TILE_SIZE) + TILE_SIZE / 2) as f32 - 6.0,
             (UI_BORDER + (y * TILE_SIZE) + TILE_SIZE / 2) as f32 - 7.0,
             2.0,
-            Color::from_rgba(255, 10, 10, 32),
+            color,
         );
         draw_circle(
             (UI_BORDER + (x * TILE_SIZE) + TILE_SIZE / 2) as f32 + 4.0,
             (UI_BORDER + (y * TILE_SIZE) + TILE_SIZE / 2) as f32 - 4.0,
             2.0,
-            Color::from_rgba(255, 10, 10, 32),
+            color,
         );
         draw_circle(
             (UI_BORDER + (x * TILE_SIZE) + TILE_SIZE / 2) as f32 - 5.0,
             (UI_BORDER + (y * TILE_SIZE) + TILE_SIZE / 2) as f32 + 4.0,
             1.0,
-            Color::from_rgba(255, 10, 10, 32),
+            color,
         );
         draw_circle(
             (UI_BORDER + (x * TILE_SIZE) + TILE_SIZE / 2) as f32 + 3.0,
             (UI_BORDER + (y * TILE_SIZE) + TILE_SIZE / 2) as f32 + 5.0,
             2.0,
-            Color::from_rgba(255, 10, 10, 32),
+            color,
         );
 
         draw_circle(
             (UI_BORDER + (x * TILE_SIZE) + TILE_SIZE / 2) as f32,
             (UI_BORDER + (y * TILE_SIZE) + TILE_SIZE / 2) as f32,
             4.0,
-            Color::from_rgba(255, 10, 10, 32),
+            color,
         );
     }
 }

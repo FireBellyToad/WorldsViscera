@@ -5,11 +5,12 @@ use hecs::World;
 use crate::{
     components::{
         combat::{CombatStats, SufferingDamage},
-        common::GameLog,
+        common::{GameLog, Position},
         health::Hunger,
         player::Player,
     },
     constants::MAX_HUNGER_TICK_COUNTER,
+    maps::game_map::{GameMap, ParticleType},
     utils::roll::Roll,
 };
 
@@ -30,9 +31,15 @@ impl HungerCheck {
         // Scope for keeping borrow checker quiet
         {
             // List of entities that has stats
-            let mut hungry_entities = ecs_world.query::<(&mut Hunger, &CombatStats)>();
+            let mut hungry_entities = ecs_world.query::<(&mut Hunger, &CombatStats, &Position)>();
 
             let player_id = Player::get_player_id(ecs_world);
+
+            let mut map_query = ecs_world.query::<&mut GameMap>();
+            let (_e, map) = map_query
+                .iter()
+                .last()
+                .expect("GameMap is not in hecs::World");
 
             //Log all the hunger checks
             let mut game_log_query = ecs_world.query::<&mut GameLog>();
@@ -41,7 +48,7 @@ impl HungerCheck {
                 .last()
                 .expect("Game log is not in hecs::World");
 
-            for (hungry_entity, (hunger, stats)) in &mut hungry_entities {
+            for (hungry_entity, (hunger, stats, position)) in &mut hungry_entities {
                 // When clock is depleted, decrease fed status
                 // TODO Calculate penalties
                 hunger.tick_counter = max(0, hunger.tick_counter - 1);
@@ -99,6 +106,7 @@ impl HungerCheck {
                             } else {
                                 hunger.tick_counter = MAX_HUNGER_TICK_COUNTER - Roll::dice(3, 10);
                                 hunger.current_status = HungerStatus::Normal;
+                                map.particle_tiles.insert(GameMap::get_index_from_xy(position.x, position.y), ParticleType::Vomit);
                                 if hungry_entity.id() == player_id {
                                     game_log
                                         .entries
