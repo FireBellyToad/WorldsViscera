@@ -303,7 +303,7 @@ impl Draw {
             for y in 0..MAP_HEIGHT {
                 let tile_to_draw = GameMap::get_index_from_xy(x, y);
                 let tile_index =
-                    GameMap::get_tile_sprite_sheet_index(&game_map.tiles[tile_to_draw])
+                    GameMap::get_tile_sprite_sheet_index(&game_map, tile_to_draw,x,y)
                         * TILE_SIZE_F32;
 
                 if game_map.revealed_tiles[tile_to_draw] {
