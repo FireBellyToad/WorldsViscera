@@ -5,19 +5,19 @@ use macroquad::prelude::*;
 use crate::{
     constants::*,
     maps::{
-        GameMapBuilder,
-        game_map::{GameMap, TileType},
+        ZoneBuilder,
+        zone::{Zone, TileType},
     },
     utils::roll::Roll,
 };
 
-/// Builds a simple dungeon-like map made of rooms and corridors
+/// Builds a simple dungeon-like zone made of rooms and corridors
 pub struct DungeonMapBuilder {}
 
-impl GameMapBuilder for DungeonMapBuilder {
-    /// Create new dungeon map (needed?)
-    fn build() -> GameMap {
-        let mut map = GameMap::new();
+impl ZoneBuilder for DungeonMapBuilder {
+    /// Create new dungeon zone (needed?)
+    fn build() -> Zone {
+        let mut zone = Zone::new();
 
         const MAX_ROOMS: i32 = 30;
         const MIN_SIZE: i32 = 3;
@@ -30,37 +30,37 @@ impl GameMapBuilder for DungeonMapBuilder {
             let y = rand::gen_range(1, MAP_HEIGHT - h - 1) - 1;
             let new_room = Rect::new_from_i32(x, y, w, h);
             let mut room_not_overlaps = true;
-            for other_room in map.rooms.iter() {
+            for other_room in zone.rooms.iter() {
                 if new_room.overlaps(other_room) {
                     room_not_overlaps = false
                 }
             }
             if room_not_overlaps {
-                Self::apply_room_to_map(&mut map, &new_room);
+                Self::apply_room_to_map(&mut zone, &new_room);
 
-                if !map.rooms.is_empty() {
+                if !zone.rooms.is_empty() {
                     let (new_x, new_y) = new_room.center_to_i32_tuple();
-                    let (prev_x, prev_y) = map.rooms[map.rooms.len() - 1].center_to_i32_tuple();
+                    let (prev_x, prev_y) = zone.rooms[zone.rooms.len() - 1].center_to_i32_tuple();
                     if rand::gen_range(0, 2) == 1 {
-                        Self::apply_horizontal_corridor(&mut map, prev_x, new_x, prev_y);
-                        Self::apply_vertical_corridor(&mut map, prev_y, new_y, new_x);
+                        Self::apply_horizontal_corridor(&mut zone, prev_x, new_x, prev_y);
+                        Self::apply_vertical_corridor(&mut zone, prev_y, new_y, new_x);
                     } else {
-                        Self::apply_vertical_corridor(&mut map, prev_y, new_y, prev_x);
-                        Self::apply_horizontal_corridor(&mut map, prev_x, new_x, new_y);
+                        Self::apply_vertical_corridor(&mut zone, prev_y, new_y, prev_x);
+                        Self::apply_horizontal_corridor(&mut zone, prev_x, new_x, new_y);
                     }
                 }
 
-                map.rooms.push(new_room);
+                zone.rooms.push(new_room);
             }
         }
 
         // Set player spawn point
-        let first_room_center = map.rooms[0].center();
-        map.player_spawn_point =
-            GameMap::get_index_from_xy_f32(first_room_center[0], first_room_center[1]);
+        let first_room_center = zone.rooms[0].center();
+        zone.player_spawn_point =
+            Zone::get_index_from_xy_f32(first_room_center[0], first_room_center[1]);
             
         // Generate monster and items spawn points within each room
-        for &room in map.rooms.iter().skip(1) {
+        for &room in zone.rooms.iter().skip(1) {
             let monster_number = Roll::dice(1, MAX_MONSTERS_ON_ROOM_START) - 1;
             let items_number = Roll::dice(1, MAX_ITEMS_ON_ROOM_START) - 1;
 
@@ -68,10 +68,10 @@ impl GameMapBuilder for DungeonMapBuilder {
                 for _t in 0..MAX_SPAWN_TENTANTIVES {
                     let x = room.x + Roll::dice(1, room.w as i32 - 1) as f32;
                     let y = room.y + Roll::dice(1, room.h as i32 - 1) as f32;
-                    let index = GameMap::get_index_from_xy_f32(x, y);
+                    let index = Zone::get_index_from_xy_f32(x, y);
 
                     // avoid duplicate spawnpoints
-                    if map.monster_spawn_points.insert(index) {
+                    if zone.monster_spawn_points.insert(index) {
                         break;
                     }
                 }
@@ -81,42 +81,42 @@ impl GameMapBuilder for DungeonMapBuilder {
                 for _t in 0..MAX_SPAWN_TENTANTIVES {
                     let x = room.x + Roll::dice(1, room.w as i32 - 1) as f32;
                     let y = room.y + Roll::dice(1, room.h as i32 - 1) as f32;
-                    let index = GameMap::get_index_from_xy_f32(x, y);
+                    let index = Zone::get_index_from_xy_f32(x, y);
 
                     // avoid duplicate spawnpoints
-                    if map.item_spawn_points.insert(index) {
+                    if zone.item_spawn_points.insert(index) {
                         break;
                     }
                 }
             }
         }
 
-        map
+        zone
     }
 }
 
 /// Other
 impl DungeonMapBuilder {
-    fn apply_room_to_map(game_map: &mut GameMap, room: &Rect) {
+    fn apply_room_to_map(game_map: &mut Zone, room: &Rect) {
         for y in room.y as i32 + 1..(room.y + room.h) as i32 {
             for x in room.x as i32 + 1..(room.x + room.w) as i32 {
-                game_map.tiles[GameMap::get_index_from_xy(x, y)] = TileType::Floor;
+                game_map.tiles[Zone::get_index_from_xy(x, y)] = TileType::Floor;
             }
         }
     }
 
-    fn apply_horizontal_corridor(game_map: &mut GameMap, x1: i32, x2: i32, y: i32) {
+    fn apply_horizontal_corridor(game_map: &mut Zone, x1: i32, x2: i32, y: i32) {
         for x in min(x1, x2)..=max(x1, x2) {
-            let idx = GameMap::get_index_from_xy(x, y);
+            let idx = Zone::get_index_from_xy(x, y);
             if idx > 0 && idx < (MAP_WIDTH * MAP_HEIGHT) as usize {
                 game_map.tiles[idx as usize] = TileType::Floor;
             }
         }
     }
 
-    fn apply_vertical_corridor(game_map: &mut GameMap, y1: i32, y2: i32, x: i32) {
+    fn apply_vertical_corridor(game_map: &mut Zone, y1: i32, y2: i32, x: i32) {
         for y in min(y1, y2)..=max(y1, y2) {
-            let idx = GameMap::get_index_from_xy(x, y);
+            let idx = Zone::get_index_from_xy(x, y);
             if idx > 0 && idx < (MAP_WIDTH * MAP_HEIGHT) as usize {
                 game_map.tiles[idx as usize] = TileType::Floor;
             }

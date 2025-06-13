@@ -6,7 +6,7 @@ use crate::{
         common::{GameLog, Named},
         items::WantsToInvoke,
     },
-        maps::game_map::GameMap,
+        maps::zone::Zone,
     utils::roll::Roll,
 };
 
@@ -29,12 +29,12 @@ impl ZapManager {
                 .last()
                 .expect("Game log is not in hecs::World");
 
-            let mut map_query = ecs_world.query::<&GameMap>();
-            let (_e, map) = map_query.iter().last().expect("GameMap is not in hecs::World");
+            let mut map_query = ecs_world.query::<&Zone>();
+            let (_e, zone) = map_query.iter().last().expect("Zone is not in hecs::World");
 
             for (zapper, (wants_zap, wants_invoke)) in &mut zappers {
-                let index = GameMap::get_index_from_xy(wants_zap.target.0, wants_zap.target.1);
-                let target_list = &map.tile_content[index];
+                let index = Zone::get_index_from_xy(wants_zap.target.0, wants_zap.target.1);
+                let target_list = &zone.tile_content[index];
 
                 for &target in target_list {
                     let target_stats = ecs_world.get::<&CombatStats>(target).unwrap();

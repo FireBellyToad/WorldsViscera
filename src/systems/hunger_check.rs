@@ -10,7 +10,7 @@ use crate::{
         player::Player,
     },
     constants::MAX_HUNGER_TICK_COUNTER,
-    maps::game_map::{GameMap, ParticleType},
+    maps::zone::{Zone, ParticleType},
     utils::roll::Roll,
 };
 
@@ -35,11 +35,11 @@ impl HungerCheck {
 
             let player_id = Player::get_player_id(ecs_world);
 
-            let mut map_query = ecs_world.query::<&mut GameMap>();
-            let (_e, map) = map_query
+            let mut map_query = ecs_world.query::<&mut Zone>();
+            let (_e, zone) = map_query
                 .iter()
                 .last()
-                .expect("GameMap is not in hecs::World");
+                .expect("Zone is not in hecs::World");
 
             //Log all the hunger checks
             let mut game_log_query = ecs_world.query::<&mut GameLog>();
@@ -106,7 +106,7 @@ impl HungerCheck {
                             } else {
                                 hunger.tick_counter = MAX_HUNGER_TICK_COUNTER - Roll::dice(3, 10);
                                 hunger.current_status = HungerStatus::Normal;
-                                map.particle_tiles.insert(GameMap::get_index_from_xy(position.x, position.y), ParticleType::Vomit);
+                                zone.particle_tiles.insert(Zone::get_index_from_xy(position.x, position.y), ParticleType::Vomit);
                                 if hungry_entity.id() == player_id {
                                     game_log
                                         .entries

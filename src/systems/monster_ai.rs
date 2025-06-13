@@ -2,7 +2,7 @@ use hecs::{Entity, World};
 
 use crate::{
     components::{combat::WantsToMelee, common::*, monster::Monster, player::Player},
-    maps::game_map::GameMap,
+    maps::zone::Zone,
     utils::pathfinding::Pathfinding,
 };
 
@@ -18,11 +18,11 @@ impl MonsterAI {
         {
             let mut named_monsters = ecs_world.query::<(&mut Viewshed, &Monster, &mut Position)>();
 
-            let mut map_query = ecs_world.query::<&mut GameMap>();
-            let (_e, map) = map_query
+            let mut map_query = ecs_world.query::<&mut Zone>();
+            let (_e, zone) = map_query
                 .iter()
                 .last()
-                .expect("GameMap is not in hecs::World");
+                .expect("Zone is not in hecs::World");
 
             let mut player_query = ecs_world.query::<(&Player, &Position)>();
             let (player_entity, (_p, player_position)) = player_query
@@ -42,7 +42,7 @@ impl MonsterAI {
                         position.y,
                         player_position.x,
                         player_position.y,
-                        map,
+                        zone,
                         true,
                     );
 
@@ -62,12 +62,12 @@ impl MonsterAI {
 
                             // Avoid overlap with other monsters and player
                             if path.len() > 1 {
-                                map.blocked_tiles
-                                    [GameMap::get_index_from_xy(position.x, position.y)] = false;
+                                zone.blocked_tiles
+                                    [Zone::get_index_from_xy(position.x, position.y)] = false;
                                 position.x = path[1].0;
                                 position.y = path[1].1;
-                                map.blocked_tiles
-                                    [GameMap::get_index_from_xy(position.x, position.y)] = true;
+                                zone.blocked_tiles
+                                    [Zone::get_index_from_xy(position.x, position.y)] = true;
                             }
                         }
                     }

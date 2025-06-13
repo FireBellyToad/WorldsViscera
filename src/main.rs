@@ -17,7 +17,7 @@ use systems::{
 
 use crate::{
     inventory::InventoryAction,
-    maps::{GameMapBuilder, drunken_walk_map_builder::DrunkenWalkMapBuilder},
+    maps::{ZoneBuilder, drunken_walk_map_builder::DrunkenWalkZoneBuilder},
     systems::{
         automatic_healing::AutomaticHealing, decay_manager::DecayManager,
         hunger_check::HungerCheck, zap_manager::ZapManager,
@@ -50,7 +50,7 @@ fn get_game_configuration() -> Conf {
 
 #[macroquad::main(get_game_configuration)]
 async fn main() {
-    //Load resources inside map
+    //Load resources inside zone
     let assets = Load::assets().await;
 
     //Init ECS
@@ -140,13 +140,13 @@ fn populate_world(ecs_world: &mut World) {
         },
     ));
 
-    let map = DrunkenWalkMapBuilder::build();
+    let zone = DrunkenWalkZoneBuilder::build();
 
-    Spawn::player(ecs_world, &map);
-    Spawn::everyhing_in_map(ecs_world, &map);
+    Spawn::player(ecs_world, &zone);
+    Spawn::everyhing_in_map(ecs_world, &zone);
 
-    // Add map
-    ecs_world.spawn((true, map));
+    // Add zone
+    ecs_world.spawn((true, zone));
 }
 
 fn do_timed_game_logic(game_state: &mut EngineState) {

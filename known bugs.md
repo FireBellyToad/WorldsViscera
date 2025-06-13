@@ -1,1 +1,1 @@
-- Sometimes the map have unconnected rooms
+- Sometimes the zone have unconnected rooms

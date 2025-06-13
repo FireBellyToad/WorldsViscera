@@ -1,24 +1,24 @@
 use crate::{
     constants::*,
     maps::{
-        GameMapBuilder,
-        game_map::{GameMap, TileType},
+        ZoneBuilder,
+        zone::{Zone, TileType},
     },
     utils::roll::Roll,
 };
 
-/// Builds a cavern like map with Drunken walk algorithm
-pub struct DrunkenWalkMapBuilder {}
+/// Builds a cavern like zone with Drunken walk algorithm
+pub struct DrunkenWalkZoneBuilder {}
 
-impl GameMapBuilder for DrunkenWalkMapBuilder {
-    /// Create new dungeon map (needed?)
-    fn build() -> GameMap {
-        let mut map = GameMap::new();
+impl ZoneBuilder for DrunkenWalkZoneBuilder {
+    /// Create new dungeon zone (needed?)
+    fn build() -> Zone {
+        let mut zone = Zone::new();
 
         // Simple Drunken walk
         let mut current_position = (MAP_WIDTH / 2, MAP_HEIGHT / 2);
         for _ in 0..DRUNKEN_WALK_MAX_ITERATIONS {
-            map.tiles[GameMap::get_index_from_xy(current_position.0, current_position.1)] =
+            zone.tiles[Zone::get_index_from_xy(current_position.0, current_position.1)] =
                 TileType::Floor;
 
             let mut life_counter = 0;
@@ -40,9 +40,9 @@ impl GameMapBuilder for DrunkenWalkMapBuilder {
                     continue;
                 }
 
-                let index = GameMap::get_index_from_xy(dest_x, dest_y);
-                if map.tiles[index] == TileType::Wall {
-                    map.tiles[index] = TileType::Floor;
+                let index = Zone::get_index_from_xy(dest_x, dest_y);
+                if zone.tiles[index] == TileType::Wall {
+                    zone.tiles[index] = TileType::Floor;
                 }
                 life_counter += 1;
                 current_position = (dest_x, dest_y);
@@ -54,20 +54,20 @@ impl GameMapBuilder for DrunkenWalkMapBuilder {
         for x in 0..MAP_WIDTH {
             for y in 0..MAP_HEIGHT {
                 if x == 0 || y == 0 || x == MAP_WIDTH - 1 || y == MAP_HEIGHT - 1 {
-                    let index = GameMap::get_index_from_xy(x, y);
-                    map.tiles[index] = TileType::Wall
+                    let index = Zone::get_index_from_xy(x, y);
+                    zone.tiles[index] = TileType::Wall
                 }
             }
         }
 
         // Random starting point for palyer
         let (mut try_x, mut try_y);
-        map.player_spawn_point = map.tiles.len() / 2;
+        zone.player_spawn_point = zone.tiles.len() / 2;
         // TODO stairs
-        while map.tiles[map.player_spawn_point] == TileType::Wall {
+        while zone.tiles[zone.player_spawn_point] == TileType::Wall {
             try_x = Roll::dice(1, MAP_WIDTH - 2);
             try_y = Roll::dice(1, MAP_HEIGHT - 2);
-            map.player_spawn_point = GameMap::get_index_from_xy(try_x, try_y);
+            zone.player_spawn_point = Zone::get_index_from_xy(try_x, try_y);
         }
 
         // Generate monster and items spawn points within each room
@@ -78,12 +78,12 @@ impl GameMapBuilder for DrunkenWalkMapBuilder {
             for _t in 0..MAX_SPAWN_TENTANTIVES {
                 let x = Roll::dice(1, MAP_WIDTH as i32 - 2) as f32;
                 let y = Roll::dice(1, MAP_HEIGHT as i32 - 2) as f32;
-                let index = GameMap::get_index_from_xy_f32(x, y);
+                let index = Zone::get_index_from_xy_f32(x, y);
 
                 // avoid walls, player and duplicate spawnpoints
-                if index != map.player_spawn_point {
-                    if map.tiles[GameMap::get_index_from_xy_f32(x, y)] != TileType::Wall {
-                        if map.monster_spawn_points.insert(index) {
+                if index != zone.player_spawn_point {
+                    if zone.tiles[Zone::get_index_from_xy_f32(x, y)] != TileType::Wall {
+                        if zone.monster_spawn_points.insert(index) {
                             break;
                         }
                     }
@@ -95,12 +95,12 @@ impl GameMapBuilder for DrunkenWalkMapBuilder {
             for _t in 0..MAX_SPAWN_TENTANTIVES {
                 let x = Roll::dice(1, MAP_WIDTH as i32 - 2) as f32;
                 let y = Roll::dice(1, MAP_HEIGHT as i32 - 2) as f32;
-                let index = GameMap::get_index_from_xy_f32(x, y);
+                let index = Zone::get_index_from_xy_f32(x, y);
 
                 // avoid walls, player and duplicate spawnpoints
-                if index != map.player_spawn_point {
-                    if map.tiles[GameMap::get_index_from_xy_f32(x, y)] != TileType::Wall {
-                        if map.item_spawn_points.insert(index) {
+                if index != zone.player_spawn_point {
+                    if zone.tiles[Zone::get_index_from_xy_f32(x, y)] != TileType::Wall {
+                        if zone.item_spawn_points.insert(index) {
                             break;
                         }
                     }
@@ -108,6 +108,6 @@ impl GameMapBuilder for DrunkenWalkMapBuilder {
             }
         }
 
-        map
+        zone
     }
 }

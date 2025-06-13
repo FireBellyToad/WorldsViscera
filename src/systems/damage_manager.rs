@@ -11,7 +11,7 @@ use crate::{
         player::Player,
     },
     constants::MAX_STAMINA_HEAL_TICK_COUNTER,
-    maps::game_map::{GameMap, ParticleType},
+    maps::zone::{Zone, ParticleType},
     spawner::Spawn,
     utils::roll::Roll,
 };
@@ -24,11 +24,11 @@ impl DamageManager {
         let mut damageables =
             ecs_world.query::<(&mut SufferingDamage, &mut CombatStats, &Position)>();
 
-        let mut map_query = ecs_world.query::<&mut GameMap>();
-        let (_e, map) = map_query
+        let mut map_query = ecs_world.query::<&mut Zone>();
+        let (_e, zone) = map_query
             .iter()
             .last()
-            .expect("GameMap is not in hecs::World");
+            .expect("Zone is not in hecs::World");
 
         for (damaged_entity, (damageable, stats, position)) in &mut damageables {
             if damageable.damage_received > 0 {
@@ -48,8 +48,8 @@ impl DamageManager {
                 }
 
                 //Drench the tile with blood
-                map.particle_tiles.insert(
-                    GameMap::get_index_from_xy(position.x, position.y),
+                zone.particle_tiles.insert(
+                    Zone::get_index_from_xy(position.x, position.y),
                     ParticleType::Blood,
                 );
             }

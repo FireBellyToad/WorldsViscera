@@ -1,11 +1,11 @@
-use crate::maps::game_map::GameMap;
+use crate::maps::zone::Zone;
 
 pub mod dungeon_map_builder;
-pub mod game_map;
+pub mod zone;
 pub mod arena_map_builder;
 pub mod drunken_walk_map_builder;
 
-/// Trait for GameMap Builders
-pub trait GameMapBuilder {
-    fn build() -> GameMap;
+/// Trait for Zone Builders
+pub trait ZoneBuilder {
+    fn build() -> Zone;
 }

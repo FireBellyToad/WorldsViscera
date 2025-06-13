@@ -15,8 +15,8 @@ pub enum ParticleType {
     Vomit,
 }
 
-/// GameMap Struct
-pub struct GameMap {
+/// Zone Struct
+pub struct Zone {
     pub tiles: Vec<TileType>,
     pub rooms: Vec<Rect>,
     pub revealed_tiles: Vec<bool>,
@@ -29,11 +29,11 @@ pub struct GameMap {
     pub item_spawn_points: HashSet<usize>,
 }
 
-/// GameMap Simplementations
-impl GameMap {
-    /// Create new empty map
-    pub fn new() -> GameMap {
-        GameMap {
+/// Zone Simplementations
+impl Zone {
+    /// Create new empty zone
+    pub fn new() -> Zone {
+        Zone {
             tiles: vec![TileType::Wall; (MAP_WIDTH * MAP_HEIGHT) as usize],
             rooms: Vec::new(),
             revealed_tiles: vec![false; (MAP_WIDTH * MAP_HEIGHT) as usize],
@@ -61,7 +61,7 @@ impl GameMap {
                 //Manhattan Distance
                 if !use_manhattan_distance || (x == x_pos || y == y_pos) {
                     let index = Self::get_index_from_xy(x, y);
-                    // Safety check is needed for map borders
+                    // Safety check is needed for zone borders
                     if self.blocked_tiles.len() > index && !self.blocked_tiles[index] {
                         adjacent_passable_tiles.push((x, y));
                     }
@@ -88,7 +88,7 @@ impl GameMap {
         self.tiles[index] == TileType::Wall
     }
 
-    /// Clears content index for this map
+    /// Clears content index for this zone
     pub fn clear_content_index(&mut self) {
         for content in self.tile_content.iter_mut() {
             content.clear();

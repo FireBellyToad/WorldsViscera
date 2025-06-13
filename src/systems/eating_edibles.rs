@@ -7,7 +7,7 @@ use crate::{
         items::{Edible, Rotten, WantsToEat},
         player::Player,
     },
-    maps::game_map::{GameMap, ParticleType},
+    maps::zone::{Zone, ParticleType},
     systems::hunger_check::HungerStatus,
     utils::roll::Roll,
 };
@@ -25,11 +25,11 @@ impl EatingEdibles {
 
             let player_id = Player::get_player_id(ecs_world);
 
-            let mut map_query = ecs_world.query::<&mut GameMap>();
-            let (_e, map) = map_query
+            let mut map_query = ecs_world.query::<&mut Zone>();
+            let (_e, zone) = map_query
                 .iter()
                 .last()
-                .expect("GameMap is not in hecs::World");
+                .expect("Zone is not in hecs::World");
 
             //Log all the pick ups
             let mut game_log_query = ecs_world.query::<&mut GameLog>();
@@ -76,9 +76,9 @@ impl EatingEdibles {
                             .entries
                             .push(format!("You ate rotten food! You vomit!"));
                     }
-                    
-                    map.particle_tiles.insert(
-                        GameMap::get_index_from_xy(position.x, position.y),
+
+                    zone.particle_tiles.insert(
+                        Zone::get_index_from_xy(position.x, position.y),
                         ParticleType::Vomit,
                     );
                 } else {

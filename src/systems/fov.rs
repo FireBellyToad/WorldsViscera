@@ -4,7 +4,7 @@ use hecs::World;
 use crate::{
     components::{common::*, player::Player},
     constants::{MAP_HEIGHT, MAP_WIDTH},
-    maps::game_map::GameMap,
+    maps::zone::Zone,
 };
 
 use adam_fov_rs::GridPoint;
@@ -15,11 +15,11 @@ impl FovCalculator {
     pub fn run(ecs_world: &World) {
         let player_entity_id = Player::get_player_id(ecs_world);
 
-        let mut map_query = ecs_world.query::<&mut GameMap>();
-        let (_e, map) = map_query
+        let mut map_query = ecs_world.query::<&mut Zone>();
+        let (_e, zone) = map_query
             .iter()
             .last()
-            .expect("GameMap is not in hecs::World");
+            .expect("Zone is not in hecs::World");
 
         //Deconstruct data into tuple
         let mut viewsheds = ecs_world.query::<(&mut Viewshed, &Position)>();
@@ -30,7 +30,7 @@ impl FovCalculator {
                 viewshed.visible_tiles.clear();
 
                 // Utility lambda for opaque tiles
-                let is_opaque = |position: IVec2| map.is_tile_opaque(position[0], position[1]);
+                let is_opaque = |position: IVec2| zone.is_tile_opaque(position[0], position[1]);
                 // Utility lambda for setting visible tiles
                 let set_to_visible = |position: IVec2| {
                     viewshed.visible_tiles.push((position[0], position[1]));
@@ -50,11 +50,11 @@ impl FovCalculator {
 
                 //recalculate rendered view if entity is Player
                 if entity.id() == player_entity_id {
-                    map.visible_tiles.fill(false);
+                    zone.visible_tiles.fill(false);
                     for &(x, y) in viewshed.visible_tiles.iter() {
-                        let index = GameMap::get_index_from_xy(x, y);
-                        map.revealed_tiles[index] = true;
-                        map.visible_tiles[index] = true;
+                        let index = Zone::get_index_from_xy(x, y);
+                        zone.revealed_tiles[index] = true;
+                        zone.visible_tiles[index] = true;
                     }
                 }
             }

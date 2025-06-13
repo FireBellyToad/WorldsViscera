@@ -5,7 +5,7 @@ use crate::components::items::{Edible, Invokable, Item, Perishable};
 use crate::components::monster::Monster;
 use crate::components::player::Player;
 use crate::constants::*;
-use crate::maps::game_map::GameMap;
+use crate::maps::zone::Zone;
 use crate::systems::hunger_check::HungerStatus;
 use crate::utils::assets::TextureName;
 use crate::utils::roll::Roll;
@@ -17,14 +17,14 @@ pub struct Spawn {}
 
 impl Spawn {
     /// Spawn player
-    pub fn player(ecs_world: &mut World, map: &GameMap) {
+    pub fn player(ecs_world: &mut World, zone: &Zone) {
         // Roll appropriate stats
         let rolled_toughness = Roll::stat();
         let rolled_dexterity = Roll::stat();
         // TODO Player with Soldier background must have 5+2d3 starting stamina
         let rolled_stamina = Roll::d6() + 5;
 
-        let (spawn_x, spawn_y) = GameMap::get_xy_from_index(map.player_spawn_point);
+        let (spawn_x, spawn_y) = Zone::get_xy_from_index(zone.player_spawn_point);
 
         let player_entity = (
             Player {},
@@ -72,15 +72,15 @@ impl Spawn {
     }
 
     /// Spawn entities inside a room
-    pub fn everyhing_in_map(ecs_world: &mut World, map: &GameMap) {
+    pub fn everyhing_in_map(ecs_world: &mut World, zone: &Zone) {
         // Actually spawn the monsters
-        for &index in map.monster_spawn_points.iter() {
-            let (x, y) = GameMap::get_xy_from_index(index);
+        for &index in zone.monster_spawn_points.iter() {
+            let (x, y) = Zone::get_xy_from_index(index);
             Self::random_monster(ecs_world, x as i32, y as i32);
         }
         // Actually spawn the potions
-        for &index in map.item_spawn_points.iter() {
-            let (x, y) = GameMap::get_xy_from_index(index);
+        for &index in zone.item_spawn_points.iter() {
+            let (x, y) = Zone::get_xy_from_index(index);
             Self::random_item(ecs_world, x as i32, y as i32);
         }
     }

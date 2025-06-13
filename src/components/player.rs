@@ -10,7 +10,7 @@ use crate::{
     components::{combat::WantsToZap, health::CanAutomaticallyHeal},
     constants::*,
     engine::state::RunState,
-    maps::game_map::GameMap,
+    maps::zone::Zone,
 };
 
 use super::{
@@ -37,18 +37,18 @@ impl Player {
         {
             let mut players = ecs_world.query::<(&Player, &mut Position, &mut Viewshed)>();
 
-            let mut map_query = ecs_world.query::<&GameMap>();
-            let (_e, map) = map_query
+            let mut map_query = ecs_world.query::<&Zone>();
+            let (_e, zone) = map_query
                 .iter()
                 .last()
-                .expect("GameMap is not in hecs::World");
+                .expect("Zone is not in hecs::World");
 
             for (player_entity, (_p, position, viewshed)) in &mut players {
                 let destination_index =
-                    GameMap::get_index_from_xy(position.x + delta_x, position.y + delta_y);
+                    Zone::get_index_from_xy(position.x + delta_x, position.y + delta_y);
 
                 //Search for potential targets (must have CombatStats component)
-                for &potential_target in map.tile_content[destination_index].iter() {
+                for &potential_target in zone.tile_content[destination_index].iter() {
                     let has_combat_stats = ecs_world
                         .satisfies::<&CombatStats>(potential_target)
                         .unwrap();
@@ -60,7 +60,7 @@ impl Player {
 
                 // Move if not attacking or destination is not blocked
                 if attacker_target.is_none() {
-                    if !map.blocked_tiles[destination_index] {
+                    if !zone.blocked_tiles[destination_index] {
                         position.x = min(MAP_WIDTH - 1, max(0, position.x + delta_x));
                         position.y = min(MAP_HEIGHT - 1, max(0, position.y + delta_y));
                         viewshed.must_recalculate = true;
@@ -155,15 +155,15 @@ impl Player {
             let mut is_valid_tile = false;
             // Scope for keeping borrow checker quiet
             {
-                let mut map_query = ecs_world.query::<&GameMap>();
-                let (_e, map) = map_query
+                let mut map_query = ecs_world.query::<&Zone>();
+                let (_e, zone) = map_query
                     .iter()
                     .last()
-                    .expect("GameMap is not in hecs::World");
+                    .expect("Zone is not in hecs::World");
                 // Make sure that we are targeting a valid tile
-                let index = GameMap::get_index_from_xy(rounded_x, rounded_y);
-                if index < map.visible_tiles.len() {
-                    is_valid_tile = map.visible_tiles[index];
+                let index = Zone::get_index_from_xy(rounded_x, rounded_y);
+                if index < zone.visible_tiles.len() {
+                    is_valid_tile = zone.visible_tiles[index];
                 }
             }
 

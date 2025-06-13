@@ -68,7 +68,7 @@ impl ItemCollection {
         }
 
         for (item, owner, to_grab) in item_owner_list {
-            // Remove item from map
+            // Remove item from zone
             let _ = ecs_world.remove_one::<Position>(item);
 
             // Remove owner's will to pick up
