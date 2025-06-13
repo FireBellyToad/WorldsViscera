@@ -8,12 +8,12 @@ use crate::{
 };
 
 /// Builds a simple arena zone, with only the boundary walls
-pub struct ArenaMapBuilder {}
+pub struct ArenaZoneBuilder {}
 
-impl ZoneBuilder for ArenaMapBuilder {
+impl ZoneBuilder for ArenaZoneBuilder {
     /// Create new dungeon zone (needed?)
     fn build() -> Zone {
-        let mut zone = Zone::new();
+        let mut zone = Zone::new(1);
 
         // Create boundaries
         for x in 0..MAP_WIDTH {

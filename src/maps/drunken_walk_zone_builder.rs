@@ -13,7 +13,7 @@ pub struct DrunkenWalkZoneBuilder {}
 impl ZoneBuilder for DrunkenWalkZoneBuilder {
     /// Create new dungeon zone (needed?)
     fn build() -> Zone {
-        let mut zone = Zone::new();
+        let mut zone = Zone::new(1);
 
         // Simple Drunken walk
         let mut current_position = (MAP_WIDTH / 2, MAP_HEIGHT / 2);

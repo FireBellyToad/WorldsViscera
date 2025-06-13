@@ -12,12 +12,12 @@ use crate::{
 };
 
 /// Builds a simple dungeon-like zone made of rooms and corridors
-pub struct DungeonMapBuilder {}
+pub struct DungeonZoneBuilder {}
 
-impl ZoneBuilder for DungeonMapBuilder {
+impl ZoneBuilder for DungeonZoneBuilder {
     /// Create new dungeon zone (needed?)
     fn build() -> Zone {
-        let mut zone = Zone::new();
+        let mut zone = Zone::new(1);
 
         const MAX_ROOMS: i32 = 30;
         const MIN_SIZE: i32 = 3;
@@ -96,7 +96,7 @@ impl ZoneBuilder for DungeonMapBuilder {
 }
 
 /// Other
-impl DungeonMapBuilder {
+impl DungeonZoneBuilder {
     fn apply_room_to_map(game_map: &mut Zone, room: &Rect) {
         for y in room.y as i32 + 1..(room.y + room.h) as i32 {
             for x in room.x as i32 + 1..(room.x + room.w) as i32 {

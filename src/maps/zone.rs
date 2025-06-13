@@ -24,6 +24,7 @@ pub struct Zone {
     pub blocked_tiles: Vec<bool>,
     pub tile_content: Vec<Vec<Entity>>,
     pub particle_tiles: HashMap<usize,ParticleType>,
+    pub depth: i32,
     pub player_spawn_point: usize,
     pub monster_spawn_points: HashSet<usize>,
     pub item_spawn_points: HashSet<usize>,
@@ -32,7 +33,7 @@ pub struct Zone {
 /// Zone Simplementations
 impl Zone {
     /// Create new empty zone
-    pub fn new() -> Zone {
+    pub fn new(depth: i32) -> Zone {
         Zone {
             tiles: vec![TileType::Wall; (MAP_WIDTH * MAP_HEIGHT) as usize],
             rooms: Vec::new(),
@@ -41,6 +42,7 @@ impl Zone {
             blocked_tiles: vec![false; (MAP_WIDTH * MAP_HEIGHT) as usize],
             tile_content: vec![Vec::new(); (MAP_WIDTH * MAP_HEIGHT) as usize],
             player_spawn_point: 0,
+            depth,
             particle_tiles: HashMap::new(),
             monster_spawn_points: HashSet::new(),
             item_spawn_points: HashSet::new(),

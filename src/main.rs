@@ -17,7 +17,7 @@ use systems::{
 
 use crate::{
     inventory::InventoryAction,
-    maps::{ZoneBuilder, drunken_walk_map_builder::DrunkenWalkZoneBuilder},
+    maps::{ZoneBuilder, drunken_walk_zone_builder::DrunkenWalkZoneBuilder},
     systems::{
         automatic_healing::AutomaticHealing, decay_manager::DecayManager,
         hunger_check::HungerCheck, zap_manager::ZapManager,
