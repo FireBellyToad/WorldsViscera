@@ -60,7 +60,7 @@ impl ZoneBuilder for DrunkenWalkZoneBuilder {
             }
         }
 
-        // Random starting point for palyer
+        // Random starting point for player
         let (mut try_x, mut try_y);
         zone.player_spawn_point = zone.tiles.len() / 2;
         // TODO stairs
@@ -107,6 +107,20 @@ impl ZoneBuilder for DrunkenWalkZoneBuilder {
                 }
             }
         }
+
+
+        //TODO uncomment after tests
+        // Random starting point for DownPassage
+        // let (mut try_x, mut try_y);
+        // let mut passage_index= zone.tiles.len() / 2;
+        // while zone.tiles[passage_index] == TileType::Wall {
+        //     try_x = Roll::dice(1, MAP_WIDTH - 2);
+        //     try_y = Roll::dice(1, MAP_HEIGHT - 2);
+        //     passage_index = Zone::get_index_from_xy(try_x, try_y);
+        // }
+        // zone.tiles[passage_index] = TileType::DownPassage;
+        zone.tiles[ zone.player_spawn_point] = TileType::DownPassage;
+
 
         zone
     }

@@ -9,6 +9,8 @@ use crate::constants::{MAP_HEIGHT, MAP_WIDTH};
 pub enum TileType {
     Floor,
     Wall,
+    DownPassage,
+    UpPassage,
 }
 pub enum ParticleType {
     Blood,
@@ -23,7 +25,7 @@ pub struct Zone {
     pub visible_tiles: Vec<bool>,
     pub blocked_tiles: Vec<bool>,
     pub tile_content: Vec<Vec<Entity>>,
-    pub particle_tiles: HashMap<usize,ParticleType>,
+    pub particle_tiles: HashMap<usize, ParticleType>,
     pub depth: i32,
     pub player_spawn_point: usize,
     pub monster_spawn_points: HashSet<usize>,
@@ -102,6 +104,8 @@ impl Zone {
         match tile_type {
             TileType::Floor => 0.0,
             TileType::Wall => 1.0,
+            TileType::DownPassage => 2.0,
+            TileType::UpPassage => 3.0,
         }
     }
 
