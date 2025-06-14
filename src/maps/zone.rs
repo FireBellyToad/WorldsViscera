@@ -80,7 +80,9 @@ impl Zone {
     pub fn populate_blocked(&mut self) {
         for (index, tile) in self.tiles.iter_mut().enumerate() {
             match tile {
-                TileType::Floor => self.blocked_tiles[index] = false,
+                TileType::DownPassage | TileType::UpPassage | TileType::Floor => {
+                    self.blocked_tiles[index] = false
+                }
                 _ => self.blocked_tiles[index] = true,
             }
         }

@@ -11,6 +11,7 @@ pub enum RunState {
     ShowDropInventory,
     ShowInvokeInventory,
     MouseTargeting,
+    GoToNextZone
 }
 
 // Game state struct

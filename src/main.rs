@@ -112,6 +112,13 @@ async fn main() {
                     game_state.run_state =
                         Player::checks_input_for_targeting(&mut game_state.ecs_world);
                 }
+                RunState::GoToNextZone => {
+                    // TODO go really down keeping all inventory and stuff
+                    game_state.ecs_world.clear();
+                    populate_world(&mut game_state.ecs_world);
+                    clear_input_queue();
+                    game_state.run_state = RunState::RoundStart;
+                }
             }
 
             next_frame().await;

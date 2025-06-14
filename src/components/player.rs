@@ -1,16 +1,19 @@
-use std::cmp::{max, min};
+use std::{
+    cmp::{max, min},
+    fmt::format,
+};
 
 use hecs::{Entity, World};
 use macroquad::input::{
-    KeyCode, MouseButton, clear_input_queue, get_key_pressed, is_key_down, is_mouse_button_down,
-    mouse_position,
+    KeyCode, MouseButton, clear_input_queue, get_char_pressed, get_key_pressed, is_key_down,
+    is_mouse_button_down, mouse_position,
 };
 
 use crate::{
     components::{combat::WantsToZap, health::CanAutomaticallyHeal},
     constants::*,
     engine::state::RunState,
-    maps::zone::Zone,
+    maps::zone::{self, TileType, Zone},
 };
 
 use super::{
@@ -38,10 +41,7 @@ impl Player {
             let mut players = ecs_world.query::<(&Player, &mut Position, &mut Viewshed)>();
 
             let mut map_query = ecs_world.query::<&Zone>();
-            let (_e, zone) = map_query
-                .iter()
-                .last()
-                .expect("Zone is not in hecs::World");
+            let (_e, zone) = map_query.iter().last().expect("Zone is not in hecs::World");
 
             for (player_entity, (_p, position, viewshed)) in &mut players {
                 let destination_index =
@@ -87,6 +87,7 @@ impl Player {
     ///
     pub fn checks_keyboard_input(ecs_world: &mut World) -> RunState {
         let mut run_state = RunState::PlayerTurn;
+        let mut check_chars_pressed = false;
         // Player movement
         match get_key_pressed() {
             None => run_state = RunState::WaitingPlayerInput, // Nothing happened
@@ -103,39 +104,60 @@ impl Player {
                 KeyCode::Kp1 => run_state = Self::try_move_player(-1, 1, ecs_world),
 
                 // Skip turn doing nothing, so you can heal
-                KeyCode::Period | KeyCode::Space => return RunState::MonsterTurn,
+                KeyCode::Space => return RunState::MonsterTurn,
 
-                //Pick up
-                KeyCode::P => {
-                    Self::pick_up(ecs_world);
-                }
-
-                //Eat item
-                KeyCode::E => {
-                    clear_input_queue();
-                    run_state = RunState::ShowEatInventory;
-                }
-
-                //DEBUG ONLY KILL
-                KeyCode::K => {
-                    run_state = RunState::GameOver;
-                }
-
-
-                //Drop item
-                KeyCode::D => {
-                    clear_input_queue();
-                    run_state = RunState::ShowDropInventory;
-                }
-
-                //Invoke item
-                KeyCode::I => {
-                    clear_input_queue();
-                    run_state = RunState::ShowInvokeInventory;
-                }
-
-                _ => run_state = RunState::WaitingPlayerInput,
+                _ => check_chars_pressed = true,
             },
+        }
+
+        // Player commands. Handed with characters to manage different keyboards layout
+        // Do it only if no keys were pressed or else Arrow keys and space will not work properly
+        if check_chars_pressed {
+            match get_char_pressed() {
+                None => run_state = RunState::WaitingPlayerInput, // Nothing happened
+                Some(char) => {
+                    match char {
+                        // Skip turn doing nothing, so you can heal
+                        '.' => return RunState::MonsterTurn,
+
+                        //Pick up
+                        'p' => {
+                            Player::pick_up(ecs_world);
+                        }
+
+                        //Eat item
+                        'e' => {
+                            clear_input_queue();
+                            run_state = RunState::ShowEatInventory;
+                        }
+
+                        //DEBUG ONLY KILL
+                        'k' => {
+                            run_state = RunState::GameOver;
+                        }
+
+                        //DEBUG ONLY KILL
+                        '<' | '>' => {
+                            //TODO
+                            run_state = Player::try_next_level(ecs_world, char);
+                        }
+
+                        //Drop item
+                        'd' => {
+                            clear_input_queue();
+                            run_state = RunState::ShowDropInventory;
+                        }
+
+                        //Invoke item
+                        'i' => {
+                            clear_input_queue();
+                            run_state = RunState::ShowInvokeInventory;
+                        }
+
+                        _ => {}
+                    }
+                }
+            }
         }
 
         run_state
@@ -156,10 +178,7 @@ impl Player {
             // Scope for keeping borrow checker quiet
             {
                 let mut map_query = ecs_world.query::<&Zone>();
-                let (_e, zone) = map_query
-                    .iter()
-                    .last()
-                    .expect("Zone is not in hecs::World");
+                let (_e, zone) = map_query.iter().last().expect("Zone is not in hecs::World");
                 // Make sure that we are targeting a valid tile
                 let index = Zone::get_index_from_xy(rounded_x, rounded_y);
                 if index < zone.visible_tiles.len() {
@@ -226,6 +245,57 @@ impl Player {
                 .entries
                 .push(String::from("There is nothing here to pick up"));
         }
+    }
+
+    fn try_next_level(ecs_world: &mut World, char_pressed: char) -> RunState {
+        let player_position;
+        let standing_on_tile;
+
+        let mut player_query = ecs_world.query::<(&Player, &Position)>();
+        let (_e, (_p, position)) = player_query
+            .iter()
+            .last()
+            .expect("Player is not in hecs::World");
+        player_position = position;
+
+        let mut map_query = ecs_world.query::<&Zone>();
+        let (_e, zone) = map_query.iter().last().expect("Zone is not in hecs::World");
+        standing_on_tile =
+            &zone.tiles[Zone::get_index_from_xy(player_position.x, player_position.y)];
+
+        let mut game_log_query = ecs_world.query::<&mut GameLog>();
+        let (_e, game_log) = game_log_query
+            .iter()
+            .last()
+            .expect("Game log is not in hecs::World");
+
+        game_log
+            .entries
+            .push(String::from("There is nothing here to pick up"));
+
+        //TODO skill check
+        match standing_on_tile {
+            TileType::DownPassage => {
+                if char_pressed == '>' {
+                    game_log.entries.push(format!("You climb down..."));
+                    return RunState::GoToNextZone;
+                }
+            }
+            TileType::UpPassage => {
+                if char_pressed == '<' {
+                    game_log.entries.push(format!("You climb up..."));
+                    return RunState::GoToNextZone;
+                }
+            }
+            _ => {
+                if char_pressed == '>' {
+                    game_log.entries.push(format!("You can't go down here"));
+                } else if char_pressed == '<' {
+                    game_log.entries.push(format!("You can't go up here"));
+                }
+            }
+        }
+        return RunState::WaitingPlayerInput;
     }
 
     /// Extract Player's entity from world and return it with copy

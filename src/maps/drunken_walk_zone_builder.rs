@@ -119,7 +119,7 @@ impl ZoneBuilder for DrunkenWalkZoneBuilder {
         //     passage_index = Zone::get_index_from_xy(try_x, try_y);
         // }
         // zone.tiles[passage_index] = TileType::DownPassage;
-        zone.tiles[ zone.player_spawn_point] = TileType::DownPassage;
+        zone.tiles[zone.player_spawn_point] = TileType::DownPassage;
 
 
         zone
