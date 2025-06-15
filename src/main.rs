@@ -96,21 +96,9 @@ async fn main() {
                         game_state.run_state = RunState::RoundStart;
                     }
                 }
-                RunState::ShowEatInventory => {
+                RunState::ShowInventory(mode) => {
                     game_state.run_state =
-                        Inventory::handle_input(&mut game_state.ecs_world, InventoryAction::Eat);
-                }
-                RunState::ShowDropInventory => {
-                    game_state.run_state =
-                        Inventory::handle_input(&mut game_state.ecs_world, InventoryAction::Drop);
-                }
-                RunState::ShowInvokeInventory => {
-                    game_state.run_state =
-                        Inventory::handle_input(&mut game_state.ecs_world, InventoryAction::Invoke);
-                }
-                RunState::ShowQuaffInventory => {
-                    game_state.run_state =
-                        Inventory::handle_input(&mut game_state.ecs_world, InventoryAction::Quaff);
+                        Inventory::handle_input(&mut game_state.ecs_world, mode);
                 }
                 RunState::MouseTargeting => {
                     game_state.run_state =

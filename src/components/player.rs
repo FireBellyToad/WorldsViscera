@@ -9,10 +9,7 @@ use macroquad::input::{
 };
 
 use crate::{
-    components::{combat::WantsToZap, health::CanAutomaticallyHeal},
-    constants::*,
-    engine::state::RunState,
-    maps::zone::{TileType, Zone},
+    components::{combat::WantsToZap, health::CanAutomaticallyHeal}, constants::*, engine::state::RunState, inventory::InventoryAction, maps::zone::{TileType, Zone}
 };
 
 use super::{
@@ -129,7 +126,7 @@ impl Player {
                         //Eat item
                         'e' => {
                             clear_input_queue();
-                            run_state = RunState::ShowEatInventory;
+                            run_state = RunState::ShowInventory(InventoryAction::Eat);
                         }
 
                         //DEBUG ONLY KILL
@@ -144,19 +141,19 @@ impl Player {
                         //Drop item
                         'd' => {
                             clear_input_queue();
-                            run_state = RunState::ShowDropInventory;
+                            run_state = RunState::ShowInventory(InventoryAction::Drop);
                         }
 
                         //Invoke item
                         'i' => {
                             clear_input_queue();
-                            run_state = RunState::ShowInvokeInventory;
+                            run_state = RunState::ShowInventory(InventoryAction::Invoke);
                         }
 
                         //Quaff item
                         'q' => {
                             clear_input_queue();
-                            run_state = RunState::ShowQuaffInventory;
+                            run_state = RunState::ShowInventory(InventoryAction::Quaff);
                         }
 
 

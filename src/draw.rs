@@ -39,18 +39,9 @@ impl Draw {
                 }
 
                 //Overlay
-                match game_state.run_state {
-                    RunState::ShowEatInventory => {
-                        Inventory::draw(assets, &game_state.ecs_world, InventoryAction::Eat)
-                    }
-                    RunState::ShowDropInventory => {
-                        Inventory::draw(assets, &game_state.ecs_world, InventoryAction::Drop)
-                    }
-                    RunState::ShowInvokeInventory => {
-                        Inventory::draw(assets, &game_state.ecs_world, InventoryAction::Invoke)
-                    }
-                    RunState::ShowQuaffInventory => {
-                        Inventory::draw(assets, &game_state.ecs_world, InventoryAction::Quaff)
+                match &game_state.run_state {
+                    RunState::ShowInventory(mode) => {
+                        Inventory::draw(assets, &game_state.ecs_world, mode)
                     }
                     RunState::MouseTargeting => {
                         Draw::targeting(&game_state.ecs_world);

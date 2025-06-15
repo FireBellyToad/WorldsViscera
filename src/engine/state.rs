@@ -1,6 +1,6 @@
 use hecs::{Entity, World};
 
-use crate::components::{common::GameLog, items::InBackback, player::Player};
+use crate::{components::{common::GameLog, items::InBackback, player::Player}, inventory::InventoryAction};
 
 #[derive(PartialEq, Debug)]
 pub enum RunState {
@@ -9,10 +9,7 @@ pub enum RunState {
     PlayerTurn,
     MonsterTurn,
     GameOver,
-    ShowEatInventory,
-    ShowDropInventory,
-    ShowInvokeInventory,
-    ShowQuaffInventory,
+    ShowInventory(InventoryAction),
     MouseTargeting,
     GoToNextZone,
 }

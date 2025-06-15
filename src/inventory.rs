@@ -13,7 +13,10 @@ use macroquad::{
 use crate::{
     components::{
         common::{GameLog, Named},
-        items::{Edible, InBackback, Invokable, Item, Quaffable, WantsToDrink, WantsToDrop, WantsToEat, WantsToInvoke},
+        items::{
+            Edible, InBackback, Invokable, Item, Quaffable, WantsToDrink, WantsToDrop, WantsToEat,
+            WantsToInvoke,
+        },
         player::Player,
     },
     constants::*,
@@ -64,7 +67,8 @@ impl Inventory {
                     let inventory: Vec<(Entity, String, char, i32)>;
                     match mode {
                         InventoryAction::Eat => {
-                            inventory = Inventory::get_all_in_backpack_filtered_by::<Edible>(ecs_world);
+                            inventory =
+                                Inventory::get_all_in_backpack_filtered_by::<Edible>(ecs_world);
                         }
                         InventoryAction::Invoke => {
                             inventory =
@@ -123,17 +127,17 @@ impl Inventory {
 
         // Keep inventory showing if invalid or no item has been selected
         match mode {
-            InventoryAction::Eat => RunState::ShowEatInventory,
-            InventoryAction::Drop => RunState::ShowDropInventory,
-            InventoryAction::Invoke => RunState::ShowInvokeInventory,
-            InventoryAction::Quaff => RunState::ShowQuaffInventory,
+            InventoryAction::Eat => RunState::ShowInventory(InventoryAction::Eat),
+            InventoryAction::Drop => RunState::ShowInventory(InventoryAction::Drop),
+            InventoryAction::Invoke => RunState::ShowInventory(InventoryAction::Invoke),
+            InventoryAction::Quaff => RunState::ShowInventory(InventoryAction::Quaff),
         }
     }
 
     pub fn draw(
         assets: &HashMap<TextureName, Texture2D>,
         ecs_world: &World,
-        mode: InventoryAction,
+        mode: &InventoryAction,
     ) {
         let texture_to_render = assets.get(&TextureName::Items).expect("Texture not found");
 
