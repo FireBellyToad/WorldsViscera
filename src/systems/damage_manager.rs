@@ -5,13 +5,13 @@ use hecs::{Entity, World};
 use crate::{
     components::{
         combat::{CombatStats, SufferingDamage},
-        common::{GameLog, Named, Position, ProduceCorpse},
+        common::{GameLog, Named, Position},
         health::CanAutomaticallyHeal,
         items::Edible,
         player::Player,
     },
     constants::MAX_STAMINA_HEAL_TICK_COUNTER,
-    maps::zone::{Zone, ParticleType},
+    maps::zone::{ParticleType, Zone},
     spawner::Spawn,
     utils::roll::Roll,
 };
@@ -24,11 +24,8 @@ impl DamageManager {
         let mut damageables =
             ecs_world.query::<(&mut SufferingDamage, &mut CombatStats, &Position)>();
 
-        let mut map_query = ecs_world.query::<&mut Zone>();
-        let (_e, zone) = map_query
-            .iter()
-            .last()
-            .expect("Zone is not in hecs::World");
+        let mut zone_query = ecs_world.query::<&mut Zone>();
+        let (_e, zone) = zone_query.iter().last().expect("Zone is not in hecs::World");
 
         for (damaged_entity, (damageable, stats, position)) in &mut damageables {
             if damageable.damage_received > 0 {
@@ -76,11 +73,6 @@ impl DamageManager {
                 // On 0 or less toughness, die anyway
                 if stats.current_stamina == 0 && damageable.damage_received > 0 {
                     let saving_throw_roll = Roll::d20();
-
-                    game_log.entries.push(format!(
-                        "{} saving with {} against toughness {} / {}",
-                        named.name, saving_throw_roll, stats.current_toughness, stats.max_toughness
-                    ));
                     if stats.current_toughness < 1 || saving_throw_roll > stats.current_toughness {
                         dead_entities.push((entity, named.name.clone(), (position.x, position.y)));
                         game_log.entries.push(format!("{} dies!", named.name));
@@ -110,7 +102,7 @@ impl DamageManager {
                 y,
                 name,
                 Edible {
-                    nutrition_dice_number: 3,
+                    nutrition_dice_number: 4,
                     nutrition_dice_size: 12,
                 },
             );

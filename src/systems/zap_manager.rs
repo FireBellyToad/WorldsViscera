@@ -29,8 +29,8 @@ impl ZapManager {
                 .last()
                 .expect("Game log is not in hecs::World");
 
-            let mut map_query = ecs_world.query::<&Zone>();
-            let (_e, zone) = map_query.iter().last().expect("Zone is not in hecs::World");
+            let mut zone_query = ecs_world.query::<&Zone>();
+            let (_e, zone) = zone_query.iter().last().expect("Zone is not in hecs::World");
 
             for (zapper, (wants_zap, wants_invoke)) in &mut zappers {
                 let index = Zone::get_index_from_xy(wants_zap.target.0, wants_zap.target.1);

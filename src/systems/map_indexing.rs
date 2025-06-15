@@ -8,8 +8,8 @@ impl MapIndexing {
     pub fn run(ecs_world: &World) {
         let mut entites = ecs_world.query::<&Position>();
         let mut blockers = ecs_world.query::<(&Position, &BlocksTile)>();
-        let mut map_query = ecs_world.query::<&mut Zone>();
-        let (_e, zone) = map_query
+        let mut zone_query = ecs_world.query::<&mut Zone>();
+        let (_e, zone) = zone_query
             .iter()
             .last()
             .expect("Zone is not in hecs::World");

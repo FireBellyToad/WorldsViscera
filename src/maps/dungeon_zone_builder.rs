@@ -6,7 +6,7 @@ use crate::{
     constants::*,
     maps::{
         ZoneBuilder,
-        zone::{Zone, TileType},
+        zone::{TileType, Zone},
     },
     utils::roll::Roll,
 };
@@ -16,8 +16,8 @@ pub struct DungeonZoneBuilder {}
 
 impl ZoneBuilder for DungeonZoneBuilder {
     /// Create new dungeon zone (needed?)
-    fn build() -> Zone {
-        let mut zone = Zone::new(1);
+    fn build(depth: i32) -> Zone {
+        let mut zone = Zone::new(depth);
 
         const MAX_ROOMS: i32 = 30;
         const MIN_SIZE: i32 = 3;
@@ -58,7 +58,7 @@ impl ZoneBuilder for DungeonZoneBuilder {
         let first_room_center = zone.rooms[0].center();
         zone.player_spawn_point =
             Zone::get_index_from_xy_f32(first_room_center[0], first_room_center[1]);
-            
+
         // Generate monster and items spawn points within each room
         for &room in zone.rooms.iter().skip(1) {
             let monster_number = Roll::dice(1, MAX_MONSTERS_ON_ROOM_START) - 1;

@@ -16,8 +16,9 @@ use systems::{
 };
 
 use crate::{
+    components::common::{Position, Viewshed},
     inventory::InventoryAction,
-    maps::{ZoneBuilder, drunken_walk_zone_builder::DrunkenWalkZoneBuilder},
+    maps::{ZoneBuilder, drunken_walk_zone_builder::DrunkenWalkZoneBuilder, zone::Zone},
     systems::{
         automatic_healing::AutomaticHealing, decay_manager::DecayManager,
         hunger_check::HungerCheck, zap_manager::ZapManager,
@@ -113,9 +114,7 @@ async fn main() {
                         Player::checks_input_for_targeting(&mut game_state.ecs_world);
                 }
                 RunState::GoToNextZone => {
-                    // TODO go really down keeping all inventory and stuff
-                    game_state.ecs_world.clear();
-                    populate_world(&mut game_state.ecs_world);
+                    change_zone(&mut game_state);
                     clear_input_queue();
                     game_state.run_state = RunState::RoundStart;
                 }
@@ -147,13 +146,67 @@ fn populate_world(ecs_world: &mut World) {
         },
     ));
 
-    let zone = DrunkenWalkZoneBuilder::build();
+    let zone = DrunkenWalkZoneBuilder::build(1);
 
     Spawn::player(ecs_world, &zone);
     Spawn::everyhing_in_map(ecs_world, &zone);
 
     // Add zone
-    ecs_world.spawn((true, zone));
+    let me = ecs_world.spawn((true, zone));
+
+    println!("spawn entity {}", me.id());
+}
+
+fn change_zone(engine: &mut EngineState) {
+    // Generate new seed, or else it will always generate the same things
+    rand::srand(macroquad::miniquad::date::now() as _);
+
+    let current_depth;    
+    // Scope for keeping borrow checker quiet
+    {
+        let mut zone_query = engine.ecs_world.query::<&Zone>();
+        let (_e, zone) = zone_query
+            .iter()
+            .last()
+            .expect("Zone is not in hecs::World");
+        current_depth = zone.depth;
+    }
+
+    let entities_to_delete = engine.get_entities_to_delete_on_zone_change();
+
+    //TODO froze for backtracking
+    for e in entities_to_delete {
+        let _ = engine.ecs_world.despawn(e);
+    }
+
+    let zone = DrunkenWalkZoneBuilder::build(current_depth + 1);
+
+    //Set player position in new zone and force a FOV recalculation
+    let player_entity = Player::get_player_entity(&engine.ecs_world);
+
+    // Scope for keeping borrow checker quiet
+    {
+        let mut player_position = engine
+            .ecs_world
+            .get::<&mut Position>(player_entity)
+            .unwrap();
+
+        let (x, y) = Zone::get_xy_from_index(zone.player_spawn_point);
+        player_position.x = x;
+        player_position.y = y;
+
+        let mut player_viewshed: hecs::RefMut<'_, Viewshed> = engine
+            .ecs_world
+            .get::<&mut Viewshed>(player_entity)
+            .unwrap();
+        player_viewshed.must_recalculate = true;
+    }
+
+    Spawn::everyhing_in_map(&mut engine.ecs_world, &zone);
+
+    // Add zone (previous shuold be removed)
+    //TODO froze for backtracking
+    engine.ecs_world.spawn((true, zone));
 }
 
 fn do_timed_game_logic(game_state: &mut EngineState) {

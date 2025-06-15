@@ -35,8 +35,8 @@ impl HungerCheck {
 
             let player_id = Player::get_player_id(ecs_world);
 
-            let mut map_query = ecs_world.query::<&mut Zone>();
-            let (_e, zone) = map_query
+            let mut zone_query = ecs_world.query::<&mut Zone>();
+            let (_e, zone) = zone_query
                 .iter()
                 .last()
                 .expect("Zone is not in hecs::World");

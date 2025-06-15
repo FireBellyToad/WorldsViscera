@@ -68,14 +68,11 @@ impl ItemCollection {
         }
 
         for (item, owner, to_grab) in item_owner_list {
-            // Remove item from zone
-            let _ = ecs_world.remove_one::<Position>(item);
-
             // Remove owner's will to pick up
             let _ = ecs_world.remove_one::<WantsItem>(owner);
 
-            // Register that now item is in "wants_item" entity backpack
-            let _ = ecs_world.insert_one(
+            // Remove item from zone and register that now item is in "wants_item" entity backpack
+            let _ = ecs_world.exchange_one::<Position, InBackback>(
                 item,
                 InBackback {
                     owner,

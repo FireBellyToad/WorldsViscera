@@ -18,8 +18,8 @@ impl MonsterAI {
         {
             let mut named_monsters = ecs_world.query::<(&mut Viewshed, &Monster, &mut Position)>();
 
-            let mut map_query = ecs_world.query::<&mut Zone>();
-            let (_e, zone) = map_query
+            let mut zone_query = ecs_world.query::<&mut Zone>();
+            let (_e, zone) = zone_query
                 .iter()
                 .last()
                 .expect("Zone is not in hecs::World");

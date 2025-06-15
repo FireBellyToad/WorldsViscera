@@ -1,7 +1,6 @@
-use std::{
-    cmp::{max, min},
-    fmt::format,
-};
+use std::
+    cmp::{max, min}
+;
 
 use hecs::{Entity, World};
 use macroquad::input::{
@@ -13,7 +12,7 @@ use crate::{
     components::{combat::WantsToZap, health::CanAutomaticallyHeal},
     constants::*,
     engine::state::RunState,
-    maps::zone::{self, TileType, Zone},
+    maps::zone::{TileType, Zone},
 };
 
 use super::{
@@ -40,8 +39,8 @@ impl Player {
         {
             let mut players = ecs_world.query::<(&Player, &mut Position, &mut Viewshed)>();
 
-            let mut map_query = ecs_world.query::<&Zone>();
-            let (_e, zone) = map_query.iter().last().expect("Zone is not in hecs::World");
+            let mut zone_query = ecs_world.query::<&Zone>();
+            let (_e, zone) = zone_query.iter().last().expect("Zone is not in hecs::World");
 
             for (player_entity, (_p, position, viewshed)) in &mut players {
                 let destination_index =
@@ -106,6 +105,8 @@ impl Player {
                 // Skip turn doing nothing, so you can heal
                 KeyCode::Space => return RunState::MonsterTurn,
 
+                // Something was pressed but is not in this match?
+                // Check for characters pressed
                 _ => check_chars_pressed = true,
             },
         }
@@ -136,9 +137,7 @@ impl Player {
                             run_state = RunState::GameOver;
                         }
 
-                        //DEBUG ONLY KILL
                         '<' | '>' => {
-                            //TODO
                             run_state = Player::try_next_level(ecs_world, char);
                         }
 
@@ -177,8 +176,8 @@ impl Player {
             let mut is_valid_tile = false;
             // Scope for keeping borrow checker quiet
             {
-                let mut map_query = ecs_world.query::<&Zone>();
-                let (_e, zone) = map_query.iter().last().expect("Zone is not in hecs::World");
+                let mut zone_query = ecs_world.query::<&Zone>();
+                let (_e, zone) = zone_query.iter().last().expect("Zone is not in hecs::World");
                 // Make sure that we are targeting a valid tile
                 let index = Zone::get_index_from_xy(rounded_x, rounded_y);
                 if index < zone.visible_tiles.len() {
@@ -258,8 +257,8 @@ impl Player {
             .expect("Player is not in hecs::World");
         player_position = position;
 
-        let mut map_query = ecs_world.query::<&Zone>();
-        let (_e, zone) = map_query.iter().last().expect("Zone is not in hecs::World");
+        let mut zone_query = ecs_world.query::<&Zone>();
+        let (_e, zone) = zone_query.iter().last().expect("Zone is not in hecs::World");
         standing_on_tile =
             &zone.tiles[Zone::get_index_from_xy(player_position.x, player_position.y)];
 

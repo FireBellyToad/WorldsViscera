@@ -7,5 +7,5 @@ pub mod drunken_walk_zone_builder;
 
 /// Trait for Zone Builders
 pub trait ZoneBuilder {
-    fn build() -> Zone;
+    fn build(depth: i32) -> Zone;
 }

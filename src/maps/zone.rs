@@ -5,7 +5,7 @@ use macroquad::math::Rect;
 
 use crate::constants::{MAP_HEIGHT, MAP_WIDTH};
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum TileType {
     Floor,
     Wall,
@@ -123,8 +123,8 @@ impl Zone {
 
     /// trasfroms x,y position into a vector index, using usizes
     pub fn get_xy_from_index(index: usize) -> (i32, i32) {
-        let x = index % MAP_WIDTH as usize;
-        let y = index / MAP_WIDTH as usize;
+        let x = index as i32 % MAP_WIDTH;
+        let y = index as i32 / MAP_WIDTH;
         (x as i32, y as i32)
     }
 }

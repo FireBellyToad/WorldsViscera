@@ -2,7 +2,7 @@ use crate::{
     constants::*,
     maps::{
         ZoneBuilder,
-        zone::{Zone, TileType},
+        zone::{TileType, Zone},
     },
     utils::roll::Roll,
 };
@@ -12,8 +12,8 @@ pub struct ArenaZoneBuilder {}
 
 impl ZoneBuilder for ArenaZoneBuilder {
     /// Create new dungeon zone (needed?)
-    fn build() -> Zone {
-        let mut zone = Zone::new(1);
+    fn build(depth: i32) -> Zone {
+        let mut zone = Zone::new(depth);
 
         // Create boundaries
         for x in 0..MAP_WIDTH {

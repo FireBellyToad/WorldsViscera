@@ -1,13 +1,13 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, fmt::format};
 
 use hecs::World;
 use macroquad::{
-    color::{Color, BLACK, DARKGRAY, GREEN, ORANGE, RED, WHITE, YELLOW},
+    color::{BLACK, Color, DARKGRAY, ORANGE, RED, WHITE, YELLOW},
     input::mouse_position,
     math::Rect,
     shapes::{draw_circle, draw_rectangle, draw_rectangle_lines},
     text::draw_text,
-    texture::{draw_texture_ex, DrawTextureParams, Texture2D},
+    texture::{DrawTextureParams, Texture2D, draw_texture_ex},
 };
 
 use crate::{
@@ -20,7 +20,7 @@ use crate::{
     constants::*,
     engine::state::{EngineState, RunState},
     inventory::{Inventory, InventoryAction},
-    maps::zone::{Zone, ParticleType},
+    maps::zone::{ParticleType, Zone},
     systems::hunger_check::HungerStatus,
     utils::assets::TextureName,
 };
@@ -29,11 +29,11 @@ pub struct Draw {}
 
 impl Draw {
     pub fn render_game(game_state: &EngineState, assets: &HashMap<TextureName, Texture2D>) {
-        let mut maps = game_state.ecs_world.query::<&Zone>();
+        let mut zones = game_state.ecs_world.query::<&Zone>();
         match game_state.run_state {
             RunState::GameOver => Draw::game_over(),
             _ => {
-                for (_e, zone) in &mut maps {
+                for (_e, zone) in &mut zones {
                     Draw::zone(&zone, assets);
                     Draw::renderables(&game_state.ecs_world, &assets, &zone);
                 }
@@ -110,7 +110,10 @@ impl Draw {
         }
     }
 
-    fn hud_header(ecs_world: &World){
+    fn hud_header(ecs_world: &World) {
+        let mut zones = ecs_world.query::<&Zone>();
+        let (_e, zone) = zones.iter().last().expect("Zone is not in hecs::World");
+
         let mut player_query = ecs_world.query::<(&Player, &CombatStats, &Hunger)>();
         let (_e, (_p, player_stats, hunger)) = player_query
             .iter()
@@ -134,6 +137,8 @@ impl Draw {
             player_stats.current_dexterity, player_stats.max_dexterity
         );
         let dex_text_len = dex_text.len();
+        let depth_text = format!("Depth: {}", zone.depth);
+        let depth_text_len = depth_text.len();
 
         let hunger_status = &hunger.current_status;
         let hunger_text = format!("Hunger:{:?}", hunger_status);
@@ -142,12 +147,12 @@ impl Draw {
         draw_rectangle(
             (HEADER_LEFT_SPAN + HUD_BORDER) as f32,
             (MAP_HEIGHT * TILE_SIZE) as f32 + UI_BORDER as f32,
-            4.0 * LETTER_SIZE
-                - HUD_BORDER as f32 * 3.0
+            5.0 * LETTER_SIZE - HUD_BORDER as f32 * 3.0
                 + (sta_text_len as f32 * LETTER_SIZE)
                 + (tou_text_len as f32 * LETTER_SIZE)
                 + (dex_text_len as f32 * LETTER_SIZE)
-                + (hunger_text_len as f32 * LETTER_SIZE),
+                + (hunger_text_len as f32 * LETTER_SIZE)
+                + (depth_text_len as f32 * LETTER_SIZE),
             HEADER_HEIGHT as f32,
             BLACK,
         );
@@ -204,6 +209,17 @@ impl Draw {
                 + (sta_text_len as f32 * LETTER_SIZE)
                 + (tou_text_len as f32 * LETTER_SIZE)
                 + (dex_text_len as f32 * LETTER_SIZE),
+            text_color,
+        );
+
+        // TODO improve
+        Self::draw_stat_text(
+            depth_text,
+            4.0 * LETTER_SIZE
+                + (sta_text_len as f32 * LETTER_SIZE)
+                + (tou_text_len as f32 * LETTER_SIZE)
+                + (dex_text_len as f32 * LETTER_SIZE)
+                + (hunger_text_len as f32 * LETTER_SIZE),
             text_color,
         );
     }
@@ -272,11 +288,8 @@ impl Draw {
         );
         let (mouse_x, mouse_y) = mouse_position();
 
-        let mut map_query = ecs_world.query::<&Zone>();
-        let (_e, zone) = map_query
-            .iter()
-            .last()
-            .expect("Zone is not in hecs::World");
+        let mut zone_query = ecs_world.query::<&Zone>();
+        let (_e, zone) = zone_query.iter().last().expect("Zone is not in hecs::World");
 
         let rounded_x = (((mouse_x - UI_BORDER_F32) / TILE_SIZE_F32).ceil() - 1.0) as i32;
         let rounded_y = (((mouse_y - UI_BORDER_F32) / TILE_SIZE_F32).ceil() - 1.0) as i32;
@@ -302,9 +315,8 @@ impl Draw {
         for x in 0..MAP_WIDTH {
             for y in 0..MAP_HEIGHT {
                 let tile_to_draw = Zone::get_index_from_xy(x, y);
-                let tile_index =
-                    Zone::get_tile_sprite_sheet_index(&game_map.tiles[tile_to_draw])
-                        * TILE_SIZE_F32;
+                let tile_index = Zone::get_tile_sprite_sheet_index(&game_map.tiles[tile_to_draw])
+                    * TILE_SIZE_F32;
 
                 if game_map.revealed_tiles[tile_to_draw] {
                     let mut alpha = DARKGRAY;
@@ -312,7 +324,11 @@ impl Draw {
                     if game_map.visible_tiles[tile_to_draw] {
                         alpha = WHITE;
                         if game_map.particle_tiles.contains_key(&tile_to_draw) {
-                            Draw::draw_particles(x, y,game_map.particle_tiles.get(&tile_to_draw).unwrap());
+                            Draw::draw_particles(
+                                x,
+                                y,
+                                game_map.particle_tiles.get(&tile_to_draw).unwrap(),
+                            );
                         }
                     }
 
@@ -342,9 +358,9 @@ impl Draw {
         let color;
 
         match particle_type {
-            ParticleType::Blood => color =Color::from_rgba(255, 10, 10, 32),
+            ParticleType::Blood => color = Color::from_rgba(255, 10, 10, 32),
             ParticleType::Vomit => color = ORANGE,
-        } 
+        }
 
         draw_circle(
             (UI_BORDER + (x * TILE_SIZE) + TILE_SIZE / 2) as f32 - 6.0,
