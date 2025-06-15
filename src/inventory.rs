@@ -13,7 +13,7 @@ use macroquad::{
 use crate::{
     components::{
         common::{GameLog, Named},
-        items::{Edible, InBackback, Invokable, Item, WantsToDrop, WantsToEat, WantsToInvoke},
+        items::{Edible, InBackback, Invokable, Item, Quaffable, WantsToDrink, WantsToDrop, WantsToEat, WantsToInvoke},
         player::Player,
     },
     constants::*,
@@ -26,6 +26,7 @@ pub enum InventoryAction {
     Eat,
     Drop,
     Invoke,
+    Quaff,
 }
 
 pub struct Inventory {}
@@ -63,14 +64,18 @@ impl Inventory {
                     let inventory: Vec<(Entity, String, char, i32)>;
                     match mode {
                         InventoryAction::Eat => {
-                            inventory = Self::get_all_in_backpack_filtered_by::<Edible>(ecs_world);
+                            inventory = Inventory::get_all_in_backpack_filtered_by::<Edible>(ecs_world);
                         }
                         InventoryAction::Invoke => {
                             inventory =
-                                Self::get_all_in_backpack_filtered_by::<Invokable>(ecs_world);
+                                Inventory::get_all_in_backpack_filtered_by::<Invokable>(ecs_world);
+                        }
+                        InventoryAction::Quaff => {
+                            inventory =
+                                Inventory::get_all_in_backpack_filtered_by::<Quaffable>(ecs_world);
                         }
                         InventoryAction::Drop => {
-                            inventory = Self::get_all_in_backpack(ecs_world);
+                            inventory = Inventory::get_all_in_backpack(ecs_world);
                         }
                     }
 
@@ -101,6 +106,9 @@ impl Inventory {
                     InventoryAction::Drop => {
                         let _ = ecs_world.insert_one(user_entity.unwrap(), WantsToDrop { item });
                     }
+                    InventoryAction::Quaff => {
+                        let _ = ecs_world.insert_one(user_entity.unwrap(), WantsToDrink { item });
+                    }
                     InventoryAction::Invoke => {
                         let _ = ecs_world.insert_one(user_entity.unwrap(), WantsToInvoke { item });
                         new_run_state = RunState::MouseTargeting;
@@ -118,6 +126,7 @@ impl Inventory {
             InventoryAction::Eat => RunState::ShowEatInventory,
             InventoryAction::Drop => RunState::ShowDropInventory,
             InventoryAction::Invoke => RunState::ShowInvokeInventory,
+            InventoryAction::Quaff => RunState::ShowQuaffInventory,
         }
     }
 
@@ -135,15 +144,19 @@ impl Inventory {
         match mode {
             InventoryAction::Eat => {
                 header_text = "Eat what?";
-                inventory = Self::get_all_in_backpack_filtered_by::<Edible>(ecs_world);
+                inventory = Inventory::get_all_in_backpack_filtered_by::<Edible>(ecs_world);
             }
             InventoryAction::Invoke => {
                 header_text = "Invoke what?";
-                inventory = Self::get_all_in_backpack_filtered_by::<Invokable>(ecs_world);
+                inventory = Inventory::get_all_in_backpack_filtered_by::<Invokable>(ecs_world);
+            }
+            InventoryAction::Quaff => {
+                header_text = "Drink what?";
+                inventory = Inventory::get_all_in_backpack_filtered_by::<Quaffable>(ecs_world);
             }
             InventoryAction::Drop => {
                 header_text = "Drop what?";
-                inventory = Self::get_all_in_backpack(ecs_world);
+                inventory = Inventory::get_all_in_backpack(ecs_world);
             }
         }
 

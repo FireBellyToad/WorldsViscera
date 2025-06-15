@@ -153,6 +153,13 @@ impl Player {
                             run_state = RunState::ShowInvokeInventory;
                         }
 
+                        //Quaff item
+                        'q' => {
+                            clear_input_queue();
+                            run_state = RunState::ShowQuaffInventory;
+                        }
+
+
                         _ => {}
                     }
                 }

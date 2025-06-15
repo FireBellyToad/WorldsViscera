@@ -18,10 +18,9 @@ use systems::{
 use crate::{
     components::common::{Position, Viewshed},
     inventory::InventoryAction,
-    maps::{ZoneBuilder, drunken_walk_zone_builder::DrunkenWalkZoneBuilder, zone::Zone},
+    maps::{drunken_walk_zone_builder::DrunkenWalkZoneBuilder, zone::Zone, ZoneBuilder},
     systems::{
-        automatic_healing::AutomaticHealing, decay_manager::DecayManager,
-        hunger_check::HungerCheck, zap_manager::ZapManager,
+        automatic_healing::AutomaticHealing, decay_manager::DecayManager, drinking_quaffables::DrinkingQuaffables, hunger_check::HungerCheck, thirst_check::ThirstCheck, zap_manager::ZapManager
     },
     utils::assets::Load,
 };
@@ -108,6 +107,10 @@ async fn main() {
                 RunState::ShowInvokeInventory => {
                     game_state.run_state =
                         Inventory::handle_input(&mut game_state.ecs_world, InventoryAction::Invoke);
+                }
+                RunState::ShowQuaffInventory => {
+                    game_state.run_state =
+                        Inventory::handle_input(&mut game_state.ecs_world, InventoryAction::Quaff);
                 }
                 RunState::MouseTargeting => {
                     game_state.run_state =
@@ -213,6 +216,7 @@ fn do_timed_game_logic(game_state: &mut EngineState) {
     AutomaticHealing::run(&mut game_state.ecs_world);
     DecayManager::run(&mut game_state.ecs_world);
     HungerCheck::run(&mut game_state.ecs_world);
+    ThirstCheck::run(&mut game_state.ecs_world);
 }
 
 fn do_time_free_game_logic(game_state: &mut EngineState, next_state: RunState) -> RunState {
@@ -228,6 +232,7 @@ fn do_time_free_game_logic(game_state: &mut EngineState, next_state: RunState) -
         ItemCollection::run(&mut game_state.ecs_world);
         ItemDropping::run(&mut game_state.ecs_world);
         EatingEdibles::run(&mut game_state.ecs_world);
+        DrinkingQuaffables::run(&mut game_state.ecs_world);
         return next_state;
     } else {
         return RunState::GameOver;

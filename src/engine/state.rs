@@ -12,6 +12,7 @@ pub enum RunState {
     ShowEatInventory,
     ShowDropInventory,
     ShowInvokeInventory,
+    ShowQuaffInventory,
     MouseTargeting,
     GoToNextZone,
 }
@@ -24,6 +25,7 @@ pub struct EngineState {
 
 // State implementations
 impl EngineState {
+    
     /// Retain the player, gamelog and backpack items when changing Zone
     //TODO froze for backtracking
     pub fn get_entities_to_delete_on_zone_change(&mut self) -> Vec<Entity> {

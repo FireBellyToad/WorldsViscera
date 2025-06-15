@@ -9,6 +9,11 @@ pub struct Edible {
     pub nutrition_dice_size: i32,
 }
 
+pub struct Quaffable {
+    pub thirst_dice_number: i32,
+    pub thirst_dice_size: i32,
+}
+
 pub struct InBackback {
     pub owner: Entity,
     pub assigned_char: char,
@@ -24,6 +29,11 @@ pub struct WantsToEat {
 pub struct WantsToDrop {
     pub item: Entity,
 }
+
+pub struct WantsToDrink {
+    pub item: Entity,
+}
+
 
 pub struct WantsToInvoke {
     pub item: Entity,

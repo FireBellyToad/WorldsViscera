@@ -1,12 +1,13 @@
 use crate::components::combat::{CombatStats, InflictsDamage, SufferingDamage};
 use crate::components::common::{BlocksTile, Named, Position, ProduceCorpse, Renderable, Viewshed};
-use crate::components::health::{CanAutomaticallyHeal, Hunger};
-use crate::components::items::{Edible, Invokable, Item, Perishable};
+use crate::components::health::{CanAutomaticallyHeal, Hunger, Thirst};
+use crate::components::items::{Edible, Invokable, Item, Perishable, Quaffable};
 use crate::components::monster::Monster;
 use crate::components::player::Player;
 use crate::constants::*;
 use crate::maps::zone::Zone;
 use crate::systems::hunger_check::HungerStatus;
+use crate::systems::thirst_check::ThirstStatus;
 use crate::utils::assets::TextureName;
 use crate::utils::roll::Roll;
 use hecs::World;
@@ -65,6 +66,10 @@ impl Spawn {
             Hunger {
                 tick_counter: MAX_HUNGER_TICK_COUNTER,
                 current_status: HungerStatus::Normal,
+            },
+            Thirst {
+                tick_counter: MAX_THIRST_TICK_COUNTER,
+                current_status: ThirstStatus::Normal,
             },
         );
 
@@ -179,7 +184,7 @@ impl Spawn {
         // Dvergar is stronger, shuold be less common
         match dice_roll {
             1 => Self::wand(ecs_world, x, y),
-            _ => Self::wand(ecs_world, x, y),
+            _ => Self::waterskin(ecs_world, x, y),
         }
     }
 
@@ -205,6 +210,33 @@ impl Spawn {
             Perishable {
                 rot_counter: STARTING_ROT_COUNTER + Roll::d20(),
             },
+        );
+
+        ecs_world.spawn(meat);
+    }
+    
+    fn waterskin(ecs_world: &mut World, x: i32, y: i32) {
+        let item_tile_index = 2;
+        let meat = (
+            Position { x, y },
+            Renderable {
+                texture_name: TextureName::Items,
+                texture_region: Rect {
+                    x: (item_tile_index * TILE_SIZE) as f32,
+                    y: 0.0,
+                    w: TILE_SIZE_F32,
+                    h: TILE_SIZE_F32,
+                },
+                z_index: 0,
+            },
+            Named {
+                name: String::from("Flask of water"),
+            },
+            Item { item_tile_index },
+            Quaffable{
+                thirst_dice_number: 3,
+                thirst_dice_size: 12,
+            }
         );
 
         ecs_world.spawn(meat);

@@ -14,14 +14,14 @@ use crate::{
     components::{
         combat::CombatStats,
         common::{GameLog, Position, Renderable},
-        health::Hunger,
+        health::{Hunger, Thirst},
         player::Player,
     },
     constants::*,
     engine::state::{EngineState, RunState},
     inventory::{Inventory, InventoryAction},
     maps::zone::{ParticleType, Zone},
-    systems::hunger_check::HungerStatus,
+    systems::{hunger_check::HungerStatus, thirst_check::ThirstStatus},
     utils::assets::TextureName,
 };
 
@@ -48,6 +48,9 @@ impl Draw {
                     }
                     RunState::ShowInvokeInventory => {
                         Inventory::draw(assets, &game_state.ecs_world, InventoryAction::Invoke)
+                    }
+                    RunState::ShowQuaffInventory => {
+                        Inventory::draw(assets, &game_state.ecs_world, InventoryAction::Quaff)
                     }
                     RunState::MouseTargeting => {
                         Draw::targeting(&game_state.ecs_world);
@@ -114,8 +117,8 @@ impl Draw {
         let mut zones = ecs_world.query::<&Zone>();
         let (_e, zone) = zones.iter().last().expect("Zone is not in hecs::World");
 
-        let mut player_query = ecs_world.query::<(&Player, &CombatStats, &Hunger)>();
-        let (_e, (_p, player_stats, hunger)) = player_query
+        let mut player_query = ecs_world.query::<(&Player, &CombatStats, &Hunger, &Thirst)>();
+        let (_e, (_p, player_stats, hunger,thirst)) = player_query
             .iter()
             .last()
             .expect("Player is not in hecs::World");
@@ -136,22 +139,28 @@ impl Draw {
             "DEX {}/{}",
             player_stats.current_dexterity, player_stats.max_dexterity
         );
-        let dex_text_len = dex_text.len();
-        let depth_text = format!("Depth: {}", zone.depth);
-        let depth_text_len = depth_text.len();
-
         let hunger_status = &hunger.current_status;
         let hunger_text = format!("Hunger:{:?}", hunger_status);
         let hunger_text_len = hunger_text.len();
 
+        let thirst_status = &thirst.current_status;
+        let thirst_text = format!("Thirst:{:?}", thirst_status);
+        let thirst_text_len = thirst_text.len();
+
+        let dex_text_len = dex_text.len();
+        let depth_text = format!("Depth: {}", zone.depth);
+        let depth_text_len = depth_text.len();
+
+
         draw_rectangle(
             (HEADER_LEFT_SPAN + HUD_BORDER) as f32,
             (MAP_HEIGHT * TILE_SIZE) as f32 + UI_BORDER as f32,
-            5.0 * LETTER_SIZE - HUD_BORDER as f32 * 3.0
+            6.0 * LETTER_SIZE - HUD_BORDER as f32 * 3.0
                 + (sta_text_len as f32 * LETTER_SIZE)
                 + (tou_text_len as f32 * LETTER_SIZE)
                 + (dex_text_len as f32 * LETTER_SIZE)
                 + (hunger_text_len as f32 * LETTER_SIZE)
+                + (thirst_text_len as f32 * LETTER_SIZE)
                 + (depth_text_len as f32 * LETTER_SIZE),
             HEADER_HEIGHT as f32,
             BLACK,
@@ -166,7 +175,7 @@ impl Draw {
             text_color = YELLOW;
         }
 
-        Self::draw_stat_text(sta_text, 0.0, text_color);
+        Draw::stat_text(sta_text, 0.0, text_color);
 
         // Draw Toughness (TOU)
         text_color = WHITE;
@@ -175,7 +184,7 @@ impl Draw {
             text_color = YELLOW;
         }
 
-        Self::draw_stat_text(
+        Draw::stat_text(
             tou_text,
             LETTER_SIZE + (sta_text_len as f32 * LETTER_SIZE),
             text_color,
@@ -188,7 +197,7 @@ impl Draw {
             text_color = YELLOW;
         }
 
-        Self::draw_stat_text(
+        Draw::stat_text(
             dex_text,
             2.0 * LETTER_SIZE
                 + (sta_text_len as f32 * LETTER_SIZE)
@@ -196,14 +205,13 @@ impl Draw {
             text_color,
         );
 
+        // TODO improve
         match hunger_status {
             HungerStatus::Hungry => text_color = YELLOW,
             HungerStatus::Starved => text_color = RED,
             _ => text_color = WHITE,
         }
-
-        // TODO improve
-        Self::draw_stat_text(
+        Draw::stat_text(
             hunger_text,
             3.0 * LETTER_SIZE
                 + (sta_text_len as f32 * LETTER_SIZE)
@@ -213,8 +221,13 @@ impl Draw {
         );
 
         // TODO improve
-        Self::draw_stat_text(
-            depth_text,
+        match thirst_status {
+            ThirstStatus::Thirsty => text_color = YELLOW,
+            ThirstStatus::Dehydrated => text_color = RED,
+            _ => text_color = WHITE,
+        }
+        Draw::stat_text(
+            thirst_text,
             4.0 * LETTER_SIZE
                 + (sta_text_len as f32 * LETTER_SIZE)
                 + (tou_text_len as f32 * LETTER_SIZE)
@@ -222,9 +235,22 @@ impl Draw {
                 + (hunger_text_len as f32 * LETTER_SIZE),
             text_color,
         );
+
+        text_color = WHITE;
+        // TODO improve
+        Draw::stat_text(
+            depth_text,
+            5.0 * LETTER_SIZE
+                + (sta_text_len as f32 * LETTER_SIZE)
+                + (tou_text_len as f32 * LETTER_SIZE)
+                + (dex_text_len as f32 * LETTER_SIZE)
+                + (hunger_text_len as f32 * LETTER_SIZE)
+                + (thirst_text_len as f32 * LETTER_SIZE),
+            text_color,
+        );
     }
 
-    fn draw_stat_text(text: String, left_pad: f32, text_color: Color) {
+    fn stat_text(text: String, left_pad: f32, text_color: Color) {
         draw_text(
             text,
             (HUD_BORDER + HEADER_LEFT_SPAN + UI_BORDER) as f32 + left_pad,

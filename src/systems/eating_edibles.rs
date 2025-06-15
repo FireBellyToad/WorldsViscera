@@ -49,7 +49,7 @@ impl EatingEdibles {
                 let named_edible = ecs_world.get::<&Named>(wants_to_eat.item).unwrap();
 
                 game_log.entries.push(format!(
-                    "{} eat the {}",
+                    "{} ate the {}",
                     named_eater.name, named_edible.name
                 ));
 
@@ -94,7 +94,7 @@ impl EatingEdibles {
             // Despawn item from World
             let _ = ecs_world.despawn(eaten);
 
-            // Remove owner's will to pick up
+            // Remove owner's will to eat
             let _ = ecs_world.remove_one::<WantsToEat>(eater);
         }
     }
