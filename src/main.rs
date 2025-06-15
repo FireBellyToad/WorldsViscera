@@ -16,11 +16,16 @@ use systems::{
 };
 
 use crate::{
-    components::common::{Position, Viewshed},
+    components::{
+        common::{MyTurn, Position, Viewshed, WaitingToAct},
+        player,
+    },
     inventory::InventoryAction,
-    maps::{drunken_walk_zone_builder::DrunkenWalkZoneBuilder, zone::Zone, ZoneBuilder},
+    maps::{ZoneBuilder, drunken_walk_zone_builder::DrunkenWalkZoneBuilder, zone::Zone},
     systems::{
-        automatic_healing::AutomaticHealing, decay_manager::DecayManager, drinking_quaffables::DrinkingQuaffables, hunger_check::HungerCheck, thirst_check::ThirstCheck, zap_manager::ZapManager
+        automatic_healing::AutomaticHealing, decay_manager::DecayManager,
+        drinking_quaffables::DrinkingQuaffables, hunger_check::HungerCheck,
+        thirst_check::ThirstCheck, turn_checker::TurnCheck, zap_manager::ZapManager,
     },
     utils::assets::Load,
 };
@@ -60,6 +65,7 @@ async fn main() {
         run_state: RunState::RoundStart,
     };
 
+    let mut tick = 0;
     loop {
         if game_engine.next_tick() {
             // Run system only while not paused, or else wait for player input.
@@ -67,23 +73,35 @@ async fn main() {
 
             match game_state.run_state {
                 RunState::RoundStart => {
-                    game_state.run_state =
-                        do_time_free_game_logic(&mut game_state, RunState::WaitingPlayerInput);
+                    println!("RoundStart - tick {}", tick);
                     do_timed_game_logic(&mut game_state);
+                    game_state.run_state =
+                        do_time_free_game_logic(&mut game_state, RunState::MonsterTurn);
                 }
                 RunState::WaitingPlayerInput => {
                     game_state.run_state = Player::checks_keyboard_input(&mut game_state.ecs_world);
                 }
                 RunState::PlayerTurn => {
+                    println!("PlayerTurn - tick {}", tick);
                     // Reset heal counter if the player did not wait
                     Player::reset_heal_counter(&mut game_state.ecs_world);
+                    {
+                        let player = Player::get_player_entity(&mut game_state.ecs_world);
+                        // TODO use speed, refactor
+                        let _ = &mut game_state.ecs_world.exchange_one::<MyTurn, WaitingToAct>(
+                            player,
+                            WaitingToAct { tick_countdown: 2 },
+                        );
+                    }
                     game_state.run_state =
                         do_time_free_game_logic(&mut game_state, RunState::MonsterTurn);
                 }
                 RunState::MonsterTurn => {
+                    println!("MonsterTurn - tick {}", tick);
                     MonsterAI::act(&mut game_state.ecs_world);
                     game_state.run_state =
                         do_time_free_game_logic(&mut game_state, RunState::RoundStart);
+                    tick += 1;
                 }
                 RunState::GameOver => {
                     // Quit game on Q
@@ -94,11 +112,11 @@ async fn main() {
                         populate_world(&mut game_state.ecs_world);
                         clear_input_queue();
                         game_state.run_state = RunState::RoundStart;
+                        tick=0;
                     }
                 }
                 RunState::ShowInventory(mode) => {
-                    game_state.run_state =
-                        Inventory::handle_input(&mut game_state.ecs_world, mode);
+                    game_state.run_state = Inventory::handle_input(&mut game_state.ecs_world, mode);
                 }
                 RunState::MouseTargeting => {
                     game_state.run_state =
@@ -110,7 +128,6 @@ async fn main() {
                     game_state.run_state = RunState::RoundStart;
                 }
             }
-
             next_frame().await;
         }
 
@@ -152,7 +169,7 @@ fn change_zone(engine: &mut EngineState) {
     // Generate new seed, or else it will always generate the same things
     rand::srand(macroquad::miniquad::date::now() as _);
 
-    let current_depth;    
+    let current_depth;
     // Scope for keeping borrow checker quiet
     {
         let mut zone_query = engine.ecs_world.query::<&Zone>();
@@ -205,6 +222,7 @@ fn do_timed_game_logic(game_state: &mut EngineState) {
     DecayManager::run(&mut game_state.ecs_world);
     HungerCheck::run(&mut game_state.ecs_world);
     ThirstCheck::run(&mut game_state.ecs_world);
+    TurnCheck::run(&mut game_state.ecs_world);
 }
 
 fn do_time_free_game_logic(game_state: &mut EngineState, next_state: RunState) -> RunState {
@@ -221,7 +239,13 @@ fn do_time_free_game_logic(game_state: &mut EngineState, next_state: RunState) -
         ItemDropping::run(&mut game_state.ecs_world);
         EatingEdibles::run(&mut game_state.ecs_world);
         DrinkingQuaffables::run(&mut game_state.ecs_world);
-        return next_state;
+        // TODO refactor
+        if Player::can_act(&game_state.ecs_world) {
+            println!("Player's turn");
+            return RunState::WaitingPlayerInput;
+        } else {
+            return next_state;
+        }
     } else {
         return RunState::GameOver;
     }

@@ -1,5 +1,5 @@
 use crate::components::combat::{CombatStats, InflictsDamage, SufferingDamage};
-use crate::components::common::{BlocksTile, Named, Position, ProduceCorpse, Renderable, Viewshed};
+use crate::components::common::{BlocksTile, MyTurn, Named, Position, ProduceCorpse, Renderable, Viewshed};
 use crate::components::health::{CanAutomaticallyHeal, Hunger, Thirst};
 use crate::components::items::{Edible, Invokable, Item, Perishable, Quaffable};
 use crate::components::monster::Monster;
@@ -71,6 +71,7 @@ impl Spawn {
                 tick_counter: MAX_THIRST_TICK_COUNTER,
                 current_status: ThirstStatus::Normal,
             },
+            MyTurn{}
         );
 
         ecs_world.spawn(player_entity);

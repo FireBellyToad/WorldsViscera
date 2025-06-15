@@ -9,7 +9,7 @@ use macroquad::input::{
 };
 
 use crate::{
-    components::{combat::WantsToZap, health::CanAutomaticallyHeal}, constants::*, engine::state::RunState, inventory::InventoryAction, maps::zone::{TileType, Zone}
+    components::{combat::WantsToZap, common::MyTurn, health::CanAutomaticallyHeal}, constants::*, engine::state::RunState, inventory::InventoryAction, maps::zone::{TileType, Zone}
 };
 
 use super::{
@@ -82,7 +82,7 @@ impl Player {
     /// Handle player input
     ///
     pub fn checks_keyboard_input(ecs_world: &mut World) -> RunState {
-        let mut run_state = RunState::PlayerTurn;
+        let mut run_state = RunState::WaitingPlayerInput;
         let mut check_chars_pressed = false;
         // Player movement
         match get_key_pressed() {
@@ -100,7 +100,7 @@ impl Player {
                 KeyCode::Kp1 => run_state = Self::try_move_player(-1, 1, ecs_world),
 
                 // Skip turn doing nothing, so you can heal
-                KeyCode::Space => return RunState::MonsterTurn,
+                KeyCode::Space => return RunState::PlayerTurn,
 
                 // Something was pressed but is not in this match?
                 // Check for characters pressed
@@ -314,6 +314,12 @@ impl Player {
     /// Extract Player's entity id from world and return it with copy
     pub fn get_player_id(ecs_world: &World) -> u32 {
         Player::get_player_entity(ecs_world).id()
+    }
+    /// Extract Player's entity from world and return it with copy
+    pub fn can_act(ecs_world: &World) -> bool {
+        let mut player_query = ecs_world.query::<(&Player, &MyTurn)>();
+
+        player_query.iter().len() > 0
     }
 
     /// Reset heal counter. Usually when the player did anything but wait

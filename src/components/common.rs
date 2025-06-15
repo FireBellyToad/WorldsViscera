@@ -26,3 +26,13 @@ pub struct ProduceCorpse {}
 pub struct GameLog {
     pub entries: Vec<String>,
 }
+pub struct WantsToMove {
+    pub destination_x: i32,
+    pub destination_y: i32,
+}
+
+pub struct WaitingToAct {
+    pub tick_countdown: i32
+}
+
+pub struct MyTurn{}
