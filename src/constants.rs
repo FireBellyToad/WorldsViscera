@@ -39,6 +39,7 @@ pub const LETTER_SIZE: f32 = 15.0;
 
 /// Timing related constants
 pub const SECONDS_TO_WAIT: f32 = 0.1;
+pub const MAX_ACTION_SPEED: i32 = 4;
 
 /// Spawning related constants
 pub const MAX_MONSTERS_ON_ROOM_START: i32 = 5;

@@ -85,14 +85,7 @@ async fn main() {
                     println!("PlayerTurn - tick {}", tick);
                     // Reset heal counter if the player did not wait
                     Player::reset_heal_counter(&mut game_state.ecs_world);
-                    {
-                        let player = Player::get_player_entity(&mut game_state.ecs_world);
-                        // TODO use speed, refactor
-                        let _ = &mut game_state.ecs_world.exchange_one::<MyTurn, WaitingToAct>(
-                            player,
-                            WaitingToAct { tick_countdown: 2 },
-                        );
-                    }
+                    Player::wait_after_action(&mut game_state.ecs_world);
                     game_state.run_state =
                         do_time_free_game_logic(&mut game_state, RunState::MonsterTurn);
                 }

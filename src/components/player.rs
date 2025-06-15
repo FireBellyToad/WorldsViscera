@@ -1,6 +1,4 @@
-use std::
-    cmp::{max, min}
-;
+use std::cmp::{max, min};
 
 use hecs::{Entity, World};
 use macroquad::input::{
@@ -9,7 +7,15 @@ use macroquad::input::{
 };
 
 use crate::{
-    components::{combat::WantsToZap, common::MyTurn, health::CanAutomaticallyHeal}, constants::*, engine::state::RunState, inventory::InventoryAction, maps::zone::{TileType, Zone}
+    components::{
+        combat::WantsToZap,
+        common::{MyTurn, WaitingToAct},
+        health::CanAutomaticallyHeal,
+    },
+    constants::*,
+    engine::state::RunState,
+    inventory::InventoryAction,
+    maps::zone::{TileType, Zone},
 };
 
 use super::{
@@ -37,7 +43,10 @@ impl Player {
             let mut players = ecs_world.query::<(&Player, &mut Position, &mut Viewshed)>();
 
             let mut zone_query = ecs_world.query::<&Zone>();
-            let (_e, zone) = zone_query.iter().last().expect("Zone is not in hecs::World");
+            let (_e, zone) = zone_query
+                .iter()
+                .last()
+                .expect("Zone is not in hecs::World");
 
             for (player_entity, (_p, position, viewshed)) in &mut players {
                 let destination_index =
@@ -156,7 +165,6 @@ impl Player {
                             run_state = RunState::ShowInventory(InventoryAction::Quaff);
                         }
 
-
                         _ => {}
                     }
                 }
@@ -181,7 +189,10 @@ impl Player {
             // Scope for keeping borrow checker quiet
             {
                 let mut zone_query = ecs_world.query::<&Zone>();
-                let (_e, zone) = zone_query.iter().last().expect("Zone is not in hecs::World");
+                let (_e, zone) = zone_query
+                    .iter()
+                    .last()
+                    .expect("Zone is not in hecs::World");
                 // Make sure that we are targeting a valid tile
                 let index = Zone::get_index_from_xy(rounded_x, rounded_y);
                 if index < zone.visible_tiles.len() {
@@ -262,7 +273,10 @@ impl Player {
         player_position = position;
 
         let mut zone_query = ecs_world.query::<&Zone>();
-        let (_e, zone) = zone_query.iter().last().expect("Zone is not in hecs::World");
+        let (_e, zone) = zone_query
+            .iter()
+            .last()
+            .expect("Zone is not in hecs::World");
         standing_on_tile =
             &zone.tiles[Zone::get_index_from_xy(player_position.x, player_position.y)];
 
@@ -331,5 +345,13 @@ impl Player {
                 can_heal.tick_counter = MAX_STAMINA_HEAL_TICK_COUNTER
             }
         }
+    }
+
+    /// Wait some ticks after action is taken
+    pub fn wait_after_action(ecs_world: &mut World) {
+        let player = Player::get_player_entity(ecs_world);
+        // TODO use real speed
+        let _ = ecs_world
+            .exchange_one::<MyTurn, WaitingToAct>(player, WaitingToAct { tick_countdown: MAX_ACTION_SPEED - 2 });
     }
 }
