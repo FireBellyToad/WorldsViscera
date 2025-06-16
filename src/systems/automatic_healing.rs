@@ -4,8 +4,7 @@ use hecs::World;
 
 use crate::{
     components::{
-        combat::CombatStats,
-        health::{CanAutomaticallyHeal, Hunger},
+        combat::CombatStats, common::MyTurn, health::{CanAutomaticallyHeal, Hunger}
     },
     constants::MAX_STAMINA_HEAL_TICK_COUNTER,
     systems::hunger_check::HungerStatus,
@@ -19,7 +18,7 @@ impl AutomaticHealing {
         {
             // List of entities that has stats
             let mut statted_entities =
-                ecs_world.query::<(&mut CombatStats, &mut CanAutomaticallyHeal, &Hunger)>();
+                ecs_world.query::<(&mut CombatStats, &mut CanAutomaticallyHeal, &Hunger)>().with::<&MyTurn>();
 
             for (_e, (stats, stamina_heal, hunger)) in &mut statted_entities {
                 // Each 4 ticks, heal 1 STA

@@ -5,12 +5,12 @@ use hecs::World;
 use crate::{
     components::{
         combat::{CombatStats, SufferingDamage},
-        common::{GameLog, Position},
+        common::{GameLog, MyTurn, Position},
         health::Thirst,
         player::Player,
     },
     constants::MAX_THIRST_TICK_COUNTER,
-    maps::zone::{Zone, ParticleType},
+    maps::zone::{ParticleType, Zone},
     utils::roll::Roll,
 };
 
@@ -31,7 +31,7 @@ impl ThirstCheck {
         // Scope for keeping borrow checker quiet
         {
             // List of entities that has stats
-            let mut thirsty_entities = ecs_world.query::<(&mut Thirst, &CombatStats, &Position)>();
+            let mut thirsty_entities = ecs_world.query::<(&mut Thirst, &CombatStats, &Position)>().with::<&MyTurn>();
 
             let player_id = Player::get_player_id(ecs_world);
 

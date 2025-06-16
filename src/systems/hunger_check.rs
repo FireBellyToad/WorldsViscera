@@ -5,12 +5,12 @@ use hecs::World;
 use crate::{
     components::{
         combat::{CombatStats, SufferingDamage},
-        common::{GameLog, Position},
+        common::{GameLog, MyTurn, Position},
         health::Hunger,
         player::Player,
     },
     constants::MAX_HUNGER_TICK_COUNTER,
-    maps::zone::{Zone, ParticleType},
+    maps::zone::{ParticleType, Zone},
     utils::roll::Roll,
 };
 
@@ -31,7 +31,9 @@ impl HungerCheck {
         // Scope for keeping borrow checker quiet
         {
             // List of entities that has stats
-            let mut hungry_entities = ecs_world.query::<(&mut Hunger, &CombatStats, &Position)>();
+            let mut hungry_entities = ecs_world
+                .query::<(&mut Hunger, &CombatStats, &Position)>()
+                .with::<&MyTurn>();
 
             let player_id = Player::get_player_id(ecs_world);
 
@@ -52,6 +54,9 @@ impl HungerCheck {
                 // When clock is depleted, decrease fed status
                 // TODO Calculate penalties
                 hunger.tick_counter = max(0, hunger.tick_counter - 1);
+                if hungry_entity.id() == player_id {
+                    println!("You are getting hugrier!");
+                }
 
                 if hunger.tick_counter <= MAX_HUNGER_TICK_COUNTER && hunger.tick_counter == 0 {
                     match hunger.current_status {
@@ -106,7 +111,10 @@ impl HungerCheck {
                             } else {
                                 hunger.tick_counter = MAX_HUNGER_TICK_COUNTER - Roll::dice(3, 10);
                                 hunger.current_status = HungerStatus::Normal;
-                                zone.particle_tiles.insert(Zone::get_index_from_xy(position.x, position.y), ParticleType::Vomit);
+                                zone.particle_tiles.insert(
+                                    Zone::get_index_from_xy(position.x, position.y),
+                                    ParticleType::Vomit,
+                                );
                                 if hungry_entity.id() == player_id {
                                     game_log
                                         .entries

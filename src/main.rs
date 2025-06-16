@@ -77,6 +77,12 @@ async fn main() {
                     do_timed_game_logic(&mut game_state);
                     game_state.run_state =
                         do_time_free_game_logic(&mut game_state, RunState::MonsterTurn);
+
+                    // TODO refactor
+                    if game_state.run_state != RunState::GameOver && Player::can_act(&game_state.ecs_world) {
+                        println!("Player's turn");
+                        game_state.run_state = RunState::WaitingPlayerInput;
+                    }
                 }
                 RunState::WaitingPlayerInput => {
                     game_state.run_state = Player::checks_keyboard_input(&mut game_state.ecs_world);
@@ -105,7 +111,7 @@ async fn main() {
                         populate_world(&mut game_state.ecs_world);
                         clear_input_queue();
                         game_state.run_state = RunState::RoundStart;
-                        tick=0;
+                        tick = 0;
                     }
                 }
                 RunState::ShowInventory(mode) => {
@@ -211,11 +217,11 @@ fn change_zone(engine: &mut EngineState) {
 }
 
 fn do_timed_game_logic(game_state: &mut EngineState) {
+    TurnCheck::run(&mut game_state.ecs_world);
     AutomaticHealing::run(&mut game_state.ecs_world);
     DecayManager::run(&mut game_state.ecs_world);
     HungerCheck::run(&mut game_state.ecs_world);
     ThirstCheck::run(&mut game_state.ecs_world);
-    TurnCheck::run(&mut game_state.ecs_world);
 }
 
 fn do_time_free_game_logic(game_state: &mut EngineState, next_state: RunState) -> RunState {
@@ -232,13 +238,7 @@ fn do_time_free_game_logic(game_state: &mut EngineState, next_state: RunState) -
         ItemDropping::run(&mut game_state.ecs_world);
         EatingEdibles::run(&mut game_state.ecs_world);
         DrinkingQuaffables::run(&mut game_state.ecs_world);
-        // TODO refactor
-        if Player::can_act(&game_state.ecs_world) {
-            println!("Player's turn");
-            return RunState::WaitingPlayerInput;
-        } else {
-            return next_state;
-        }
+        return next_state;
     } else {
         return RunState::GameOver;
     }
