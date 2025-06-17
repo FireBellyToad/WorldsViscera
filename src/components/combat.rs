@@ -9,6 +9,7 @@ pub struct CombatStats {
     pub max_dexterity: i32,
     pub base_armor: i32,
     pub unarmed_attack_dice: i32,
+    pub speed: i32
 }
 
 pub struct SufferingDamage {

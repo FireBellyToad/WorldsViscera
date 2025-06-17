@@ -1,5 +1,7 @@
 use crate::components::combat::{CombatStats, InflictsDamage, SufferingDamage};
-use crate::components::common::{BlocksTile, MyTurn, Named, Position, ProduceCorpse, Renderable, Viewshed};
+use crate::components::common::{
+    BlocksTile, MyTurn, Named, Position, ProduceCorpse, Renderable, Viewshed, WaitingToAct,
+};
 use crate::components::health::{CanAutomaticallyHeal, Hunger, Thirst};
 use crate::components::items::{Edible, Invokable, Item, Perishable, Quaffable};
 use crate::components::monster::Monster;
@@ -60,6 +62,7 @@ impl Spawn {
                 max_toughness: rolled_toughness,
                 current_dexterity: rolled_dexterity,
                 max_dexterity: rolled_dexterity,
+                speed: 2,
             },
             SufferingDamage { damage_received: 0 },
             CanAutomaticallyHeal { tick_counter: 0 },
@@ -71,7 +74,7 @@ impl Spawn {
                 tick_counter: MAX_THIRST_TICK_COUNTER,
                 current_status: ThirstStatus::Normal,
             },
-            MyTurn{}
+            MyTurn {},
         );
 
         ecs_world.spawn(player_entity);
@@ -115,6 +118,7 @@ impl Spawn {
                 max_toughness: 8,
                 current_dexterity: 10,
                 max_dexterity: 10,
+                speed: 2,
             },
             1.0, //TODO fix
             x,
@@ -135,6 +139,7 @@ impl Spawn {
                 max_toughness: 10,
                 current_dexterity: 8,
                 max_dexterity: 8,
+                speed: 0,
             },
             2.0, //TODO fix
             x,
@@ -174,6 +179,7 @@ impl Spawn {
             combat_stats,
             SufferingDamage { damage_received: 0 },
             ProduceCorpse {},
+            MyTurn{},
         );
 
         ecs_world.spawn(monster_entity);
@@ -215,7 +221,7 @@ impl Spawn {
 
         ecs_world.spawn(meat);
     }
-    
+
     fn waterskin(ecs_world: &mut World, x: i32, y: i32) {
         let item_tile_index = 2;
         let meat = (
@@ -234,10 +240,10 @@ impl Spawn {
                 name: String::from("Flask of water"),
             },
             Item { item_tile_index },
-            Quaffable{
+            Quaffable {
                 thirst_dice_number: 3,
                 thirst_dice_size: 12,
-            }
+            },
         );
 
         ecs_world.spawn(meat);

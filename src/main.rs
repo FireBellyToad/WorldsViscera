@@ -88,7 +88,8 @@ async fn main() {
                 RunState::DoTick => {
                     println!("DoTick - tick {}", tick);
                     //TODO refactor
-                    game_state.run_state = do_time_free_game_logic(&mut game_state, RunState::RoundStart);
+                    game_state.run_state =
+                        do_time_free_game_logic(&mut game_state, RunState::RoundStart);
                     Player::wait_after_action(&mut game_state.ecs_world);
                     MonsterAI::act(&mut game_state.ecs_world);
                     tick += 1;
@@ -224,15 +225,15 @@ fn do_time_free_game_logic(game_state: &mut EngineState, next_state: RunState) -
     DamageManager::run(&game_state.ecs_world);
     game_over = DamageManager::remove_dead(&mut game_state.ecs_world);
     //Proceed on game logic ifis not Game Over
-    if !game_over {
+    if game_over {
+        return RunState::GameOver;
+    } else {
         FovCalculator::run(&game_state.ecs_world);
         MapIndexing::run(&game_state.ecs_world);
         ItemCollection::run(&mut game_state.ecs_world);
         ItemDropping::run(&mut game_state.ecs_world);
         EatingEdibles::run(&mut game_state.ecs_world);
         DrinkingQuaffables::run(&mut game_state.ecs_world);
-        return next_state;
-    } else {
-        return RunState::GameOver;
     }
+    next_state
 }

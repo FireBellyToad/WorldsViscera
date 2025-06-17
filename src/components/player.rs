@@ -361,11 +361,17 @@ impl Player {
     /// Wait some ticks after action is taken
     pub fn wait_after_action(ecs_world: &mut World) {
         let player = Player::get_player_entity(ecs_world);
+        let speed;
+
+        // Scope for keeping borrow checker quiet
+        {
+            speed = ecs_world.get::<&CombatStats>(player).unwrap().speed;
+        }
         // TODO use real speed
         let _ = ecs_world.exchange_one::<MyTurn, WaitingToAct>(
             player,
             WaitingToAct {
-                tick_countdown: MAX_ACTION_SPEED - 2,
+                tick_countdown: MAX_ACTION_SPEED - speed,
             },
         );
     }
