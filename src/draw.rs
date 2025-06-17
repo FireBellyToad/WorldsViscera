@@ -326,25 +326,25 @@ impl Draw {
     }
 
     /// Draws zone
-    pub fn zone(game_map: &Zone, assets: &HashMap<TextureName, Texture2D>) {
+    pub fn zone(zone: &Zone, assets: &HashMap<TextureName, Texture2D>) {
         let texture_to_render = assets.get(&TextureName::Tiles).expect("Texture not found");
 
         for x in 0..MAP_WIDTH {
             for y in 0..MAP_HEIGHT {
                 let tile_to_draw = Zone::get_index_from_xy(x, y);
-                let tile_index = Zone::get_tile_sprite_sheet_index(&game_map.tiles[tile_to_draw])
+                let tile_index = Zone::get_tile_sprite_sheet_index(&zone.tiles[tile_to_draw])
                     * TILE_SIZE_F32;
 
-                if game_map.revealed_tiles[tile_to_draw] {
+                if zone.revealed_tiles[tile_to_draw] {
                     let mut alpha = DARKGRAY;
 
-                    if game_map.visible_tiles[tile_to_draw] {
+                    if zone.visible_tiles[tile_to_draw] {
                         alpha = WHITE;
-                        if game_map.particle_tiles.contains_key(&tile_to_draw) {
+                        if zone.particle_tiles.contains_key(&tile_to_draw) {
                             Draw::draw_particles(
                                 x,
                                 y,
-                                game_map.particle_tiles.get(&tile_to_draw).unwrap(),
+                                zone.particle_tiles.get(&tile_to_draw).unwrap(),
                             );
                         }
                     }

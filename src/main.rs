@@ -10,7 +10,7 @@ use inventory::Inventory;
 use macroquad::prelude::*;
 use spawner::Spawn;
 use systems::{
-    damage_manager::DamageManager, eating_edibles::EatingEdibles, fov::FovCalculator,
+    damage_manager::DamageManager, eating_edibles::EatingEdibles, fov::FieldOfView,
     item_collection::ItemCollection, item_dropping::ItemDropping, map_indexing::MapIndexing,
     melee_manager::MeleeManager, monster_ai::MonsterAI,
 };
@@ -228,8 +228,8 @@ fn do_time_free_game_logic(game_state: &mut EngineState, next_state: RunState) -
     if game_over {
         return RunState::GameOver;
     } else {
-        FovCalculator::run(&game_state.ecs_world);
         MapIndexing::run(&game_state.ecs_world);
+        FieldOfView::calculate(&game_state.ecs_world);
         ItemCollection::run(&mut game_state.ecs_world);
         ItemDropping::run(&mut game_state.ecs_world);
         EatingEdibles::run(&mut game_state.ecs_world);

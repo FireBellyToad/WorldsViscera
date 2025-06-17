@@ -46,3 +46,7 @@ pub struct Perishable {
 }
 
 pub struct Rotten {}
+
+pub struct ProduceLight{
+    pub radius: i32
+}

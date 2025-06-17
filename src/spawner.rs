@@ -3,7 +3,7 @@ use crate::components::common::{
     BlocksTile, MyTurn, Named, Position, ProduceCorpse, Renderable, Viewshed,
 };
 use crate::components::health::{CanAutomaticallyHeal, Hunger, Thirst};
-use crate::components::items::{Edible, Invokable, Item, Perishable, Quaffable};
+use crate::components::items::{Edible, Invokable, Item, Perishable, ProduceLight, Quaffable};
 use crate::components::monster::Monster;
 use crate::components::player::Player;
 use crate::constants::*;
@@ -75,6 +75,9 @@ impl Spawn {
                 current_status: ThirstStatus::Normal,
             },
             MyTurn {},
+            ProduceLight {
+                radius: BASE_VIEW_RADIUS,
+            },
         );
 
         ecs_world.spawn(player_entity);

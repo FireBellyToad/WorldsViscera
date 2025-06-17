@@ -9,10 +9,10 @@ use crate::{
 
 use adam_fov_rs::GridPoint;
 
-pub struct FovCalculator {}
+pub struct FieldOfView {}
 
-impl FovCalculator {
-    pub fn run(ecs_world: &World) {
+impl FieldOfView {
+    pub fn calculate(ecs_world: &World) {
         let player_entity_id = Player::get_player_id(ecs_world);
 
         let mut zone_query = ecs_world.query::<&mut Zone>();
@@ -29,36 +29,43 @@ impl FovCalculator {
                 viewshed.must_recalculate = false;
                 viewshed.visible_tiles.clear();
 
-                // Utility lambda for opaque tiles
-                let is_opaque = |position: IVec2| zone.is_tile_opaque(position[0], position[1]);
-                // Utility lambda for setting visible tiles
-                let set_to_visible = |position: IVec2| {
-                    viewshed.visible_tiles.push((position[0], position[1]));
-                };
-
-                // Calculate Fov
-                compute_fov(
-                    Point {
-                        x: position.x,
-                        y: position.y,
-                    },
-                    viewshed.range as usize,
-                    [MAP_WIDTH, MAP_HEIGHT],
-                    is_opaque,
-                    set_to_visible,
-                );
+                FieldOfView::compute(zone, viewshed, position.x, position.y);
 
                 //recalculate rendered view if entity is Player
                 if entity.id() == player_entity_id {
                     zone.visible_tiles.fill(false);
                     for &(x, y) in viewshed.visible_tiles.iter() {
                         let index = Zone::get_index_from_xy(x, y);
-                        zone.revealed_tiles[index] = true;
-                        zone.visible_tiles[index] = true;
+                        // if is lit, that we can show and reveal
+                        // TODO do anyway for adiacent tiles
+                        if zone.lit_tiles[index] {
+                            zone.revealed_tiles[index] = true;
+                            zone.visible_tiles[index] = true;
+                        }
                     }
                 }
             }
         }
+    }
+
+    /// Wrapper to riutilize standar compute fov everywhere, given a viewshed
+    pub fn compute(zone: &mut Zone, viewshed: &mut Viewshed, x: i32, y: i32) {
+        // Utility lambda for opaque tiles
+        let is_opaque = |position: IVec2| zone.is_tile_opaque(position[0], position[1]);
+
+        // Utility lambda for setting visible tiles
+        let set_to_visible = |position: IVec2| {
+            viewshed.visible_tiles.push((position[0], position[1]));
+        };
+
+        // Calculate Fov
+        compute_fov(
+            Point { x, y },
+            viewshed.range as usize,
+            [MAP_WIDTH, MAP_HEIGHT],
+            is_opaque,
+            set_to_visible,
+        );
     }
 }
 #[derive(Clone, Copy, PartialEq, Debug)]
