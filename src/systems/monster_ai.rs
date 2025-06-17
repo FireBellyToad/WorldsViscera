@@ -1,3 +1,5 @@
+use std::cmp::min;
+
 use hecs::{Entity, World};
 
 use crate::{
@@ -93,11 +95,12 @@ impl MonsterAI {
             let _ = ecs_world.insert_one(attacker, WantsToMelee { target });
         }
 
+        // TODO account speed penalties
         for (must_wait, speed) in waiter_speed_list {
             let _ = ecs_world.exchange_one::<MyTurn, WaitingToAct>(
                 must_wait,
                 WaitingToAct {
-                    tick_countdown: MAX_ACTION_SPEED - speed,
+                    tick_countdown: min(1, MAX_ACTION_SPEED - speed),
                 },
             );
         }

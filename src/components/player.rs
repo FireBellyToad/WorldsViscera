@@ -367,11 +367,11 @@ impl Player {
         {
             speed = ecs_world.get::<&CombatStats>(player).unwrap().speed;
         }
-        // TODO use real speed
+        // TODO account speed penalties
         let _ = ecs_world.exchange_one::<MyTurn, WaitingToAct>(
             player,
             WaitingToAct {
-                tick_countdown: MAX_ACTION_SPEED - speed,
+                tick_countdown: min(1, MAX_ACTION_SPEED - speed),
             },
         );
     }
