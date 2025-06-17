@@ -371,7 +371,7 @@ impl Player {
         let _ = ecs_world.exchange_one::<MyTurn, WaitingToAct>(
             player,
             WaitingToAct {
-                tick_countdown: min(1, MAX_ACTION_SPEED - speed),
+                tick_countdown: max(1, MAX_ACTION_SPEED - speed),
             },
         );
     }

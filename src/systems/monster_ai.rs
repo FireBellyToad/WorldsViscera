@@ -1,4 +1,4 @@
-use std::cmp::min;
+use std::cmp::max;
 
 use hecs::{Entity, World};
 
@@ -100,7 +100,7 @@ impl MonsterAI {
             let _ = ecs_world.exchange_one::<MyTurn, WaitingToAct>(
                 must_wait,
                 WaitingToAct {
-                    tick_countdown: min(1, MAX_ACTION_SPEED - speed),
+                    tick_countdown: max(1, MAX_ACTION_SPEED - speed),
                 },
             );
         }

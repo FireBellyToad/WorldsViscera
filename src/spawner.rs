@@ -96,11 +96,12 @@ impl Spawn {
 
     /// Spawn a random monster
     pub fn random_monster(ecs_world: &mut World, x: i32, y: i32) {
-        let dice_roll = Roll::dice(1, 4);
+        let dice_roll = Roll::dice(1, 5);
 
         // Dvergar is stronger, shuold be less common
         match dice_roll {
             1 => Self::dvergar(ecs_world, x, y),
+            2 => Self::gremlin(ecs_world, x, y),
             _ => Self::deep_one(ecs_world, x, y),
         }
     }
@@ -121,6 +122,27 @@ impl Spawn {
                 speed: 2,
             },
             1.0, //TODO fix
+            x,
+            y,
+        );
+    }
+
+    fn gremlin(ecs_world: &mut World, x: i32, y: i32) {
+        Self::create_monster(
+            ecs_world,
+            "Gremlin".to_string(),
+            CombatStats {
+                current_stamina: 2,
+                max_stamina: 2,
+                base_armor: 0,
+                unarmed_attack_dice: 2,
+                current_toughness: 7,
+                max_toughness: 7,
+                current_dexterity: 14,
+                max_dexterity: 14,
+                speed: 3,
+            },
+            3.0, //TODO fix
             x,
             y,
         );
@@ -179,7 +201,7 @@ impl Spawn {
             combat_stats,
             SufferingDamage { damage_received: 0 },
             ProduceCorpse {},
-            MyTurn{},
+            MyTurn {},
         );
 
         ecs_world.spawn(monster_entity);
