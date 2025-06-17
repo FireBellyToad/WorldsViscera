@@ -6,8 +6,7 @@ use crate::{components::{common::GameLog, items::InBackback, player::Player}, in
 pub enum RunState {
     RoundStart,
     WaitingPlayerInput,
-    PlayerTurn,
-    MonsterTurn,
+    DoTick,
     GameOver,
     ShowInventory(InventoryAction),
     MouseTargeting,

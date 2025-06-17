@@ -16,11 +16,7 @@ use systems::{
 };
 
 use crate::{
-    components::{
-        common::{MyTurn, Position, Viewshed, WaitingToAct},
-        player,
-    },
-    inventory::InventoryAction,
+    components::common::{Position, Viewshed},
     maps::{ZoneBuilder, drunken_walk_zone_builder::DrunkenWalkZoneBuilder, zone::Zone},
     systems::{
         automatic_healing::AutomaticHealing, decay_manager::DecayManager,
@@ -76,10 +72,12 @@ async fn main() {
                     println!("RoundStart - tick {}", tick);
                     do_timed_game_logic(&mut game_state);
                     game_state.run_state =
-                        do_time_free_game_logic(&mut game_state, RunState::MonsterTurn);
+                        do_time_free_game_logic(&mut game_state, RunState::DoTick);
 
                     // TODO refactor
-                    if game_state.run_state != RunState::GameOver && Player::can_act(&game_state.ecs_world) {
+                    if game_state.run_state != RunState::GameOver
+                        && Player::can_act(&game_state.ecs_world)
+                    {
                         println!("Player's turn");
                         game_state.run_state = RunState::WaitingPlayerInput;
                     }
@@ -87,19 +85,12 @@ async fn main() {
                 RunState::WaitingPlayerInput => {
                     game_state.run_state = Player::checks_keyboard_input(&mut game_state.ecs_world);
                 }
-                RunState::PlayerTurn => {
-                    println!("PlayerTurn - tick {}", tick);
-                    // Reset heal counter if the player did not wait
-                    Player::reset_heal_counter(&mut game_state.ecs_world);
+                RunState::DoTick => {
+                    println!("DoTick - tick {}", tick);
+                    //TODO refactor
+                    game_state.run_state = do_time_free_game_logic(&mut game_state, RunState::RoundStart);
                     Player::wait_after_action(&mut game_state.ecs_world);
-                    game_state.run_state =
-                        do_time_free_game_logic(&mut game_state, RunState::MonsterTurn);
-                }
-                RunState::MonsterTurn => {
-                    println!("MonsterTurn - tick {}", tick);
                     MonsterAI::act(&mut game_state.ecs_world);
-                    game_state.run_state =
-                        do_time_free_game_logic(&mut game_state, RunState::RoundStart);
                     tick += 1;
                 }
                 RunState::GameOver => {
@@ -122,6 +113,8 @@ async fn main() {
                         Player::checks_input_for_targeting(&mut game_state.ecs_world);
                 }
                 RunState::GoToNextZone => {
+                    // Reset heal counter if the player did not wait
+                    Player::reset_heal_counter(&mut game_state.ecs_world);
                     change_zone(&mut game_state);
                     clear_input_queue();
                     game_state.run_state = RunState::RoundStart;

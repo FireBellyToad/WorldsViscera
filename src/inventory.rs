@@ -100,7 +100,7 @@ impl Inventory {
             }
 
             // Use selected item
-            let mut new_run_state = RunState::PlayerTurn;
+            let mut new_run_state = RunState::DoTick;
             if selected_item_entity.is_some() {
                 let item: Entity = selected_item_entity.unwrap();
                 match mode {

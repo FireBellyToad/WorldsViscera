@@ -69,7 +69,9 @@ impl Player {
                         position.x = min(MAP_WIDTH - 1, max(0, position.x + delta_x));
                         position.y = min(MAP_HEIGHT - 1, max(0, position.y + delta_y));
                         viewshed.must_recalculate = true;
-                        return RunState::PlayerTurn;
+                        // Reset heal counter if the player did not wait
+                        Player::reset_heal_counter(ecs_world);
+                        return RunState::DoTick;
                     } else {
                         return RunState::WaitingPlayerInput;
                     }
@@ -81,7 +83,10 @@ impl Player {
         if attacker_target.is_some() {
             let (attacker, target) = attacker_target.unwrap();
             let _ = ecs_world.insert_one(attacker, WantsToMelee { target });
-            return RunState::PlayerTurn;
+
+            // Reset heal counter if the player did not wait
+            Player::reset_heal_counter(ecs_world);
+            return RunState::DoTick;
         }
 
         RunState::WaitingPlayerInput
@@ -109,7 +114,7 @@ impl Player {
                 KeyCode::Kp1 => run_state = Self::try_move_player(-1, 1, ecs_world),
 
                 // Skip turn doing nothing, so you can heal
-                KeyCode::Space => return RunState::PlayerTurn,
+                KeyCode::Space => run_state = RunState::DoTick,
 
                 // Something was pressed but is not in this match?
                 // Check for characters pressed
@@ -125,11 +130,12 @@ impl Player {
                 Some(char) => {
                     match char {
                         // Skip turn doing nothing, so you can heal
-                        '.' => return RunState::MonsterTurn,
+                        '.' => run_state = RunState::DoTick,
 
                         //Pick up
                         'p' => {
                             Player::pick_up(ecs_world);
+                            run_state = RunState::DoTick;
                         }
 
                         //Eat item
@@ -209,7 +215,9 @@ impl Player {
                         target: (rounded_x, rounded_y),
                     },
                 );
-                return RunState::PlayerTurn;
+                // Reset heal counter if the player did not wait
+                Player::reset_heal_counter(ecs_world);
+                return RunState::DoTick;
             }
         }
 
@@ -258,6 +266,9 @@ impl Player {
             game_log
                 .entries
                 .push(String::from("There is nothing here to pick up"));
+        } else {
+            // Reset heal counter if the player did not wait
+            Player::reset_heal_counter(ecs_world);
         }
     }
 
@@ -351,7 +362,11 @@ impl Player {
     pub fn wait_after_action(ecs_world: &mut World) {
         let player = Player::get_player_entity(ecs_world);
         // TODO use real speed
-        let _ = ecs_world
-            .exchange_one::<MyTurn, WaitingToAct>(player, WaitingToAct { tick_countdown: MAX_ACTION_SPEED - 2 });
+        let _ = ecs_world.exchange_one::<MyTurn, WaitingToAct>(
+            player,
+            WaitingToAct {
+                tick_countdown: MAX_ACTION_SPEED - 2,
+            },
+        );
     }
 }

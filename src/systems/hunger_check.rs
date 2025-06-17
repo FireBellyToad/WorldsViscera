@@ -54,10 +54,6 @@ impl HungerCheck {
                 // When clock is depleted, decrease fed status
                 // TODO Calculate penalties
                 hunger.tick_counter = max(0, hunger.tick_counter - 1);
-                if hungry_entity.id() == player_id {
-                    println!("You are getting hugrier!");
-                }
-
                 if hunger.tick_counter <= MAX_HUNGER_TICK_COUNTER && hunger.tick_counter == 0 {
                     match hunger.current_status {
                         HungerStatus::Satiated => {
