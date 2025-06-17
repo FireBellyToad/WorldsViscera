@@ -1,4 +1,4 @@
-use std::{collections::HashMap, fmt::format};
+use std::collections::HashMap;
 
 use hecs::World;
 use macroquad::{
@@ -19,7 +19,7 @@ use crate::{
     },
     constants::*,
     engine::state::{EngineState, RunState},
-    inventory::{Inventory, InventoryAction},
+    inventory::Inventory,
     maps::zone::{ParticleType, Zone},
     systems::{hunger_check::HungerStatus, thirst_check::ThirstStatus},
     utils::assets::TextureName,

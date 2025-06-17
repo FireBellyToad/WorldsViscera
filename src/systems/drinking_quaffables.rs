@@ -4,11 +4,8 @@ use crate::{
     components::{
         common::{GameLog, Named, Position},
         health::Thirst,
-        items::{Edible, Quaffable, Rotten, WantsToDrink},
-        player::Player,
+        items::{Quaffable, WantsToDrink},
     },
-    maps::zone::{ParticleType, Zone},
-    systems::thirst_check::ThirstStatus,
     utils::roll::Roll,
 };
 
@@ -30,7 +27,7 @@ impl DrinkingQuaffables {
                 .last()
                 .expect("Game log is not in hecs::World");
 
-            for (drinker, (wants_to_drink, thirst, position)) in &mut drinkers {
+            for (drinker, (wants_to_drink, thirst, _p)) in &mut drinkers {
                 // Pick up and keep track of the owner
                 drinker_drunk_list.push((drinker, wants_to_drink.item));
 

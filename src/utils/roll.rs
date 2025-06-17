@@ -17,21 +17,21 @@ impl Roll {
 
     /// Roll a d20. Will be used a lot
     pub fn d20() -> i32 {
-        Self::dice(1, 20)
+        Roll::dice(1, 20)
     }
 
     /// Roll a d6. Will be used a lot
     pub fn d6() -> i32 {
-        Self::dice(1, 6)
+        Roll::dice(1, 6)
     }
 
     /// Roll a d100. Will be used a lot
     pub fn d100() -> i32 {
-        Self::dice(1, 100)
+        Roll::dice(1, 100)
     }
 
     /// Roll 3d6. Will be used a lot
     pub fn stat() -> i32 {
-        Self::dice(3, 6)
+        Roll::dice(3, 6)
     }
 }

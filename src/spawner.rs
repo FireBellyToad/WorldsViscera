@@ -1,6 +1,6 @@
 use crate::components::combat::{CombatStats, InflictsDamage, SufferingDamage};
 use crate::components::common::{
-    BlocksTile, MyTurn, Named, Position, ProduceCorpse, Renderable, Viewshed, WaitingToAct,
+    BlocksTile, MyTurn, Named, Position, ProduceCorpse, Renderable, Viewshed,
 };
 use crate::components::health::{CanAutomaticallyHeal, Hunger, Thirst};
 use crate::components::items::{Edible, Invokable, Item, Perishable, Quaffable};
@@ -85,12 +85,12 @@ impl Spawn {
         // Actually spawn the monsters
         for &index in zone.monster_spawn_points.iter() {
             let (x, y) = Zone::get_xy_from_index(index);
-            Self::random_monster(ecs_world, x as i32, y as i32);
+            Spawn::random_monster(ecs_world, x as i32, y as i32);
         }
         // Actually spawn the potions
         for &index in zone.item_spawn_points.iter() {
             let (x, y) = Zone::get_xy_from_index(index);
-            Self::random_item(ecs_world, x as i32, y as i32);
+            Spawn::random_item(ecs_world, x as i32, y as i32);
         }
     }
 
@@ -100,14 +100,14 @@ impl Spawn {
 
         // Dvergar is stronger, shuold be less common
         match dice_roll {
-            1 => Self::dvergar(ecs_world, x, y),
-            2 => Self::gremlin(ecs_world, x, y),
-            _ => Self::deep_one(ecs_world, x, y),
+            1 => Spawn::dvergar(ecs_world, x, y),
+            2 => Spawn::gremlin(ecs_world, x, y),
+            _ => Spawn::deep_one(ecs_world, x, y),
         }
     }
 
     fn deep_one(ecs_world: &mut World, x: i32, y: i32) {
-        Self::create_monster(
+        Spawn::create_monster(
             ecs_world,
             "Deep One".to_string(),
             CombatStats {
@@ -128,7 +128,7 @@ impl Spawn {
     }
 
     fn gremlin(ecs_world: &mut World, x: i32, y: i32) {
-        Self::create_monster(
+        Spawn::create_monster(
             ecs_world,
             "Gremlin".to_string(),
             CombatStats {
@@ -149,7 +149,7 @@ impl Spawn {
     }
 
     fn dvergar(ecs_world: &mut World, x: i32, y: i32) {
-        Self::create_monster(
+        Spawn::create_monster(
             ecs_world,
             "Dvergar".to_string(),
             CombatStats {
@@ -212,8 +212,8 @@ impl Spawn {
         let dice_roll = Roll::dice(1, 3);
         // Dvergar is stronger, shuold be less common
         match dice_roll {
-            1 => Self::wand(ecs_world, x, y),
-            _ => Self::waterskin(ecs_world, x, y),
+            1 => Spawn::wand(ecs_world, x, y),
+            _ => Spawn::waterskin(ecs_world, x, y),
         }
     }
 
