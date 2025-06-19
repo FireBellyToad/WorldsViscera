@@ -75,9 +75,6 @@ impl Spawn {
                 current_status: ThirstStatus::Normal,
             },
             MyTurn {},
-            ProduceLight {
-                radius: 1,
-            },
         );
 
         ecs_world.spawn(player_entity);

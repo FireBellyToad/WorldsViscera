@@ -38,7 +38,13 @@ impl FieldOfView {
                         let index = Zone::get_index_from_xy(x, y);
                         // if is lit, that we can show and reveal
                         // TODO do anyway for adiacent tiles
-                        if zone.lit_tiles[index] {
+
+                        let distance = ((x.abs_diff(position.x).pow(2)
+                            + y.abs_diff(position.y).pow(2))
+                            as f32)
+                            .sqrt();
+
+                        if zone.lit_tiles[index] || distance < 2.0 {
                             zone.revealed_tiles[index] = true;
                             zone.visible_tiles[index] = true;
                         }
