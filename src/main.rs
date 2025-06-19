@@ -61,7 +61,6 @@ async fn main() {
         run_state: RunState::RoundStart,
     };
 
-    let mut tick = 0;
     loop {
         if game_engine.next_tick() {
             // Run system only while not paused, or else wait for player input.
@@ -69,7 +68,6 @@ async fn main() {
 
             match game_state.run_state {
                 RunState::RoundStart => {
-                    println!("RoundStart - tick {}", tick);
                     do_timed_game_logic(&mut game_state);
                     game_state.run_state =
                         do_time_free_game_logic(&mut game_state, RunState::DoTick);
@@ -78,7 +76,6 @@ async fn main() {
                     if game_state.run_state != RunState::GameOver
                         && Player::can_act(&game_state.ecs_world)
                     {
-                        println!("Player's turn");
                         game_state.run_state = RunState::WaitingPlayerInput;
                     }
                 }
@@ -86,13 +83,11 @@ async fn main() {
                     game_state.run_state = Player::checks_keyboard_input(&mut game_state.ecs_world);
                 }
                 RunState::DoTick => {
-                    println!("DoTick - tick {}", tick);
                     //TODO refactor
                     game_state.run_state =
                         do_time_free_game_logic(&mut game_state, RunState::RoundStart);
                     Player::wait_after_action(&mut game_state.ecs_world);
                     MonsterAI::act(&mut game_state.ecs_world);
-                    tick += 1;
                 }
                 RunState::GameOver => {
                     // Quit game on Q
@@ -103,7 +98,6 @@ async fn main() {
                         populate_world(&mut game_state.ecs_world);
                         clear_input_queue();
                         game_state.run_state = RunState::RoundStart;
-                        tick = 0;
                     }
                 }
                 RunState::ShowInventory(mode) => {

@@ -58,6 +58,7 @@ pub const DRUNKEN_WALK_MAX_ITERATIONS: i32 = 50;
 
 /// Item related constants
 pub const STARTING_ROT_COUNTER: i32 = 51;
+pub const LANTERN_RADIUS: i32 = 6;
 
 /// Monsters related constats
 pub const BASE_MONSTER_VIEW_RADIUS: i32 = 8;

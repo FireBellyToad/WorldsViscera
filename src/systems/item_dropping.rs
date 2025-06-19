@@ -2,7 +2,7 @@ use hecs::{Entity, World};
 
 use crate::components::{
     common::{GameLog, Named, Position},
-    items::{InBackback, WantsToDrop},
+    items::{InBackback, ProduceLight, WantsToDrop},
 };
 
 pub struct ItemDropping {}
@@ -10,6 +10,7 @@ pub struct ItemDropping {}
 impl ItemDropping {
     pub fn run(ecs_world: &mut World) {
         let mut item_drop_position_list: Vec<(Entity, Entity, (i32, i32))> = Vec::new();
+        let mut light_producers: Vec<u32> = Vec::new();
 
         // Scope for keeping borrow checker quiet
         {
@@ -32,6 +33,13 @@ impl ItemDropping {
                 // Drop item and keep track of the drop Position
                 item_drop_position_list.push((wants_item.item, dropper, (drop.x, drop.y)));
 
+                // Pick up and keep track of the owner
+                
+                let produce_light = ecs_world.get::<&ProduceLight>(wants_item.item);
+                if produce_light.is_ok() {
+                    light_producers.push(wants_item.item.id());
+                }
+            
                 game_log.entries.push(format!(
                     "{} drops up the {}",
                     named_dropper.name, named_item.name
@@ -51,6 +59,11 @@ impl ItemDropping {
                     y: drop_y,
                 },
             );
+            
+            // If dropped light producer, player will stop producing light 
+            if light_producers.contains(&item.id()) {
+                let _ = ecs_world.remove_one::<ProduceLight>(dropper);
+            }
         }
     }
 }

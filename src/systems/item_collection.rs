@@ -1,9 +1,11 @@
-use hecs::{Entity, World};
+use std::collections::HashMap;
+
+use hecs::{Entity, Ref, World};
 
 use crate::{
     components::{
         common::{GameLog, Named, Position},
-        items::{InBackback, Item, WantsItem},
+        items::{InBackback, Item, ProduceLight, WantsItem},
     },
     constants::OPTION_TO_CHAR_MAP,
 };
@@ -13,6 +15,7 @@ pub struct ItemCollection {}
 impl ItemCollection {
     pub fn run(ecs_world: &mut World) {
         let mut item_owner_list: Vec<(Entity, Entity, char)> = Vec::new();
+        let mut light_producers: HashMap<u32, i32> = HashMap::new();
 
         // Scope for keeping borrow checker quiet
         {
@@ -57,6 +60,11 @@ impl ItemCollection {
                 // Pick up and keep track of the owner
                 item_owner_list.push((wants_item.item, collector, char_to_assign));
 
+                let produce_light = ecs_world.get::<&ProduceLight>(wants_item.item);
+                if produce_light.is_ok() {
+                    light_producers.insert(wants_item.item.id(), produce_light.unwrap().radius);
+                }
+
                 // Show appropriate log messages
                 let named_item = ecs_world.get::<&Named>(wants_item.item).unwrap();
 
@@ -79,6 +87,12 @@ impl ItemCollection {
                     assigned_char: to_grab,
                 },
             );
+
+            // If picked up light producer, player will produce light 
+            if light_producers.contains_key(&item.id()) {
+                let radius = *light_producers.get(&item.id()).unwrap();
+                let _ = ecs_world.insert_one(owner, ProduceLight { radius });
+            }
         }
     }
 }

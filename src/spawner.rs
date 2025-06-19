@@ -24,8 +24,8 @@ impl Spawn {
         // Roll appropriate stats
         let rolled_toughness = Roll::stat();
         let rolled_dexterity = Roll::stat();
-        // TODO Player with Soldier background must have 5+2d3 starting stamina
-        let rolled_stamina = Roll::d6() + 5;
+        // TODO Player with Soldier background must have 3+2d3 starting stamina
+        let rolled_stamina = Roll::d6() + 3;
 
         let (spawn_x, spawn_y) = Zone::get_xy_from_index(zone.player_spawn_point);
 
@@ -47,7 +47,7 @@ impl Spawn {
             },
             Viewshed {
                 visible_tiles: Vec::new(),
-                range: BASE_VIEW_RADIUS+4,
+                range: BASE_VIEW_RADIUS,
                 must_recalculate: true,
             },
             Named {
@@ -209,12 +209,13 @@ impl Spawn {
 
     /// Spawn a random monster
     pub fn random_item(ecs_world: &mut World, x: i32, y: i32) {
-        let dice_roll = Roll::dice(1, 6);
+        
+        let dice_roll = Roll::dice(1, 4);
         // Dvergar is stronger, shuold be less common
         match dice_roll {
             1 => Spawn::wand(ecs_world, x, y),
-            2 => Spawn::flask_of_water(ecs_world, x, y),
-            _ => Spawn::lantern(ecs_world, x, y),
+            2 => Spawn::lantern(ecs_world, x, y),
+            _ => Spawn::flask_of_water(ecs_world, x, y),
         }
     }
 
@@ -290,7 +291,7 @@ impl Spawn {
                 name: String::from("Lantern"),
             },
             Item { item_tile_index },
-            ProduceLight { radius: 12 },
+            ProduceLight { radius: LANTERN_RADIUS },
         );
 
         ecs_world.spawn(meat);
