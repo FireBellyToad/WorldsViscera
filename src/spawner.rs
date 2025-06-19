@@ -47,7 +47,7 @@ impl Spawn {
             },
             Viewshed {
                 visible_tiles: Vec::new(),
-                range: BASE_VIEW_RADIUS,
+                range: BASE_VIEW_RADIUS+4,
                 must_recalculate: true,
             },
             Named {
@@ -76,7 +76,7 @@ impl Spawn {
             },
             MyTurn {},
             ProduceLight {
-                radius: BASE_VIEW_RADIUS,
+                radius: 1,
             },
         );
 
@@ -212,11 +212,12 @@ impl Spawn {
 
     /// Spawn a random monster
     pub fn random_item(ecs_world: &mut World, x: i32, y: i32) {
-        let dice_roll = Roll::dice(1, 3);
+        let dice_roll = Roll::dice(1, 6);
         // Dvergar is stronger, shuold be less common
         match dice_roll {
             1 => Spawn::wand(ecs_world, x, y),
-            _ => Spawn::waterskin(ecs_world, x, y),
+            2 => Spawn::flask_of_water(ecs_world, x, y),
+            _ => Spawn::lantern(ecs_world, x, y),
         }
     }
 
@@ -247,7 +248,7 @@ impl Spawn {
         ecs_world.spawn(meat);
     }
 
-    fn waterskin(ecs_world: &mut World, x: i32, y: i32) {
+    fn flask_of_water(ecs_world: &mut World, x: i32, y: i32) {
         let item_tile_index = 2;
         let meat = (
             Position { x, y },
@@ -269,6 +270,30 @@ impl Spawn {
                 thirst_dice_number: 3,
                 thirst_dice_size: 12,
             },
+        );
+
+        ecs_world.spawn(meat);
+    }
+
+    fn lantern(ecs_world: &mut World, x: i32, y: i32) {
+        let item_tile_index = 3;
+        let meat = (
+            Position { x, y },
+            Renderable {
+                texture_name: TextureName::Items,
+                texture_region: Rect {
+                    x: (item_tile_index * TILE_SIZE) as f32,
+                    y: 0.0,
+                    w: TILE_SIZE_F32,
+                    h: TILE_SIZE_F32,
+                },
+                z_index: 0,
+            },
+            Named {
+                name: String::from("Lantern"),
+            },
+            Item { item_tile_index },
+            ProduceLight { radius: 12 },
         );
 
         ecs_world.spawn(meat);
