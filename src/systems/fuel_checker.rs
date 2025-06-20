@@ -24,18 +24,27 @@ impl FuelCheck {
             .expect("Game log is not in hecs::World");
 
         for (lighter, produce_light) in &mut lighters {
-
             // Log fuel change for lantern used by player
             let entity_in_backpack = ecs_world.get::<&InBackback>(lighter);
 
             if entity_in_backpack.is_ok() {
                 let in_backback = entity_in_backpack.unwrap();
                 let named = ecs_world.get::<&Named>(lighter).unwrap();
-                if player_entity.id() == in_backback.owner.id() && produce_light.fuel_counter == 1 {
-                    
-                    game_log
-                        .entries
-                        .push(format!("Your {} goes out", named.name));
+                // Log messages for fuel status
+                if player_entity.id() == in_backback.owner.id(){
+                    match produce_light.fuel_counter {
+                        25 => {
+                            game_log
+                                .entries
+                                .push(format!("Your {} is flickering", named.name));
+                        }
+                        1 => {
+                            game_log
+                                .entries
+                                .push(format!("Your {} goes out", named.name));
+                        }
+                        _ => {}
+                    }
 
                     //show immediately new vision
                     let mut player_viewshed =
