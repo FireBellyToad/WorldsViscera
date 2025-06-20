@@ -1,7 +1,11 @@
 use hecs::World;
+use macroquad::ui::Vertex;
 
 use crate::{
-    components::{common::*, items::ProduceLight},
+    components::{
+        common::*,
+        items::{InBackback, ProduceLight},
+    },
     maps::zone::Zone,
     systems::fov::FieldOfView,
 };
@@ -12,7 +16,6 @@ impl MapIndexing {
     pub fn run(ecs_world: &World) {
         let mut entites = ecs_world.query::<&Position>();
         let mut blockers = ecs_world.query::<&Position>().with::<&BlocksTile>();
-        let mut lighters = ecs_world.query::<(&Position, &ProduceLight)>();
         let mut zone_query = ecs_world.query::<&mut Zone>();
         let (_e, zone) = zone_query
             .iter()
@@ -28,17 +31,17 @@ impl MapIndexing {
 
         //index all lit tiles checking all light producers
         zone.lit_tiles.fill(false);
-        for (_e, (position, produce_light)) in &mut lighters {
-
-            if produce_light.fuel_counter != 0 {
+        let all_lighters = MapIndexing::get_all_lighters(ecs_world);
+        for dto in &all_lighters {
+            if dto.fuel_counter != 0 {
                 // This viewshed is used for light calculation
                 let mut viewshed = Viewshed {
                     visible_tiles: Vec::new(),
-                    range: produce_light.radius,
+                    range: dto.radius,
                     must_recalculate: true,
                 };
 
-                FieldOfView::compute(zone, &mut viewshed, position.x, position.y);
+                FieldOfView::compute(zone, &mut viewshed, dto.x, dto.y);
 
                 for (x, y) in viewshed.visible_tiles {
                     let index = Zone::get_index_from_xy(x, y);
@@ -54,4 +57,46 @@ impl MapIndexing {
             zone.tile_content[index].push(entity);
         }
     }
+
+    /// Get all the lighters in the zone, even the ones that are stored in the backpack of someone
+    fn get_all_lighters(ecs_world: &World) -> Vec<ProduceLightPositionDTO> {
+        let mut all_lighters: Vec<ProduceLightPositionDTO>;
+        let mut lighters_on_zone = ecs_world.query::<(&Position, &ProduceLight)>();
+        let mut lighters_in_backpack = ecs_world.query::<(&InBackback, &ProduceLight)>();
+
+        all_lighters = lighters_on_zone
+            .iter()
+            .map(|(_e, (position, produce_light))| ProduceLightPositionDTO {
+                radius: produce_light.radius,
+                fuel_counter: produce_light.fuel_counter,
+                x: position.x,
+                y: position.y,
+            })
+            .collect();
+
+        all_lighters.extend(
+            lighters_in_backpack
+                .iter()
+                .map(|(_e, (in_backpack, produce_light))| {
+                    // Get position of the owner so we can illuminate from there
+                    let position = ecs_world.get::<&Position>(in_backpack.owner).unwrap();
+                    return ProduceLightPositionDTO {
+                        radius: produce_light.radius,
+                        fuel_counter: produce_light.fuel_counter,
+                        x: position.x,
+                        y: position.y,
+                    };
+                })
+                .collect::<Vec<ProduceLightPositionDTO>>(),
+        );
+
+        all_lighters
+    }
+}
+
+struct ProduceLightPositionDTO {
+    radius: i32,
+    fuel_counter: i32,
+    x: i32,
+    y: i32,
 }
