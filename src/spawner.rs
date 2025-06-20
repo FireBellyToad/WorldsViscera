@@ -62,7 +62,7 @@ impl Spawn {
                 max_toughness: rolled_toughness,
                 current_dexterity: rolled_dexterity,
                 max_dexterity: rolled_dexterity,
-                speed: 2,
+                speed: NORMAL,
             },
             SufferingDamage { damage_received: 0 },
             CanAutomaticallyHeal { tick_counter: 0 },
@@ -119,7 +119,7 @@ impl Spawn {
                 max_toughness: 8,
                 current_dexterity: 10,
                 max_dexterity: 10,
-                speed: 2,
+                speed: NORMAL,
             },
             1.0, //TODO fix
             x,
@@ -140,7 +140,7 @@ impl Spawn {
                 max_toughness: 7,
                 current_dexterity: 14,
                 max_dexterity: 14,
-                speed: 3,
+                speed: FAST,
             },
             3.0, //TODO fix
             x,
@@ -161,7 +161,7 @@ impl Spawn {
                 max_toughness: 10,
                 current_dexterity: 8,
                 max_dexterity: 8,
-                speed: 0,
+                speed: SLOW,
             },
             2.0, //TODO fix
             x,

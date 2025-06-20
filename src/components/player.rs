@@ -84,12 +84,6 @@ impl Player {
             return_state = RunState::DoTick;
         }
 
-        // Reset heal counter if the player did not wait through space or . key
-        if return_state != RunState::WaitingPlayerInput {
-            Player::reset_heal_counter(ecs_world);
-            Player::wait_after_action(ecs_world);
-        }
-
         return_state
     }
 
@@ -99,6 +93,7 @@ impl Player {
     pub fn checks_keyboard_input(ecs_world: &mut World) -> RunState {
         let mut run_state = RunState::WaitingPlayerInput;
         let mut check_chars_pressed = false;
+        let mut is_actively_waiting = false;
         // Player movement
         match get_key_pressed() {
             None => run_state = RunState::WaitingPlayerInput, // Nothing happened
@@ -117,7 +112,7 @@ impl Player {
                 // Skip turn doing nothing, so you can heal
                 KeyCode::Space => {
                     run_state = RunState::DoTick;
-                    Player::wait_after_action(ecs_world);
+                    is_actively_waiting = true;
                 }
 
                 // Something was pressed but is not in this match?
@@ -136,7 +131,7 @@ impl Player {
                         // Skip turn doing nothing, so you can heal
                         '.' => {
                             run_state = RunState::DoTick;
-                            Player::wait_after_action(ecs_world);
+                            is_actively_waiting = true;
                         }
 
                         //Pick up
@@ -182,6 +177,15 @@ impl Player {
                     }
                 }
             }
+        }
+
+        // Wait if any real action is taken
+        if run_state != RunState::WaitingPlayerInput {
+            // Reset heal counter if the player did not wait through space or . key
+            if !is_actively_waiting {
+                Player::reset_heal_counter(ecs_world);
+            }
+            Player::wait_after_action(ecs_world);
         }
 
         run_state
@@ -275,7 +279,7 @@ impl Player {
                 .entries
                 .push(String::from("There is nothing here to pick up"));
         } else {
-            // Reset heal counter if the player did not wait
+            // Reset heal counter if the player did pick up something
             Player::reset_heal_counter(ecs_world);
             Player::wait_after_action(ecs_world);
         }
@@ -340,6 +344,7 @@ impl Player {
         }
 
         if must_wait {
+            Player::reset_heal_counter(ecs_world);
             Player::wait_after_action(ecs_world);
         }
 

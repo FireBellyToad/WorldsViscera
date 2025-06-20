@@ -4,7 +4,7 @@ use crate::{components::{common::GameLog, items::InBackback, player::Player}, in
 
 #[derive(PartialEq, Debug)]
 pub enum RunState {
-    RoundStart,
+    BeforeTick,
     WaitingPlayerInput,
     DoTick,
     GameOver,
