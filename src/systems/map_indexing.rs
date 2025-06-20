@@ -60,35 +60,38 @@ impl MapIndexing {
 
     /// Get all the lighters in the zone, even the ones that are stored in the backpack of someone
     fn get_all_lighters(ecs_world: &World) -> Vec<ProduceLightPositionDTO> {
-        let mut all_lighters: Vec<ProduceLightPositionDTO>;
-        let mut lighters_on_zone = ecs_world.query::<(&Position, &ProduceLight)>();
-        let mut lighters_in_backpack = ecs_world.query::<(&InBackback, &ProduceLight)>();
+        let all_lighters: Vec<ProduceLightPositionDTO>;
 
+        // Extract all light producers that could be laying on the ground OR be in a backpack
+        let mut lighters_on_zone =
+            ecs_world.query::<(Option<&Position>, Option<&InBackback>, &ProduceLight)>();
+            
         all_lighters = lighters_on_zone
             .iter()
-            .map(|(_e, (position, produce_light))| ProduceLightPositionDTO {
-                radius: produce_light.radius,
-                fuel_counter: produce_light.fuel_counter,
-                x: position.x,
-                y: position.y,
-            })
-            .collect();
-
-        all_lighters.extend(
-            lighters_in_backpack
-                .iter()
-                .map(|(_e, (in_backpack, produce_light))| {
-                    // Get position of the owner so we can illuminate from there
-                    let position = ecs_world.get::<&Position>(in_backpack.owner).unwrap();
+            .map(|(_e, (position, in_backpack, produce_light))| {
+                if position.is_some() {
+                    let pos = position.unwrap();
                     return ProduceLightPositionDTO {
                         radius: produce_light.radius,
                         fuel_counter: produce_light.fuel_counter,
-                        x: position.x,
-                        y: position.y,
+                        x: pos.x,
+                        y: pos.y,
                     };
-                })
-                .collect::<Vec<ProduceLightPositionDTO>>(),
-        );
+                } else if in_backpack.is_some() {
+                    // Get position of the owner so we can illuminate from there
+                    let back = in_backpack.unwrap();
+                    let pos = ecs_world.get::<&Position>(back.owner).unwrap();
+                    return ProduceLightPositionDTO {
+                        radius: produce_light.radius,
+                        fuel_counter: produce_light.fuel_counter,
+                        x: pos.x,
+                        y: pos.y,
+                    };
+                }
+                //Why we are here?! Is not possible!
+                panic!()
+            })
+            .collect();
 
         all_lighters
     }
