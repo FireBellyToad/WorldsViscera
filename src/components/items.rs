@@ -48,5 +48,6 @@ pub struct Perishable {
 pub struct Rotten {}
 
 pub struct ProduceLight{
-    pub radius: i32
+    pub radius: i32,
+    pub fuel_counter: i32,
 }

@@ -13,3 +13,4 @@ pub mod hunger_check;
 pub mod thirst_check;
 pub mod decay_manager;
 pub mod turn_checker;
+pub mod fuel_checker;

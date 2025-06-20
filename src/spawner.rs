@@ -291,7 +291,7 @@ impl Spawn {
                 name: String::from("Lantern"),
             },
             Item { item_tile_index },
-            ProduceLight { radius: LANTERN_RADIUS },
+            ProduceLight { radius: LANTERN_RADIUS , fuel_counter: STARTING_FUEL + Roll::d100()},
         );
 
         ecs_world.spawn(meat);

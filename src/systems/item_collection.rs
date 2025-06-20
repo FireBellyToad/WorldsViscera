@@ -15,7 +15,7 @@ pub struct ItemCollection {}
 impl ItemCollection {
     pub fn run(ecs_world: &mut World) {
         let mut item_owner_list: Vec<(Entity, Entity, char)> = Vec::new();
-        let mut light_producers: HashMap<u32, i32> = HashMap::new();
+        let mut light_producers: HashMap<u32, (i32,i32)> = HashMap::new();
 
         // Scope for keeping borrow checker quiet
         {
@@ -62,7 +62,14 @@ impl ItemCollection {
 
                 let produce_light = ecs_world.get::<&ProduceLight>(wants_item.item);
                 if produce_light.is_ok() {
-                    light_producers.insert(wants_item.item.id(), produce_light.unwrap().radius);
+                    let produce_light_unwrap = produce_light.unwrap();
+                    light_producers.insert(
+                        wants_item.item.id(),
+                        (
+                            produce_light_unwrap.radius,
+                            produce_light_unwrap.fuel_counter,
+                        ),
+                    );
                 }
 
                 // Show appropriate log messages
@@ -88,10 +95,10 @@ impl ItemCollection {
                 },
             );
 
-            // If picked up light producer, player will produce light 
+            // If picked up light producer, player will produce light
             if light_producers.contains_key(&item.id()) {
-                let radius = *light_producers.get(&item.id()).unwrap();
-                let _ = ecs_world.insert_one(owner, ProduceLight { radius });
+                let (radius,fuel_counter) = *light_producers.get(&item.id()).unwrap();
+                let _ = ecs_world.insert_one(owner, ProduceLight{radius,fuel_counter});
             }
         }
     }

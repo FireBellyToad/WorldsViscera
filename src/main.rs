@@ -17,11 +17,9 @@ use systems::{
 
 use crate::{
     components::common::{Position, Viewshed},
-    maps::{ZoneBuilder, drunken_walk_zone_builder::DrunkenWalkZoneBuilder, zone::Zone},
+    maps::{drunken_walk_zone_builder::DrunkenWalkZoneBuilder, zone::Zone, ZoneBuilder},
     systems::{
-        automatic_healing::AutomaticHealing, decay_manager::DecayManager,
-        drinking_quaffables::DrinkingQuaffables, hunger_check::HungerCheck,
-        thirst_check::ThirstCheck, turn_checker::TurnCheck, zap_manager::ZapManager,
+        automatic_healing::AutomaticHealing, decay_manager::DecayManager, drinking_quaffables::DrinkingQuaffables, fuel_checker::FuelCheck, hunger_check::HungerCheck, thirst_check::ThirstCheck, turn_checker::TurnCheck, zap_manager::ZapManager
     },
     utils::assets::Load,
 };
@@ -216,6 +214,7 @@ fn do_before_tick_logic(game_state: &mut EngineState) {
     DecayManager::run(&mut game_state.ecs_world);
     HungerCheck::run(&mut game_state.ecs_world);
     ThirstCheck::run(&mut game_state.ecs_world);
+    FuelCheck::run(&mut game_state.ecs_world);
 }
 
 fn do_in_tick_game_logic(game_state: &mut EngineState) -> bool {

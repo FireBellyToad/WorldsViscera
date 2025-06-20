@@ -29,18 +29,21 @@ impl MapIndexing {
         //index all lit tiles checking all light producers
         zone.lit_tiles.fill(false);
         for (_e, (position, produce_light)) in &mut lighters {
-            // This viewshed is used for light calculation
-            let mut viewshed = Viewshed {
-                visible_tiles: Vec::new(),
-                range: produce_light.radius,
-                must_recalculate: true,
-            };
 
-            FieldOfView::compute(zone, &mut viewshed, position.x, position.y);
+            if produce_light.fuel_counter != 0 {
+                // This viewshed is used for light calculation
+                let mut viewshed = Viewshed {
+                    visible_tiles: Vec::new(),
+                    range: produce_light.radius,
+                    must_recalculate: true,
+                };
 
-            for (x, y) in viewshed.visible_tiles {
-                let index = Zone::get_index_from_xy(x, y);
-                zone.lit_tiles[index] = true;
+                FieldOfView::compute(zone, &mut viewshed, position.x, position.y);
+
+                for (x, y) in viewshed.visible_tiles {
+                    let index = Zone::get_index_from_xy(x, y);
+                    zone.lit_tiles[index] = true;
+                }
             }
         }
 
