@@ -54,7 +54,7 @@ impl DamageManager {
     }
 
     /// Check which entities are dead and removes them. Returns true if Player is dead
-    pub fn remove_dead(ecs_world: &mut World) -> bool {
+    pub fn remove_dead_and_check_gameover(ecs_world: &mut World) -> bool {
         let mut dead_entities: Vec<(Entity, String, (i32, i32))> = Vec::new();
         let player_entity_id = Player::get_player_id(ecs_world);
 

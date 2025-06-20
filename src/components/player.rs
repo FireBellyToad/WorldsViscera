@@ -36,6 +36,7 @@ impl Player {
     /// Try to move player
     ///
     fn try_move(delta_x: i32, delta_y: i32, ecs_world: &mut World) -> RunState {
+        let mut return_state = RunState::WaitingPlayerInput;
         let mut attacker_target: Option<(Entity, Entity)> = None;
 
         // Scope for keeping borrow checker quiet
@@ -69,11 +70,7 @@ impl Player {
                         position.x = min(MAP_WIDTH - 1, max(0, position.x + delta_x));
                         position.y = min(MAP_HEIGHT - 1, max(0, position.y + delta_y));
                         viewshed.must_recalculate = true;
-                        // Reset heal counter if the player did not wait
-                        Player::reset_heal_counter(ecs_world);
-                        return RunState::DoTick;
-                    } else {
-                        return RunState::WaitingPlayerInput;
+                        return_state = RunState::DoTick;
                     }
                 }
             }
@@ -84,12 +81,10 @@ impl Player {
             let (attacker, target) = attacker_target.unwrap();
             let _ = ecs_world.insert_one(attacker, WantsToMelee { target });
 
-            // Reset heal counter if the player did not wait
-            Player::reset_heal_counter(ecs_world);
-            return RunState::DoTick;
+            return_state = RunState::DoTick;
         }
 
-        RunState::WaitingPlayerInput
+        return_state
     }
 
     ///
@@ -98,6 +93,7 @@ impl Player {
     pub fn checks_keyboard_input(ecs_world: &mut World) -> RunState {
         let mut run_state = RunState::WaitingPlayerInput;
         let mut check_chars_pressed = false;
+        let mut is_actively_waiting = false;
         // Player movement
         match get_key_pressed() {
             None => run_state = RunState::WaitingPlayerInput, // Nothing happened
@@ -114,7 +110,10 @@ impl Player {
                 KeyCode::Kp1 => run_state = Player::try_move(-1, 1, ecs_world),
 
                 // Skip turn doing nothing, so you can heal
-                KeyCode::Space => run_state = RunState::DoTick,
+                KeyCode::Space => {
+                    run_state = RunState::DoTick;
+                    is_actively_waiting = true;
+                }
 
                 // Something was pressed but is not in this match?
                 // Check for characters pressed
@@ -130,7 +129,10 @@ impl Player {
                 Some(char) => {
                     match char {
                         // Skip turn doing nothing, so you can heal
-                        '.' => run_state = RunState::DoTick,
+                        '.' => {
+                            run_state = RunState::DoTick;
+                            is_actively_waiting = true;
+                        }
 
                         //Pick up
                         'p' => {
@@ -177,6 +179,15 @@ impl Player {
             }
         }
 
+        // Wait if any real action is taken
+        if run_state != RunState::WaitingPlayerInput {
+            // Reset heal counter if the player did not wait through space or . key
+            if !is_actively_waiting {
+                Player::reset_heal_counter(ecs_world);
+            }
+            Player::wait_after_action(ecs_world);
+        }
+
         run_state
     }
 
@@ -217,6 +228,7 @@ impl Player {
                 );
                 // Reset heal counter if the player did not wait
                 Player::reset_heal_counter(ecs_world);
+                Player::wait_after_action(ecs_world);
                 return RunState::DoTick;
             }
         }
@@ -267,62 +279,75 @@ impl Player {
                 .entries
                 .push(String::from("There is nothing here to pick up"));
         } else {
-            // Reset heal counter if the player did not wait
+            // Reset heal counter if the player did pick up something
             Player::reset_heal_counter(ecs_world);
+            Player::wait_after_action(ecs_world);
         }
     }
 
     fn try_next_level(ecs_world: &mut World, char_pressed: char) -> RunState {
         let player_position;
         let standing_on_tile;
+        let mut must_wait = false;
 
-        let mut player_query = ecs_world.query::<(&Player, &Position)>();
-        let (_e, (_p, position)) = player_query
-            .iter()
-            .last()
-            .expect("Player is not in hecs::World");
-        player_position = position;
+        //Scope to keep borrow checker quiet
+        {
+            let mut player_query = ecs_world.query::<(&Player, &Position)>();
+            let (_e, (_p, position)) = player_query
+                .iter()
+                .last()
+                .expect("Player is not in hecs::World");
+            player_position = position;
 
-        let mut zone_query = ecs_world.query::<&Zone>();
-        let (_e, zone) = zone_query
-            .iter()
-            .last()
-            .expect("Zone is not in hecs::World");
-        standing_on_tile =
-            &zone.tiles[Zone::get_index_from_xy(player_position.x, player_position.y)];
+            let mut zone_query = ecs_world.query::<&Zone>();
+            let (_e, zone) = zone_query
+                .iter()
+                .last()
+                .expect("Zone is not in hecs::World");
+            standing_on_tile =
+                &zone.tiles[Zone::get_index_from_xy(player_position.x, player_position.y)];
 
-        let mut game_log_query = ecs_world.query::<&mut GameLog>();
-        let (_e, game_log) = game_log_query
-            .iter()
-            .last()
-            .expect("Game log is not in hecs::World");
+            let mut game_log_query = ecs_world.query::<&mut GameLog>();
+            let (_e, game_log) = game_log_query
+                .iter()
+                .last()
+                .expect("Game log is not in hecs::World");
 
-        game_log
-            .entries
-            .push(String::from("There is nothing here to pick up"));
+            game_log
+                .entries
+                .push(String::from("There is nothing here to pick up"));
 
-        //TODO skill check
-        match standing_on_tile {
-            TileType::DownPassage => {
-                if char_pressed == '>' {
-                    game_log.entries.push(format!("You climb down..."));
-                    return RunState::GoToNextZone;
+            //TODO skill check
+            match standing_on_tile {
+                TileType::DownPassage => {
+                    if char_pressed == '>' {
+                        must_wait = true;
+                        game_log.entries.push(format!("You climb down..."));
+                        return RunState::GoToNextZone;
+                    }
                 }
-            }
-            TileType::UpPassage => {
-                if char_pressed == '<' {
-                    game_log.entries.push(format!("You climb up..."));
-                    return RunState::GoToNextZone;
+                TileType::UpPassage => {
+                    if char_pressed == '<' {
+                        must_wait = true;
+                        game_log.entries.push(format!("You climb up..."));
+                        return RunState::GoToNextZone;
+                    }
                 }
-            }
-            _ => {
-                if char_pressed == '>' {
-                    game_log.entries.push(format!("You can't go down here"));
-                } else if char_pressed == '<' {
-                    game_log.entries.push(format!("You can't go up here"));
+                _ => {
+                    if char_pressed == '>' {
+                        game_log.entries.push(format!("You can't go down here"));
+                    } else if char_pressed == '<' {
+                        game_log.entries.push(format!("You can't go up here"));
+                    }
                 }
             }
         }
+
+        if must_wait {
+            Player::reset_heal_counter(ecs_world);
+            Player::wait_after_action(ecs_world);
+        }
+
         return RunState::WaitingPlayerInput;
     }
 

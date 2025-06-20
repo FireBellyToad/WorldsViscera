@@ -68,6 +68,9 @@ impl MonsterAI {
                         //Attack or move
                         if distance < 1.5 {
                             attacker_target_list.push((monster_entity, player_entity));
+
+                            //Monster must wait too after an action!
+                            waiter_speed_list.push((monster_entity, stats.speed));
                         } else {
                             viewshed.must_recalculate = true;
                             let (path, _c) = pathfinding_result.unwrap();
@@ -80,11 +83,11 @@ impl MonsterAI {
                                 position.y = path[1].1;
                                 zone.blocked_tiles
                                     [Zone::get_index_from_xy(position.x, position.y)] = true;
+
+                                //Monster must wait too after an action!
+                                waiter_speed_list.push((monster_entity, stats.speed));
                             }
                         }
-
-                        //Monster must wait too after an action!
-                        waiter_speed_list.push((monster_entity, stats.speed));
                     }
                 }
             }

@@ -58,36 +58,41 @@ async fn main() {
     let mut game_engine = GameEngine::new();
     let mut game_state = EngineState {
         ecs_world: create_ecs_world(),
-        run_state: RunState::RoundStart,
+        run_state: RunState::BeforeTick,
     };
 
+    let mut tick = 0;
     loop {
         if game_engine.next_tick() {
             // Run system only while not paused, or else wait for player input.
             // Make the whole game turn based
 
             match game_state.run_state {
-                RunState::RoundStart => {
-                    do_timed_game_logic(&mut game_state);
-                    game_state.run_state =
-                        do_time_free_game_logic(&mut game_state, RunState::DoTick);
+                RunState::BeforeTick => {
+                    println!("BeforeTick ---------------------------- tick {}", tick);
+                    do_before_tick_logic(&mut game_state);
+                    game_state.run_state = RunState::DoTick;
+                }
+                RunState::DoTick => {
+                    println!("DoTick ---------------------------- tick {}", tick);
+                    let is_game_over = do_in_tick_game_logic(&mut game_state);
 
                     // TODO refactor
-                    if game_state.run_state != RunState::GameOver
-                        && Player::can_act(&game_state.ecs_world)
-                    {
-                        game_state.run_state = RunState::WaitingPlayerInput;
+                    if !is_game_over {
+                        if Player::can_act(&game_state.ecs_world) {
+                            println!("Player's turn");
+                            game_state.run_state = RunState::WaitingPlayerInput;
+                        } else {
+                            MonsterAI::act(&mut game_state.ecs_world);
+                            game_state.run_state = RunState::BeforeTick;
+                            tick += 1;
+                        }
+                    } else {
+                        game_state.run_state = RunState::GameOver;
                     }
                 }
                 RunState::WaitingPlayerInput => {
                     game_state.run_state = Player::checks_keyboard_input(&mut game_state.ecs_world);
-                }
-                RunState::DoTick => {
-                    //TODO refactor
-                    game_state.run_state =
-                        do_time_free_game_logic(&mut game_state, RunState::RoundStart);
-                    Player::wait_after_action(&mut game_state.ecs_world);
-                    MonsterAI::act(&mut game_state.ecs_world);
                 }
                 RunState::GameOver => {
                     // Quit game on Q
@@ -97,7 +102,8 @@ async fn main() {
                         game_state.ecs_world.clear();
                         populate_world(&mut game_state.ecs_world);
                         clear_input_queue();
-                        game_state.run_state = RunState::RoundStart;
+                        game_state.run_state = RunState::BeforeTick;
+                        tick = 0;
                     }
                 }
                 RunState::ShowInventory(mode) => {
@@ -112,7 +118,7 @@ async fn main() {
                     Player::reset_heal_counter(&mut game_state.ecs_world);
                     change_zone(&mut game_state);
                     clear_input_queue();
-                    game_state.run_state = RunState::RoundStart;
+                    game_state.run_state = RunState::BeforeTick;
                 }
             }
             next_frame().await;
@@ -204,7 +210,7 @@ fn change_zone(engine: &mut EngineState) {
     engine.ecs_world.spawn((true, zone));
 }
 
-fn do_timed_game_logic(game_state: &mut EngineState) {
+fn do_before_tick_logic(game_state: &mut EngineState) {
     TurnCheck::run(&mut game_state.ecs_world);
     AutomaticHealing::run(&mut game_state.ecs_world);
     DecayManager::run(&mut game_state.ecs_world);
@@ -212,15 +218,15 @@ fn do_timed_game_logic(game_state: &mut EngineState) {
     ThirstCheck::run(&mut game_state.ecs_world);
 }
 
-fn do_time_free_game_logic(game_state: &mut EngineState, next_state: RunState) -> RunState {
+fn do_in_tick_game_logic(game_state: &mut EngineState) -> bool {
     let game_over;
     ZapManager::run(&mut game_state.ecs_world);
     MeleeManager::run(&mut game_state.ecs_world);
     DamageManager::run(&game_state.ecs_world);
-    game_over = DamageManager::remove_dead(&mut game_state.ecs_world);
+    game_over = DamageManager::remove_dead_and_check_gameover(&mut game_state.ecs_world);
     //Proceed on game logic ifis not Game Over
     if game_over {
-        return RunState::GameOver;
+        return true;
     } else {
         MapIndexing::run(&game_state.ecs_world);
         FieldOfView::calculate(&game_state.ecs_world);
@@ -229,5 +235,5 @@ fn do_time_free_game_logic(game_state: &mut EngineState, next_state: RunState) -
         EatingEdibles::run(&mut game_state.ecs_world);
         DrinkingQuaffables::run(&mut game_state.ecs_world);
     }
-    next_state
+    false
 }
