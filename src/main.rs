@@ -69,7 +69,7 @@ async fn main() {
 
             match game_state.run_state {
                 RunState::RoundStart => {
-                    println!("RoundStart - tick {}", tick);
+                    println!("RoundStart ---------------------------- tick {}", tick);
                     do_timed_game_logic(&mut game_state);
                     game_state.run_state =
                         do_time_free_game_logic(&mut game_state, RunState::DoTick);
@@ -86,11 +86,10 @@ async fn main() {
                     game_state.run_state = Player::checks_keyboard_input(&mut game_state.ecs_world);
                 }
                 RunState::DoTick => {
-                    println!("DoTick - tick {}", tick);
+                    println!("DoTick ---------------------------- tick {}", tick);
                     //TODO refactor
                     game_state.run_state =
                         do_time_free_game_logic(&mut game_state, RunState::RoundStart);
-                    Player::wait_after_action(&mut game_state.ecs_world);
                     MonsterAI::act(&mut game_state.ecs_world);
                     tick += 1;
                 }
