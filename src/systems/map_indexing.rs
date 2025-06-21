@@ -31,8 +31,8 @@ impl MapIndexing {
 
         //index all lit tiles checking all light producers
         zone.lit_tiles.fill(false);
-        let all_fueled_lighters = MapIndexing::get_all_working_lighters(ecs_world);
-        for dto in &all_fueled_lighters {
+        let all_working_lighters = MapIndexing::get_all_working_lighters(ecs_world);
+        for dto in &all_working_lighters {
             // This viewshed is used for light calculation
             let mut viewshed = Viewshed {
                 visible_tiles: Vec::new(),
