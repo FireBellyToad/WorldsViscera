@@ -288,8 +288,7 @@ impl Player {
     fn try_next_level(ecs_world: &mut World, char_pressed: char) -> RunState {
         let player_position;
         let standing_on_tile;
-        let mut must_wait = false;
-
+        
         //Scope to keep borrow checker quiet
         {
             let mut player_query = ecs_world.query::<(&Player, &Position)>();
@@ -321,14 +320,12 @@ impl Player {
             match standing_on_tile {
                 TileType::DownPassage => {
                     if char_pressed == '>' {
-                        must_wait = true;
                         game_log.entries.push(format!("You climb down..."));
                         return RunState::GoToNextZone;
                     }
                 }
                 TileType::UpPassage => {
                     if char_pressed == '<' {
-                        must_wait = true;
                         game_log.entries.push(format!("You climb up..."));
                         return RunState::GoToNextZone;
                     }
@@ -341,11 +338,6 @@ impl Player {
                     }
                 }
             }
-        }
-
-        if must_wait {
-            Player::reset_heal_counter(ecs_world);
-            Player::wait_after_action(ecs_world);
         }
 
         return RunState::WaitingPlayerInput;

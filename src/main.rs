@@ -114,6 +114,7 @@ async fn main() {
                 RunState::GoToNextZone => {
                     // Reset heal counter if the player did not wait
                     Player::reset_heal_counter(&mut game_state.ecs_world);
+                    Player::wait_after_action(&mut game_state.ecs_world);
                     change_zone(&mut game_state);
                     clear_input_queue();
                     game_state.run_state = RunState::BeforeTick;
