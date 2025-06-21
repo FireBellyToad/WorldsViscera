@@ -3,7 +3,9 @@ use crate::components::common::{
     BlocksTile, MyTurn, Named, Position, ProduceCorpse, Renderable, Viewshed,
 };
 use crate::components::health::{CanAutomaticallyHeal, Hunger, Thirst};
-use crate::components::items::{Edible, Invokable, Item, Perishable, ProduceLight, Quaffable};
+use crate::components::items::{
+    Edible, Fuel, Invokable, Item, Perishable, ProduceLight, Quaffable,
+};
 use crate::components::monster::Monster;
 use crate::components::player::Player;
 use crate::constants::*;
@@ -209,7 +211,6 @@ impl Spawn {
 
     /// Spawn a random monster
     pub fn random_item(ecs_world: &mut World, x: i32, y: i32) {
-        
         let dice_roll = Roll::dice(1, 4);
         // Dvergar is stronger, shuold be less common
         match dice_roll {
@@ -291,7 +292,12 @@ impl Spawn {
                 name: String::from("Lantern"),
             },
             Item { item_tile_index },
-            ProduceLight { radius: LANTERN_RADIUS , fuel_counter: STARTING_FUEL + Roll::d100()},
+            ProduceLight {
+                radius: LANTERN_RADIUS,
+            },
+            Fuel {
+                counter: STARTING_FUEL + Roll::d100(),
+            },
         );
 
         ecs_world.spawn(meat);

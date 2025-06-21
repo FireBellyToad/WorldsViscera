@@ -4,7 +4,7 @@ use macroquad::ui::Vertex;
 use crate::{
     components::{
         common::*,
-        items::{InBackback, ProduceLight},
+        items::{Fuel, InBackback, ProduceLight},
     },
     maps::zone::Zone,
     systems::fov::FieldOfView,
@@ -31,7 +31,7 @@ impl MapIndexing {
 
         //index all lit tiles checking all light producers
         zone.lit_tiles.fill(false);
-        let all_fueled_lighters = MapIndexing::get_all_fueled_lighters(ecs_world);
+        let all_fueled_lighters = MapIndexing::get_all_working_lighters(ecs_world);
         for dto in &all_fueled_lighters {
             // This viewshed is used for light calculation
             let mut viewshed = Viewshed {
@@ -57,17 +57,17 @@ impl MapIndexing {
     }
 
     /// Get all the lighters in the zone, even the ones that are stored in the backpack of someone
-    fn get_all_fueled_lighters(ecs_world: &World) -> Vec<ProduceLightPositionDTO> {
-        let all_fueled_lighters: Vec<ProduceLightPositionDTO>;
+    fn get_all_working_lighters(ecs_world: &World) -> Vec<ProduceLightPositionDTO> {
+        let all_working_lighters: Vec<ProduceLightPositionDTO>;
 
         // Extract all light producers that could be laying on the ground OR be in a backpack
-        let mut lighters_on_zone =
-            ecs_world.query::<(Option<&Position>, Option<&InBackback>, &ProduceLight)>();
+        let mut lighters_query =
+            ecs_world.query::<(Option<&Position>, Option<&InBackback>, Option<&Fuel>, &ProduceLight)>();
 
-        all_fueled_lighters = lighters_on_zone
+        all_working_lighters = lighters_query
             .iter()
-            .filter_map(|(_e, (position, in_backpack, produce_light))| {
-                if produce_light.fuel_counter != 0 {
+            .filter_map(|(_e, (position, in_backpack, fuel, produce_light))| {
+                if fuel.is_none() || fuel.unwrap().counter > 0 {
                     if position.is_some() {
                         let pos = position.unwrap();
                         return Some(ProduceLightPositionDTO {
@@ -91,7 +91,7 @@ impl MapIndexing {
             })
             .collect();
 
-        all_fueled_lighters
+        all_working_lighters
     }
 }
 

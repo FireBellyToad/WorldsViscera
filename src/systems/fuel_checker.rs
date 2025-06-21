@@ -4,7 +4,7 @@ use hecs::World;
 
 use crate::components::{
     common::{GameLog, Named, Viewshed},
-    items::{InBackback, ProduceLight},
+    items::{InBackback, Fuel},
     player::{self, Player},
 };
 
@@ -13,7 +13,7 @@ pub struct FuelCheck {}
 impl FuelCheck {
     pub fn run(ecs_world: &mut World) {
         // List of light producers with fuel
-        let mut lighters = ecs_world.query::<&mut ProduceLight>();
+        let mut lighters = ecs_world.query::<&mut Fuel>();
 
         let player_entity = Player::get_player_entity(ecs_world);
 
@@ -23,7 +23,7 @@ impl FuelCheck {
             .last()
             .expect("Game log is not in hecs::World");
 
-        for (lighter, produce_light) in &mut lighters {
+        for (lighter, fuel) in &mut lighters {
             // Log fuel change for lantern used by player
             let entity_in_backpack = ecs_world.get::<&InBackback>(lighter);
 
@@ -32,7 +32,7 @@ impl FuelCheck {
                 let named = ecs_world.get::<&Named>(lighter).unwrap();
                 // Log messages for fuel status
                 if player_entity.id() == in_backback.owner.id(){
-                    match produce_light.fuel_counter {
+                    match fuel.counter {
                         25 => {
                             game_log
                                 .entries
@@ -53,10 +53,9 @@ impl FuelCheck {
                 }
             }
 
-            //If fuel is exactly 0, the lighter will not produce light
-            // -1 is for infinite fuel
-            if produce_light.fuel_counter > 0 {
-                produce_light.fuel_counter -= 1;
+            //If fuel is less then 1, the lighter will not produce light
+            if fuel.counter > 0 {
+                fuel.counter -= 1;
             }
         }
     }
