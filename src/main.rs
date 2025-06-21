@@ -17,7 +17,7 @@ use systems::{
 
 use crate::{
     components::common::{Position, Viewshed},
-    maps::{drunken_walk_zone_builder::DrunkenWalkZoneBuilder, zone::Zone, ZoneBuilder},
+    maps::{arena_zone_builder::ArenaZoneBuilder, drunken_walk_zone_builder::DrunkenWalkZoneBuilder, zone::Zone, ZoneBuilder},
     systems::{
         automatic_healing::AutomaticHealing, decay_manager::DecayManager, drinking_quaffables::DrinkingQuaffables, fuel_checker::FuelCheck, hunger_check::HungerCheck, thirst_check::ThirstCheck, turn_checker::TurnCheck, zap_manager::ZapManager
     },
@@ -145,7 +145,7 @@ fn populate_world(ecs_world: &mut World) {
         },
     ));
 
-    let zone = DrunkenWalkZoneBuilder::build(1);
+    let zone = ArenaZoneBuilder::build(1);
 
     Spawn::player(ecs_world, &zone);
     Spawn::everyhing_in_map(ecs_world, &zone);
