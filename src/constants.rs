@@ -46,7 +46,7 @@ pub const MAX_ACTION_SPEED: i32 = 4;
 
 /// Spawning related constants
 pub const MAX_MONSTERS_ON_ROOM_START: i32 = 5;
-pub const MAX_ITEMS_ON_ROOM_START: i32 = 2;
+pub const MAX_ITEMS_ON_ROOM_START: i32 = 5;
 pub const MAX_SPAWN_TENTANTIVES: i32 = 10;
 
 /// Player related constants
@@ -60,7 +60,7 @@ pub const DRUNKEN_WALK_LIFE_MAX: i32 = 50;
 pub const DRUNKEN_WALK_MAX_ITERATIONS: i32 = 50;
 
 /// Item related constants
-pub const STARTING_ROT_COUNTER: i32 = 51;
+pub const STARTING_ROT_COUNTER: i32 = 100;
 pub const LANTERN_RADIUS: i32 = 6;
 pub const STARTING_FUEL:i32 = 200;
 
