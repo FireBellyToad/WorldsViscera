@@ -2,7 +2,7 @@ use hecs::{Entity, World};
 
 use crate::components::{
     common::{GameLog, Named, Position},
-    items::{InBackback, ProduceLight, WantsToDrop},
+    items::{InBackback, WantsToDrop},
 };
 
 pub struct ItemDropping {}

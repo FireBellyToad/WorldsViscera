@@ -1,11 +1,10 @@
-use std::fmt::format;
 
 use hecs::World;
 
 use crate::components::{
     common::{GameLog, Named, Viewshed},
     items::{InBackback, Fuel},
-    player::{self, Player},
+    player::Player,
 };
 
 pub struct FuelCheck {}

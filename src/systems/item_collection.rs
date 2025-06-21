@@ -1,11 +1,10 @@
-use std::collections::HashMap;
 
-use hecs::{Entity, Ref, World};
+use hecs::{Entity, World};
 
 use crate::{
     components::{
         common::{GameLog, Named, Position},
-        items::{InBackback, Item, ProduceLight, WantsItem},
+        items::{InBackback, Item, WantsItem},
     },
     constants::OPTION_TO_CHAR_MAP,
 };
