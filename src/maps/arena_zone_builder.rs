@@ -28,7 +28,7 @@ impl ZoneBuilder for ArenaZoneBuilder {
         zone.player_spawn_point = Zone::get_index_from_xy(MAP_WIDTH / 2, MAP_HEIGHT / 2);
 
         // Generate items spawn points within each room
-        let items_number = Roll::dice(1, MAX_ITEMS_ON_ROOM_START + 2);
+        let items_number = Roll::dice(1, MAX_ITEMS_ON_ROOM_START )+ 4;
 
         for _i in 0..items_number {
             for _t in 0..MAX_SPAWN_TENTANTIVES {

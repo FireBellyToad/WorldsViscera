@@ -173,6 +173,12 @@ impl Player {
                             run_state = RunState::ShowInventory(InventoryAction::Quaff);
                         }
 
+                        //Refill item
+                        'r' => {
+                            clear_input_queue();
+                            run_state = RunState::ShowInventory(InventoryAction::RefillWhat);
+                        }
+
                         _ => {}
                     }
                 }

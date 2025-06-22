@@ -17,9 +17,15 @@ use systems::{
 
 use crate::{
     components::common::{Position, Viewshed},
-    maps::{arena_zone_builder::ArenaZoneBuilder, drunken_walk_zone_builder::DrunkenWalkZoneBuilder, zone::Zone, ZoneBuilder},
+    maps::{
+        ZoneBuilder, arena_zone_builder::ArenaZoneBuilder,
+        drunken_walk_zone_builder::DrunkenWalkZoneBuilder, zone::Zone,
+    },
     systems::{
-        automatic_healing::AutomaticHealing, decay_manager::DecayManager, drinking_quaffables::DrinkingQuaffables, fuel_checker::FuelCheck, hunger_check::HungerCheck, thirst_check::ThirstCheck, turn_checker::TurnCheck, zap_manager::ZapManager
+        automatic_healing::AutomaticHealing, decay_manager::DecayManager,
+        drinking_quaffables::DrinkingQuaffables, fuel_manager::FuelManager,
+        hunger_check::HungerCheck, thirst_check::ThirstCheck, turn_checker::TurnCheck,
+        zap_manager::ZapManager,
     },
     utils::assets::Load,
 };
@@ -215,7 +221,7 @@ fn do_before_tick_logic(game_state: &mut EngineState) {
     DecayManager::run(&mut game_state.ecs_world);
     HungerCheck::run(&mut game_state.ecs_world);
     ThirstCheck::run(&mut game_state.ecs_world);
-    FuelCheck::run(&mut game_state.ecs_world);
+    FuelManager::check_fuel(&mut game_state.ecs_world);
 }
 
 fn do_in_tick_game_logic(game_state: &mut EngineState) -> bool {
@@ -234,6 +240,7 @@ fn do_in_tick_game_logic(game_state: &mut EngineState) -> bool {
         ItemDropping::run(&mut game_state.ecs_world);
         EatingEdibles::run(&mut game_state.ecs_world);
         DrinkingQuaffables::run(&mut game_state.ecs_world);
+        FuelManager::do_refills(&mut game_state.ecs_world);
     }
     false
 }

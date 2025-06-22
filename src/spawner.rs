@@ -4,7 +4,7 @@ use crate::components::common::{
 };
 use crate::components::health::{CanAutomaticallyHeal, Hunger, Thirst};
 use crate::components::items::{
-    Edible, Fuel, Invokable, Item, Perishable, ProduceLight, Quaffable,
+    Edible, Fuel, Invokable, Item, Perishable, ProduceLight, Quaffable, Refill,
 };
 use crate::components::monster::Monster;
 use crate::components::player::Player;
@@ -211,11 +211,12 @@ impl Spawn {
 
     /// Spawn a random monster
     pub fn random_item(ecs_world: &mut World, x: i32, y: i32) {
-        let dice_roll = Roll::dice(1, 4);
+        let dice_roll = Roll::dice(1, 6);
         // Dvergar is stronger, shuold be less common
         match dice_roll {
             1 => Spawn::wand(ecs_world, x, y),
             2 => Spawn::lantern(ecs_world, x, y),
+            3 => Spawn::flask_of_oil(ecs_world, x, y),
             _ => Spawn::flask_of_water(ecs_world, x, y),
         }
     }
@@ -249,7 +250,7 @@ impl Spawn {
 
     fn flask_of_water(ecs_world: &mut World, x: i32, y: i32) {
         let item_tile_index = 2;
-        let meat = (
+        let flask_of_water = (
             Position { x, y },
             Renderable {
                 texture_name: TextureName::Items,
@@ -271,12 +272,12 @@ impl Spawn {
             },
         );
 
-        ecs_world.spawn(meat);
+        ecs_world.spawn(flask_of_water);
     }
 
     fn lantern(ecs_world: &mut World, x: i32, y: i32) {
         let item_tile_index = 3;
-        let meat = (
+        let lantern = (
             Position { x, y },
             Renderable {
                 texture_name: TextureName::Items,
@@ -300,7 +301,7 @@ impl Spawn {
             },
         );
 
-        ecs_world.spawn(meat);
+        ecs_world.spawn(lantern);
     }
 
     fn wand(ecs_world: &mut World, x: i32, y: i32) {
@@ -329,5 +330,32 @@ impl Spawn {
         );
 
         ecs_world.spawn(wand);
+    }
+
+    fn flask_of_oil(ecs_world: &mut World, x: i32, y: i32) {
+        let item_tile_index = 4;
+        let flask_of_water = (
+            Position { x, y },
+            Renderable {
+                texture_name: TextureName::Items,
+                texture_region: Rect {
+                    x: (item_tile_index * TILE_SIZE) as f32,
+                    y: 0.0,
+                    w: TILE_SIZE_F32,
+                    h: TILE_SIZE_F32,
+                },
+                z_index: 0,
+            },
+            Named {
+                name: String::from("Flask of oil"),
+            },
+            Item { item_tile_index },
+            Fuel {
+                counter: STARTING_FUEL + Roll::d100(),
+            },
+            Refill {},
+        );
+
+        ecs_world.spawn(flask_of_water);
     }
 }

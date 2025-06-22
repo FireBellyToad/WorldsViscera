@@ -54,3 +54,10 @@ pub struct ProduceLight{
 pub struct Fuel{
     pub counter: i32,
 }
+
+pub struct Refill{}
+
+pub struct WantsToFuel {
+    pub item: Entity,
+    pub with: Option<Entity>,
+}
