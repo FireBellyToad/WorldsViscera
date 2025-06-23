@@ -1,4 +1,3 @@
-
 use hecs::{Entity, World};
 
 use crate::{
@@ -6,7 +5,7 @@ use crate::{
         common::{GameLog, Named, Position},
         items::{InBackback, Item, WantsItem},
     },
-    constants::OPTION_TO_CHAR_MAP,
+    constants::{MAX_ITEMS_IN_BACKPACK, OPTION_TO_CHAR_MAP},
 };
 
 pub struct ItemCollection {}
@@ -14,6 +13,7 @@ pub struct ItemCollection {}
 impl ItemCollection {
     pub fn run(ecs_world: &mut World) {
         let mut item_owner_list: Vec<(Entity, Entity, char)> = Vec::new();
+        let mut failed_pick_upper: Vec<Entity> = Vec::new();
 
         // Scope for keeping borrow checker quiet
         {
@@ -41,30 +41,30 @@ impl ItemCollection {
                     .collect();
 
                 let named_owner = ecs_world.get::<&Named>(collector).unwrap();
-                if all_currently_assigned_chars.len() == OPTION_TO_CHAR_MAP.len() {
+                if all_currently_assigned_chars.len() == MAX_ITEMS_IN_BACKPACK {
                     game_log
                         .entries
                         .push(format!("{} cannot carry anymore!", named_owner.name));
-                    continue;
+                    failed_pick_upper.push(collector);
+                } else {
+                    // Assign the first "available" char to picked up item
+                    let mut index = 0;
+                    while all_currently_assigned_chars.contains(&char_to_assign) {
+                        char_to_assign = OPTION_TO_CHAR_MAP[index];
+                        index += 1;
+                    }
+
+                    // Show appropriate log messages
+                    let named_item = ecs_world.get::<&Named>(wants_item.item).unwrap();
+
+                    game_log.entries.push(format!(
+                        "{} picks up the {}",
+                        named_owner.name, named_item.name
+                    ));
+
+                    // Pick up and keep track of the owner
+                    item_owner_list.push((wants_item.item, collector, char_to_assign));
                 }
-
-                // Assign the first "available" char to picked up item
-                let mut index = 0;
-                while all_currently_assigned_chars.contains(&char_to_assign) {
-                    char_to_assign = OPTION_TO_CHAR_MAP[index];
-                    index += 1;
-                }
-
-                // Pick up and keep track of the owner
-                item_owner_list.push((wants_item.item, collector, char_to_assign));
-
-                // Show appropriate log messages
-                let named_item = ecs_world.get::<&Named>(wants_item.item).unwrap();
-
-                game_log.entries.push(format!(
-                    "{} picks up the {}",
-                    named_owner.name, named_item.name
-                ));
             }
         }
 
@@ -80,6 +80,11 @@ impl ItemCollection {
                     assigned_char: to_grab,
                 },
             );
+        }
+
+        for entity in failed_pick_upper {
+            // Remove owner's will to pick up
+            let _ = ecs_world.remove_one::<WantsItem>(entity);
         }
     }
 }

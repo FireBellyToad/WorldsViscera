@@ -226,7 +226,7 @@ impl Inventory {
         // ------- Item List -----------
         for (index, (_e, item_name, assigned_char, item_tile)) in inventory.iter().enumerate() {
             let x = (INVENTORY_X + UI_BORDER * 2) as f32;
-            let y = (INVENTORY_Y + INVENTORY_TOP_SPAN) as f32 + (FONT_SIZE * index as f32);
+            let y = (INVENTORY_Y + INVENTORY_TOP_SPAN) as f32 + ((FONT_SIZE + LETTER_SIZE) * index as f32);
 
             draw_text(
                 format!("{} : \t - {}", assigned_char, item_name),

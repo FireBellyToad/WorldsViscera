@@ -28,6 +28,7 @@ pub const OPTION_TO_CHAR_MAP: [char; 52] = [
 ];
 pub const ITEM_INVENTORY_LEFT_SPAN: i32 = 12;
 pub const ITEM_INVENTORY_TOP_SPAN: i32 = 10;
+pub const MAX_ITEMS_IN_BACKPACK:usize = 10;
 
 /// UI related constants
 pub const UI_BORDER: i32 = 8;
@@ -62,7 +63,7 @@ pub const DRUNKEN_WALK_MAX_ITERATIONS: i32 = 50;
 /// Item related constants
 pub const STARTING_ROT_COUNTER: i32 = 100;
 pub const LANTERN_RADIUS: i32 = 6;
-pub const STARTING_FUEL:i32 = 200;
+pub const STARTING_FUEL:i32 = 400;
 
 /// Monsters related constats
 pub const BASE_MONSTER_VIEW_RADIUS: i32 = 8;

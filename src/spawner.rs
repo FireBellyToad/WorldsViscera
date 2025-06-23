@@ -26,8 +26,8 @@ impl Spawn {
         // Roll appropriate stats
         let rolled_toughness = Roll::stat();
         let rolled_dexterity = Roll::stat();
-        // TODO Player with Soldier background must have 3+2d3 starting stamina
-        let rolled_stamina = Roll::d6() + 3;
+        // TODO Player with Soldier background must have 5+2d3 starting stamina
+        let rolled_stamina = Roll::d6() + 5;
 
         let (spawn_x, spawn_y) = Zone::get_xy_from_index(zone.player_spawn_point);
 
@@ -59,7 +59,7 @@ impl Spawn {
                 current_stamina: rolled_stamina,
                 max_stamina: rolled_stamina,
                 base_armor: 0,
-                unarmed_attack_dice: 6,
+                unarmed_attack_dice: 4,
                 current_toughness: rolled_toughness,
                 max_toughness: rolled_toughness,
                 current_dexterity: rolled_dexterity,
