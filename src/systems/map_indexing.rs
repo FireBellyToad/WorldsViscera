@@ -5,7 +5,8 @@ use crate::{
         common::*,
         items::{Fuel, InBackback, ProduceLight},
     },
-    maps::zone::Zone,
+    constants::BRAZIER_RADIUS,
+    maps::zone::{TileType, Zone},
     systems::fov::FieldOfView,
 };
 
@@ -30,7 +31,7 @@ impl MapIndexing {
 
         //index all lit tiles checking all light producers
         zone.lit_tiles.fill(false);
-        let all_working_lighters = MapIndexing::get_all_working_lighters(ecs_world);
+        let all_working_lighters = MapIndexing::get_all_working_lighters(ecs_world, zone);
         for dto in &all_working_lighters {
             // This viewshed is used for light calculation
             let mut viewshed = Viewshed {
@@ -56,14 +57,18 @@ impl MapIndexing {
     }
 
     /// Get all the lighters in the zone, even the ones that are stored in the backpack of someone
-    fn get_all_working_lighters(ecs_world: &World) -> Vec<ProduceLightPositionDTO> {
-        let all_working_lighters: Vec<ProduceLightPositionDTO>;
+    fn get_all_working_lighters(ecs_world: &World, zone: &Zone) -> Vec<ProduceLightPositionDTO> {
+        let mut all_working_lighters: Vec<ProduceLightPositionDTO>;
 
         // Extract all light producers that could be laying on the ground OR be in a backpack
         // They could or could NOT have Fuel management (think a an oil lanter VS a magic light)
         // Either way get them
-        let mut lighters_query =
-            ecs_world.query::<(Option<&Position>, Option<&InBackback>, Option<&Fuel>, &ProduceLight)>();
+        let mut lighters_query = ecs_world.query::<(
+            Option<&Position>,
+            Option<&InBackback>,
+            Option<&Fuel>,
+            &ProduceLight,
+        )>();
 
         all_working_lighters = lighters_query
             .iter()
@@ -91,6 +96,25 @@ impl MapIndexing {
                 None
             })
             .collect();
+
+        // Extract all Braziers from map to create illumination
+        let mut braziers: Vec<ProduceLightPositionDTO> = zone
+            .tiles
+            .iter()
+            .enumerate()
+            .filter_map(|(index, tile)| {
+                if *tile == TileType::Brazier {
+                    let (x, y) = Zone::get_xy_from_index(index + 1);
+                    return Some(ProduceLightPositionDTO {
+                        radius: BRAZIER_RADIUS,
+                        x,
+                        y,
+                    });
+                }
+                None
+            })
+            .collect();
+        all_working_lighters.append(&mut braziers);
 
         all_working_lighters
     }

@@ -11,6 +11,7 @@ pub enum TileType {
     Wall,
     DownPassage,
     UpPassage,
+    Brazier,
 }
 pub enum ParticleType {
     Blood,
@@ -110,6 +111,7 @@ impl Zone {
             TileType::Wall => 1.0,
             TileType::DownPassage => 2.0,
             TileType::UpPassage => 3.0,
+            TileType::Brazier => 4.0,
         }
     }
 

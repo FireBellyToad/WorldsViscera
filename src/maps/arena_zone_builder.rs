@@ -27,17 +27,28 @@ impl ZoneBuilder for ArenaZoneBuilder {
 
         zone.player_spawn_point = Zone::get_index_from_xy(MAP_WIDTH / 2, MAP_HEIGHT / 2);
 
+        zone.tiles[Zone::get_index_from_xy_f32(MAP_WIDTH_F32 * 0.25, MAP_HEIGHT_F32 * 0.25)] =
+            TileType::Brazier;
+        zone.tiles[Zone::get_index_from_xy_f32(MAP_WIDTH_F32 * 0.75, MAP_HEIGHT_F32 * 0.25)] =
+            TileType::Brazier;
+        zone.tiles[Zone::get_index_from_xy_f32(MAP_WIDTH_F32 * 0.25, MAP_HEIGHT_F32 * 0.75)] =
+            TileType::Brazier;
+        zone.tiles[Zone::get_index_from_xy_f32(MAP_WIDTH_F32 * 0.75, MAP_HEIGHT_F32 * 0.75)] =
+            TileType::Brazier;
+
         // Generate items spawn points within each room
-        let items_number = Roll::dice(1, MAX_ITEMS_ON_ROOM_START )+ 15;
+        let items_number = Roll::dice(1, MAX_ITEMS_ON_ROOM_START) + 15;
 
         for _i in 0..items_number {
             for _t in 0..MAX_SPAWN_TENTANTIVES {
-                let x = Roll::dice(1, MAP_WIDTH as i32 - 2)  as f32 + 1.0;
-                let y = Roll::dice(1, MAP_HEIGHT as i32 - 2)  as f32 + 1.0;
+                let x = Roll::dice(1, MAP_WIDTH as i32 - 2) as f32 + 1.0;
+                let y = Roll::dice(1, MAP_HEIGHT as i32 - 2) as f32 + 1.0;
                 let index = Zone::get_index_from_xy_f32(x, y);
 
                 // avoid duplicate spawnpoints
-                if zone.blocked_tiles[index] || zone.item_spawn_points.insert(index) {
+                if zone.blocked_tiles[index] {
+                    continue;
+                } else if zone.item_spawn_points.insert(index) {
                     break;
                 }
             }

@@ -2,7 +2,7 @@ use crate::{
     constants::*,
     maps::{
         ZoneBuilder,
-        zone::{Zone, TileType},
+        zone::{TileType, Zone},
     },
     utils::roll::Roll,
 };
@@ -72,6 +72,7 @@ impl ZoneBuilder for DrunkenWalkZoneBuilder {
         // Generate monster and items spawn points within each room
         let monster_number = Roll::dice(1, MAX_MONSTERS_ON_ROOM_START) + 2;
         let items_number = Roll::dice(1, MAX_ITEMS_ON_ROOM_START) + 3;
+        let braziers_number = Roll::dice(1, MAX_BRAZIER_IN_ZONE);
 
         for _m in 0..monster_number {
             for _t in 0..MAX_SPAWN_TENTANTIVES {
@@ -107,10 +108,21 @@ impl ZoneBuilder for DrunkenWalkZoneBuilder {
             }
         }
 
-        // Random starting point for DownPassage
-        let (mut try_x, mut try_y);
-        let mut passage_index= zone.tiles.len() / 2;
-        while zone.tiles[passage_index] == TileType::Wall {
+        // Random braziers
+        // FIXME not sure if its a good idea... for now, leave them
+        for _i in 0..braziers_number {
+            let mut brazier_index = zone.tiles.len() / 2;
+            while zone.tiles[brazier_index] != TileType::Floor {
+                try_x = Roll::dice(1, MAP_WIDTH - 2);
+                try_y = Roll::dice(1, MAP_HEIGHT - 2);
+                brazier_index = Zone::get_index_from_xy(try_x, try_y);
+            }
+            zone.tiles[brazier_index] = TileType::Brazier;
+        }
+
+        // Random point for DownPassage
+        let mut passage_index = zone.tiles.len() / 2;
+        while zone.tiles[passage_index] != TileType::Floor {
             try_x = Roll::dice(1, MAP_WIDTH - 2);
             try_y = Roll::dice(1, MAP_HEIGHT - 2);
             passage_index = Zone::get_index_from_xy(try_x, try_y);
