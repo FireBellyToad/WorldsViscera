@@ -21,6 +21,13 @@ pub struct Named {
 }
 pub struct BlocksTile {}
 
+pub struct ProduceCorpse {}
+
 pub struct GameLog {
     pub entries: Vec<String>,
 }
+pub struct WaitingToAct {
+    pub tick_countdown: i32
+}
+
+pub struct MyTurn{}

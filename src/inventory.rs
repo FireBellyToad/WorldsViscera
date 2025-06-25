@@ -13,7 +13,10 @@ use macroquad::{
 use crate::{
     components::{
         common::{GameLog, Named},
-        items::{Edible, InBackback, Invokable, Item, WantsToDrop, WantsToEat, WantsToInvoke},
+        items::{
+            Edible, InBackback, Invokable, Item, ProduceLight, Quaffable, Refill, WantsToDrink,
+            WantsToDrop, WantsToEat, WantsToFuel, WantsToInvoke,
+        },
         player::Player,
     },
     constants::*,
@@ -26,6 +29,9 @@ pub enum InventoryAction {
     Eat,
     Drop,
     Invoke,
+    Quaff,
+    RefillWhat,
+    RefillWith,
 }
 
 pub struct Inventory {}
@@ -63,14 +69,28 @@ impl Inventory {
                     let inventory: Vec<(Entity, String, char, i32)>;
                     match mode {
                         InventoryAction::Eat => {
-                            inventory = Self::get_all_in_backpack_filtered_by::<Edible>(ecs_world);
+                            inventory =
+                                Inventory::get_all_in_backpack_filtered_by::<Edible>(ecs_world);
                         }
                         InventoryAction::Invoke => {
                             inventory =
-                                Self::get_all_in_backpack_filtered_by::<Invokable>(ecs_world);
+                                Inventory::get_all_in_backpack_filtered_by::<Invokable>(ecs_world);
+                        }
+                        InventoryAction::Quaff => {
+                            inventory =
+                                Inventory::get_all_in_backpack_filtered_by::<Quaffable>(ecs_world);
+                        }
+                        InventoryAction::RefillWhat => {
+                            inventory = Inventory::get_all_in_backpack_filtered_by::<ProduceLight>(
+                                ecs_world,
+                            );
+                        }
+                        InventoryAction::RefillWith => {
+                            inventory =
+                                Inventory::get_all_in_backpack_filtered_by::<Refill>(ecs_world);
                         }
                         InventoryAction::Drop => {
-                            inventory = Self::get_all_in_backpack(ecs_world);
+                            inventory = Inventory::get_all_in_backpack(ecs_world);
                         }
                     }
 
@@ -91,22 +111,43 @@ impl Inventory {
             }
 
             // Use selected item
-            let mut new_run_state = RunState::PlayerTurn;
+            let mut must_wait = false;
+            let mut new_run_state = RunState::DoTick;
             if selected_item_entity.is_some() {
                 let item: Entity = selected_item_entity.unwrap();
                 match mode {
                     InventoryAction::Eat => {
                         let _ = ecs_world.insert_one(user_entity.unwrap(), WantsToEat { item });
+                        must_wait = true;
                     }
                     InventoryAction::Drop => {
                         let _ = ecs_world.insert_one(user_entity.unwrap(), WantsToDrop { item });
+                        must_wait = true;
+                    }
+                    InventoryAction::Quaff => {
+                        let _ = ecs_world.insert_one(user_entity.unwrap(), WantsToDrink { item });
+                        must_wait = true;
                     }
                     InventoryAction::Invoke => {
                         let _ = ecs_world.insert_one(user_entity.unwrap(), WantsToInvoke { item });
                         new_run_state = RunState::MouseTargeting;
                     }
+                    InventoryAction::RefillWhat => {
+                        // Select what to refill, then which item you are going to refill with 
+                        let _ = ecs_world
+                            .insert_one(user_entity.unwrap(), WantsToFuel { item, with: None });
+                        new_run_state = RunState::ShowInventory(InventoryAction::RefillWith);
+                    }
+                    InventoryAction::RefillWith => {
+                        let wants_to_fuel = ecs_world
+                            .get::<&mut WantsToFuel>(user_entity.unwrap());
+                        wants_to_fuel.unwrap().with = Some(item);
+                    }
                 };
 
+                if must_wait {
+                    Player::wait_after_action(ecs_world);
+                }
                 //Avoid strange behaviors
                 clear_input_queue();
                 return new_run_state;
@@ -114,17 +155,13 @@ impl Inventory {
         }
 
         // Keep inventory showing if invalid or no item has been selected
-        match mode {
-            InventoryAction::Eat => RunState::ShowEatInventory,
-            InventoryAction::Drop => RunState::ShowDropInventory,
-            InventoryAction::Invoke => RunState::ShowInvokeInventory,
-        }
+        RunState::ShowInventory(mode)
     }
 
     pub fn draw(
         assets: &HashMap<TextureName, Texture2D>,
         ecs_world: &World,
-        mode: InventoryAction,
+        mode: &InventoryAction,
     ) {
         let texture_to_render = assets.get(&TextureName::Items).expect("Texture not found");
 
@@ -135,15 +172,27 @@ impl Inventory {
         match mode {
             InventoryAction::Eat => {
                 header_text = "Eat what?";
-                inventory = Self::get_all_in_backpack_filtered_by::<Edible>(ecs_world);
+                inventory = Inventory::get_all_in_backpack_filtered_by::<Edible>(ecs_world);
             }
             InventoryAction::Invoke => {
                 header_text = "Invoke what?";
-                inventory = Self::get_all_in_backpack_filtered_by::<Invokable>(ecs_world);
+                inventory = Inventory::get_all_in_backpack_filtered_by::<Invokable>(ecs_world);
+            }
+            InventoryAction::Quaff => {
+                header_text = "Drink what?";
+                inventory = Inventory::get_all_in_backpack_filtered_by::<Quaffable>(ecs_world);
+            }
+            InventoryAction::RefillWhat => {
+                header_text = "Refill what?";
+                inventory = Inventory::get_all_in_backpack_filtered_by::<ProduceLight>(ecs_world);
+            }
+            InventoryAction::RefillWith => {
+                header_text = "With what?";
+                inventory = Inventory::get_all_in_backpack_filtered_by::<Refill>(ecs_world);
             }
             InventoryAction::Drop => {
                 header_text = "Drop what?";
-                inventory = Self::get_all_in_backpack(ecs_world);
+                inventory = Inventory::get_all_in_backpack(ecs_world);
             }
         }
 
@@ -161,7 +210,7 @@ impl Inventory {
         draw_rectangle(
             (INVENTORY_X + INVENTORY_LEFT_SPAN) as f32,
             (INVENTORY_Y - UI_BORDER) as f32,
-            header_text.len() as f32 * 15.0,
+            header_text.len() as f32 * LETTER_SIZE,
             HEADER_HEIGHT as f32,
             BLACK,
         );
@@ -177,7 +226,7 @@ impl Inventory {
         // ------- Item List -----------
         for (index, (_e, item_name, assigned_char, item_tile)) in inventory.iter().enumerate() {
             let x = (INVENTORY_X + UI_BORDER * 2) as f32;
-            let y = (INVENTORY_Y + INVENTORY_TOP_SPAN) as f32 + (FONT_SIZE * index as f32);
+            let y = (INVENTORY_Y + INVENTORY_TOP_SPAN) as f32 + ((FONT_SIZE + LETTER_SIZE) * index as f32);
 
             draw_text(
                 format!("{} : \t - {}", assigned_char, item_name),

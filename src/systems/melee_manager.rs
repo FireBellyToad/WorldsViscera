@@ -5,7 +5,7 @@ use hecs::{Entity, World};
 use crate::{
     components::{
         combat::{CombatStats, SufferingDamage, WantsToMelee},
-        common::{GameLog, Named},
+        common::{GameLog, MyTurn, Named},
     },
     utils::roll::Roll,
 };
@@ -19,7 +19,7 @@ impl MeleeManager {
         // Scope for keeping borrow checker quiet
         {
             // List of entities that want to collect items
-            let mut attackers = ecs_world.query::<&WantsToMelee>();
+            let mut attackers = ecs_world.query::<&WantsToMelee>().with::<&MyTurn>();
 
             //Log all the pick ups
             let mut game_log_query = ecs_world.query::<&mut GameLog>();

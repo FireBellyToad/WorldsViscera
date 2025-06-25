@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use hecs::World;
 use macroquad::{
-    color::{BLACK, Color, DARKGRAY, RED, WHITE, YELLOW},
+    color::{BLACK, Color, DARKGRAY, ORANGE, RED, WHITE, YELLOW},
     input::mouse_position,
     math::Rect,
     shapes::{draw_circle, draw_rectangle, draw_rectangle_lines},
@@ -14,14 +14,14 @@ use crate::{
     components::{
         combat::CombatStats,
         common::{GameLog, Position, Renderable},
-        health::Hunger,
+        health::{Hunger, Thirst},
         player::Player,
     },
     constants::*,
     engine::state::{EngineState, RunState},
-    inventory::{Inventory, InventoryAction},
-    maps::game_map::GameMap,
-    systems::hunger_check::HungerStatus,
+    inventory::Inventory,
+    maps::zone::{ParticleType, Zone},
+    systems::{hunger_check::HungerStatus, thirst_check::ThirstStatus},
     utils::{assets::TextureName, particle_animation::ParticleAnimation},
 };
 
@@ -29,25 +29,19 @@ pub struct Draw {}
 
 impl Draw {
     pub fn render_game(game_state: &EngineState, assets: &HashMap<TextureName, Texture2D>) {
-        let mut maps = game_state.ecs_world.query::<&GameMap>();
+        let mut zones = game_state.ecs_world.query::<&Zone>();
         match game_state.run_state {
             RunState::GameOver => Draw::game_over(),
             _ => {
-                for (_e, map) in &mut maps {
-                    Draw::map(&map, assets);
-                    Draw::renderables(&game_state.ecs_world, &assets, &map);
+                for (_e, zone) in &mut zones {
+                    Draw::zone(&zone, assets);
+                    Draw::renderables(&game_state.ecs_world, &assets, &zone);
                 }
 
                 //Overlay
-                match game_state.run_state {
-                    RunState::ShowEatInventory => {
-                        Inventory::draw(assets, &game_state.ecs_world, InventoryAction::Eat)
-                    }
-                    RunState::ShowDropInventory => {
-                        Inventory::draw(assets, &game_state.ecs_world, InventoryAction::Drop)
-                    }
-                    RunState::ShowInvokeInventory => {
-                        Inventory::draw(assets, &game_state.ecs_world, InventoryAction::Invoke)
+                match &game_state.run_state {
+                    RunState::ShowInventory(mode) => {
+                        Inventory::draw(assets, &game_state.ecs_world, mode)
                     }
                     RunState::MouseTargeting => {
                         Draw::targeting(&game_state.ecs_world);
@@ -84,73 +78,8 @@ impl Draw {
         );
 
         // ------- Stat Text header -----------
-        draw_rectangle(
-            (HEADER_LEFT_SPAN + HUD_BORDER) as f32,
-            (MAP_HEIGHT * TILE_SIZE) as f32 + UI_BORDER as f32,
-            HEADER_WIDTH as f32,
-            HEADER_HEIGHT as f32,
-            BLACK,
-        );
 
-        // ------- Stat Text  -----------
-
-        let mut player_query = ecs_world.query::<(&Player, &CombatStats, &Hunger)>();
-        let (_e, (_p, player_stats, hunger)) = player_query
-            .iter()
-            .last()
-            .expect("Player is not in hecs::World");
-        let mut text_color = WHITE;
-
-        // Draw Stamina (STA)
-        if player_stats.current_stamina == 0 {
-            text_color = RED;
-        } else if player_stats.current_stamina <= player_stats.max_stamina / 2 {
-            text_color = YELLOW;
-        }
-
-        Self::draw_stat_text(
-            format!(
-                "STA: {}/{}",
-                player_stats.current_stamina, player_stats.max_stamina
-            ),
-            0,
-            text_color,
-        );
-
-        // Draw Toughness (TOU)
-        text_color = WHITE;
-
-        if player_stats.current_toughness < player_stats.max_toughness {
-            text_color = YELLOW;
-        }
-
-        Self::draw_stat_text(
-            format!(
-                "TOU {}/{}",
-                player_stats.current_toughness, player_stats.max_toughness
-            ),
-            140,
-            text_color,
-        );
-
-        // Draw Dexterity (DEX)
-        text_color = WHITE;
-
-        if player_stats.current_dexterity < player_stats.max_dexterity {
-            text_color = YELLOW;
-        }
-
-        Self::draw_stat_text(
-            format!(
-                "DEX {}/{}",
-                player_stats.current_dexterity, player_stats.max_dexterity
-            ),
-            300,
-            text_color,
-        );
-
-        // TODO improve
-        Self::draw_hunger_text(&hunger.current_status);
+        Draw::hud_header(ecs_world);
 
         // ------- Messages log  -----------
 
@@ -181,28 +110,147 @@ impl Draw {
         }
     }
 
-    fn draw_stat_text(text: String, left_pad: i32, text_color: Color) {
-        draw_text(
-            text,
-            (HUD_BORDER + HEADER_LEFT_SPAN + UI_BORDER + left_pad) as f32,
-            (HUD_BORDER + UI_BORDER * 3 + MAP_HEIGHT * TILE_SIZE) as f32,
-            FONT_SIZE,
+    fn hud_header(ecs_world: &World) {
+        let mut zones = ecs_world.query::<&Zone>();
+        let (_e, zone) = zones.iter().last().expect("Zone is not in hecs::World");
+
+        let mut player_query = ecs_world.query::<(&Player, &CombatStats, &Hunger, &Thirst)>();
+        let (_e, (_p, player_stats, hunger,thirst)) = player_query
+            .iter()
+            .last()
+            .expect("Player is not in hecs::World");
+
+        let sta_text = format!(
+            "STA: {}/{}",
+            player_stats.current_stamina, player_stats.max_stamina
+        );
+        let sta_text_len = sta_text.len();
+
+        let tou_text = format!(
+            "TOU {}/{}",
+            player_stats.current_toughness, player_stats.max_toughness
+        );
+        let tou_text_len = tou_text.len();
+
+        let dex_text = format!(
+            "DEX {}/{}",
+            player_stats.current_dexterity, player_stats.max_dexterity
+        );
+        let hunger_status = &hunger.current_status;
+        let hunger_text = format!("Hunger:{:?}", hunger_status);
+        let hunger_text_len = hunger_text.len();
+
+        let thirst_status = &thirst.current_status;
+        let thirst_text = format!("Thirst:{:?}", thirst_status);
+        let thirst_text_len = thirst_text.len();
+
+        let dex_text_len = dex_text.len();
+        let depth_text = format!("Depth: {}", zone.depth);
+        let depth_text_len = depth_text.len();
+
+
+        draw_rectangle(
+            (HEADER_LEFT_SPAN + HUD_BORDER) as f32,
+            (MAP_HEIGHT * TILE_SIZE) as f32 + UI_BORDER as f32,
+            6.0 * LETTER_SIZE - HUD_BORDER as f32 * 3.0
+                + (sta_text_len as f32 * LETTER_SIZE)
+                + (tou_text_len as f32 * LETTER_SIZE)
+                + (dex_text_len as f32 * LETTER_SIZE)
+                + (hunger_text_len as f32 * LETTER_SIZE)
+                + (thirst_text_len as f32 * LETTER_SIZE)
+                + (depth_text_len as f32 * LETTER_SIZE),
+            HEADER_HEIGHT as f32,
+            BLACK,
+        );
+
+        let mut text_color = WHITE;
+
+        // Draw Stamina (STA)
+        if player_stats.current_stamina == 0 {
+            text_color = RED;
+        } else if player_stats.current_stamina <= player_stats.max_stamina / 2 {
+            text_color = YELLOW;
+        }
+
+        Draw::stat_text(sta_text, 0.0, text_color);
+
+        // Draw Toughness (TOU)
+        text_color = WHITE;
+
+        if player_stats.current_toughness < player_stats.max_toughness {
+            text_color = YELLOW;
+        }
+
+        Draw::stat_text(
+            tou_text,
+            LETTER_SIZE + (sta_text_len as f32 * LETTER_SIZE),
             text_color,
         );
-    }
 
-    fn draw_hunger_text(hunger_status: &HungerStatus) {
-        let text_color;
+        // Draw Dexterity (DEX)
+        text_color = WHITE;
 
+        if player_stats.current_dexterity < player_stats.max_dexterity {
+            text_color = YELLOW;
+        }
+
+        Draw::stat_text(
+            dex_text,
+            2.0 * LETTER_SIZE
+                + (sta_text_len as f32 * LETTER_SIZE)
+                + (tou_text_len as f32 * LETTER_SIZE),
+            text_color,
+        );
+
+        // TODO improve
         match hunger_status {
             HungerStatus::Hungry => text_color = YELLOW,
             HungerStatus::Starved => text_color = RED,
             _ => text_color = WHITE,
         }
+        Draw::stat_text(
+            hunger_text,
+            3.0 * LETTER_SIZE
+                + (sta_text_len as f32 * LETTER_SIZE)
+                + (tou_text_len as f32 * LETTER_SIZE)
+                + (dex_text_len as f32 * LETTER_SIZE),
+            text_color,
+        );
 
+        // TODO improve
+        match thirst_status {
+            ThirstStatus::Thirsty => text_color = YELLOW,
+            ThirstStatus::Dehydrated => text_color = RED,
+            _ => text_color = WHITE,
+        }
+        Draw::stat_text(
+            thirst_text,
+            4.0 * LETTER_SIZE
+                + (sta_text_len as f32 * LETTER_SIZE)
+                + (tou_text_len as f32 * LETTER_SIZE)
+                + (dex_text_len as f32 * LETTER_SIZE)
+                + (hunger_text_len as f32 * LETTER_SIZE),
+            text_color,
+        );
+
+        text_color = WHITE;
+        // TODO improve
+        Draw::stat_text(
+            depth_text,
+            5.0 * LETTER_SIZE
+                + (sta_text_len as f32 * LETTER_SIZE)
+                + (tou_text_len as f32 * LETTER_SIZE)
+                + (dex_text_len as f32 * LETTER_SIZE)
+                + (hunger_text_len as f32 * LETTER_SIZE)
+                + (thirst_text_len as f32 * LETTER_SIZE),
+            text_color,
+        );
+    }
+
+    fn stat_text(text: String, left_pad: f32, text_color: Color) {
         draw_text(
-            format!("Hunger:{:?}", hunger_status),
-            (HUD_BORDER + HEADER_LEFT_SPAN + UI_BORDER + 450) as f32,
+            text,
+            (HUD_BORDER + HEADER_LEFT_SPAN + UI_BORDER) as f32 + left_pad,
             (HUD_BORDER + UI_BORDER * 3 + MAP_HEIGHT * TILE_SIZE) as f32,
             FONT_SIZE,
             text_color,
@@ -210,7 +258,7 @@ impl Draw {
     }
 
     /// Draw all Renderable entities in World
-    fn renderables(world: &World, assets: &HashMap<TextureName, Texture2D>, map: &GameMap) {
+    fn renderables(world: &World, assets: &HashMap<TextureName, Texture2D>, zone: &Zone) {
         //Get all entities in readonly
         let mut renderables_with_position = world.query::<(&Renderable, &Position)>();
 
@@ -223,7 +271,7 @@ impl Draw {
                 .get(&renderable.texture_name)
                 .expect("Texture not found");
 
-            if map.visible_tiles[GameMap::get_index_from_xy(position.x, position.y)] {
+            if zone.visible_tiles[Zone::get_index_from_xy(position.x, position.y)] {
                 // Take the texture and draw only the wanted tile ( DrawTextureParams.source )
                 draw_texture_ex(
                     texture_to_render,
@@ -263,18 +311,15 @@ impl Draw {
         );
         let (mouse_x, mouse_y) = mouse_position();
 
-        let mut map_query = ecs_world.query::<&GameMap>();
-        let (_e, map) = map_query
-            .iter()
-            .last()
-            .expect("GameMap is not in hecs::World");
+        let mut zone_query = ecs_world.query::<&Zone>();
+        let (_e, zone) = zone_query.iter().last().expect("Zone is not in hecs::World");
 
         let rounded_x = (((mouse_x - UI_BORDER_F32) / TILE_SIZE_F32).ceil() - 1.0) as i32;
         let rounded_y = (((mouse_y - UI_BORDER_F32) / TILE_SIZE_F32).ceil() - 1.0) as i32;
 
         // Draw target if tile is visible
-        let index = GameMap::get_index_from_xy(rounded_x, rounded_y);
-        if map.visible_tiles.len() > index && map.visible_tiles[index] {
+        let index = Zone::get_index_from_xy(rounded_x, rounded_y);
+        if zone.visible_tiles.len() > index && zone.visible_tiles[index] {
             draw_rectangle_lines(
                 (UI_BORDER + (rounded_x * TILE_SIZE)) as f32,
                 (UI_BORDER + (rounded_y * TILE_SIZE)) as f32,
@@ -286,24 +331,27 @@ impl Draw {
         }
     }
 
-    /// Draws map
-    pub fn map(game_map: &GameMap, assets: &HashMap<TextureName, Texture2D>) {
+    /// Draws zone
+    pub fn zone(zone: &Zone, assets: &HashMap<TextureName, Texture2D>) {
         let texture_to_render = assets.get(&TextureName::Tiles).expect("Texture not found");
 
         for x in 0..MAP_WIDTH {
             for y in 0..MAP_HEIGHT {
-                let tile_to_draw = GameMap::get_index_from_xy(x, y);
-                let tile_index =
-                    GameMap::get_tile_sprite_sheet_index(&game_map.tiles[tile_to_draw])
-                        * TILE_SIZE_F32;
+                let tile_to_draw = Zone::get_index_from_xy(x, y);
+                let tile_index = Zone::get_tile_sprite_sheet_index(&zone.tiles[tile_to_draw])
+                    * TILE_SIZE_F32;
 
-                if game_map.revealed_tiles[tile_to_draw] {
+                if zone.revealed_tiles[tile_to_draw] {
                     let mut alpha = DARKGRAY;
 
-                    if game_map.visible_tiles[tile_to_draw] {
+                    if zone.visible_tiles[tile_to_draw] {
                         alpha = WHITE;
-                        if game_map.bloodied_tiles.contains(&tile_to_draw) {
-                            Draw::draw_blood_blots(x, y);
+                        if zone.particle_tiles.contains_key(&tile_to_draw) {
+                            Draw::draw_particles(
+                                x,
+                                y,
+                                zone.particle_tiles.get(&tile_to_draw).unwrap(),
+                            );
                         }
                     }
 
@@ -329,37 +377,44 @@ impl Draw {
     }
 
     /// Utility for drawing blood blots
-    pub fn draw_blood_blots(x: i32, y: i32) {
+    pub fn draw_particles(x: i32, y: i32, particle_type: &ParticleType) {
+        let color;
+
+        match particle_type {
+            ParticleType::Blood => color = Color::from_rgba(255, 10, 10, 32),
+            ParticleType::Vomit => color = ORANGE,
+        }
+
         draw_circle(
             (UI_BORDER + (x * TILE_SIZE) + TILE_SIZE / 2) as f32 - 6.0,
             (UI_BORDER + (y * TILE_SIZE) + TILE_SIZE / 2) as f32 - 7.0,
             2.0,
-            Color::from_rgba(255, 10, 10, 32),
+            color,
         );
         draw_circle(
             (UI_BORDER + (x * TILE_SIZE) + TILE_SIZE / 2) as f32 + 4.0,
             (UI_BORDER + (y * TILE_SIZE) + TILE_SIZE / 2) as f32 - 4.0,
             2.0,
-            Color::from_rgba(255, 10, 10, 32),
+            color,
         );
         draw_circle(
             (UI_BORDER + (x * TILE_SIZE) + TILE_SIZE / 2) as f32 - 5.0,
             (UI_BORDER + (y * TILE_SIZE) + TILE_SIZE / 2) as f32 + 4.0,
             1.0,
-            Color::from_rgba(255, 10, 10, 32),
+            color,
         );
         draw_circle(
             (UI_BORDER + (x * TILE_SIZE) + TILE_SIZE / 2) as f32 + 3.0,
             (UI_BORDER + (y * TILE_SIZE) + TILE_SIZE / 2) as f32 + 5.0,
             2.0,
-            Color::from_rgba(255, 10, 10, 32),
+            color,
         );
 
         draw_circle(
             (UI_BORDER + (x * TILE_SIZE) + TILE_SIZE / 2) as f32,
             (UI_BORDER + (y * TILE_SIZE) + TILE_SIZE / 2) as f32,
             4.0,
-            Color::from_rgba(255, 10, 10, 32),
+            color,
         );
     }
 

@@ -1,0 +1,1 @@
+- Sometimes the zone have unconnected rooms

@@ -1,43 +1,54 @@
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
 use hecs::Entity;
 use macroquad::math::Rect;
 
 use crate::constants::{MAP_HEIGHT, MAP_WIDTH};
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum TileType {
     Floor,
     Wall,
+    DownPassage,
+    UpPassage,
+    Brazier,
+}
+pub enum ParticleType {
+    Blood,
+    Vomit,
 }
 
-/// GameMap Struct
-pub struct GameMap {
+/// Zone Struct
+pub struct Zone {
     pub tiles: Vec<TileType>,
     pub rooms: Vec<Rect>,
     pub revealed_tiles: Vec<bool>,
     pub visible_tiles: Vec<bool>,
+    pub lit_tiles: Vec<bool>,
     pub blocked_tiles: Vec<bool>,
     pub tile_content: Vec<Vec<Entity>>,
-    pub bloodied_tiles: HashSet<usize>,
+    pub particle_tiles: HashMap<usize, ParticleType>,
+    pub depth: i32,
     pub player_spawn_point: usize,
     pub monster_spawn_points: HashSet<usize>,
     pub item_spawn_points: HashSet<usize>,
 }
 
-/// GameMap Simplementations
-impl GameMap {
-    /// Create new empty map
-    pub fn new() -> GameMap {
-        GameMap {
+/// Zone Simplementations
+impl Zone {
+    /// Create new empty zone
+    pub fn new(depth: i32) -> Zone {
+        Zone {
             tiles: vec![TileType::Wall; (MAP_WIDTH * MAP_HEIGHT) as usize],
             rooms: Vec::new(),
             revealed_tiles: vec![false; (MAP_WIDTH * MAP_HEIGHT) as usize],
             visible_tiles: vec![false; (MAP_WIDTH * MAP_HEIGHT) as usize],
+            lit_tiles: vec![false; (MAP_WIDTH * MAP_HEIGHT) as usize],
             blocked_tiles: vec![false; (MAP_WIDTH * MAP_HEIGHT) as usize],
             tile_content: vec![Vec::new(); (MAP_WIDTH * MAP_HEIGHT) as usize],
             player_spawn_point: 0,
-            bloodied_tiles: HashSet::new(),
+            depth,
+            particle_tiles: HashMap::new(),
             monster_spawn_points: HashSet::new(),
             item_spawn_points: HashSet::new(),
         }
@@ -57,7 +68,7 @@ impl GameMap {
                 //Manhattan Distance
                 if !use_manhattan_distance || (x == x_pos || y == y_pos) {
                     let index = Self::get_index_from_xy(x, y);
-                    // Safety check is needed for map borders
+                    // Safety check is needed for zone borders
                     if self.blocked_tiles.len() > index && !self.blocked_tiles[index] {
                         adjacent_passable_tiles.push((x, y));
                     }
@@ -72,7 +83,9 @@ impl GameMap {
     pub fn populate_blocked(&mut self) {
         for (index, tile) in self.tiles.iter_mut().enumerate() {
             match tile {
-                TileType::Floor => self.blocked_tiles[index] = false,
+                TileType::DownPassage | TileType::UpPassage | TileType::Floor => {
+                    self.blocked_tiles[index] = false
+                }
                 _ => self.blocked_tiles[index] = true,
             }
         }
@@ -84,7 +97,7 @@ impl GameMap {
         self.tiles[index] == TileType::Wall
     }
 
-    /// Clears content index for this map
+    /// Clears content index for this zone
     pub fn clear_content_index(&mut self) {
         for content in self.tile_content.iter_mut() {
             content.clear();
@@ -96,6 +109,9 @@ impl GameMap {
         match tile_type {
             TileType::Floor => 0.0,
             TileType::Wall => 1.0,
+            TileType::DownPassage => 2.0,
+            TileType::UpPassage => 3.0,
+            TileType::Brazier => 4.0,
         }
     }
 
@@ -111,8 +127,8 @@ impl GameMap {
 
     /// trasfroms x,y position into a vector index, using usizes
     pub fn get_xy_from_index(index: usize) -> (i32, i32) {
-        let x = index % MAP_WIDTH as usize;
-        let y = index / MAP_WIDTH as usize;
+        let x = index as i32 % MAP_WIDTH;
+        let y = index as i32 / MAP_WIDTH;
         (x as i32, y as i32)
     }
 }

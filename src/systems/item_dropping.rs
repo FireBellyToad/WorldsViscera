@@ -9,7 +9,7 @@ pub struct ItemDropping {}
 
 impl ItemDropping {
     pub fn run(ecs_world: &mut World) {
-        let mut item_drop_position_list: Vec<(Entity,Entity, (i32,i32))> = Vec::new();
+        let mut item_drop_position_list: Vec<(Entity, Entity, (i32, i32))> = Vec::new();
 
         // Scope for keeping borrow checker quiet
         {
@@ -30,8 +30,8 @@ impl ItemDropping {
                 let drop = ecs_world.get::<&Position>(dropper).unwrap();
 
                 // Drop item and keep track of the drop Position
-                item_drop_position_list.push((wants_item.item, dropper,  (drop.x, drop.y)));
-
+                item_drop_position_list.push((wants_item.item, dropper, (drop.x, drop.y)));
+            
                 game_log.entries.push(format!(
                     "{} drops up the {}",
                     named_dropper.name, named_item.name
@@ -39,15 +39,12 @@ impl ItemDropping {
             }
         }
 
-        for (item, dropper, (drop_x,drop_y)) in item_drop_position_list {
-            // Remove item from back pack
-            let _ = ecs_world.remove_one::<InBackback>(item);
-
+        for (item, dropper, (drop_x, drop_y)) in item_drop_position_list {
             // Remove owner's will to pick up
             let _ = ecs_world.remove_one::<WantsToDrop>(dropper);
 
-            // Register that now item is in "wants_item" entity backpack
-            let _ = ecs_world.insert_one(
+            // Remove item from back pack Register that now item is in "wants_item" entity backpack
+            let _ = ecs_world.exchange_one::<InBackback, Position>(
                 item,
                 Position {
                     x: drop_x,

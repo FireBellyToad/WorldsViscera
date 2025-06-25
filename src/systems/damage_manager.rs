@@ -7,8 +7,13 @@ use crate::{
         combat::{CombatStats, SufferingDamage},
         common::{GameLog, Named, Position},
         health::CanAutomaticallyHeal,
+        items::Edible,
         player::Player,
-    }, constants::MAX_STAMINA_HEAL_TICK_COUNTER, maps::game_map::GameMap, utils::roll::Roll
+    },
+    constants::MAX_STAMINA_HEAL_TICK_COUNTER,
+    maps::zone::{ParticleType, Zone},
+    spawner::Spawn,
+    utils::roll::Roll,
 };
 
 pub struct DamageManager {}
@@ -19,8 +24,8 @@ impl DamageManager {
         let mut damageables =
             ecs_world.query::<(&mut SufferingDamage, &mut CombatStats, &Position)>();
 
-        let mut map_query = ecs_world.query::<&mut GameMap>();
-        let (_e, map) = map_query.iter().last().expect("GameMap is not in hecs::World");
+        let mut zone_query = ecs_world.query::<&mut Zone>();
+        let (_e, zone) = zone_query.iter().last().expect("Zone is not in hecs::World");
 
         for (damaged_entity, (damageable, stats, position)) in &mut damageables {
             if damageable.damage_received > 0 {
@@ -40,15 +45,17 @@ impl DamageManager {
                 }
 
                 //Drench the tile with blood
-                map.bloodied_tiles
-                    .insert(GameMap::get_index_from_xy(position.x, position.y));
+                zone.particle_tiles.insert(
+                    Zone::get_index_from_xy(position.x, position.y),
+                    ParticleType::Blood,
+                );
             }
         }
     }
 
     /// Check which entities are dead and removes them. Returns true if Player is dead
-    pub fn remove_dead(ecs_world: &mut World) -> bool {
-        let mut dead_entities: Vec<Entity> = Vec::new();
+    pub fn remove_dead_and_check_gameover(ecs_world: &mut World) -> bool {
+        let mut dead_entities: Vec<(Entity, String, (i32, i32))> = Vec::new();
         let player_entity_id = Player::get_player_id(ecs_world);
 
         // Scope for keeping borrow checker quiet
@@ -59,19 +66,15 @@ impl DamageManager {
                 .last()
                 .expect("Game log is not in hecs::World");
 
-            let mut damageables = ecs_world.query::<(&CombatStats, &Named, &mut SufferingDamage)>();
-            for (entity, (stats, named, damageable)) in &mut damageables {
+            let mut damageables =
+                ecs_world.query::<(&CombatStats, &Named, &mut SufferingDamage, &Position)>();
+            for (entity, (stats, named, damageable, position)) in &mut damageables {
                 // if has been damaged and Stamina is 0, do a thougness saving throw or die.
                 // On 0 or less toughness, die anyway
                 if stats.current_stamina == 0 && damageable.damage_received > 0 {
                     let saving_throw_roll = Roll::d20();
-
-                    game_log.entries.push(format!(
-                        "{} saving with {} against toughness {} / {}",
-                        named.name, saving_throw_roll, stats.current_toughness, stats.max_toughness
-                    ));
                     if stats.current_toughness < 1 || saving_throw_roll > stats.current_toughness {
-                        dead_entities.push(entity);
+                        dead_entities.push((entity, named.name.clone(), (position.x, position.y)));
                         game_log.entries.push(format!("{} dies!", named.name));
                     } else if stats.current_toughness > 0 {
                         game_log
@@ -85,11 +88,24 @@ impl DamageManager {
         }
 
         //Remove all dead entities, stop game if player is dead
-        for ent in dead_entities {
+        for (ent, name, (x, y)) in dead_entities {
             if ent.id() == player_entity_id {
                 //Game over!
                 return true;
             }
+
+            // Create corpse
+            // TODO change nutrition based on monster
+            Spawn::corpse(
+                ecs_world,
+                x,
+                y,
+                name,
+                Edible {
+                    nutrition_dice_number: 4,
+                    nutrition_dice_size: 12,
+                },
+            );
 
             ecs_world
                 .despawn(ent)

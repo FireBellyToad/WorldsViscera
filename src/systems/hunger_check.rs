@@ -3,8 +3,14 @@ use std::cmp::{max, min};
 use hecs::World;
 
 use crate::{
-    components::{combat::SufferingDamage, common::GameLog, health::Hunger, player::Player},
+    components::{
+        combat::{CombatStats, SufferingDamage},
+        common::{GameLog, MyTurn, Position},
+        health::Hunger,
+        player::Player,
+    },
     constants::MAX_HUNGER_TICK_COUNTER,
+    maps::zone::{ParticleType, Zone},
     utils::roll::Roll,
 };
 
@@ -25,9 +31,17 @@ impl HungerCheck {
         // Scope for keeping borrow checker quiet
         {
             // List of entities that has stats
-            let mut hungry_entities = ecs_world.query::<&mut Hunger>();
+            let mut hungry_entities = ecs_world
+                .query::<(&mut Hunger, &CombatStats, &Position)>()
+                .with::<&MyTurn>();
 
             let player_id = Player::get_player_id(ecs_world);
+
+            let mut zone_query = ecs_world.query::<&mut Zone>();
+            let (_e, zone) = zone_query
+                .iter()
+                .last()
+                .expect("Zone is not in hecs::World");
 
             //Log all the hunger checks
             let mut game_log_query = ecs_world.query::<&mut GameLog>();
@@ -36,11 +50,10 @@ impl HungerCheck {
                 .last()
                 .expect("Game log is not in hecs::World");
 
-            for (hungry_entity, hunger) in &mut hungry_entities {
+            for (hungry_entity, (hunger, stats, position)) in &mut hungry_entities {
                 // When clock is depleted, decrease fed status
                 // TODO Calculate penalties
                 hunger.tick_counter = max(0, hunger.tick_counter - 1);
-
                 if hunger.tick_counter <= MAX_HUNGER_TICK_COUNTER && hunger.tick_counter == 0 {
                     match hunger.current_status {
                         HungerStatus::Satiated => {
@@ -70,7 +83,7 @@ impl HungerCheck {
                                     damage_starving_entity.unwrap().damage_received += 1;
                                     game_log
                                         .entries
-                                        .push(format!("You are wasted away by starvation!"));
+                                        .push(format!("Starvation wastes you away!"));
                                 }
                             }
                         }
@@ -78,10 +91,32 @@ impl HungerCheck {
                 } else if hunger.tick_counter > MAX_HUNGER_TICK_COUNTER {
                     // If eating something, keep delta and increase status
                     // Do not do a double step (FIXME think about it)
-                    hunger.tick_counter = min(MAX_HUNGER_TICK_COUNTER, hunger.tick_counter - MAX_HUNGER_TICK_COUNTER);
+                    hunger.tick_counter = min(
+                        MAX_HUNGER_TICK_COUNTER,
+                        hunger.tick_counter - MAX_HUNGER_TICK_COUNTER,
+                    );
                     match hunger.current_status {
                         HungerStatus::Satiated => {
-                            // TODO VOMIT!
+                            if Roll::d20() <= stats.current_toughness {
+                                hunger.tick_counter = MAX_HUNGER_TICK_COUNTER;
+                                if hungry_entity.id() == player_id {
+                                    game_log.entries.push(format!(
+                                        "You ate too much and feel slightly nauseous"
+                                    ));
+                                }
+                            } else {
+                                hunger.tick_counter = MAX_HUNGER_TICK_COUNTER - Roll::dice(3, 10);
+                                hunger.current_status = HungerStatus::Normal;
+                                zone.particle_tiles.insert(
+                                    Zone::get_index_from_xy(position.x, position.y),
+                                    ParticleType::Vomit,
+                                );
+                                if hungry_entity.id() == player_id {
+                                    game_log
+                                        .entries
+                                        .push(format!("You ate too much and vomit!"));
+                                }
+                            }
                         }
                         HungerStatus::Normal => {
                             hunger.current_status = HungerStatus::Satiated;

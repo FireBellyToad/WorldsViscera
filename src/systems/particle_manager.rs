@@ -30,7 +30,7 @@ impl ParticleManager {
         for e in anim_to_remove {
             let _ = game_state.ecs_world.despawn(e);
             //FIXME This is bad, what about monsters using wands?
-            game_state.run_state = RunState::SystemsRunning;
+            game_state.run_state = RunState::DoTick;
         }
     }
 
