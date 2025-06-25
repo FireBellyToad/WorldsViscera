@@ -11,17 +11,21 @@ use macroquad::prelude::*;
 use spawner::Spawn;
 use systems::{
     damage_manager::DamageManager, eating_edibles::EatingEdibles, fov::FieldOfView,
-    item_collection::ItemCollection, item_dropping::ItemDropping,
-    melee_manager::MeleeManager, monster_ai::MonsterAI,
+    item_collection::ItemCollection, item_dropping::ItemDropping, melee_manager::MeleeManager,
+    monster_ai::MonsterAI,
 };
 
 use crate::{
     components::common::{Position, Viewshed},
     maps::{
-        arena_zone_builder::ArenaZoneBuilder, drunken_walk_zone_builder::DrunkenWalkZoneBuilder, zone::Zone, ZoneBuilder
+        ZoneBuilder, arena_zone_builder::ArenaZoneBuilder,
+        drunken_walk_zone_builder::DrunkenWalkZoneBuilder, zone::Zone,
     },
     systems::{
-        automatic_healing::AutomaticHealing, decay_manager::DecayManager, drinking_quaffables::DrinkingQuaffables, fuel_manager::FuelManager, hunger_check::HungerCheck, map_indexing::MapIndexing, particle_manager::ParticleManager, thirst_check::ThirstCheck, turn_checker::TurnCheck, zap_manager::ZapManager
+        automatic_healing::AutomaticHealing, decay_manager::DecayManager,
+        drinking_quaffables::DrinkingQuaffables, fuel_manager::FuelManager,
+        hunger_check::HungerCheck, map_indexing::MapIndexing, particle_manager::ParticleManager,
+        thirst_check::ThirstCheck, turn_checker::TurnCheck, zap_manager::ZapManager,
     },
     utils::assets::Load,
 };
@@ -65,13 +69,13 @@ async fn main() {
     loop {
         //If there are particles, skip everything and draw
         ParticleManager::check_if_animations_are_present(&mut game_engine, &mut game_state);
-
         if game_engine.next_tick() {
             // Run system only while not paused, or else wait for player input.
             // Make the whole game turn based
 
             match game_state.run_state {
                 RunState::BeforeTick => {
+                    tick += 1;
                     println!("BeforeTick ---------------------------- tick {}", tick);
                     do_before_tick_logic(&mut game_state);
                     game_state.run_state = RunState::DoTick;
@@ -88,7 +92,6 @@ async fn main() {
                         } else {
                             MonsterAI::act(&mut game_state.ecs_world);
                             game_state.run_state = RunState::BeforeTick;
-                            tick += 1;
                         }
                     } else {
                         game_state.run_state = RunState::GameOver;

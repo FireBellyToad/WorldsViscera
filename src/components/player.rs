@@ -260,7 +260,8 @@ impl Player {
             // Get item
             for (item_entity, (_item, item_position)) in &mut items {
                 if player_position.x == item_position.x && player_position.y == item_position.y {
-                    target_item = Some(item_entity)
+                    target_item = Some(item_entity);
+                    println!("pick_up {:?}", item_entity);
                 }
             }
         }
@@ -270,6 +271,7 @@ impl Player {
             None => {}
             Some(item) => {
                 picked_something = true;
+                println!("pick_up {:?}", item);
                 let _ = ecs_world.insert_one(player_entity, WantsItem { item: item });
             }
         }
@@ -294,7 +296,7 @@ impl Player {
     fn try_next_level(ecs_world: &mut World, char_pressed: char) -> RunState {
         let player_position;
         let standing_on_tile;
-        
+
         //Scope to keep borrow checker quiet
         {
             let mut player_query = ecs_world.query::<(&Player, &Position)>();
