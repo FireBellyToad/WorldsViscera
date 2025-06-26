@@ -5,7 +5,9 @@ use crate::{
         combat::{CombatStats, InflictsDamage, SufferingDamage, WantsToZap},
         common::{GameLog, Named, Position},
         items::WantsToInvoke,
-    }, maps::zone::Zone, utils::{particle_animation::ParticleAnimation, roll::Roll}
+    },
+    maps::zone::Zone,
+    utils::{effect_manager::EffectManager, particle_animation::ParticleAnimation, roll::Roll},
 };
 
 pub struct ZapManager {}
@@ -29,57 +31,70 @@ impl ZapManager {
                 .expect("Game log is not in hecs::World");
 
             let mut zone_query = ecs_world.query::<&Zone>();
-            let (_e, zone) = zone_query.iter().last().expect("Zone is not in hecs::World");
+            let (_e, zone) = zone_query
+                .iter()
+                .last()
+                .expect("Zone is not in hecs::World");
 
             for (zapper, (wants_zap, wants_invoke, zapper_position)) in &mut zappers {
-                let index = Zone::get_index_from_xy(wants_zap.target.0, wants_zap.target.1);
-                let target_list = &zone.tile_content[index];
+                let mut target_list: Vec<&Vec<Entity>> = Vec::new();
 
                 // Do not draw if zapping himself
                 if zapper_position.x != wants_zap.target.0
                     || zapper_position.y != wants_zap.target.1
                 {
-                    // TODO why here we do not use the line effect in gameplay?
-                    particle_animations.push(ParticleAnimation::new_line(
+                    //TODO what if the effect is not a line?
+                    let line_effect = EffectManager::new_line(
                         (zapper_position.x, zapper_position.y),
                         (wants_zap.target.0, wants_zap.target.1),
-                    ));
+                    );
+
+                    // Zap all entities in line!
+                    for &(x, y) in &line_effect {
+                        let index = Zone::get_index_from_xy(x, y);
+                        target_list.push(&zone.tile_content[index]);
+                    }
+
+                    particle_animations.push(ParticleAnimation::new_line(line_effect));
+                } else {
+                    // Only one if zapping himself
+                    let index = Zone::get_index_from_xy(wants_zap.target.0, wants_zap.target.1);
+                    target_list.push(&zone.tile_content[index]);
                 }
 
-                for &target in target_list {
-                    let target_stats = ecs_world.get::<&CombatStats>(target).unwrap();
-                    let item_damage = ecs_world.get::<&InflictsDamage>(wants_invoke.item).unwrap();
-                    let target_damage = ecs_world.get::<&mut SufferingDamage>(target);
+                for &targets in &target_list {
+                    for &target in targets {
+                        let target_stats = ecs_world.get::<&CombatStats>(target).unwrap();
+                        let item_damage =
+                            ecs_world.get::<&InflictsDamage>(wants_invoke.item).unwrap();
+                        let target_damage = ecs_world.get::<&mut SufferingDamage>(target);
 
-                    //Sum damage, keeping in mind that could not have SufferingDamage component
-                    if target_damage.is_ok() {
-                        let damage_roll =
-                            Roll::dice(item_damage.number_of_dices, item_damage.dice_size);
-                        let saving_throw_roll = Roll::d20();
+                        //Sum damage, keeping in mind that could not have SufferingDamage component
+                        if target_damage.is_ok() {
+                            let damage_roll =
+                                Roll::dice(item_damage.number_of_dices, item_damage.dice_size);
+                            let saving_throw_roll = Roll::d20();
 
-                        // Show appropriate log messages
-                        let named_attacker = ecs_world.get::<&Named>(zapper).unwrap();
-                        let named_target = ecs_world.get::<&Named>(target).unwrap();
-                        game_log.entries.push(format!(
-                            "{} saving with {} against dexterity {} ",
-                            named_target.name, saving_throw_roll, target_stats.current_dexterity
-                        ));
+                            // Show appropriate log messages
+                            let named_attacker = ecs_world.get::<&Named>(zapper).unwrap();
+                            let named_target = ecs_world.get::<&Named>(target).unwrap();
+                            
+                            // Dextery Save made halves damage
+                            if saving_throw_roll > target_stats.current_dexterity {
+                                target_damage.unwrap().damage_received += damage_roll;
+                            } else {
+                                target_damage.unwrap().damage_received += damage_roll / 2;
+                                game_log
+                                    .entries
+                                    .push(format!("{} ducks some of the blow!", named_target.name));
+                            }
 
-                        // Dextery Save made halves damage
-                        if saving_throw_roll > target_stats.current_dexterity {
-                            target_damage.unwrap().damage_received += damage_roll;
-                        } else {
-                            target_damage.unwrap().damage_received += damage_roll / 2;
-                            game_log
-                                .entries
-                                .push(format!("{} ducks some of the blow!", named_target.name));
-                        }
-
-                        game_log.entries.push(format!(
-                            "{} zaps the {} for {} damage",
-                            named_attacker.name, named_target.name, damage_roll
-                        ));
-                    };
+                            game_log.entries.push(format!(
+                                "{} zaps the {} for {} damage",
+                                named_attacker.name, named_target.name, damage_roll
+                            ));
+                        };
+                    }
                 }
 
                 // prepare lists for removal
