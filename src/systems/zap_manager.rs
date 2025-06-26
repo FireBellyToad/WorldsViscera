@@ -49,8 +49,8 @@ impl ZapManager {
                         (wants_zap.target.0, wants_zap.target.1),
                     );
 
-                    // Zap all entities in line!
-                    for &(x, y) in &line_effect {
+                    // Zap all entities in line (Excluding first)!
+                    for &(x, y) in line_effect.iter().skip(1) {
                         let index = Zone::get_index_from_xy(x, y);
                         target_list.push(&zone.tile_content[index]);
                     }
@@ -64,9 +64,6 @@ impl ZapManager {
 
                 for &targets in &target_list {
                     for &target in targets {
-                        let target_stats = ecs_world.get::<&CombatStats>(target).unwrap();
-                        let item_damage =
-                            ecs_world.get::<&InflictsDamage>(wants_invoke.item).unwrap();
                         let target_damage = ecs_world.get::<&mut SufferingDamage>(target);
 
                         //Sum damage, keeping in mind that could not have SufferingDamage component
