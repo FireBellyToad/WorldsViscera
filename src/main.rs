@@ -67,7 +67,9 @@ async fn main() {
 
     let mut tick = 0;
     loop {
-        
+        //If there are particles, skip everything and draw
+        let _ = ParticleManager::check_if_animations_are_present(&mut game_engine, &mut game_state);
+
         if game_engine.next_tick() {
             // Run system only while not paused, or else wait for player input.
             // Make the whole game turn based

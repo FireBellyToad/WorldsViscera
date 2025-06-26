@@ -9,7 +9,8 @@ use macroquad::texture::{load_texture, Texture2D};
 pub enum TextureName {
     Creatures,
     Tiles,
-    Items
+    Items,
+    Particles
 }
 
 pub struct Load {}
@@ -29,6 +30,10 @@ impl Load {
         assets.insert(
             TextureName::Items,
             load_texture("assets/items.png").await.unwrap(),
+        );
+        assets.insert(
+            TextureName::Particles,
+            load_texture("assets/particles.png").await.unwrap(),
         );
         assets
     }

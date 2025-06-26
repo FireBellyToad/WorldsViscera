@@ -6,7 +6,7 @@ use macroquad::{
     input::mouse_position,
     math::Rect,
     shapes::{draw_circle, draw_rectangle, draw_rectangle_lines},
-    text::draw_text,
+    text::{draw_text, draw_text_ex},
     texture::{DrawTextureParams, Texture2D, draw_texture_ex},
 };
 
@@ -49,7 +49,7 @@ impl Draw {
                     RunState::DrawParticles => {
                         let mut animations = game_state.ecs_world.query::<&mut ParticleAnimation>();
                         for a in &mut animations {
-                            Draw::particles(a.1);
+                            Draw::particles(a.1, assets);
                         }
                     }
                     _ => {}
@@ -421,18 +421,57 @@ impl Draw {
     }
 
     /// Draw particles
-    pub fn particles(animation: &mut ParticleAnimation) {
+    pub fn particles(animation: &mut ParticleAnimation, assets: &HashMap<TextureName, Texture2D>) {
         if animation.current_frame < animation.frames.len() {
+            let texture_to_render = assets
+                .get(&TextureName::Particles)
+                .expect("Texture not found");
             let frame_to_render = &animation.frames[animation.current_frame];
 
+            //Render different directions for particles
+            let mut direction = 0.0;
+            let (mut previous_x, mut previous_y) = (-1, -1);
             for (x, y) in frame_to_render {
-                // TODO use assets
-                draw_circle(
-                    (UI_BORDER + (x * TILE_SIZE) + TILE_SIZE / 2) as f32,
-                    (UI_BORDER + (y * TILE_SIZE) + TILE_SIZE / 2) as f32,
-                    5.0,
-                    YELLOW,
-                );
+                // First particle must not be rendered
+                if previous_x != -1 && previous_y != 1 {
+                    if previous_y == *y {
+                        direction = 0.0;
+                    } else if previous_x == *x {
+                        direction = 1.0;
+                    } else if previous_y > *y {
+                        if previous_x < *x {
+                            direction = 2.0;
+                        } else {
+                            direction = 3.0;
+                        }
+                    } else if previous_y < *y {
+                        if previous_x > *x {
+                            direction = 2.0;
+                        } else {
+                            direction = 3.0;
+                        }
+                    }
+
+                    // Take the texture and draw only the wanted tile ( DrawTextureParams.source )
+                    draw_texture_ex(
+                        texture_to_render,
+                        (UI_BORDER + (x * TILE_SIZE)) as f32,
+                        (UI_BORDER + (y * TILE_SIZE)) as f32,
+                        WHITE,
+                        DrawTextureParams {
+                            source: Some(Rect {
+                                x: direction * TILE_SIZE_F32, //FIXME direction
+                                y: 0.0,
+                                w: TILE_SIZE_F32,
+                                h: TILE_SIZE_F32,
+                            }),
+                            ..Default::default()
+                        },
+                    );
+                }
+
+                previous_x = *x;
+                previous_y = *y;
             }
         }
     }

@@ -17,7 +17,6 @@ impl EffectManager {
 
         //Add last point and remove start point
         line.push(end);
-        line = line.drain(1..).collect();
 
         line
     }

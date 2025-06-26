@@ -71,6 +71,9 @@ impl ZapManager {
 
                         //Sum damage, keeping in mind that could not have SufferingDamage component
                         if target_damage.is_ok() {
+                            let target_stats = ecs_world.get::<&CombatStats>(target).unwrap();
+                            let item_damage =
+                                ecs_world.get::<&InflictsDamage>(wants_invoke.item).unwrap();
                             let damage_roll =
                                 Roll::dice(item_damage.number_of_dices, item_damage.dice_size);
                             let saving_throw_roll = Roll::d20();
@@ -78,7 +81,7 @@ impl ZapManager {
                             // Show appropriate log messages
                             let named_attacker = ecs_world.get::<&Named>(zapper).unwrap();
                             let named_target = ecs_world.get::<&Named>(target).unwrap();
-                            
+
                             // Dextery Save made halves damage
                             if saving_throw_roll > target_stats.current_dexterity {
                                 target_damage.unwrap().damage_received += damage_roll;
