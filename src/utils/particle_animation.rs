@@ -1,4 +1,3 @@
-use bresenham::Bresenham;
 
 pub struct ParticleAnimation {
     pub current_frame: usize,

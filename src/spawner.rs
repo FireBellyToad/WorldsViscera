@@ -294,7 +294,7 @@ impl Spawn {
             },
             Item { item_tile_index },
             ProduceLight {
-                radius: BRAZIER_RADIUS,
+                radius: LANTERN_RADIUS,
             },
             Fuel {
                 counter: STARTING_FUEL + Roll::d100(),

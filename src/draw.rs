@@ -115,7 +115,7 @@ impl Draw {
         let (_e, zone) = zones.iter().last().expect("Zone is not in hecs::World");
 
         let mut player_query = ecs_world.query::<(&Player, &CombatStats, &Hunger, &Thirst)>();
-        let (_e, (_p, player_stats, hunger,thirst)) = player_query
+        let (_e, (_p, player_stats, hunger, thirst)) = player_query
             .iter()
             .last()
             .expect("Player is not in hecs::World");
@@ -147,7 +147,6 @@ impl Draw {
         let dex_text_len = dex_text.len();
         let depth_text = format!("Depth: {}", zone.depth);
         let depth_text_len = depth_text.len();
-
 
         draw_rectangle(
             (HEADER_LEFT_SPAN + HUD_BORDER) as f32,
@@ -312,7 +311,10 @@ impl Draw {
         let (mouse_x, mouse_y) = mouse_position();
 
         let mut zone_query = ecs_world.query::<&Zone>();
-        let (_e, zone) = zone_query.iter().last().expect("Zone is not in hecs::World");
+        let (_e, zone) = zone_query
+            .iter()
+            .last()
+            .expect("Zone is not in hecs::World");
 
         let rounded_x = (((mouse_x - UI_BORDER_F32) / TILE_SIZE_F32).ceil() - 1.0) as i32;
         let rounded_y = (((mouse_y - UI_BORDER_F32) / TILE_SIZE_F32).ceil() - 1.0) as i32;
@@ -338,8 +340,8 @@ impl Draw {
         for x in 0..MAP_WIDTH {
             for y in 0..MAP_HEIGHT {
                 let tile_to_draw = Zone::get_index_from_xy(x, y);
-                let tile_index = Zone::get_tile_sprite_sheet_index(&zone.tiles[tile_to_draw])
-                    * TILE_SIZE_F32;
+                let tile_index =
+                    Zone::get_tile_sprite_sheet_index(&zone.tiles[tile_to_draw]) * TILE_SIZE_F32;
 
                 if zone.revealed_tiles[tile_to_draw] {
                     let mut alpha = DARKGRAY;
@@ -420,7 +422,6 @@ impl Draw {
 
     /// Draw particles
     pub fn particles(animation: &mut ParticleAnimation) {
-
         if animation.current_frame < animation.frames.len() {
             let frame_to_render = &animation.frames[animation.current_frame];
 

@@ -67,8 +67,7 @@ async fn main() {
 
     let mut tick = 0;
     loop {
-        //If there are particles, skip everything and draw
-        ParticleManager::check_if_animations_are_present(&mut game_engine, &mut game_state);
+        
         if game_engine.next_tick() {
             // Run system only while not paused, or else wait for player input.
             // Make the whole game turn based
@@ -83,18 +82,25 @@ async fn main() {
                 RunState::DoTick => {
                     println!("DoTick ---------------------------- tick {}", tick);
                     let is_game_over = do_in_tick_game_logic(&mut game_state);
+                    //If there are particles, skip everything and draw
+                    let must_run_particles = ParticleManager::check_if_animations_are_present(
+                        &mut game_engine,
+                        &mut game_state,
+                    );
 
                     // TODO refactor
-                    if !is_game_over {
-                        if Player::can_act(&game_state.ecs_world) {
-                            println!("Player's turn");
-                            game_state.run_state = RunState::WaitingPlayerInput;
+                    if !must_run_particles {
+                        if !is_game_over {
+                            if Player::can_act(&game_state.ecs_world) {
+                                println!("Player's turn");
+                                game_state.run_state = RunState::WaitingPlayerInput;
+                            } else {
+                                MonsterAI::act(&mut game_state.ecs_world);
+                                game_state.run_state = RunState::BeforeTick;
+                            }
                         } else {
-                            MonsterAI::act(&mut game_state.ecs_world);
-                            game_state.run_state = RunState::BeforeTick;
+                            game_state.run_state = RunState::GameOver;
                         }
-                    } else {
-                        game_state.run_state = RunState::GameOver;
                     }
                 }
                 RunState::WaitingPlayerInput => {

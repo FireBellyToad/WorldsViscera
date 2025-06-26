@@ -29,7 +29,6 @@ impl ParticleManager {
         // Remove finished animations
         for e in anim_to_remove {
             let _ = game_state.ecs_world.despawn(e);
-            //FIXME This is bad, what about monsters using wands?
             game_state.run_state = RunState::DoTick;
         }
     }
@@ -38,14 +37,15 @@ impl ParticleManager {
     pub fn check_if_animations_are_present(
         game_engine: &mut GameEngine,
         game_state: &mut EngineState,
-    ) {
+    ) -> bool {
         let mut animations = game_state.ecs_world.query::<&ParticleAnimation>();
 
         for _ in &mut animations {
             game_state.run_state = RunState::DrawParticles;
             game_engine.set_delay(1.0);
             // Only one animation must be present to enter into the DrawParticles state
-            break;
+            return true;
         }
+        false
     }
 }
