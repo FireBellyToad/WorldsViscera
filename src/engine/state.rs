@@ -28,7 +28,7 @@ impl EngineState {
     pub fn get_entities_to_delete_on_zone_change(&mut self) -> Vec<Entity> {
         let mut entities_to_delete: Vec<Entity> = Vec::new();
 
-        let player_id = Player::get_player_id(&self.ecs_world);
+        let player_id = Player::get_entity_id(&self.ecs_world);
 
         let mut must_delete;
         let all_entities_in_world: Vec<Entity> = self.ecs_world.iter().map(|eref| eref.entity()).collect();

@@ -56,7 +56,7 @@ impl DamageManager {
     /// Check which entities are dead and removes them. Returns true if Player is dead
     pub fn remove_dead_and_check_gameover(ecs_world: &mut World) -> bool {
         let mut dead_entities: Vec<(Entity, String, (i32, i32))> = Vec::new();
-        let player_entity_id = Player::get_player_id(ecs_world);
+        let player_entity_id = Player::get_entity_id(ecs_world);
 
         // Scope for keeping borrow checker quiet
         {
@@ -102,8 +102,8 @@ impl DamageManager {
                 y,
                 name,
                 Edible {
-                    nutrition_dice_number: 4,
-                    nutrition_dice_size: 12,
+                    nutrition_dice_number:5,
+                    nutrition_dice_size: 20,
                 },
             );
 

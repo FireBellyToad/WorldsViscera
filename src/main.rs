@@ -201,7 +201,7 @@ fn change_zone(engine: &mut EngineState) {
     let zone = DrunkenWalkZoneBuilder::build(current_depth + 1);
 
     //Set player position in new zone and force a FOV recalculation
-    let player_entity = Player::get_player_entity(&engine.ecs_world);
+    let player_entity = Player::get_entity(&engine.ecs_world);
 
     // Scope for keeping borrow checker quiet
     {

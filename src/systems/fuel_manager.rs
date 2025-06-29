@@ -13,7 +13,7 @@ impl FuelManager {
         // List of light producers with fuel
         let mut lighters = ecs_world.query::<&mut Fuel>().without::<&Refill>();
 
-        let player_entity = Player::get_player_entity(ecs_world);
+        let player_entity = Player::get_entity(ecs_world);
 
         let mut game_log_query = ecs_world.query::<&mut GameLog>();
         let (_e, game_log) = game_log_query

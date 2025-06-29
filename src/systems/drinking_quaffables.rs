@@ -5,6 +5,7 @@ use crate::{
         common::{GameLog, Named, Position},
         health::Thirst,
         items::{Quaffable, WantsToDrink},
+        player::Player,
     },
     utils::roll::Roll,
 };
@@ -13,7 +14,9 @@ pub struct DrinkingQuaffables {}
 
 impl DrinkingQuaffables {
     pub fn run(ecs_world: &mut World) {
-        let mut drinker_drunk_list: Vec<(Entity, Entity)> = Vec::new();
+        let mut drinker_list: Vec<Entity> = Vec::new();
+        let mut drunk_list: Vec<Entity> = Vec::new();
+        let player_id = Player::get_entity_id(ecs_world);
 
         // Scope for keeping borrow checker quiet
         {
@@ -28,23 +31,39 @@ impl DrinkingQuaffables {
                 .expect("Game log is not in hecs::World");
 
             for (drinker, (wants_to_drink, thirst, _p)) in &mut drinkers {
-                // Pick up and keep track of the owner
-                drinker_drunk_list.push((drinker, wants_to_drink.item));
+                let possible_quaffable = ecs_world.get::<&Quaffable>(wants_to_drink.item);
+               
+                // Keep track of the drinker
+                drinker_list.push(drinker);
+                if possible_quaffable.is_err() {
+                    if drinker.id() == player_id {
+                        game_log.entries.push(format!("You can't drink that!"));
+                    }
+                    continue;
+                }
+                //Drink!
+                drunk_list.push(wants_to_drink.item);
 
                 let quaffable_thirst = ecs_world.get::<&Quaffable>(wants_to_drink.item).unwrap();
 
                 // Show appropriate log messages
-                let named_eater = ecs_world.get::<&Named>(drinker).unwrap();
-                let named_edible = ecs_world.get::<&Named>(wants_to_drink.item).unwrap();
+                let named_quaffable = ecs_world.get::<&Named>(wants_to_drink.item).unwrap();
 
-                game_log.entries.push(format!(
-                    "{} drank the {}",
-                    named_eater.name, named_edible.name
-                ));
+                if drinker.id() == player_id {
+                    game_log
+                        .entries
+                        .push(format!("You drank the {}", named_quaffable.name));
+                } else {
+                    let named_drinker = ecs_world.get::<&Named>(drinker).unwrap();
+                    game_log.entries.push(format!(
+                        "{} drank the {}",
+                        named_drinker.name, named_quaffable.name
+                    ));
+                }
 
-                //----------- 
+                //-----------
                 // TODO place here something to handle tainted drinks
-                //----------- 
+                //-----------
 
                 thirst.tick_counter += Roll::dice(
                     quaffable_thirst.thirst_dice_number,
@@ -53,12 +72,14 @@ impl DrinkingQuaffables {
             }
         }
 
-        for (eater, eaten) in drinker_drunk_list {
+        for drunk in drunk_list {
             // Despawn item from World
-            let _ = ecs_world.despawn(eaten);
+            let _ = ecs_world.despawn(drunk);
+        }
 
+        for drinker in drinker_list {
             // Remove owner's will to drink
-            let _ = ecs_world.remove_one::<WantsToDrink>(eater);
+            let _ = ecs_world.remove_one::<WantsToDrink>(drinker);
         }
     }
 }

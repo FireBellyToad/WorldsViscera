@@ -35,7 +35,7 @@ impl HungerCheck {
                 .query::<(&mut Hunger, &CombatStats, &Position)>()
                 .with::<&MyTurn>();
 
-            let player_id = Player::get_player_id(ecs_world);
+            let player_id = Player::get_entity_id(ecs_world);
 
             let mut zone_query = ecs_world.query::<&mut Zone>();
             let (_e, zone) = zone_query

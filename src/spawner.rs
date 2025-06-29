@@ -267,8 +267,8 @@ impl Spawn {
             },
             Item { item_tile_index },
             Quaffable {
-                thirst_dice_number: 3,
-                thirst_dice_size: 12,
+                thirst_dice_number: 4,
+                thirst_dice_size: 20,
             },
         );
 

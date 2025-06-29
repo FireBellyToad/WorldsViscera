@@ -8,9 +8,7 @@ use macroquad::input::{
 
 use crate::{
     components::{
-        combat::WantsToZap,
-        common::{MyTurn, WaitingToAct},
-        health::CanAutomaticallyHeal,
+        combat::WantsToZap, common::{MyTurn, WaitingToAct}, health::CanAutomaticallyHeal, items::{WantsToDrink, WantsToEat}, player
     },
     constants::*,
     engine::state::RunState,
@@ -124,6 +122,7 @@ impl Player {
         // Player commands. Handed with characters to manage different keyboards layout
         // Do it only if no keys were pressed or else Arrow keys and space will not work properly
         if check_chars_pressed {
+            let player_entity = Player::get_entity(ecs_world);
             match get_char_pressed() {
                 None => run_state = RunState::WaitingPlayerInput, // Nothing happened
                 Some(char) => {
@@ -143,7 +142,15 @@ impl Player {
                         //Eat item
                         'e' => {
                             clear_input_queue();
-                            run_state = RunState::ShowInventory(InventoryAction::Eat);
+                            let edible = Player::take_from_map(ecs_world);
+
+                            if edible.is_some(){
+                                let _ = ecs_world.insert_one(player_entity, WantsToEat { item: edible.unwrap() });
+                                run_state = RunState::DoTick;
+                                is_actively_waiting = true;
+                            } else {
+                                run_state = RunState::ShowInventory(InventoryAction::Eat);
+                            }
                         }
 
                         //DEBUG ONLY KILL
@@ -170,7 +177,15 @@ impl Player {
                         //Quaff item
                         'q' => {
                             clear_input_queue();
-                            run_state = RunState::ShowInventory(InventoryAction::Quaff);
+                            let quaffable = Player::take_from_map(ecs_world);
+
+                            if quaffable.is_some(){
+                                let _ = ecs_world.insert_one(player_entity, WantsToDrink { item: quaffable.unwrap() });
+                                run_state = RunState::DoTick;
+                                is_actively_waiting = true;
+                            } else {
+                                run_state = RunState::ShowInventory(InventoryAction::Quaff);
+                            }
                         }
 
                         //Refill item
@@ -223,7 +238,7 @@ impl Player {
                 }
             }
 
-            let player_entity = Player::get_player_entity(&ecs_world);
+            let player_entity = Player::get_entity(&ecs_world);
 
             if is_valid_tile {
                 let _ = ecs_world.insert_one(
@@ -243,31 +258,10 @@ impl Player {
     }
 
     fn pick_up(ecs_world: &mut World) {
-        let (player_position, player_entity);
-        let mut target_item: Option<Entity> = None;
-
-        // Scope for keeping borrow checker quiet
-        {
-            let mut player_query = ecs_world.query::<(&Player, &Position)>();
-            let (player, (_p, position)) = player_query
-                .iter()
-                .last()
-                .expect("Player is not in hecs::World");
-            player_position = position;
-            player_entity = player;
-
-            let mut items = ecs_world.query::<(&Item, &Position)>();
-            // Get item
-            for (item_entity, (_item, item_position)) in &mut items {
-                if player_position.x == item_position.x && player_position.y == item_position.y {
-                    target_item = Some(item_entity);
-                    println!("pick_up {:?}", item_entity);
-                }
-            }
-        }
+        let player_entity = Player::get_entity(ecs_world);
 
         let mut picked_something = false;
-        match target_item {
+        match Player::take_from_map(ecs_world) {
             None => {}
             Some(item) => {
                 picked_something = true;
@@ -291,6 +285,31 @@ impl Player {
             Player::reset_heal_counter(ecs_world);
             Player::wait_after_action(ecs_world);
         }
+    }
+
+    fn take_from_map(ecs_world: &mut World) -> Option<Entity>{
+        let mut target_item: Option<Entity> = None;
+
+        // Scope for keeping borrow checker quiet
+        {
+            let mut player_query = ecs_world.query::<(&Player, &Position)>();
+            let (player, (_p, position)) = player_query
+                .iter()
+                .last()
+                .expect("Player is not in hecs::World");
+            let player_position = position;
+
+            let mut items = ecs_world.query::<(&Item, &Position)>();
+            // Get item
+            for (item_entity, (_item, item_position)) in &mut items {
+                if player_position.x == item_position.x && player_position.y == item_position.y {
+                    target_item = Some(item_entity);
+                }
+            }
+        }
+
+        target_item
+
     }
 
     fn try_next_level(ecs_world: &mut World, char_pressed: char) -> RunState {
@@ -352,7 +371,7 @@ impl Player {
     }
 
     /// Extract Player's entity from world and return it with copy
-    pub fn get_player_entity(ecs_world: &World) -> Entity {
+    pub fn get_entity(ecs_world: &World) -> Entity {
         let mut player_query = ecs_world.query::<&Player>();
         let (player_entity, _p) = player_query
             .iter()
@@ -362,8 +381,8 @@ impl Player {
         player_entity
     }
     /// Extract Player's entity id from world and return it with copy
-    pub fn get_player_id(ecs_world: &World) -> u32 {
-        Player::get_player_entity(ecs_world).id()
+    pub fn get_entity_id(ecs_world: &World) -> u32 {
+        Player::get_entity(ecs_world).id()
     }
     /// Extract Player's entity from world and return it with copy
     pub fn can_act(ecs_world: &World) -> bool {
@@ -385,7 +404,7 @@ impl Player {
 
     /// Wait some ticks after action is taken
     pub fn wait_after_action(ecs_world: &mut World) {
-        let player = Player::get_player_entity(ecs_world);
+        let player = Player::get_entity(ecs_world);
         let speed;
 
         // Scope for keeping borrow checker quiet

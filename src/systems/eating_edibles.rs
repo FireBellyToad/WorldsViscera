@@ -7,7 +7,7 @@ use crate::{
         items::{Edible, Rotten, WantsToEat},
         player::Player,
     },
-    maps::zone::{Zone, ParticleType},
+    maps::zone::{ParticleType, Zone},
     systems::hunger_check::HungerStatus,
     utils::roll::Roll,
 };
@@ -16,14 +16,15 @@ pub struct EatingEdibles {}
 
 impl EatingEdibles {
     pub fn run(ecs_world: &mut World) {
-        let mut eater_eaten_list: Vec<(Entity, Entity)> = Vec::new();
+        let mut eater_list: Vec<Entity> = Vec::new();
+        let mut eaten_list: Vec<Entity> = Vec::new();
 
         // Scope for keeping borrow checker quiet
         {
             // List of entities that want to collect items
             let mut eaters = ecs_world.query::<(&WantsToEat, &mut Hunger, &Position)>();
 
-            let player_id = Player::get_player_id(ecs_world);
+            let player_id = Player::get_entity_id(ecs_world);
 
             let mut zone_query = ecs_world.query::<&mut Zone>();
             let (_e, zone) = zone_query
@@ -39,19 +40,36 @@ impl EatingEdibles {
                 .expect("Game log is not in hecs::World");
 
             for (eater, (wants_to_eat, hunger, position)) in &mut eaters {
-                // Pick up and keep track of the owner
-                eater_eaten_list.push((eater, wants_to_eat.item));
+                let possible_edible = ecs_world.get::<&Edible>(wants_to_eat.item);
 
-                let edible_nutrition = ecs_world.get::<&Edible>(wants_to_eat.item).unwrap();
+                // Keep track of the eater
+                eater_list.push(eater);
+                if possible_edible.is_err() {
+                    if eater.id() == player_id {
+                        game_log.entries.push(format!("You can't eat that!"));
+                    }
+                    continue;
+                }
+
+                // Eat!
+                eaten_list.push(wants_to_eat.item);
+
+                let edible_nutrition = possible_edible.unwrap();
 
                 // Show appropriate log messages
-                let named_eater = ecs_world.get::<&Named>(eater).unwrap();
                 let named_edible = ecs_world.get::<&Named>(wants_to_eat.item).unwrap();
+                if eater.id() == player_id {
+                    game_log
+                        .entries
+                        .push(format!("You ate the {}", named_edible.name));
+                } else {
+                    let named_eater = ecs_world.get::<&Named>(eater).unwrap();
 
-                game_log.entries.push(format!(
-                    "{} ate the {}",
-                    named_eater.name, named_edible.name
-                ));
+                    game_log.entries.push(format!(
+                        "{} ate the {}",
+                        named_eater.name, named_edible.name
+                    ));
+                }
 
                 // Is it rotten? Then vomit badly
                 // TODO vomit MORE BADLY
@@ -90,10 +108,12 @@ impl EatingEdibles {
             }
         }
 
-        for (eater, eaten) in eater_eaten_list {
+        for eaten in eaten_list {
             // Despawn item from World
             let _ = ecs_world.despawn(eaten);
+        }
 
+        for eater in eater_list {
             // Remove owner's will to eat
             let _ = ecs_world.remove_one::<WantsToEat>(eater);
         }
