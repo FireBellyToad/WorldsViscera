@@ -81,9 +81,12 @@ impl HungerCheck {
                                 // if can starve, damage the entity
                                 if damage_starving_entity.is_ok() {
                                     damage_starving_entity.unwrap().damage_received += 1;
-                                    game_log
-                                        .entries
-                                        .push(format!("Starvation wastes you away!"));
+
+                                    if hungry_entity.id() == player_id {
+                                        game_log
+                                            .entries
+                                            .push(format!("Starvation wastes you away!"));
+                                    }
                                 }
                             }
                         }

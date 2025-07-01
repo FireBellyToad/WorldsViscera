@@ -18,11 +18,11 @@ impl ParticleManager {
         //Animate with current timing
         {
             let mut animations = game_state.ecs_world.query::<&mut ParticleAnimation>();
-            for (e, a) in &mut animations {
-                if a.current_frame < a.frames.len() {
-                    a.current_frame += 1;
+            for (entity, animation) in &mut animations {
+                if animation.current_frame < animation.frames.len() {
+                    animation.current_frame += 1;
                 } else {
-                    anim_to_remove.push(e);
+                    anim_to_remove.push(entity);
                 }
             }
         }

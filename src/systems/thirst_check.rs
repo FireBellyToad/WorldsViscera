@@ -31,7 +31,9 @@ impl ThirstCheck {
         // Scope for keeping borrow checker quiet
         {
             // List of entities that has stats
-            let mut thirsty_entities = ecs_world.query::<(&mut Thirst, &CombatStats, &Position)>().with::<&MyTurn>();
+            let mut thirsty_entities = ecs_world
+                .query::<(&mut Thirst, &CombatStats, &Position)>()
+                .with::<&MyTurn>();
 
             let player_id = Player::get_entity_id(ecs_world);
 
@@ -80,9 +82,12 @@ impl ThirstCheck {
                                 // if can starve, damage the entity
                                 if damage_starving_entity.is_ok() {
                                     damage_starving_entity.unwrap().damage_received += 1;
-                                    game_log
-                                        .entries
-                                        .push(format!("Dehydration wastes you away!"));
+                                    
+                                    if thirsty_entity.id() == player_id {
+                                        game_log
+                                            .entries
+                                            .push(format!("Dehydration wastes you away!"));
+                                    }
                                 }
                             }
                         }
@@ -107,7 +112,10 @@ impl ThirstCheck {
                                 //Less severe than being oversatiated...
                                 thirst.tick_counter = MAX_THIRST_TICK_COUNTER - Roll::dice(2, 10);
                                 thirst.current_status = ThirstStatus::Normal;
-                                zone.particle_tiles.insert(Zone::get_index_from_xy(position.x, position.y), ParticleType::Vomit);
+                                zone.particle_tiles.insert(
+                                    Zone::get_index_from_xy(position.x, position.y),
+                                    ParticleType::Vomit,
+                                );
                                 if thirsty_entity.id() == player_id {
                                     game_log
                                         .entries
@@ -124,7 +132,9 @@ impl ThirstCheck {
                         ThirstStatus::Dehydrated => {
                             thirst.current_status = ThirstStatus::Thirsty;
                             if thirsty_entity.id() == player_id {
-                                game_log.entries.push(format!("You are no longer dehydrated"));
+                                game_log
+                                    .entries
+                                    .push(format!("You are no longer dehydrated"));
                             }
                         }
                     }
