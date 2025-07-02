@@ -29,12 +29,13 @@ impl MeleeManager {
                 .expect("Game log is not in hecs::World");
 
             for (attacker, wants_melee) in &mut attackers {
-                let attacker_stats = ecs_world.get::<&CombatStats>(attacker).unwrap();
-                let target_stats = ecs_world.get::<&CombatStats>(wants_melee.target).unwrap();
                 let target_damage = ecs_world.get::<&mut SufferingDamage>(wants_melee.target);
 
                 //Sum damage, keeping in mind that could not have SufferingDamage component
                 if target_damage.is_ok() {
+                    let attacker_stats = ecs_world.get::<&CombatStats>(attacker).unwrap();
+                    let target_stats = ecs_world.get::<&CombatStats>(wants_melee.target).unwrap();
+
                     let damage_roll = max(
                         0,
                         Roll::dice(1, attacker_stats.unarmed_attack_dice) - target_stats.base_armor,

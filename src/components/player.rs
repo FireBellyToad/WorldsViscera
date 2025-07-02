@@ -290,24 +290,21 @@ impl Player {
     fn take_from_map(ecs_world: &mut World) -> Option<Entity>{
         let mut target_item: Option<Entity> = None;
 
-        // Scope for keeping borrow checker quiet
-        {
-            let mut player_query = ecs_world.query::<(&Player, &Position)>();
-            let (player, (_p, position)) = player_query
-                .iter()
-                .last()
-                .expect("Player is not in hecs::World");
-            let player_position = position;
+        let mut player_query = ecs_world.query::<(&Player, &Position)>();
+        let (_e, (_p, position)) = player_query
+            .iter()
+            .last()
+            .expect("Player is not in hecs::World");
+        let player_position = position;
 
-            let mut items = ecs_world.query::<(&Item, &Position)>();
-            // Get item
-            for (item_entity, (_item, item_position)) in &mut items {
-                if player_position.x == item_position.x && player_position.y == item_position.y {
-                    target_item = Some(item_entity);
-                }
+        let mut items = ecs_world.query::<(&Item, &Position)>();
+        // Get item
+        for (item_entity, (_item, item_position)) in &mut items {
+            if player_position.x == item_position.x && player_position.y == item_position.y {
+                target_item = Some(item_entity);
             }
         }
-
+        
         target_item
 
     }

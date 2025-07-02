@@ -61,7 +61,7 @@ impl MapIndexing {
         let mut all_working_lighters: Vec<ProduceLightPositionDTO>;
 
         // Extract all light producers that could be laying on the ground OR be in a backpack
-        // They could or could NOT have Fuel management (think a an oil lanter VS a magic light)
+        // They could or could NOT have Fuel management (think a an oil lanter VS a brazier)
         // Either way get them
         let mut lighters_query = ecs_world.query::<(
             Option<&Position>,

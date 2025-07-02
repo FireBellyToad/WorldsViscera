@@ -53,7 +53,7 @@ impl FieldOfView {
         }
     }
 
-    /// Wrapper to riutilize standar compute fov everywhere, given a viewshed
+    /// Wrapper to riutilize standard compute fov everywhere, given a viewshed
     pub fn compute(zone: &mut Zone, viewshed: &mut Viewshed, x: i32, y: i32) {
         // Utility lambda for opaque tiles
         let is_opaque = |position: IVec2| zone.is_tile_opaque(position[0], position[1]);
