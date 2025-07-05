@@ -8,7 +8,7 @@ use macroquad::input::{
 
 use crate::{
     components::{
-        combat::WantsToZap, common::{MyTurn, WaitingToAct}, health::CanAutomaticallyHeal, items::{WantsToDrink, WantsToEat}, player
+        combat::WantsToZap, common::{MyTurn, WaitingToAct}, health::CanAutomaticallyHeal, items::{WantsToDrink, WantsToEat}
     },
     constants::*,
     engine::state::RunState,

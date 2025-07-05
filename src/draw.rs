@@ -6,7 +6,7 @@ use macroquad::{
     input::mouse_position,
     math::Rect,
     shapes::{draw_circle, draw_rectangle, draw_rectangle_lines},
-    text::{draw_text, draw_text_ex},
+    text::draw_text,
     texture::{DrawTextureParams, Texture2D, draw_texture_ex},
 };
 

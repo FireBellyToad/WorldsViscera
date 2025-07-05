@@ -41,8 +41,8 @@ impl ZoneBuilder for ArenaZoneBuilder {
 
         for _i in 0..items_number {
             for _t in 0..MAX_SPAWN_TENTANTIVES {
-                let x = Roll::dice(1, MAP_WIDTH as i32 - 2) as f32 + 1.0;
-                let y = Roll::dice(1, MAP_HEIGHT as i32 - 2) as f32 + 1.0;
+                let x = Roll::dice(1, MAP_WIDTH as i32 - 3) as f32 + 1.0;
+                let y = Roll::dice(1, MAP_HEIGHT as i32 - 3) as f32 + 1.0;
                 let index = Zone::get_index_from_xy_f32(x, y);
 
                 // avoid duplicate spawnpoints
