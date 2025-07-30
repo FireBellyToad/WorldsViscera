@@ -1,6 +1,6 @@
 use hecs::{Entity, World};
 
-use crate::{components::{common::GameLog, items::InBackback, player::Player}, inventory::InventoryAction};
+use crate::{components::{common::GameLog, items::InBackback, player::{Player, SpecialViewMode}}, inventory::InventoryAction};
 
 #[derive(PartialEq, Debug)]
 pub enum RunState {
@@ -9,7 +9,7 @@ pub enum RunState {
     DoTick,
     GameOver,
     ShowInventory(InventoryAction),
-    MouseTargeting,
+    MouseTargeting(SpecialViewMode),
     DrawParticles,
     GoToNextZone,
 }
@@ -17,7 +17,7 @@ pub enum RunState {
 // Game state struct
 pub struct EngineState {
     pub ecs_world: World, // World of ECS, where the framework lives
-    pub run_state: RunState,
+    pub run_state: RunState
 }
 
 // State implementations

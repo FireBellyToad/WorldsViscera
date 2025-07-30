@@ -1,6 +1,6 @@
 use crate::components::combat::{CombatStats, InflictsDamage, SufferingDamage};
 use crate::components::common::{
-    BlocksTile, MyTurn, Named, Position, ProduceCorpse, Renderable, Smells, Viewshed
+    BlocksTile, MyTurn, Named, Position, ProduceCorpse, Renderable, Smellable, Viewshed
 };
 use crate::components::health::{CanAutomaticallyHeal, Hunger, Thirst};
 use crate::components::items::{
@@ -123,7 +123,7 @@ impl Spawn {
                 max_dexterity: 10,
                 speed: NORMAL,
             },
-            Smells { smell_log: String::from("dried human sweat") },
+            Smellable { smell_log: String::from("dried human sweat") },
             1.0, //TODO fix
             x,
             y,
@@ -145,7 +145,7 @@ impl Spawn {
                 max_dexterity: 14,
                 speed: FAST,
             },
-            Smells { smell_log: String::from("coal drenched in vinegar") },
+            Smellable { smell_log: String::from("coal drenched in vinegar") },
             3.0, //TODO fix
             x,
             y,
@@ -167,7 +167,7 @@ impl Spawn {
                 max_dexterity: 8,
                 speed: SLOW,
             },
-            Smells { smell_log: String::from("coal drenched in vinegar") },
+            Smellable { smell_log: String::from("coal drenched in vinegar") },
             2.0, //TODO fix
             x,
             y,
@@ -179,7 +179,7 @@ impl Spawn {
         ecs_world: &mut World,
         name: String,
         combat_stats: CombatStats,
-        smells: Smells,
+        smells: Smellable,
         tile_index: f32,
         x: i32,
         y: i32,
@@ -359,7 +359,7 @@ impl Spawn {
                 counter: STARTING_FUEL + Roll::d100(),
             },
             Refill {},
-            Smells{
+            Smellable{
                 smell_log: String::from("faint scent of fuel")
             }
         );

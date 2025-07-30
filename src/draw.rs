@@ -13,9 +13,9 @@ use macroquad::{
 use crate::{
     components::{
         combat::CombatStats,
-        common::{GameLog, Position, Renderable},
+        common::{GameLog, Position, Renderable, Smellable},
         health::{Hunger, Thirst},
-        player::Player,
+        player::{Player, SpecialViewMode},
     },
     constants::*,
     engine::state::{EngineState, RunState},
@@ -44,8 +44,8 @@ impl Draw {
                     RunState::ShowInventory(mode) => {
                         Inventory::draw(assets, &game_state.ecs_world, mode)
                     }
-                    RunState::MouseTargeting => {
-                        Draw::targeting(&game_state.ecs_world);
+                    RunState::MouseTargeting(special_view_mode) => {
+                        Draw::targeting(&game_state.ecs_world, special_view_mode);
                     }
                     RunState::DrawParticles => {
                         let mut animations = game_state.ecs_world.query::<&mut ParticleAnimation>();
@@ -301,7 +301,7 @@ impl Draw {
     }
 
     /// Draw target on tile where mouse is poiting
-    fn targeting(ecs_world: &World) {
+    fn targeting(ecs_world: &World, special_view_mode: &SpecialViewMode) {
         draw_text(
             "Use mouse to aim, ESC to cancel",
             24.0,
@@ -309,7 +309,6 @@ impl Draw {
             FONT_SIZE,
             WHITE,
         );
-        let (mouse_x, mouse_y) = mouse_position();
 
         let mut zone_query = ecs_world.query::<&Zone>();
         let (_e, zone) = zone_query
@@ -317,12 +316,37 @@ impl Draw {
             .last()
             .expect("Zone is not in hecs::World");
 
+        let mut only_on_visible_tiles = true;
+        // Draw targets if special
+        match special_view_mode {
+            SpecialViewMode::Smell => {
+                only_on_visible_tiles = false;
+                //Show smellable on not visibile tiles
+                let mut smells_with_position = ecs_world.query::<&Position>().with::<&Smellable>();
+                for (_e, position) in &mut smells_with_position {
+                    let index = Zone::get_index_from_xy(position.x, position.y);
+                    //TODO draw not visible smellables within smell radius
+                    if !zone.visible_tiles[index] {
+                        draw_circle(
+                            (UI_BORDER + (position.x * TILE_SIZE) + TILE_SIZE / 2) as f32,
+                            (UI_BORDER + (position.y * TILE_SIZE) + TILE_SIZE / 2) as f32,
+                            TILE_SIZE_F32 / 2.0,
+                            WHITE,
+                        );
+                    }
+                }
+            }
+            _ => {}
+        }
+
+        let (mouse_x, mouse_y) = mouse_position();
+
         let rounded_x = (((mouse_x - UI_BORDER_F32) / TILE_SIZE_F32).ceil() - 1.0) as i32;
         let rounded_y = (((mouse_y - UI_BORDER_F32) / TILE_SIZE_F32).ceil() - 1.0) as i32;
 
         // Draw target if tile is visible
         let index = Zone::get_index_from_xy(rounded_x, rounded_y);
-        if zone.visible_tiles.len() > index && zone.visible_tiles[index] {
+        if !only_on_visible_tiles || zone.visible_tiles.len() > index && zone.visible_tiles[index] {
             draw_rectangle_lines(
                 (UI_BORDER + (rounded_x * TILE_SIZE)) as f32,
                 (UI_BORDER + (rounded_y * TILE_SIZE)) as f32,

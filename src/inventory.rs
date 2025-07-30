@@ -15,7 +15,7 @@ use crate::{
         actions::{WantsToDrink, WantsToDrop, WantsToEat, WantsToFuel, WantsToInvoke},
         common::{GameLog, Named},
         items::{Edible, InBackback, Invokable, Item, ProduceLight, Quaffable, Refill},
-        player::Player,
+        player::{Player, SpecialViewMode},
     },
     constants::*,
     engine::state::RunState,
@@ -128,7 +128,7 @@ impl Inventory {
                     }
                     InventoryAction::Invoke => {
                         let _ = ecs_world.insert_one(user_entity.unwrap(), WantsToInvoke { item });
-                        new_run_state = RunState::MouseTargeting;
+                        new_run_state = RunState::MouseTargeting(SpecialViewMode::None);
                     }
                     InventoryAction::RefillWhat => {
                         // Select what to refill, then which item you are going to refill with

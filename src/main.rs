@@ -123,9 +123,9 @@ async fn main() {
                 RunState::ShowInventory(mode) => {
                     game_state.run_state = Inventory::handle_input(&mut game_state.ecs_world, mode);
                 }
-                RunState::MouseTargeting => {
+                RunState::MouseTargeting(special_view_mode) => {
                     game_state.run_state =
-                        Player::checks_input_for_targeting(&mut game_state.ecs_world);
+                        Player::checks_input_for_targeting(&mut game_state.ecs_world, special_view_mode);
                 }
                 RunState::GoToNextZone => {
                     // Reset heal counter if the player did not wait

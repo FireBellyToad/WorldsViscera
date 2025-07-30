@@ -23,6 +23,12 @@ use crate::{
     maps::zone::{TileType, Zone},
 };
 
+#[derive(PartialEq, Debug)]
+pub enum SpecialViewMode {
+    None,
+    Smell
+}
+
 /// Player struct
 pub struct Player {}
 
@@ -200,6 +206,12 @@ impl Player {
                             clear_input_queue();
                             run_state = RunState::ShowInventory(InventoryAction::RefillWhat);
                         }
+                        
+                        //Smell action
+                        's' => {
+                            clear_input_queue();
+                            run_state = RunState::MouseTargeting(SpecialViewMode::Smell);
+                        }
 
                         _ => {}
                     }
@@ -220,7 +232,7 @@ impl Player {
     }
 
     /// Checks mouse input
-    pub fn checks_input_for_targeting(ecs_world: &mut World) -> RunState {
+    pub fn checks_input_for_targeting(ecs_world: &mut World, special_view_mode: SpecialViewMode) -> RunState {
         // ESC for escaping targeting without using Invokable
         if is_key_down(KeyCode::Escape) {
             return RunState::WaitingPlayerInput;
@@ -261,7 +273,7 @@ impl Player {
             }
         }
 
-        RunState::MouseTargeting
+        RunState::MouseTargeting(special_view_mode)
     }
 
     fn pick_up(ecs_world: &mut World) {

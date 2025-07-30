@@ -32,6 +32,6 @@ pub struct WaitingToAct {
 
 pub struct MyTurn{}
 
-pub struct Smells{
+pub struct Smellable{
     pub smell_log: String
 }
