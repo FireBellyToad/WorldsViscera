@@ -31,8 +31,8 @@ pub struct ProduceLight{
     pub radius: i32
 }
 
-pub struct Fuel{
-    pub counter: i32,
+pub struct MustBeFueled{
+    pub fuel_counter: i32,
 }
 
-pub struct Refill{}
+pub struct Refiller{}

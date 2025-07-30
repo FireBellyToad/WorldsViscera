@@ -4,7 +4,7 @@ use crate::components::common::{
 };
 use crate::components::health::{CanAutomaticallyHeal, Hunger, Thirst};
 use crate::components::items::{
-    Edible, Fuel, Invokable, Item, Perishable, ProduceLight, Quaffable, Refill,
+    Edible, MustBeFueled, Invokable, Item, Perishable, ProduceLight, Quaffable, Refiller,
 };
 use crate::components::monster::Monster;
 use crate::components::player::Player;
@@ -301,8 +301,8 @@ impl Spawn {
             ProduceLight {
                 radius: LANTERN_RADIUS,
             },
-            Fuel {
-                counter: STARTING_FUEL + Roll::d100(),
+            MustBeFueled {
+                fuel_counter: STARTING_FUEL + Roll::d100(),
             },
             Smellable{
                 smell_log: String::from("a scent of burning fuel")
@@ -358,10 +358,10 @@ impl Spawn {
                 name: String::from("Flask of oil"),
             },
             Item { item_tile_index },
-            Fuel {
-                counter: STARTING_FUEL + Roll::d100(),
+            MustBeFueled {
+                fuel_counter: STARTING_FUEL + Roll::d100(),
             },
-            Refill {},
+            Refiller {},
             Smellable{
                 smell_log: String::from("a faint scent of fuel")
             }

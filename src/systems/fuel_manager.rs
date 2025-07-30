@@ -3,7 +3,7 @@ use hecs::{Entity, World};
 use crate::components::{
     actions::WantsToFuel,
     common::{GameLog, Named, Viewshed},
-    items::{Fuel, InBackback, Refill},
+    items::{MustBeFueled, InBackback, Refiller},
     player::Player,
 };
 
@@ -11,8 +11,8 @@ pub struct FuelManager {}
 
 impl FuelManager {
     pub fn check_fuel(ecs_world: &mut World) {
-        // List of light producers with fuel
-        let mut lighters = ecs_world.query::<&mut Fuel>().without::<&Refill>();
+        // List of light producers that use fuel
+        let mut lighters = ecs_world.query::<&mut MustBeFueled>().without::<&Refiller>();
 
         let player_entity = Player::get_entity(ecs_world);
 
@@ -31,7 +31,7 @@ impl FuelManager {
                 let named = ecs_world.get::<&Named>(lighter).unwrap();
                 // Log messages for fuel status
                 if player_entity.id() == in_backback.owner.id() {
-                    match fuel.counter {
+                    match fuel.fuel_counter {
                         25 => {
                             game_log
                                 .entries
@@ -53,8 +53,8 @@ impl FuelManager {
             }
 
             //If fuel is less then 1, the lighter will not produce light
-            if fuel.counter > 0 {
-                fuel.counter -= 1;
+            if fuel.fuel_counter > 0 {
+                fuel.fuel_counter -= 1;
             }
         }
     }
@@ -79,14 +79,14 @@ impl FuelManager {
                 let target = wants_to_refill.item;
                 let item_used = wants_to_refill.with.unwrap();
 
-                let item_used_fuel = ecs_world.get::<&Fuel>(item_used).unwrap();
-                let target_fuel_optional = ecs_world.get::<&mut Fuel>(target);
+                let item_used_fuel = ecs_world.get::<&MustBeFueled>(item_used).unwrap();
+                let target_fuel_optional = ecs_world.get::<&mut MustBeFueled>(target);
 
                 if target_fuel_optional.is_ok() {
                     let mut target_fuel = target_fuel_optional.unwrap();
 
                     // Refill!
-                    target_fuel.counter = item_used_fuel.counter;
+                    target_fuel.fuel_counter = item_used_fuel.fuel_counter;
 
                     // Show appropriate log messages
                     let named_dropper = ecs_world.get::<&Named>(refiller).unwrap();

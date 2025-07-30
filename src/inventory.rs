@@ -14,7 +14,7 @@ use crate::{
     components::{
         actions::{WantsToDrink, WantsToDrop, WantsToEat, WantsToFuel, WantsToInvoke},
         common::{GameLog, Named},
-        items::{Edible, InBackback, Invokable, Item, ProduceLight, Quaffable, Refill},
+        items::{Edible, InBackback, Invokable, Item, ProduceLight, Quaffable, Refiller},
         player::{Player, SpecialViewMode},
     },
     constants::*,
@@ -85,7 +85,7 @@ impl Inventory {
                         }
                         InventoryAction::RefillWith => {
                             inventory =
-                                Inventory::get_all_in_backpack_filtered_by::<Refill>(ecs_world);
+                                Inventory::get_all_in_backpack_filtered_by::<Refiller>(ecs_world);
                         }
                         InventoryAction::Drop => {
                             inventory = Inventory::get_all_in_backpack(ecs_world);
@@ -185,7 +185,7 @@ impl Inventory {
             }
             InventoryAction::RefillWith => {
                 header_text = "With what?";
-                inventory = Inventory::get_all_in_backpack_filtered_by::<Refill>(ecs_world);
+                inventory = Inventory::get_all_in_backpack_filtered_by::<Refiller>(ecs_world);
             }
             InventoryAction::Drop => {
                 header_text = "Drop what?";

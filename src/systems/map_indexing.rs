@@ -3,7 +3,7 @@ use hecs::World;
 use crate::{
     components::{
         common::*,
-        items::{Fuel, InBackback, ProduceLight},
+        items::{MustBeFueled, InBackback, ProduceLight},
     },
     constants::BRAZIER_RADIUS,
     maps::zone::{TileType, Zone},
@@ -66,14 +66,14 @@ impl MapIndexing {
         let mut lighters_query = ecs_world.query::<(
             Option<&Position>,
             Option<&InBackback>,
-            Option<&Fuel>,
+            Option<&MustBeFueled>,
             &ProduceLight,
         )>();
 
         all_working_lighters = lighters_query
             .iter()
             .filter_map(|(_e, (position, in_backpack, fuel, produce_light))| {
-                if fuel.is_none() || fuel.unwrap().counter > 0 {
+                if fuel.is_none() || fuel.unwrap().fuel_counter > 0 {
                     if position.is_some() {
                         let pos = position.unwrap();
                         return Some(ProduceLightPositionDTO {
