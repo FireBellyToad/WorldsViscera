@@ -10,17 +10,17 @@ use crate::{
     components::{
         actions::{WantsItem, WantsToDrink, WantsToEat, WantsToSmell},
         combat::{CombatStats, WantsToMelee, WantsToZap},
-        common::{GameLog, MyTurn, Position, Viewshed, WaitingToAct},
+        common::{GameLog, MyTurn, Position, Smellable, Viewshed, WaitingToAct},
         health::CanAutomaticallyHeal,
         items::Item,
     },
     constants::{
-        MAP_HEIGHT, MAP_WIDTH, MAX_ACTION_SPEED, MAX_STAMINA_HEAL_TICK_COUNTER, TILE_SIZE_F32,
-        UI_BORDER_F32,
+        MAP_HEIGHT, MAP_WIDTH, MAX_ACTION_SPEED, MAX_STAMINA_HEAL_TICK_COUNTER,
+        PLAYER_SMELL_RADIUS, TILE_SIZE_F32, UI_BORDER_F32,
     },
     engine::state::RunState,
     inventory::InventoryAction,
-    maps::zone::{TileType, Zone},
+    maps::zone::{TileType, Zone}
 };
 
 #[derive(PartialEq, Debug)]
@@ -278,7 +278,6 @@ impl Player {
                     }
                 }
                 SpecialViewMode::Smell => {
-                    println!("Player starts to smell");
                     let _ = ecs_world.insert_one(
                         player_entity,
                         WantsToSmell {
@@ -290,7 +289,6 @@ impl Player {
             }
         }
 
-        println!("special_view_mode {:?}",special_view_mode);
         RunState::MouseTargeting(special_view_mode)
     }
 

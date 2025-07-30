@@ -4,7 +4,7 @@ use hecs::World;
 use crate::{
     components::{common::*, player::Player},
     constants::{MAP_HEIGHT, MAP_WIDTH},
-    maps::zone::Zone,
+    maps::zone::Zone, utils::common::Utils,
 };
 
 use adam_fov_rs::GridPoint;
@@ -36,10 +36,7 @@ impl FieldOfView {
                     zone.visible_tiles.fill(false);
                     for &(x, y) in viewshed.visible_tiles.iter() {
                         let index = Zone::get_index_from_xy(x, y);
-                        let distance = ((x.abs_diff(position.x).pow(2)
-                            + y.abs_diff(position.y).pow(2))
-                            as f32)
-                            .sqrt();
+                        let distance = Utils::distance(x, position.x, y, position.y);
 
                         // if is lit, that we can show and reveal
                         // Adiacent tiles are always visible

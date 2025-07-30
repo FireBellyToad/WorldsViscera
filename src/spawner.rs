@@ -304,6 +304,9 @@ impl Spawn {
             Fuel {
                 counter: STARTING_FUEL + Roll::d100(),
             },
+            Smellable{
+                smell_log: String::from("a scent of burning fuel")
+            }
         );
 
         ecs_world.spawn(lantern);
@@ -360,7 +363,7 @@ impl Spawn {
             },
             Refill {},
             Smellable{
-                smell_log: String::from("faint scent of fuel")
+                smell_log: String::from("a faint scent of fuel")
             }
         );
 

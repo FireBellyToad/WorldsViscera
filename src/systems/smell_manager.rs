@@ -37,18 +37,22 @@ impl SmellManager {
                     Zone::get_index_from_xy(wants_to_smell.target.0, wants_to_smell.target.1);
                 let target_list = &zone.tile_content[index];
 
-                for &target in target_list {
-                    let target_smell = ecs_world.get::<&Smellable>(target);
+                if target_list.is_empty() {
+                    game_log.entries.push(format!("You smell nothing strange"));
+                } else {
+                    for &target in target_list {
+                        let target_smell = ecs_world.get::<&Smellable>(target);
 
-                    //Sum damage, keeping in mind that could not have SufferingDamage component
-                    if target_smell.is_ok() {
-                        // Show appropriate log messages
-                        let smells = target_smell.unwrap();
-                        game_log
-                            .entries
-                            .push(format!("You smell {}", smells.smell_log));
-                    } else {
-                        game_log.entries.push(format!("You smell nothing strange"));
+                        //Sum damage, keeping in mind that could not have SufferingDamage component
+                        if target_smell.is_ok() {
+                            // Show appropriate log messages
+                            let smells = target_smell.unwrap();
+                            game_log
+                                .entries
+                                .push(format!("You smell {}", smells.smell_log));
+                        } else {
+                            game_log.entries.push(format!("You smell nothing strange"));
+                        }
                     }
                 }
 

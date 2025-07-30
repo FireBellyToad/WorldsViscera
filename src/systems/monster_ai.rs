@@ -11,7 +11,7 @@ use crate::{
     },
     constants::MAX_ACTION_SPEED,
     maps::zone::Zone,
-    utils::pathfinding::Pathfinding,
+    utils::{common::Utils, pathfinding::Pathfinding},
 };
 
 /// Monster AI struct
@@ -60,10 +60,7 @@ impl MonsterAI {
 
                     //If can actually reach the player
                     if pathfinding_result.is_some() {
-                        let distance = ((position.x.abs_diff(player_position.x).pow(2)
-                            + position.y.abs_diff(player_position.y).pow(2))
-                            as f32)
-                            .sqrt();
+                        let distance = Utils::distance(position.x, player_position.x, position.y, player_position.y);
 
                         //Attack or move
                         if distance < 1.5 {

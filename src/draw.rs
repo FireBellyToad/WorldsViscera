@@ -22,7 +22,7 @@ use crate::{
     inventory::Inventory,
     maps::zone::{ParticleType, Zone},
     systems::{hunger_check::HungerStatus, thirst_check::ThirstStatus},
-    utils::{assets::TextureName, particle_animation::ParticleAnimation},
+    utils::{assets::TextureName, common::Utils, particle_animation::ParticleAnimation},
 };
 
 pub struct Draw {}
@@ -351,11 +351,7 @@ impl Draw {
                 for (_e, position) in &mut smells_with_position {
                     let index = Zone::get_index_from_xy(position.x, position.y);
                     
-                    let distance = ((position.x.abs_diff(player_position.x).pow(2)
-                        + position.y.abs_diff(player_position.y).pow(2))
-                        as f32)
-                        .sqrt();
-
+                    let distance = Utils::distance(position.x, player_position.x, position.y, player_position.y);
                     //draw not visible smellables within smell radius
                     if !zone.visible_tiles[index] && distance < PLAYER_SMELL_RADIUS {
                     let texture_to_render = assets
