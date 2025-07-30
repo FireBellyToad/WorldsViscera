@@ -4,7 +4,7 @@ use crate::{
     components::{
         combat::{CombatStats, InflictsDamage, SufferingDamage, WantsToZap},
         common::{GameLog, Named, Position},
-        items::WantsToInvoke,
+        actions::WantsToInvoke,
     },
     maps::zone::Zone,
     utils::{effect_manager::EffectManager, particle_animation::ParticleAnimation, roll::Roll},

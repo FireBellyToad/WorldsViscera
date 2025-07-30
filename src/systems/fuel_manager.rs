@@ -1,8 +1,9 @@
 use hecs::{Entity, World};
 
 use crate::components::{
+    actions::WantsToFuel,
     common::{GameLog, Named, Viewshed},
-    items::{Fuel, InBackback, Refill, WantsToFuel},
+    items::{Fuel, InBackback, Refill},
     player::Player,
 };
 

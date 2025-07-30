@@ -31,3 +31,7 @@ pub struct WaitingToAct {
 }
 
 pub struct MyTurn{}
+
+pub struct Smells{
+    pub smell_log: String
+}

@@ -19,26 +19,6 @@ pub struct InBackback {
     pub assigned_char: char,
 }
 
-pub struct WantsItem {
-    pub item: Entity,
-}
-pub struct WantsToEat {
-    pub item: Entity,
-}
-
-pub struct WantsToDrop {
-    pub item: Entity,
-}
-
-pub struct WantsToDrink {
-    pub item: Entity,
-}
-
-
-pub struct WantsToInvoke {
-    pub item: Entity,
-}
-
 pub struct Invokable {}
 
 pub struct Perishable {
@@ -56,8 +36,3 @@ pub struct Fuel{
 }
 
 pub struct Refill{}
-
-pub struct WantsToFuel {
-    pub item: Entity,
-    pub with: Option<Entity>,
-}

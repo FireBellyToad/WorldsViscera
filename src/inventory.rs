@@ -12,11 +12,9 @@ use macroquad::{
 
 use crate::{
     components::{
+        actions::{WantsToDrink, WantsToDrop, WantsToEat, WantsToFuel, WantsToInvoke},
         common::{GameLog, Named},
-        items::{
-            Edible, InBackback, Invokable, Item, ProduceLight, Quaffable, Refill, WantsToDrink,
-            WantsToDrop, WantsToEat, WantsToFuel, WantsToInvoke,
-        },
+        items::{Edible, InBackback, Invokable, Item, ProduceLight, Quaffable, Refill},
         player::Player,
     },
     constants::*,
@@ -133,14 +131,13 @@ impl Inventory {
                         new_run_state = RunState::MouseTargeting;
                     }
                     InventoryAction::RefillWhat => {
-                        // Select what to refill, then which item you are going to refill with 
+                        // Select what to refill, then which item you are going to refill with
                         let _ = ecs_world
                             .insert_one(user_entity.unwrap(), WantsToFuel { item, with: None });
                         new_run_state = RunState::ShowInventory(InventoryAction::RefillWith);
                     }
                     InventoryAction::RefillWith => {
-                        let wants_to_fuel = ecs_world
-                            .get::<&mut WantsToFuel>(user_entity.unwrap());
+                        let wants_to_fuel = ecs_world.get::<&mut WantsToFuel>(user_entity.unwrap());
                         wants_to_fuel.unwrap().with = Some(item);
                     }
                 };
@@ -226,7 +223,8 @@ impl Inventory {
         // ------- Item List -----------
         for (index, (_e, item_name, assigned_char, item_tile)) in inventory.iter().enumerate() {
             let x = (INVENTORY_X + UI_BORDER * 2) as f32;
-            let y = (INVENTORY_Y + INVENTORY_TOP_SPAN) as f32 + ((FONT_SIZE + LETTER_SIZE) * index as f32);
+            let y = (INVENTORY_Y + INVENTORY_TOP_SPAN) as f32
+                + ((FONT_SIZE + LETTER_SIZE) * index as f32);
 
             draw_text(
                 format!("{} : \t - {}", assigned_char, item_name),

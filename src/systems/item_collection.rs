@@ -2,8 +2,9 @@ use hecs::{Entity, World};
 
 use crate::{
     components::{
+        actions::WantsItem,
         common::{GameLog, Named, Position},
-        items::{InBackback, Item, WantsItem},
+        items::{InBackback, Item},
     },
     constants::{MAX_ITEMS_IN_BACKPACK, OPTION_TO_CHAR_MAP},
 };

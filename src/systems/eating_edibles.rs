@@ -2,9 +2,10 @@ use hecs::{Entity, World};
 
 use crate::{
     components::{
+        actions::WantsToEat,
         common::{GameLog, Named, Position},
         health::Hunger,
-        items::{Edible, Rotten, WantsToEat},
+        items::{Edible, Rotten},
         player::Player,
     },
     maps::zone::{ParticleType, Zone},

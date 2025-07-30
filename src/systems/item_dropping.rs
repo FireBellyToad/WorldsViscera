@@ -1,8 +1,9 @@
 use hecs::{Entity, World};
 
 use crate::components::{
+    actions::WantsToDrop,
     common::{GameLog, Named, Position},
-    items::{InBackback, WantsToDrop},
+    items::InBackback,
 };
 
 pub struct ItemDropping {}
@@ -31,7 +32,7 @@ impl ItemDropping {
 
                 // Drop item and keep track of the drop Position
                 item_drop_position_list.push((wants_item.item, dropper, (drop.x, drop.y)));
-            
+
                 game_log.entries.push(format!(
                     "{} drops up the {}",
                     named_dropper.name, named_item.name

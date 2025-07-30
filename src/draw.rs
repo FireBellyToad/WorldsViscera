@@ -33,6 +33,7 @@ impl Draw {
         match game_state.run_state {
             RunState::GameOver => Draw::game_over(),
             _ => {
+                // Zone and renderables
                 for (_e, zone) in &mut zones {
                     Draw::zone(&zone, assets);
                     Draw::renderables(&game_state.ecs_world, &assets, &zone);

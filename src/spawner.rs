@@ -1,6 +1,6 @@
 use crate::components::combat::{CombatStats, InflictsDamage, SufferingDamage};
 use crate::components::common::{
-    BlocksTile, MyTurn, Named, Position, ProduceCorpse, Renderable, Viewshed,
+    BlocksTile, MyTurn, Named, Position, ProduceCorpse, Renderable, Smells, Viewshed
 };
 use crate::components::health::{CanAutomaticallyHeal, Hunger, Thirst};
 use crate::components::items::{
@@ -123,6 +123,7 @@ impl Spawn {
                 max_dexterity: 10,
                 speed: NORMAL,
             },
+            Smells { smell_log: String::from("dried human sweat") },
             1.0, //TODO fix
             x,
             y,
@@ -144,6 +145,7 @@ impl Spawn {
                 max_dexterity: 14,
                 speed: FAST,
             },
+            Smells { smell_log: String::from("coal drenched in vinegar") },
             3.0, //TODO fix
             x,
             y,
@@ -165,6 +167,7 @@ impl Spawn {
                 max_dexterity: 8,
                 speed: SLOW,
             },
+            Smells { smell_log: String::from("coal drenched in vinegar") },
             2.0, //TODO fix
             x,
             y,
@@ -176,6 +179,7 @@ impl Spawn {
         ecs_world: &mut World,
         name: String,
         combat_stats: CombatStats,
+        smells: Smells,
         tile_index: f32,
         x: i32,
         y: i32,
@@ -204,6 +208,7 @@ impl Spawn {
             SufferingDamage { damage_received: 0 },
             ProduceCorpse {},
             MyTurn {},
+            smells
         );
 
         ecs_world.spawn(monster_entity);
@@ -354,6 +359,9 @@ impl Spawn {
                 counter: STARTING_FUEL + Roll::d100(),
             },
             Refill {},
+            Smells{
+                smell_log: String::from("faint scent of fuel")
+            }
         );
 
         ecs_world.spawn(flask_of_water);

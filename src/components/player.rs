@@ -8,22 +8,19 @@ use macroquad::input::{
 
 use crate::{
     components::{
-        combat::WantsToZap, common::{MyTurn, WaitingToAct}, health::CanAutomaticallyHeal, items::{WantsToDrink, WantsToEat}
+        actions::{WantsItem, WantsToDrink, WantsToEat},
+        combat::{CombatStats, WantsToMelee, WantsToZap},
+        common::{GameLog, MyTurn, Position, Viewshed, WaitingToAct},
+        health::CanAutomaticallyHeal,
+        items::Item,
     },
-    constants::*,
+    constants::{
+        MAP_HEIGHT, MAP_WIDTH, MAX_ACTION_SPEED, MAX_STAMINA_HEAL_TICK_COUNTER, TILE_SIZE_F32,
+        UI_BORDER_F32,
+    },
     engine::state::RunState,
     inventory::InventoryAction,
     maps::zone::{TileType, Zone},
-};
-
-use super::{
-    combat::{CombatStats, WantsToMelee},
-    common::GameLog,
-    items::WantsItem,
-};
-use super::{
-    common::{Position, Viewshed},
-    items::Item,
 };
 
 /// Player struct
@@ -144,8 +141,13 @@ impl Player {
                             clear_input_queue();
                             let edible = Player::take_from_map(ecs_world);
 
-                            if edible.is_some(){
-                                let _ = ecs_world.insert_one(player_entity, WantsToEat { item: edible.unwrap() });
+                            if edible.is_some() {
+                                let _ = ecs_world.insert_one(
+                                    player_entity,
+                                    WantsToEat {
+                                        item: edible.unwrap(),
+                                    },
+                                );
                                 run_state = RunState::DoTick;
                                 is_actively_waiting = true;
                             } else {
@@ -179,8 +181,13 @@ impl Player {
                             clear_input_queue();
                             let quaffable = Player::take_from_map(ecs_world);
 
-                            if quaffable.is_some(){
-                                let _ = ecs_world.insert_one(player_entity, WantsToDrink { item: quaffable.unwrap() });
+                            if quaffable.is_some() {
+                                let _ = ecs_world.insert_one(
+                                    player_entity,
+                                    WantsToDrink {
+                                        item: quaffable.unwrap(),
+                                    },
+                                );
                                 run_state = RunState::DoTick;
                                 is_actively_waiting = true;
                             } else {
@@ -287,7 +294,7 @@ impl Player {
         }
     }
 
-    fn take_from_map(ecs_world: &mut World) -> Option<Entity>{
+    fn take_from_map(ecs_world: &mut World) -> Option<Entity> {
         let mut target_item: Option<Entity> = None;
 
         let mut player_query = ecs_world.query::<(&Player, &Position)>();
@@ -304,9 +311,8 @@ impl Player {
                 target_item = Some(item_entity);
             }
         }
-        
-        target_item
 
+        target_item
     }
 
     fn try_next_level(ecs_world: &mut World, char_pressed: char) -> RunState {

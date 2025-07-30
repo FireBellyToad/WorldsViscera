@@ -2,9 +2,10 @@ use hecs::{Entity, World};
 
 use crate::{
     components::{
+        actions::WantsToDrink,
         common::{GameLog, Named, Position},
         health::Thirst,
-        items::{Quaffable, WantsToDrink},
+        items::Quaffable,
         player::Player,
     },
     utils::roll::Roll,
@@ -32,7 +33,7 @@ impl DrinkingQuaffables {
 
             for (drinker, (wants_to_drink, thirst, _p)) in &mut drinkers {
                 let possible_quaffable = ecs_world.get::<&Quaffable>(wants_to_drink.item);
-               
+
                 // Keep track of the drinker
                 drinker_list.push(drinker);
                 if possible_quaffable.is_err() {
