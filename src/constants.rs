@@ -59,6 +59,7 @@ pub const BASE_VIEW_RADIUS: i32 = 6;
 pub const MAX_STAMINA_HEAL_TICK_COUNTER: i32 = 4;
 pub const MAX_HUNGER_TICK_COUNTER: i32 = 151;
 pub const MAX_THIRST_TICK_COUNTER: i32 = 151;
+pub const PLAYER_SMELL_RADIUS: f32 = 8.0;
 
 /// Drunken Walk related constants
 pub const DRUNKEN_WALK_LIFE_MAX: i32 = 50;

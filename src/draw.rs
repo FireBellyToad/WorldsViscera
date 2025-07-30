@@ -45,7 +45,7 @@ impl Draw {
                         Inventory::draw(assets, &game_state.ecs_world, mode)
                     }
                     RunState::MouseTargeting(special_view_mode) => {
-                        Draw::targeting(&game_state.ecs_world, special_view_mode);
+                        Draw::targeting(&game_state.ecs_world, &assets, special_view_mode);
                     }
                     RunState::DrawParticles => {
                         let mut animations = game_state.ecs_world.query::<&mut ParticleAnimation>();
@@ -301,9 +301,9 @@ impl Draw {
     }
 
     /// Draw target on tile where mouse is poiting
-    fn targeting(ecs_world: &World, special_view_mode: &SpecialViewMode) {
+    fn targeting(ecs_world: &World, assets: &HashMap<TextureName, Texture2D>, special_view_mode: &SpecialViewMode) {
         draw_text(
-            "Use mouse to aim, ESC to cancel",
+            "Use mouse to select, ESC to cancel",
             24.0,
             48.0,
             FONT_SIZE,
@@ -316,28 +316,8 @@ impl Draw {
             .last()
             .expect("Zone is not in hecs::World");
 
-        let mut only_on_visible_tiles = true;
-        // Draw targets if special
-        match special_view_mode {
-            SpecialViewMode::Smell => {
-                only_on_visible_tiles = false;
-                //Show smellable on not visibile tiles
-                let mut smells_with_position = ecs_world.query::<&Position>().with::<&Smellable>();
-                for (_e, position) in &mut smells_with_position {
-                    let index = Zone::get_index_from_xy(position.x, position.y);
-                    //TODO draw not visible smellables within smell radius
-                    if !zone.visible_tiles[index] {
-                        draw_circle(
-                            (UI_BORDER + (position.x * TILE_SIZE) + TILE_SIZE / 2) as f32,
-                            (UI_BORDER + (position.y * TILE_SIZE) + TILE_SIZE / 2) as f32,
-                            TILE_SIZE_F32 / 2.0,
-                            WHITE,
-                        );
-                    }
-                }
-            }
-            _ => {}
-        }
+        let only_on_visible_tiles = *special_view_mode == SpecialViewMode::None;
+        Draw::special_targets(ecs_world, assets, special_view_mode, zone);
 
         let (mouse_x, mouse_y) = mouse_position();
 
@@ -355,6 +335,52 @@ impl Draw {
                 3.0,
                 RED,
             );
+        }
+    }
+
+    /// Draws special targets when in targeting mode
+    fn special_targets(ecs_world: &World, assets: &HashMap<TextureName, Texture2D>, special_view_mode: &SpecialViewMode, zone :&Zone){
+        let player_entity = Player::get_entity(ecs_world);
+        let player_position = ecs_world.get::<&Position>(player_entity).unwrap();
+
+        // Draw targets if special
+        match special_view_mode {
+            SpecialViewMode::Smell => {
+                //Show smellable on not visibile tiles
+                let mut smells_with_position = ecs_world.query::<&Position>().with::<&Smellable>();
+                for (_e, position) in &mut smells_with_position {
+                    let index = Zone::get_index_from_xy(position.x, position.y);
+                    
+                    let distance = ((position.x.abs_diff(player_position.x).pow(2)
+                        + position.y.abs_diff(player_position.y).pow(2))
+                        as f32)
+                        .sqrt();
+
+                    //draw not visible smellables within smell radius
+                    if !zone.visible_tiles[index] && distance < PLAYER_SMELL_RADIUS {
+                    let texture_to_render = assets
+                        .get(&TextureName::Particles)
+                        .expect("Texture not found");
+                    
+                        draw_texture_ex(
+                            texture_to_render,
+                            (UI_BORDER + (position.x * TILE_SIZE)) as f32,
+                            (UI_BORDER + (position.y * TILE_SIZE)) as f32,
+                            WHITE, // Seems like White color is needed to normal render
+                            DrawTextureParams {
+                            source: Some(Rect {
+                                x: 4.0 * TILE_SIZE_F32,
+                                y: 0.0,
+                                w: TILE_SIZE_F32,
+                                h: TILE_SIZE_F32,
+                            }),
+                                ..Default::default()
+                            },
+                        );
+                    }
+                }
+            }
+            _ => {}
         }
     }
 
@@ -485,7 +511,7 @@ impl Draw {
                         WHITE,
                         DrawTextureParams {
                             source: Some(Rect {
-                                x: direction * TILE_SIZE_F32, //FIXME direction
+                                x: direction * TILE_SIZE_F32, 
                                 y: 0.0,
                                 w: TILE_SIZE_F32,
                                 h: TILE_SIZE_F32,
