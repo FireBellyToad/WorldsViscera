@@ -111,7 +111,7 @@ impl Spawn {
     fn deep_one(ecs_world: &mut World, x: i32, y: i32) {
         Spawn::create_monster(
             ecs_world,
-            "Deep One".to_string(),
+            String::from("Deep One"),
             CombatStats {
                 current_stamina: 3,
                 max_stamina: 3,
@@ -133,7 +133,7 @@ impl Spawn {
     fn gremlin(ecs_world: &mut World, x: i32, y: i32) {
         Spawn::create_monster(
             ecs_world,
-            "Gremlin".to_string(),
+            String::from("Gremlin"),
             CombatStats {
                 current_stamina: 2,
                 max_stamina: 2,
@@ -155,7 +155,7 @@ impl Spawn {
     fn dvergar(ecs_world: &mut World, x: i32, y: i32) {
         Spawn::create_monster(
             ecs_world,
-            "Dvergar".to_string(),
+            String::from("Dvergar"),
             CombatStats {
                 current_stamina: 4,
                 max_stamina: 4,
