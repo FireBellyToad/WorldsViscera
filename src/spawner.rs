@@ -145,7 +145,7 @@ impl Spawn {
                 max_dexterity: 14,
                 speed: FAST,
             },
-            Smellable { smell_log: String::from("coal drenched in vinegar") },
+            Smellable { smell_log: String::from("cheap leather") },
             3.0, //TODO fix
             x,
             y,

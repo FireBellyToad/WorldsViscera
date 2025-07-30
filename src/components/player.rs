@@ -8,7 +8,7 @@ use macroquad::input::{
 
 use crate::{
     components::{
-        actions::{WantsItem, WantsToDrink, WantsToEat},
+        actions::{WantsItem, WantsToDrink, WantsToEat, WantsToSmell},
         combat::{CombatStats, WantsToMelee, WantsToZap},
         common::{GameLog, MyTurn, Position, Viewshed, WaitingToAct},
         health::CanAutomaticallyHeal,
@@ -25,8 +25,8 @@ use crate::{
 
 #[derive(PartialEq, Debug)]
 pub enum SpecialViewMode {
-    None,
-    Smell
+    ZapTargeting,
+    Smell,
 }
 
 /// Player struct
@@ -206,7 +206,7 @@ impl Player {
                             clear_input_queue();
                             run_state = RunState::ShowInventory(InventoryAction::RefillWhat);
                         }
-                        
+
                         //Smell action
                         's' => {
                             clear_input_queue();
@@ -232,7 +232,10 @@ impl Player {
     }
 
     /// Checks mouse input
-    pub fn checks_input_for_targeting(ecs_world: &mut World, special_view_mode: SpecialViewMode) -> RunState {
+    pub fn checks_input_for_targeting(
+        ecs_world: &mut World,
+        special_view_mode: SpecialViewMode,
+    ) -> RunState {
         // ESC for escaping targeting without using Invokable
         if is_key_down(KeyCode::Escape) {
             return RunState::WaitingPlayerInput;
@@ -242,37 +245,52 @@ impl Player {
             let rounded_x = (((mouse_x - UI_BORDER_F32) / TILE_SIZE_F32).ceil() - 1.0) as i32;
             let rounded_y = (((mouse_y - UI_BORDER_F32) / TILE_SIZE_F32).ceil() - 1.0) as i32;
 
-            let mut is_valid_tile = false;
-            // Scope for keeping borrow checker quiet
-            {
-                let mut zone_query = ecs_world.query::<&Zone>();
-                let (_e, zone) = zone_query
-                    .iter()
-                    .last()
-                    .expect("Zone is not in hecs::World");
-                // Make sure that we are targeting a valid tile
-                let index = Zone::get_index_from_xy(rounded_x, rounded_y);
-                if index < zone.visible_tiles.len() {
-                    is_valid_tile = zone.visible_tiles[index];
-                }
-            }
-
             let player_entity = Player::get_entity(&ecs_world);
 
-            if is_valid_tile {
-                let _ = ecs_world.insert_one(
-                    player_entity,
-                    WantsToZap {
-                        target: (rounded_x, rounded_y),
-                    },
-                );
-                // Reset heal counter if the player did not wait
-                Player::reset_heal_counter(ecs_world);
-                Player::wait_after_action(ecs_world);
-                return RunState::DoTick;
+            match special_view_mode {
+                SpecialViewMode::ZapTargeting => {
+                    let mut is_valid_tile = false;
+                    // Scope for keeping borrow checker quiet
+                    {
+                        let mut zone_query = ecs_world.query::<&Zone>();
+                        let (_e, zone) = zone_query
+                            .iter()
+                            .last()
+                            .expect("Zone is not in hecs::World");
+                        // Make sure that we are targeting a valid tile
+                        let index = Zone::get_index_from_xy(rounded_x, rounded_y);
+                        if index < zone.visible_tiles.len() {
+                            is_valid_tile = zone.visible_tiles[index];
+                        }
+                    }
+
+                    if is_valid_tile {
+                        let _ = ecs_world.insert_one(
+                            player_entity,
+                            WantsToZap {
+                                target: (rounded_x, rounded_y),
+                            },
+                        );
+                        // Reset heal counter if the player did not wait
+                        Player::reset_heal_counter(ecs_world);
+                        Player::wait_after_action(ecs_world);
+                        return RunState::DoTick;
+                    }
+                }
+                SpecialViewMode::Smell => {
+                    println!("Player starts to smell");
+                    let _ = ecs_world.insert_one(
+                        player_entity,
+                        WantsToSmell {
+                            target: (rounded_x, rounded_y),
+                        },
+                    );
+                    return RunState::WaitingPlayerInput;
+                }
             }
         }
 
+        println!("special_view_mode {:?}",special_view_mode);
         RunState::MouseTargeting(special_view_mode)
     }
 

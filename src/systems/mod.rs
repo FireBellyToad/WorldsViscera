@@ -15,4 +15,5 @@ pub mod decay_manager;
 pub mod turn_checker;
 pub mod fuel_manager;
 pub mod map_indexing;
+pub mod smell_manager;
 

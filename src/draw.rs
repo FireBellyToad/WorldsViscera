@@ -316,7 +316,7 @@ impl Draw {
             .last()
             .expect("Zone is not in hecs::World");
 
-        let only_on_visible_tiles = *special_view_mode == SpecialViewMode::None;
+        let only_on_visible_tiles = *special_view_mode == SpecialViewMode::ZapTargeting;
         Draw::special_targets(ecs_world, assets, special_view_mode, zone);
 
         let (mouse_x, mouse_y) = mouse_position();

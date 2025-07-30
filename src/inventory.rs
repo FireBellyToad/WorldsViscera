@@ -128,7 +128,7 @@ impl Inventory {
                     }
                     InventoryAction::Invoke => {
                         let _ = ecs_world.insert_one(user_entity.unwrap(), WantsToInvoke { item });
-                        new_run_state = RunState::MouseTargeting(SpecialViewMode::None);
+                        new_run_state = RunState::MouseTargeting(SpecialViewMode::ZapTargeting);
                     }
                     InventoryAction::RefillWhat => {
                         // Select what to refill, then which item you are going to refill with

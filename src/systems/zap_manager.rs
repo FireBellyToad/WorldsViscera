@@ -20,10 +20,10 @@ impl ZapManager {
 
         // Scope for keeping borrow checker quiet
         {
-            // List of entities that want to collect items
+            // List of entities that want to zap stuff
             let mut zappers = ecs_world.query::<(&WantsToZap, &WantsToInvoke, &Position)>();
 
-            //Log all the pick ups
+            //Log all the zappings
             let mut game_log_query = ecs_world.query::<&mut GameLog>();
             let (_e, game_log) = game_log_query
                 .iter()

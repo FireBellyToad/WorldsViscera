@@ -18,14 +18,10 @@ use systems::{
 use crate::{
     components::common::{Position, Viewshed},
     maps::{
-        ZoneBuilder, arena_zone_builder::ArenaZoneBuilder,
-        drunken_walk_zone_builder::DrunkenWalkZoneBuilder, zone::Zone,
+        arena_zone_builder::ArenaZoneBuilder, drunken_walk_zone_builder::DrunkenWalkZoneBuilder, zone::Zone, ZoneBuilder
     },
     systems::{
-        automatic_healing::AutomaticHealing, decay_manager::DecayManager,
-        drinking_quaffables::DrinkingQuaffables, fuel_manager::FuelManager,
-        hunger_check::HungerCheck, map_indexing::MapIndexing, particle_manager::ParticleManager,
-        thirst_check::ThirstCheck, turn_checker::TurnCheck, zap_manager::ZapManager,
+        automatic_healing::AutomaticHealing, decay_manager::DecayManager, drinking_quaffables::DrinkingQuaffables, fuel_manager::FuelManager, hunger_check::HungerCheck, map_indexing::MapIndexing, particle_manager::ParticleManager, smell_manager::SmellManager, thirst_check::ThirstCheck, turn_checker::TurnCheck, zap_manager::ZapManager
     },
     utils::assets::Load,
 };
@@ -106,6 +102,7 @@ async fn main() {
                     }
                 }
                 RunState::WaitingPlayerInput => {
+                    do_tickless_logic(&mut game_state);
                     game_state.run_state = Player::checks_keyboard_input(&mut game_state.ecs_world);
                 }
                 RunState::GameOver => {
@@ -243,7 +240,7 @@ fn do_in_tick_game_logic(game_state: &mut EngineState) -> bool {
     MeleeManager::run(&mut game_state.ecs_world);
     DamageManager::run(&game_state.ecs_world);
     game_over = DamageManager::remove_dead_and_check_gameover(&mut game_state.ecs_world);
-    //Proceed on game logic ifis not Game Over
+    //Proceed on game logic if is not Game Over
     if game_over {
         return true;
     } else {
@@ -256,4 +253,8 @@ fn do_in_tick_game_logic(game_state: &mut EngineState) -> bool {
         FuelManager::do_refills(&mut game_state.ecs_world);
     }
     false
+}
+
+fn do_tickless_logic(game_state: &mut EngineState){
+    SmellManager::run(&mut game_state.ecs_world);
 }

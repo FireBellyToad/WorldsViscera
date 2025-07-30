@@ -23,3 +23,7 @@ pub struct WantsToFuel {
     pub item: Entity,
     pub with: Option<Entity>,
 }
+
+pub struct WantsToSmell{
+    pub target: (i32,i32),
+}
