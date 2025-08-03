@@ -43,5 +43,6 @@ pub struct Smellable{
     pub intensity: SmellIntensity
 }
 pub struct CanSmell{
-    pub intensity: SmellIntensity
+    pub intensity: SmellIntensity,
+    pub radius: f32
 }

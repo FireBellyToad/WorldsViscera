@@ -3,9 +3,11 @@ use hecs::{Entity, World};
 use crate::{
     components::{
         actions::WantsToSmell,
-        common::{GameLog, Smellable},
+        common::{CanSmell, GameLog, Position, SmellIntensity, Smellable},
     },
+    constants::PLAYER_SMELL_RADIUS,
     maps::zone::Zone,
+    utils::common::Utils,
 };
 
 pub struct SmellManager {}
@@ -17,7 +19,7 @@ impl SmellManager {
         // Scope for keeping borrow checker quiet
         {
             // List of entities that want to smell things
-            let mut smellers = ecs_world.query::<&WantsToSmell>();
+            let mut smellers = ecs_world.query::<(&WantsToSmell, &CanSmell, &Position)>();
 
             //Log all the smells
             let mut game_log_query = ecs_world.query::<&mut GameLog>();
@@ -32,7 +34,7 @@ impl SmellManager {
                 .last()
                 .expect("Zone is not in hecs::World");
 
-            for (smeller, wants_to_smell) in &mut smellers {
+            for (smeller, (wants_to_smell, smell_ability, smeller_position)) in &mut smellers {
                 let index =
                     Zone::get_index_from_xy(wants_to_smell.target.0, wants_to_smell.target.1);
                 let target_list = &zone.tile_content[index];
@@ -43,13 +45,29 @@ impl SmellManager {
                     for &target in target_list {
                         let target_smell = ecs_world.get::<&Smellable>(target);
 
-                        //Sum damage, keeping in mind that could not have SufferingDamage component
                         if target_smell.is_ok() {
                             // Show appropriate log messages
                             let smells = target_smell.unwrap();
-                            game_log
-                                .entries
-                                .push(format!("You smell {}", smells.smell_log));
+                            let distance = Utils::distance(
+                                wants_to_smell.target.0,
+                                smeller_position.x,
+                                wants_to_smell.target.1,
+                                smeller_position.y,
+                            );
+
+                            let can_smell = smell_ability.intensity != SmellIntensity::None // the player cannot smell anything (common cold or other penalities)
+                        && ((distance < smell_ability.radius / 2.0 && smells.intensity == SmellIntensity::Faint) // Faint odors can be smell from half normal distance
+                            || (distance < smell_ability.radius
+                                && (smells.intensity == SmellIntensity::Strong // Strong odors can be smelled at double distance. 
+                                    || smell_ability.intensity == SmellIntensity::Strong))); // Player have improved smell (can smell faint odors from far away)
+
+                            if can_smell {
+                                game_log
+                                    .entries
+                                    .push(format!("You smell {}", smells.smell_log));
+                            } else {
+                                game_log.entries.push(format!("You smell nothing strange"));
+                            }
                         } else {
                             game_log.entries.push(format!("You smell nothing strange"));
                         }

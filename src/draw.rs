@@ -370,8 +370,8 @@ impl Draw {
 
                     let can_smell = player_smell_ability.intensity != SmellIntensity::None // the player cannot smell anything (common cold or other penalities)
                         && !zone.visible_tiles[index]
-                        && ((distance < PLAYER_SMELL_RADIUS / 2.0 && smell.intensity == SmellIntensity::Faint) // Faint odors can be smell from half normal distance
-                            || (distance < PLAYER_SMELL_RADIUS
+                        && ((distance < player_smell_ability.radius / 2.0 && smell.intensity == SmellIntensity::Faint) // Faint odors can be smell from half normal distance
+                            || (distance < player_smell_ability.radius
                                 && (smell.intensity == SmellIntensity::Strong // Strong odors can be smelled at double distance. 
                                     || player_smell_ability.intensity == SmellIntensity::Strong))); // Player have improved smell (can smell faint odors from far away)
 
