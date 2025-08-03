@@ -9,7 +9,7 @@ use crate::components::items::{
 use crate::components::monster::Monster;
 use crate::components::player::Player;
 use crate::constants::*;
-use crate::maps::zone::Zone;
+use crate::maps::zone::{TileType, Zone};
 use crate::systems::hunger_check::HungerStatus;
 use crate::systems::thirst_check::ThirstStatus;
 use crate::utils::assets::TextureName;
@@ -96,6 +96,26 @@ impl Spawn {
         for &index in zone.item_spawn_points.iter() {
             let (x, y) = Zone::get_xy_from_index(index);
             Spawn::random_item(ecs_world, x as i32, y as i32);
+        }
+
+        // Spawn smells
+        for (index, tile) in zone.tiles.iter().enumerate() {
+            let (x, y) = Zone::get_xy_from_index(index);
+            let mut smellable: Option<Smellable> = None;
+            match tile {                
+                TileType::Brazier => {
+                    smellable = Some(Smellable{
+                        smell_log: String::from("burning chemicals"),
+                        intensity: SmellIntensity::Strong
+                    });
+                },
+                _ => {}
+            }
+            if smellable.is_some(){
+                ecs_world.spawn((true, 
+                    Position { x, y },
+                    smellable.unwrap()));
+            }
         }
     }
 
@@ -198,7 +218,7 @@ impl Spawn {
     ) {
         let monster_entity = (
             Monster {},
-            Position { x: x, y: y },
+            Position { x, y },
             Renderable {
                 texture_name: TextureName::Creatures,
                 texture_region: Rect {

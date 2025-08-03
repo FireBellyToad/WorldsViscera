@@ -381,6 +381,11 @@ impl Draw {
                             .get(&TextureName::Particles)
                             .expect("Texture not found");
 
+                        let mut modifier = 0.0;
+                        if smell.intensity == SmellIntensity::Strong{
+                            modifier += 1.0;
+                        }
+
                         draw_texture_ex(
                             texture_to_render,
                             (UI_BORDER + (smell_position.x * TILE_SIZE)) as f32,
@@ -388,7 +393,7 @@ impl Draw {
                             WHITE, // Seems like White color is needed to normal render
                             DrawTextureParams {
                                 source: Some(Rect {
-                                    x: 4.0 * TILE_SIZE_F32,
+                                    x: (4.0 + modifier)*  TILE_SIZE_F32,
                                     y: 0.0,
                                     w: TILE_SIZE_F32,
                                     h: TILE_SIZE_F32,
