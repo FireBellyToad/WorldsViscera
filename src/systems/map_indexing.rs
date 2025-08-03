@@ -31,7 +31,7 @@ impl MapIndexing {
 
         //index all lit tiles checking all light producers
         zone.lit_tiles.fill(false);
-        let all_working_lighters = MapIndexing::get_all_working_lighters(ecs_world, zone);
+        let all_working_lighters = MapIndexing::get_all_working_lighters(ecs_world);
         for dto in &all_working_lighters {
             // This viewshed is used for light calculation
             let mut viewshed = Viewshed {
@@ -57,8 +57,7 @@ impl MapIndexing {
     }
 
     /// Get all the lighters in the zone, even the ones that are stored in the backpack of someone
-    fn get_all_working_lighters(ecs_world: &World, zone: &Zone) -> Vec<ProduceLightPositionDTO> {
-        let mut all_working_lighters: Vec<ProduceLightPositionDTO>;
+    fn get_all_working_lighters(ecs_world: &World) -> Vec<ProduceLightPositionDTO> {
 
         // Extract all light producers that could be laying on the ground OR be in a backpack
         // They could or could NOT have Fuel management (think a an oil lanter VS a brazier)
@@ -70,7 +69,7 @@ impl MapIndexing {
             &ProduceLight,
         )>();
 
-        all_working_lighters = lighters_query
+        let all_working_lighters = lighters_query
             .iter()
             .filter_map(|(_e, (position, in_backpack, fuel, produce_light))| {
                 if fuel.is_none() || fuel.unwrap().fuel_counter > 0 {
@@ -96,25 +95,6 @@ impl MapIndexing {
                 None
             })
             .collect();
-
-        // Extract all Braziers from map to create illumination
-        let mut braziers: Vec<ProduceLightPositionDTO> = zone
-            .tiles
-            .iter()
-            .enumerate()
-            .filter_map(|(index, tile)| {
-                if *tile == TileType::Brazier {
-                    let (x, y) = Zone::get_xy_from_index(index + 1);
-                    return Some(ProduceLightPositionDTO {
-                        radius: BRAZIER_RADIUS,
-                        x,
-                        y,
-                    });
-                }
-                None
-            })
-            .collect();
-        all_working_lighters.append(&mut braziers);
 
         all_working_lighters
     }

@@ -1,10 +1,11 @@
 use crate::components::combat::{CombatStats, InflictsDamage, SufferingDamage};
 use crate::components::common::{
-    BlocksTile, CanSmell, MyTurn, Named, Position, ProduceCorpse, Renderable, SmellIntensity, Smellable, Viewshed
+    BlocksTile, CanSmell, MyTurn, Named, Position, ProduceCorpse, Renderable, SmellIntensity,
+    Smellable, Viewshed,
 };
 use crate::components::health::{CanAutomaticallyHeal, Hunger, Thirst};
 use crate::components::items::{
-    Edible, MustBeFueled, Invokable, Item, Perishable, ProduceLight, Quaffable, Refiller,
+    Edible, Invokable, Item, MustBeFueled, Perishable, ProduceLight, Quaffable, Refiller,
 };
 use crate::components::monster::Monster;
 use crate::components::player::Player;
@@ -77,9 +78,9 @@ impl Spawn {
                 current_status: ThirstStatus::Normal,
             },
             MyTurn {},
-            CanSmell{
+            CanSmell {
                 intensity: SmellIntensity::Faint,
-            }
+            },
         );
 
         ecs_world.spawn(player_entity);
@@ -98,24 +99,10 @@ impl Spawn {
             Spawn::random_item(ecs_world, x as i32, y as i32);
         }
 
-        // Spawn smells
+        // Spawn special entities
         for (index, tile) in zone.tiles.iter().enumerate() {
             let (x, y) = Zone::get_xy_from_index(index);
-            let mut smellable: Option<Smellable> = None;
-            match tile {                
-                TileType::Brazier => {
-                    smellable = Some(Smellable{
-                        smell_log: String::from("burning chemicals"),
-                        intensity: SmellIntensity::Strong
-                    });
-                },
-                _ => {}
-            }
-            if smellable.is_some(){
-                ecs_world.spawn((true, 
-                    Position { x, y },
-                    smellable.unwrap()));
-            }
+            Spawn::tile_entity(ecs_world, x as i32, y as i32, tile);
         }
     }
 
@@ -148,7 +135,7 @@ impl Spawn {
             },
             Smellable {
                 smell_log: String::from("dried human sweat"),
-                intensity: SmellIntensity::Faint
+                intensity: SmellIntensity::Faint,
             },
             1.0, //TODO fix
             x,
@@ -406,5 +393,25 @@ impl Spawn {
         );
 
         ecs_world.spawn(flask_of_water);
+    }
+
+    /// Spawn special tile entities
+    fn tile_entity(ecs_world: &mut World, x: i32, y: i32, tile: &TileType) {
+        match tile {
+            TileType::Brazier => {
+                ecs_world.spawn((
+                    true,
+                    Position { x, y },
+                    ProduceLight {
+                        radius: BRAZIER_RADIUS,
+                    },
+                    Smellable {
+                        smell_log: String::from("burning chemicals"),
+                        intensity: SmellIntensity::Strong,
+                    },
+                ));
+            }
+            _ => {}
+        }
     }
 }
