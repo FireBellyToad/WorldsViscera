@@ -13,7 +13,7 @@ use macroquad::{
 use crate::{
     components::{
         combat::CombatStats,
-        common::{GameLog, Position, Renderable, SmellIntensity, Smellable},
+        common::{CanSmell, GameLog, Position, Renderable, SmellIntensity, Smellable},
         health::{Hunger, Thirst},
         player::{Player, SpecialViewMode},
     },
@@ -351,27 +351,29 @@ impl Draw {
     ) {
         let player_entity = Player::get_entity(ecs_world);
         let player_position = ecs_world.get::<&Position>(player_entity).unwrap();
+        let player_smell_ability = ecs_world.get::<&CanSmell>(player_entity).unwrap();
 
         // Draw targets if special
         match special_view_mode {
             SpecialViewMode::Smell => {
                 //Show smellable on not visibile tiles
                 let mut smells_with_position = ecs_world.query::<(&Position, &Smellable)>();
-                for (_e, (position, smell)) in &mut smells_with_position {
-                    let index = Zone::get_index_from_xy(position.x, position.y);
+                for (_e, (smell_position, smell)) in &mut smells_with_position {
+                    let index = Zone::get_index_from_xy(smell_position.x, smell_position.y);
 
                     let distance = Utils::distance(
-                        position.x,
+                        smell_position.x,
                         player_position.x,
-                        position.y,
+                        smell_position.y,
                         player_position.y,
                     );
 
-                    // Strong odors can be smelled at double distance
-                    let can_smell = !zone.visible_tiles[index]
-                        && ((distance < PLAYER_SMELL_RADIUS / 2.0)
+                    let can_smell = player_smell_ability.intensity != SmellIntensity::None // the player cannot smell anything (common cold or other penalities)
+                        && !zone.visible_tiles[index]
+                        && ((distance < PLAYER_SMELL_RADIUS / 2.0 && smell.intensity == SmellIntensity::Faint) // Faint odors can be smell from half normal distance
                             || (distance < PLAYER_SMELL_RADIUS
-                                && smell.intensity == SmellIntensity::Strong));
+                                && (smell.intensity == SmellIntensity::Strong // Strong odors can be smelled at double distance. 
+                                    || player_smell_ability.intensity == SmellIntensity::Strong))); // Player have improved smell (can smell faint odors from far away)
 
                     //draw not visible smellables within smell radius
                     if can_smell {
@@ -381,8 +383,8 @@ impl Draw {
 
                         draw_texture_ex(
                             texture_to_render,
-                            (UI_BORDER + (position.x * TILE_SIZE)) as f32,
-                            (UI_BORDER + (position.y * TILE_SIZE)) as f32,
+                            (UI_BORDER + (smell_position.x * TILE_SIZE)) as f32,
+                            (UI_BORDER + (smell_position.y * TILE_SIZE)) as f32,
                             WHITE, // Seems like White color is needed to normal render
                             DrawTextureParams {
                                 source: Some(Rect {

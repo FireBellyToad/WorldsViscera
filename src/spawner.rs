@@ -1,7 +1,6 @@
 use crate::components::combat::{CombatStats, InflictsDamage, SufferingDamage};
 use crate::components::common::{
-    BlocksTile, MyTurn, Named, Position, ProduceCorpse, Renderable, SmellIntensity, Smellable,
-    Viewshed,
+    BlocksTile, CanSmell, MyTurn, Named, Position, ProduceCorpse, Renderable, SmellIntensity, Smellable, Viewshed
 };
 use crate::components::health::{CanAutomaticallyHeal, Hunger, Thirst};
 use crate::components::items::{
@@ -78,6 +77,9 @@ impl Spawn {
                 current_status: ThirstStatus::Normal,
             },
             MyTurn {},
+            CanSmell{
+                intensity: SmellIntensity::Faint,
+            }
         );
 
         ecs_world.spawn(player_entity);
