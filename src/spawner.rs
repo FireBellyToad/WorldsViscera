@@ -80,7 +80,8 @@ impl Spawn {
             MyTurn {},
             CanSmell {
                 intensity: SmellIntensity::Faint,
-            },
+                radius: PLAYER_SMELL_RADIUS
+            }
         );
 
         ecs_world.spawn(player_entity);
