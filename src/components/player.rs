@@ -10,13 +10,13 @@ use crate::{
     components::{
         actions::{WantsItem, WantsToDrink, WantsToEat, WantsToSmell},
         combat::{CombatStats, WantsToMelee, WantsToZap},
-        common::{GameLog, MyTurn, Position, Smellable, Viewshed, WaitingToAct},
+        common::{GameLog, MyTurn, Position, Viewshed, WaitingToAct},
         health::CanAutomaticallyHeal,
         items::Item,
     },
     constants::{
         MAP_HEIGHT, MAP_WIDTH, MAX_ACTION_SPEED, MAX_STAMINA_HEAL_TICK_COUNTER,
-        PLAYER_SMELL_RADIUS, TILE_SIZE_F32, UI_BORDER_F32,
+        TILE_SIZE_F32, UI_BORDER_F32,
     },
     engine::state::RunState,
     inventory::InventoryAction,

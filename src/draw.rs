@@ -13,7 +13,7 @@ use macroquad::{
 use crate::{
     components::{
         combat::CombatStats,
-        common::{GameLog, Position, Renderable, Smellable},
+        common::{GameLog, Position, Renderable, SmellIntensity, Smellable},
         health::{Hunger, Thirst},
         player::{Player, SpecialViewMode},
     },
@@ -301,7 +301,11 @@ impl Draw {
     }
 
     /// Draw target on tile where mouse is poiting
-    fn targeting(ecs_world: &World, assets: &HashMap<TextureName, Texture2D>, special_view_mode: &SpecialViewMode) {
+    fn targeting(
+        ecs_world: &World,
+        assets: &HashMap<TextureName, Texture2D>,
+        special_view_mode: &SpecialViewMode,
+    ) {
         draw_text(
             "Use mouse to select, ESC to cancel",
             24.0,
@@ -339,7 +343,12 @@ impl Draw {
     }
 
     /// Draws special targets when in targeting mode
-    fn special_targets(ecs_world: &World, assets: &HashMap<TextureName, Texture2D>, special_view_mode: &SpecialViewMode, zone :&Zone){
+    fn special_targets(
+        ecs_world: &World,
+        assets: &HashMap<TextureName, Texture2D>,
+        special_view_mode: &SpecialViewMode,
+        zone: &Zone,
+    ) {
         let player_entity = Player::get_entity(ecs_world);
         let player_position = ecs_world.get::<&Position>(player_entity).unwrap();
 
@@ -347,29 +356,41 @@ impl Draw {
         match special_view_mode {
             SpecialViewMode::Smell => {
                 //Show smellable on not visibile tiles
-                let mut smells_with_position = ecs_world.query::<&Position>().with::<&Smellable>();
-                for (_e, position) in &mut smells_with_position {
+                let mut smells_with_position = ecs_world.query::<(&Position, &Smellable)>();
+                for (_e, (position, smell)) in &mut smells_with_position {
                     let index = Zone::get_index_from_xy(position.x, position.y);
-                    
-                    let distance = Utils::distance(position.x, player_position.x, position.y, player_position.y);
+
+                    let distance = Utils::distance(
+                        position.x,
+                        player_position.x,
+                        position.y,
+                        player_position.y,
+                    );
+
+                    // Strong odors can be smelled at double distance
+                    let can_smell = !zone.visible_tiles[index]
+                        && ((distance < PLAYER_SMELL_RADIUS / 2.0)
+                            || (distance < PLAYER_SMELL_RADIUS
+                                && smell.intensity == SmellIntensity::Strong));
+
                     //draw not visible smellables within smell radius
-                    if !zone.visible_tiles[index] && distance < PLAYER_SMELL_RADIUS {
-                    let texture_to_render = assets
-                        .get(&TextureName::Particles)
-                        .expect("Texture not found");
-                    
+                    if can_smell {
+                        let texture_to_render = assets
+                            .get(&TextureName::Particles)
+                            .expect("Texture not found");
+
                         draw_texture_ex(
                             texture_to_render,
                             (UI_BORDER + (position.x * TILE_SIZE)) as f32,
                             (UI_BORDER + (position.y * TILE_SIZE)) as f32,
                             WHITE, // Seems like White color is needed to normal render
                             DrawTextureParams {
-                            source: Some(Rect {
-                                x: 4.0 * TILE_SIZE_F32,
-                                y: 0.0,
-                                w: TILE_SIZE_F32,
-                                h: TILE_SIZE_F32,
-                            }),
+                                source: Some(Rect {
+                                    x: 4.0 * TILE_SIZE_F32,
+                                    y: 0.0,
+                                    w: TILE_SIZE_F32,
+                                    h: TILE_SIZE_F32,
+                                }),
                                 ..Default::default()
                             },
                         );
@@ -507,7 +528,7 @@ impl Draw {
                         WHITE,
                         DrawTextureParams {
                             source: Some(Rect {
-                                x: direction * TILE_SIZE_F32, 
+                                x: direction * TILE_SIZE_F32,
                                 y: 0.0,
                                 w: TILE_SIZE_F32,
                                 h: TILE_SIZE_F32,

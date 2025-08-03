@@ -32,6 +32,16 @@ pub struct WaitingToAct {
 
 pub struct MyTurn{}
 
+#[derive(PartialEq, Debug)]
+pub enum SmellIntensity {
+    None,
+    Faint,
+    Strong
+}
 pub struct Smellable{
-    pub smell_log: String
+    pub smell_log: String,
+    pub intensity: SmellIntensity
+}
+pub struct CanSmell{
+    pub intensity: SmellIntensity
 }
