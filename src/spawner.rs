@@ -1,6 +1,6 @@
 use crate::components::combat::{CombatStats, InflictsDamage, SufferingDamage};
 use crate::components::common::{
-    BlocksTile, MyTurn, Named, Position, ProduceCorpse, Renderable, Smellable, Viewshed
+    BlocksTile, CanSmell, MyTurn, Named, Position, ProduceCorpse, Renderable, SmellIntensity, Smellable, Viewshed
 };
 use crate::components::health::{CanAutomaticallyHeal, Hunger, Thirst};
 use crate::components::items::{
@@ -9,7 +9,7 @@ use crate::components::items::{
 use crate::components::monster::Monster;
 use crate::components::player::Player;
 use crate::constants::*;
-use crate::maps::zone::Zone;
+use crate::maps::zone::{TileType, Zone};
 use crate::systems::hunger_check::HungerStatus;
 use crate::systems::thirst_check::ThirstStatus;
 use crate::utils::assets::TextureName;
@@ -77,6 +77,9 @@ impl Spawn {
                 current_status: ThirstStatus::Normal,
             },
             MyTurn {},
+            CanSmell{
+                intensity: SmellIntensity::Faint,
+            }
         );
 
         ecs_world.spawn(player_entity);
@@ -93,6 +96,26 @@ impl Spawn {
         for &index in zone.item_spawn_points.iter() {
             let (x, y) = Zone::get_xy_from_index(index);
             Spawn::random_item(ecs_world, x as i32, y as i32);
+        }
+
+        // Spawn smells
+        for (index, tile) in zone.tiles.iter().enumerate() {
+            let (x, y) = Zone::get_xy_from_index(index);
+            let mut smellable: Option<Smellable> = None;
+            match tile {                
+                TileType::Brazier => {
+                    smellable = Some(Smellable{
+                        smell_log: String::from("burning chemicals"),
+                        intensity: SmellIntensity::Strong
+                    });
+                },
+                _ => {}
+            }
+            if smellable.is_some(){
+                ecs_world.spawn((true, 
+                    Position { x, y },
+                    smellable.unwrap()));
+            }
         }
     }
 
@@ -123,7 +146,10 @@ impl Spawn {
                 max_dexterity: 10,
                 speed: NORMAL,
             },
-            Smellable { smell_log: String::from("dried human sweat") },
+            Smellable {
+                smell_log: String::from("dried human sweat"),
+                intensity: SmellIntensity::Faint
+            },
             1.0, //TODO fix
             x,
             y,
@@ -145,7 +171,10 @@ impl Spawn {
                 max_dexterity: 14,
                 speed: FAST,
             },
-            Smellable { smell_log: String::from("cheap leather") },
+            Smellable {
+                smell_log: String::from("cheap leather"),
+                intensity: SmellIntensity::Faint,
+            },
             3.0, //TODO fix
             x,
             y,
@@ -167,7 +196,10 @@ impl Spawn {
                 max_dexterity: 8,
                 speed: SLOW,
             },
-            Smellable { smell_log: String::from("coal drenched in vinegar") },
+            Smellable {
+                smell_log: String::from("coal drenched in vinegar"),
+                intensity: SmellIntensity::Faint,
+            },
             2.0, //TODO fix
             x,
             y,
@@ -186,7 +218,7 @@ impl Spawn {
     ) {
         let monster_entity = (
             Monster {},
-            Position { x: x, y: y },
+            Position { x, y },
             Renderable {
                 texture_name: TextureName::Creatures,
                 texture_region: Rect {
@@ -208,7 +240,7 @@ impl Spawn {
             SufferingDamage { damage_received: 0 },
             ProduceCorpse {},
             MyTurn {},
-            smells
+            smells,
         );
 
         ecs_world.spawn(monster_entity);
@@ -304,9 +336,10 @@ impl Spawn {
             MustBeFueled {
                 fuel_counter: STARTING_FUEL + Roll::d100(),
             },
-            Smellable{
-                smell_log: String::from("a scent of burning fuel")
-            }
+            Smellable {
+                smell_log: String::from("a scent of burning fuel"),
+                intensity: SmellIntensity::Faint,
+            },
         );
 
         ecs_world.spawn(lantern);
@@ -335,6 +368,10 @@ impl Spawn {
                 number_of_dices: 2,
                 dice_size: 4,
             },
+            Smellable {
+                smell_log: String::from("ozone"),
+                intensity: SmellIntensity::Faint,
+            },
         );
 
         ecs_world.spawn(wand);
@@ -362,9 +399,10 @@ impl Spawn {
                 fuel_counter: STARTING_FUEL + Roll::d100(),
             },
             Refiller {},
-            Smellable{
-                smell_log: String::from("a faint scent of fuel")
-            }
+            Smellable {
+                smell_log: String::from("a faint scent of fuel"),
+                intensity: SmellIntensity::Faint,
+            },
         );
 
         ecs_world.spawn(flask_of_water);
