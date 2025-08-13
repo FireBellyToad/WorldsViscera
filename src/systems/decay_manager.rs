@@ -15,7 +15,7 @@ impl DecayManager {
 
         // Scope for keeping borrow checker quiet
         {
-            // List of entities that want to drop items
+            // List of perishable entities
             let mut perishables = ecs_world.query::<&mut Perishable>();
 
             for (entity, perishable) in &mut perishables {

@@ -16,4 +16,5 @@ pub mod turn_checker;
 pub mod fuel_manager;
 pub mod map_indexing;
 pub mod smell_manager;
+pub mod wet_manager;
 

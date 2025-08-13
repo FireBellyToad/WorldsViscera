@@ -1,6 +1,6 @@
 use std::collections::{HashMap, HashSet};
 
-use hecs::Entity;
+use hecs::{Entity, World};
 use macroquad::math::Rect;
 
 use crate::constants::{MAP_HEIGHT, MAP_WIDTH};
@@ -12,7 +12,7 @@ pub enum TileType {
     DownPassage,
     UpPassage,
     Brazier,
-    Water
+    Water,
 }
 pub enum ParticleType {
     Blood,
@@ -84,7 +84,7 @@ impl Zone {
     pub fn populate_blocked(&mut self) {
         for (index, tile) in self.tiles.iter_mut().enumerate() {
             match tile {
-                TileType::DownPassage | TileType::UpPassage | TileType::Floor => {
+                TileType::DownPassage | TileType::UpPassage | TileType::Floor | TileType::Water => {
                     self.blocked_tiles[index] = false
                 }
                 _ => self.blocked_tiles[index] = true,
@@ -95,7 +95,7 @@ impl Zone {
     /// Return true if cannot see through a tile
     pub fn is_tile_opaque(&self, x: i32, y: i32) -> bool {
         let index = Self::get_index_from_xy(x, y);
-        self.tiles[index] == TileType::Wall
+        self.tiles[index] == TileType::Wall 
     }
 
     /// Clears content index for this zone
@@ -106,14 +106,14 @@ impl Zone {
     }
 
     /// Return a index inside the tile sheet
-    pub fn get_tile_sprite_sheet_index(tile_type: &TileType) -> (f32,f32) {
+    pub fn get_tile_sprite_sheet_index(tile_type: &TileType) -> (f32, f32) {
         match tile_type {
-            TileType::Floor => (0.0,0.0),
-            TileType::Wall => (1.0,0.0),
-            TileType::DownPassage => (2.0,0.0),
-            TileType::UpPassage => (3.0,0.0),
-            TileType::Brazier => (4.0,0.0),
-            TileType::Water => (0.0,1.0),
+            TileType::Floor => (0.0, 0.0),
+            TileType::Wall => (1.0, 0.0),
+            TileType::DownPassage => (2.0, 0.0),
+            TileType::UpPassage => (3.0, 0.0),
+            TileType::Brazier => (4.0, 0.0),
+            TileType::Water => (0.0, 1.0),
         }
     }
 
@@ -133,4 +133,5 @@ impl Zone {
         let y = index as i32 / MAP_WIDTH;
         (x as i32, y as i32)
     }
+
 }

@@ -46,3 +46,6 @@ pub struct CanSmell{
     pub intensity: SmellIntensity,
     pub radius: f32
 }
+pub struct Wet {
+    pub tick_countdown: i32
+}

@@ -21,7 +21,7 @@ use crate::{
         arena_zone_builder::ArenaZoneBuilder, drunken_walk_zone_builder::DrunkenWalkZoneBuilder, zone::Zone, ZoneBuilder
     },
     systems::{
-        automatic_healing::AutomaticHealing, decay_manager::DecayManager, drinking_quaffables::DrinkingQuaffables, fuel_manager::FuelManager, hunger_check::HungerCheck, map_indexing::MapIndexing, particle_manager::ParticleManager, smell_manager::SmellManager, thirst_check::ThirstCheck, turn_checker::TurnCheck, zap_manager::ZapManager
+        automatic_healing::AutomaticHealing, decay_manager::DecayManager, drinking_quaffables::DrinkingQuaffables, fuel_manager::FuelManager, hunger_check::HungerCheck, map_indexing::MapIndexing, particle_manager::ParticleManager, smell_manager::SmellManager, thirst_check::ThirstCheck, turn_checker::TurnCheck, wet_manager::WetManager, zap_manager::ZapManager
     },
     utils::assets::Load,
 };
@@ -251,6 +251,7 @@ fn do_in_tick_game_logic(game_state: &mut EngineState) -> bool {
         EatingEdibles::run(&mut game_state.ecs_world);
         DrinkingQuaffables::run(&mut game_state.ecs_world);
         FuelManager::do_refills(&mut game_state.ecs_world);
+        WetManager::run(&mut game_state.ecs_world);
     }
     false
 }
