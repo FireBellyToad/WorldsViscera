@@ -416,7 +416,7 @@ impl Draw {
             for y in 0..MAP_HEIGHT {
                 let tile_to_draw = Zone::get_index_from_xy(x, y);
                 let tile_index =
-                    Zone::get_tile_sprite_sheet_index(&zone.tiles[tile_to_draw]) * TILE_SIZE_F32;
+                    Zone::get_tile_sprite_sheet_index(&zone.tiles[tile_to_draw]) ;
 
                 if zone.revealed_tiles[tile_to_draw] {
                     let mut alpha = DARKGRAY;
@@ -440,8 +440,8 @@ impl Draw {
                         alpha,
                         DrawTextureParams {
                             source: Some(Rect {
-                                x: tile_index,
-                                y: 0.0,
+                                x: tile_index.0 * TILE_SIZE_F32,
+                                y: tile_index.1 * TILE_SIZE_F32,
                                 w: TILE_SIZE_F32,
                                 h: TILE_SIZE_F32,
                             }),

@@ -1,7 +1,8 @@
 use crate::{
     constants::*,
     maps::{
-        ZoneBuilder,
+        ZoneBuilder, ZoneFeatureBuilder,
+        river_builder::RiverBuilder,
         zone::{TileType, Zone},
     },
     utils::roll::Roll,
@@ -35,7 +36,7 @@ impl ZoneBuilder for DrunkenWalkZoneBuilder {
                 }
 
                 // Avoid boundaries, or else skip iteration
-                if dest_x <= 0 || dest_x >= MAP_WIDTH - 1 || dest_y <= 0 || dest_y >= MAP_HEIGHT - 1
+                if dest_x <= 1 || dest_x >= MAP_WIDTH - 1 || dest_y <= 1 || dest_y >= MAP_HEIGHT - 1
                 {
                     continue;
                 }
@@ -51,14 +52,14 @@ impl ZoneBuilder for DrunkenWalkZoneBuilder {
         }
 
         // Make sure whe have boundaries
-        for x in 0..MAP_WIDTH {
-            for y in 0..MAP_HEIGHT {
-                if x == 0 || y == 0 || x == MAP_WIDTH - 1 || y == MAP_HEIGHT - 1 {
-                    let index = Zone::get_index_from_xy(x, y);
-                    zone.tiles[index] = TileType::Wall
-                }
-            }
-        }
+        // for x in 0..MAP_WIDTH {
+        //     for y in 0..MAP_HEIGHT {
+        //         if x == 0 || y == 0 || x == MAP_WIDTH - 1 || y == MAP_HEIGHT - 1 {
+        //             let index = Zone::get_index_from_xy(x, y);
+        //             zone.tiles[index] = TileType::Wall
+        //         }
+        //     }
+        // }
 
         // Random starting point for player
         let (mut try_x, mut try_y);
@@ -82,7 +83,7 @@ impl ZoneBuilder for DrunkenWalkZoneBuilder {
 
                 // avoid walls, player and duplicate spawnpoints
                 if index != zone.player_spawn_point {
-                    if zone.tiles[Zone::get_index_from_xy_f32(x, y)] != TileType::Wall {
+                    if zone.tiles[Zone::get_index_from_xy_f32(x, y)] == TileType::Floor {
                         if zone.monster_spawn_points.insert(index) {
                             break;
                         }
@@ -99,7 +100,7 @@ impl ZoneBuilder for DrunkenWalkZoneBuilder {
 
                 // avoid walls, player and duplicate spawnpoints
                 if index != zone.player_spawn_point {
-                    if zone.tiles[Zone::get_index_from_xy_f32(x, y)] != TileType::Wall {
+                    if zone.tiles[Zone::get_index_from_xy_f32(x, y)] == TileType::Floor {
                         if zone.item_spawn_points.insert(index) {
                             break;
                         }
@@ -132,6 +133,8 @@ impl ZoneBuilder for DrunkenWalkZoneBuilder {
         // Up passage is were player starts
         // TODO uncomment later when we can guarantee persistance
         // zone.tiles[zone.player_spawn_point] = TileType::UpPassage;
+
+        RiverBuilder::build(&mut zone);
 
         zone
     }

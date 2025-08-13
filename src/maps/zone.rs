@@ -12,6 +12,7 @@ pub enum TileType {
     DownPassage,
     UpPassage,
     Brazier,
+    Water
 }
 pub enum ParticleType {
     Blood,
@@ -105,13 +106,14 @@ impl Zone {
     }
 
     /// Return a index inside the tile sheet
-    pub fn get_tile_sprite_sheet_index(tile_type: &TileType) -> f32 {
+    pub fn get_tile_sprite_sheet_index(tile_type: &TileType) -> (f32,f32) {
         match tile_type {
-            TileType::Floor => 0.0,
-            TileType::Wall => 1.0,
-            TileType::DownPassage => 2.0,
-            TileType::UpPassage => 3.0,
-            TileType::Brazier => 4.0,
+            TileType::Floor => (0.0,0.0),
+            TileType::Wall => (1.0,0.0),
+            TileType::DownPassage => (2.0,0.0),
+            TileType::UpPassage => (3.0,0.0),
+            TileType::Brazier => (4.0,0.0),
+            TileType::Water => (0.0,1.0),
         }
     }
 
