@@ -7,7 +7,7 @@ use crate::components::health::{CanAutomaticallyHeal, Hunger, Thirst};
 use crate::components::items::{
     Edible, Invokable, Item, MustBeFueled, Perishable, ProduceLight, Quaffable, Refiller,
 };
-use crate::components::monster::Monster;
+use crate::components::monster::{Aquatic, Monster};
 use crate::components::player::Player;
 use crate::constants::*;
 use crate::maps::zone::{TileType, Zone};
@@ -15,7 +15,7 @@ use crate::systems::hunger_check::HungerStatus;
 use crate::systems::thirst_check::ThirstStatus;
 use crate::utils::assets::TextureName;
 use crate::utils::roll::Roll;
-use hecs::World;
+use hecs::{Entity, World};
 use macroquad::math::Rect;
 
 /// Spawner of game entities
@@ -28,7 +28,7 @@ impl Spawn {
         let rolled_toughness = Roll::stat();
         let rolled_dexterity = Roll::stat();
         // TODO Player with Soldier background must have 5+2d3 starting stamina
-        let rolled_stamina = Roll::d6() + 5;
+        let rolled_stamina = Roll::d6() + 500;
 
         let (spawn_x, spawn_y) = Zone::get_xy_from_index(zone.player_spawn_point);
 
@@ -80,8 +80,8 @@ impl Spawn {
             MyTurn {},
             CanSmell {
                 intensity: SmellIntensity::Faint,
-                radius: PLAYER_SMELL_RADIUS
-            }
+                radius: PLAYER_SMELL_RADIUS,
+            },
         );
 
         ecs_world.spawn(player_entity);
@@ -109,12 +109,13 @@ impl Spawn {
 
     /// Spawn a random monster
     pub fn random_monster(ecs_world: &mut World, x: i32, y: i32) {
-        let dice_roll = Roll::dice(1, 5);
+        let dice_roll = Roll::dice(1, 7);
 
         // Dvergar is stronger, shuold be less common
         match dice_roll {
             1 => Spawn::dvergar(ecs_world, x, y),
             2 => Spawn::gremlin(ecs_world, x, y),
+            3 | 4 => Spawn::eel(ecs_world, x, y),
             _ => Spawn::deep_one(ecs_world, x, y),
         }
     }
@@ -142,6 +143,33 @@ impl Spawn {
             x,
             y,
         );
+    }
+
+    fn eel(ecs_world: &mut World, x: i32, y: i32) {
+        let eel = Spawn::create_monster(
+            ecs_world,
+            String::from("River Eel"),
+            CombatStats {
+                current_stamina: 4,
+                max_stamina: 4,
+                base_armor: 0,
+                unarmed_attack_dice: 6,
+                current_toughness: 4,
+                max_toughness: 4,
+                current_dexterity: 14,
+                max_dexterity: 14,
+                speed: NORMAL,
+            },
+            Smellable {
+                smell_log: String::from("fish"),
+                intensity: SmellIntensity::None,
+            },
+            4.0, //TODO fix
+            x,
+            y,
+        );
+
+        let _ = ecs_world.insert_one(eel, Aquatic {});
     }
 
     fn gremlin(ecs_world: &mut World, x: i32, y: i32) {
@@ -203,7 +231,7 @@ impl Spawn {
         tile_index: f32,
         x: i32,
         y: i32,
-    ) {
+    ) -> Entity {
         let monster_entity = (
             Monster {},
             Position { x, y },
@@ -231,7 +259,7 @@ impl Spawn {
             smells,
         );
 
-        ecs_world.spawn(monster_entity);
+        ecs_world.spawn(monster_entity)
     }
 
     /// Spawn a random monster

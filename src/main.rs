@@ -232,6 +232,7 @@ fn do_before_tick_logic(game_state: &mut EngineState) {
     HungerCheck::run(&mut game_state.ecs_world);
     ThirstCheck::run(&mut game_state.ecs_world);
     FuelManager::check_fuel(&mut game_state.ecs_world);
+    WetManager::run(&mut game_state.ecs_world);
 }
 
 fn do_in_tick_game_logic(game_state: &mut EngineState) -> bool {
@@ -251,7 +252,6 @@ fn do_in_tick_game_logic(game_state: &mut EngineState) -> bool {
         EatingEdibles::run(&mut game_state.ecs_world);
         DrinkingQuaffables::run(&mut game_state.ecs_world);
         FuelManager::do_refills(&mut game_state.ecs_world);
-        WetManager::run(&mut game_state.ecs_world);
     }
     false
 }
