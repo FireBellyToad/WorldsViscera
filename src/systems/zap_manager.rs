@@ -2,12 +2,8 @@ use hecs::{Entity, World};
 
 use crate::{
     components::{
-        combat::{CombatStats, InflictsDamage, SufferingDamage, WantsToZap},
-        common::{GameLog, Named, Position},
-        actions::WantsToInvoke,
-    },
-    maps::zone::Zone,
-    utils::{effect_manager::EffectManager, particle_animation::ParticleAnimation, roll::Roll},
+        actions::WantsToInvoke, combat::{CombatStats, InflictsDamage, SufferingDamage, WantsToZap}, common::{GameLog, Named, Position, Wet}
+    }, constants::AUTOFAIL_SAVING_THROW, maps::zone::Zone, utils::{effect_manager::EffectManager, particle_animation::ParticleAnimation, roll::Roll}
 };
 
 pub struct ZapManager {}
@@ -69,11 +65,19 @@ impl ZapManager {
                         //Sum damage, keeping in mind that could not have SufferingDamage component
                         if target_damage.is_ok() {
                             let target_stats = ecs_world.get::<&CombatStats>(target).unwrap();
+                            let target_wet = ecs_world.get::<&Wet>(target);
                             let item_damage =
                                 ecs_world.get::<&InflictsDamage>(wants_invoke.item).unwrap();
                             let damage_roll =
                                 Roll::dice(item_damage.number_of_dices, item_damage.dice_size);
-                            let saving_throw_roll = Roll::d20();
+
+                            let mut saving_throw_roll = AUTOFAIL_SAVING_THROW;
+
+                            // If target is wet, autofail the saving throw!
+                            // TODO Only for thunder wand
+                            if target_wet.is_err() {
+                                saving_throw_roll = Roll::d20();
+                            }
 
                             // Show appropriate log messages
                             let named_attacker = ecs_world.get::<&Named>(zapper).unwrap();

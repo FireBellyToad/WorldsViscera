@@ -38,18 +38,17 @@ impl WetManager {
             for (entity, (position, is_wet)) in &mut positioned_entities {
                 // Wet everyone walking in water
                 if zone.tiles[Zone::get_index_from_xy(position.x, position.y)] == TileType::Water {
-                    
                     if is_wet.is_some() {
                         let is_wet_component = is_wet.unwrap();
                         is_wet_component.tick_countdown = STARTING_WET_COUNTER;
-                    } else {          
-                           
+                    } else {
                         // Log only the first time the player gets wet
                         // Avoid multiple logs while walking in water
                         if player_id == entity.id() {
                             game_log.entries.push(format!("You get wet"));
                         }
 
+                        println!("entity {} got wet", entity.id());
                         entities_that_got_wet.push(entity);
                     }
                 } else if is_wet.is_some() {
@@ -69,7 +68,7 @@ impl WetManager {
 
         // Register that now edible is rottend
         for entity in entities_that_got_wet {
-               let _ = ecs_world.insert_one(
+            let _ = ecs_world.insert_one(
                 entity,
                 Wet {
                     tick_countdown: STARTING_WET_COUNTER,
