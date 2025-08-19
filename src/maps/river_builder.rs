@@ -14,16 +14,16 @@ impl ZoneFeatureBuilder for RiverBuilder {
     fn build(zone: &mut Zone) {
         //TODO
 
-        //1 - select a start point with X or Y = 0
-        let mut current_position = (0, 0);
+        //1 - select a start point with X or Y = 1
+        let mut current_position = (1, 1);
         if Roll::d100() <= 50 {
             current_position.1 = Roll::dice(1, MAP_HEIGHT / 2 - 1) + 1
         } else {
             current_position.0 = Roll::dice(1, MAP_WIDTH / 2 - 1) + 1
         }
 
-        //2 - if point is X = MAP_WIDTH or Y = MAP_HEIGHT, stop
-        while current_position.0 < MAP_WIDTH && current_position.1 < MAP_HEIGHT {
+        //2 - if point is X = MAP_WIDTH-1 or Y = MAP_HEIGHT-1, stop
+        while current_position.0 < MAP_WIDTH-1 && current_position.1 < MAP_HEIGHT-1 {
             //3 - draw a water tile there
             zone.tiles[Zone::get_index_from_xy(current_position.0, current_position.1)] =
                 TileType::Water;

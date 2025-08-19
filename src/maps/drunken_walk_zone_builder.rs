@@ -51,16 +51,6 @@ impl ZoneBuilder for DrunkenWalkZoneBuilder {
             current_position = (Roll::dice(1, MAP_WIDTH - 2), Roll::dice(1, MAP_HEIGHT - 2));
         }
 
-        // Make sure whe have boundaries
-        // for x in 0..MAP_WIDTH {
-        //     for y in 0..MAP_HEIGHT {
-        //         if x == 0 || y == 0 || x == MAP_WIDTH - 1 || y == MAP_HEIGHT - 1 {
-        //             let index = Zone::get_index_from_xy(x, y);
-        //             zone.tiles[index] = TileType::Wall
-        //         }
-        //     }
-        // }
-
         // Random starting point for player
         let (mut try_x, mut try_y);
         zone.player_spawn_point = zone.tiles.len() / 2;
@@ -69,6 +59,8 @@ impl ZoneBuilder for DrunkenWalkZoneBuilder {
             try_y = Roll::dice(1, MAP_HEIGHT - 2);
             zone.player_spawn_point = Zone::get_index_from_xy(try_x, try_y);
         }
+
+        RiverBuilder::build(&mut zone);
 
         // Generate monster and items spawn points within each room
         let monster_number = Roll::dice(1, MAX_MONSTERS_ON_ROOM_START) + 2;
@@ -83,7 +75,7 @@ impl ZoneBuilder for DrunkenWalkZoneBuilder {
 
                 // avoid walls, player and duplicate spawnpoints
                 if index != zone.player_spawn_point {
-                    if zone.tiles[Zone::get_index_from_xy_f32(x, y)] == TileType::Floor {
+                    if zone.tiles[Zone::get_index_from_xy_f32(x, y)] != TileType::Wall {
                         if zone.monster_spawn_points.insert(index) {
                             break;
                         }
@@ -133,8 +125,6 @@ impl ZoneBuilder for DrunkenWalkZoneBuilder {
         // Up passage is were player starts
         // TODO uncomment later when we can guarantee persistance
         // zone.tiles[zone.player_spawn_point] = TileType::UpPassage;
-
-        RiverBuilder::build(&mut zone);
 
         zone
     }

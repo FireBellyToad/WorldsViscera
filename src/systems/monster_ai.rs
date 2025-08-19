@@ -6,7 +6,7 @@ use crate::{
     components::{
         combat::{CombatStats, WantsToMelee},
         common::*,
-        monster::Monster,
+        monster::{Aquatic, Monster},
         player::Player,
     },
     constants::MAX_ACTION_SPEED,
@@ -26,7 +26,7 @@ impl MonsterAI {
         // Scope for keeping borrow checker quiet
         {
             let mut named_monsters = ecs_world
-                .query::<(&mut Viewshed, &CombatStats, &mut Position)>()
+                .query::<(&mut Viewshed, &CombatStats, &mut Position, Option<&Aquatic>)>()
                 .with::<&Monster>()
                 .with::<&MyTurn>();
 
@@ -43,7 +43,7 @@ impl MonsterAI {
                 .expect("Player is not in hecs::World");
 
             // For each viewshed position monster component join
-            for (monster_entity, (viewshed, stats, position)) in &mut named_monsters {
+            for (monster_entity, (viewshed, stats, position, acquatic)) in &mut named_monsters {
                 //If enemy can see player, follow him and try to attack when close enough
                 if viewshed
                     .visible_tiles
@@ -56,6 +56,7 @@ impl MonsterAI {
                         player_position.y,
                         zone,
                         true,
+                        acquatic.is_some()
                     );
 
                     //If can actually reach the player

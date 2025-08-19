@@ -185,6 +185,7 @@ impl Player {
                         //Quaff item
                         'q' => {
                             clear_input_queue();
+                            // TODO drink from river
                             let quaffable = Player::take_from_map(ecs_world);
 
                             if quaffable.is_some() {

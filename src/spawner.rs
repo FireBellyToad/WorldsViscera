@@ -92,7 +92,12 @@ impl Spawn {
         // Actually spawn the monsters
         for &index in zone.monster_spawn_points.iter() {
             let (x, y) = Zone::get_xy_from_index(index);
-            Spawn::random_monster(ecs_world, x as i32, y as i32);
+            //TODO improve with spawn table
+            if zone.tiles[index] == TileType::Water {
+                Spawn::eel(ecs_world, x, y)
+            } else {
+                Spawn::random_terrain_monster(ecs_world, x as i32, y as i32);
+            }
         }
         // Actually spawn the potions
         for &index in zone.item_spawn_points.iter() {
@@ -108,14 +113,13 @@ impl Spawn {
     }
 
     /// Spawn a random monster
-    pub fn random_monster(ecs_world: &mut World, x: i32, y: i32) {
-        let dice_roll = Roll::dice(1, 7);
+    pub fn random_terrain_monster(ecs_world: &mut World, x: i32, y: i32) {
+        let dice_roll = Roll::dice(1, 5);
 
         // Dvergar is stronger, shuold be less common
         match dice_roll {
             1 => Spawn::dvergar(ecs_world, x, y),
             2 => Spawn::gremlin(ecs_world, x, y),
-            3 | 4 => Spawn::eel(ecs_world, x, y),
             _ => Spawn::deep_one(ecs_world, x, y),
         }
     }

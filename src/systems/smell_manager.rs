@@ -45,6 +45,8 @@ impl SmellManager {
                     for &target in target_list {
                         let target_smell = ecs_world.get::<&Smellable>(target);
 
+                        // TODO what about wet target? Could they be smelled?
+                        // TODO better think of the difference between submerged and wet
                         if target_smell.is_ok() {
                             // Show appropriate log messages
                             let smells = target_smell.unwrap();

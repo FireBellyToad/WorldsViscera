@@ -61,6 +61,7 @@ impl Zone {
         x_pos: i32,
         y_pos: i32,
         use_manhattan_distance: bool,
+        only_water_tiles: bool,
     ) -> Vec<(i32, i32)> {
         let mut adjacent_passable_tiles = Vec::new();
 
@@ -71,7 +72,10 @@ impl Zone {
                     let index = Self::get_index_from_xy(x, y);
                     // Safety check is needed for zone borders
                     if self.blocked_tiles.len() > index && !self.blocked_tiles[index] {
-                        adjacent_passable_tiles.push((x, y));
+                        // Aquatic monster can move only on water tiles
+                        if !only_water_tiles || self.tiles[index] == TileType::Water {
+                            adjacent_passable_tiles.push((x, y));
+                        }
                     }
                 }
             }
@@ -95,7 +99,7 @@ impl Zone {
     /// Return true if cannot see through a tile
     pub fn is_tile_opaque(&self, x: i32, y: i32) -> bool {
         let index = Self::get_index_from_xy(x, y);
-        self.tiles[index] == TileType::Wall 
+        self.tiles[index] == TileType::Wall
     }
 
     /// Clears content index for this zone
@@ -133,5 +137,4 @@ impl Zone {
         let y = index as i32 / MAP_WIDTH;
         (x as i32, y as i32)
     }
-
 }
