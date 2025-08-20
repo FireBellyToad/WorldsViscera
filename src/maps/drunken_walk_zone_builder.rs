@@ -1,3 +1,5 @@
+use std::cmp::max;
+
 use crate::{
     constants::*,
     maps::{
@@ -60,7 +62,10 @@ impl ZoneBuilder for DrunkenWalkZoneBuilder {
             zone.player_spawn_point = Zone::get_index_from_xy(try_x, try_y);
         }
 
-        RiverBuilder::build(&mut zone);
+        let river_number = max(1, Roll::dice(0, MAX_RIVERS_IN_ZONE + (depth/3)) - 3);
+        for _r in 0..river_number {
+            RiverBuilder::build(&mut zone);
+        }
 
         // Generate monster and items spawn points within each room
         let monster_number = Roll::dice(1, MAX_MONSTERS_ON_ROOM_START) + 2;
