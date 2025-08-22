@@ -447,4 +447,17 @@ impl Spawn {
             _ => {}
         }
     }
+
+    /// Generate ad hoc quaffable entity from lake
+    pub fn river_water_entity(ecs_world: &mut World) -> Entity{
+        ecs_world.spawn((
+            Named {
+                name: String::from("River water"),
+            },
+            Quaffable {
+                thirst_dice_number: 2,
+                thirst_dice_size: 20,
+            },
+        ))
+    }
 }
