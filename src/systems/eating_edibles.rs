@@ -96,7 +96,7 @@ impl EatingEdibles {
                             .push(format!("You ate rotten food! You vomit!"));
                     }
 
-                    zone.particle_tiles.insert(
+                    zone.decals_tiles.insert(
                         Zone::get_index_from_xy(position.x, position.y),
                         ParticleType::Vomit,
                     );

@@ -45,7 +45,7 @@ impl DamageManager {
                 }
 
                 //Drench the tile with blood
-                zone.particle_tiles.insert(
+                zone.decals_tiles.insert(
                     Zone::get_index_from_xy(position.x, position.y),
                     ParticleType::Blood,
                 );

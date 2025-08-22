@@ -28,7 +28,7 @@ pub struct Zone {
     pub lit_tiles: Vec<bool>,
     pub blocked_tiles: Vec<bool>,
     pub tile_content: Vec<Vec<Entity>>,
-    pub particle_tiles: HashMap<usize, ParticleType>,
+    pub decals_tiles: HashMap<usize, ParticleType>,
     pub depth: i32,
     pub player_spawn_point: usize,
     pub monster_spawn_points: HashSet<usize>,
@@ -49,7 +49,7 @@ impl Zone {
             tile_content: vec![Vec::new(); (MAP_WIDTH * MAP_HEIGHT) as usize],
             player_spawn_point: 0,
             depth,
-            particle_tiles: HashMap::new(),
+            decals_tiles: HashMap::new(),
             monster_spawn_points: HashSet::new(),
             item_spawn_points: HashSet::new(),
         }

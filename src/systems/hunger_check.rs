@@ -110,7 +110,7 @@ impl HungerCheck {
                             } else {
                                 hunger.tick_counter = MAX_HUNGER_TICK_COUNTER - Roll::dice(3, 10);
                                 hunger.current_status = HungerStatus::Normal;
-                                zone.particle_tiles.insert(
+                                zone.decals_tiles.insert(
                                     Zone::get_index_from_xy(position.x, position.y),
                                     ParticleType::Vomit,
                                 );

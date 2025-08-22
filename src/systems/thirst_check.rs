@@ -112,7 +112,7 @@ impl ThirstCheck {
                                 //Less severe than being oversatiated...
                                 thirst.tick_counter = MAX_THIRST_TICK_COUNTER - Roll::dice(2, 10);
                                 thirst.current_status = ThirstStatus::Normal;
-                                zone.particle_tiles.insert(
+                                zone.decals_tiles.insert(
                                     Zone::get_index_from_xy(position.x, position.y),
                                     ParticleType::Vomit,
                                 );

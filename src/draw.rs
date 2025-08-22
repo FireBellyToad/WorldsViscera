@@ -423,13 +423,6 @@ impl Draw {
 
                     if zone.visible_tiles[tile_to_draw] {
                         alpha = WHITE;
-                        if zone.particle_tiles.contains_key(&tile_to_draw) {
-                            Draw::draw_particles(
-                                x,
-                                y,
-                                zone.particle_tiles.get(&tile_to_draw).unwrap(),
-                            );
-                        }
                     }
 
                     // Take the texture and draw only the wanted tile ( DrawTextureParams.source )
@@ -448,13 +441,24 @@ impl Draw {
                             ..Default::default()
                         },
                     );
+
+                    // Decals must ne drawn on top of tiles
+                    if zone.visible_tiles[tile_to_draw] {
+                        if zone.decals_tiles.contains_key(&tile_to_draw) {
+                            Draw::draw_decals(
+                                x,
+                                y,
+                                zone.decals_tiles.get(&tile_to_draw).unwrap(),
+                            );
+                        }
+                    }
                 }
             }
         }
     }
 
     /// Utility for drawing blood blots
-    pub fn draw_particles(x: i32, y: i32, particle_type: &ParticleType) {
+    pub fn draw_decals(x: i32, y: i32, particle_type: &ParticleType) {
         let color;
 
         match particle_type {
