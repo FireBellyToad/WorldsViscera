@@ -37,7 +37,7 @@ impl WetManager {
 
             for (entity, (position, is_wet)) in &mut positioned_entities {
                 // Wet everyone walking in water
-                if zone.tiles[Zone::get_index_from_xy(position.x, position.y)] == TileType::Water {
+                if zone.water_tiles[Zone::get_index_from_xy(position.x, position.y)] {
                     if is_wet.is_some() {
                         let is_wet_component = is_wet.unwrap();
                         is_wet_component.tick_countdown = STARTING_WET_COUNTER;

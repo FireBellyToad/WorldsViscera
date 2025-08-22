@@ -33,6 +33,7 @@ pub struct Zone {
     pub player_spawn_point: usize,
     pub monster_spawn_points: HashSet<usize>,
     pub item_spawn_points: HashSet<usize>,
+    pub water_tiles: Vec<bool>,
 }
 
 /// Zone Simplementations
@@ -52,6 +53,7 @@ impl Zone {
             decals_tiles: HashMap::new(),
             monster_spawn_points: HashSet::new(),
             item_spawn_points: HashSet::new(),
+            water_tiles: vec![false; (MAP_WIDTH * MAP_HEIGHT) as usize],
         }
     }
 
@@ -73,7 +75,7 @@ impl Zone {
                     // Safety check is needed for zone borders
                     if self.blocked_tiles.len() > index && !self.blocked_tiles[index] {
                         // Aquatic monster can move only on water tiles
-                        if !only_water_tiles || self.tiles[index] == TileType::Water {
+                        if !only_water_tiles || self.water_tiles[index] {
                             adjacent_passable_tiles.push((x, y));
                         }
                     }
@@ -93,6 +95,13 @@ impl Zone {
                 }
                 _ => self.blocked_tiles[index] = true,
             }
+        }
+    }
+
+    /// Populates the water tiles vector appropiately (true = is water )
+    pub fn populate_water(&mut self) {
+        for (index, tile) in self.tiles.iter_mut().enumerate() {
+            self.water_tiles[index] = (*tile == TileType::Water);
         }
     }
 
