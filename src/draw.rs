@@ -442,8 +442,8 @@ impl Draw {
                         },
                     );
 
-                    // Decals must ne drawn on top of tiles
-                    if zone.visible_tiles[tile_to_draw] {
+                    // Decals must be drawn on top of NON water tiles
+                    if zone.visible_tiles[tile_to_draw] && !zone.water_tiles[tile_to_draw]{
                         if zone.decals_tiles.contains_key(&tile_to_draw) {
                             Draw::draw_decals(
                                 x,
