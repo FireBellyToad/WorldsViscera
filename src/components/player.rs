@@ -10,9 +10,9 @@ use crate::{
     components::{
         actions::{WantsItem, WantsToDrink, WantsToEat, WantsToSmell},
         combat::{CombatStats, WantsToMelee, WantsToZap},
-        common::{GameLog, MyTurn, Named, Position, Viewshed, WaitingToAct},
+        common::{GameLog, MyTurn, Position, Viewshed, WaitingToAct},
         health::CanAutomaticallyHeal,
-        items::{Item, Quaffable},
+        items::Item,
     },
     constants::{
         MAP_HEIGHT, MAP_WIDTH, MAX_ACTION_SPEED, MAX_STAMINA_HEAL_TICK_COUNTER, TILE_SIZE_F32,
@@ -20,7 +20,8 @@ use crate::{
     },
     engine::state::RunState,
     inventory::InventoryAction,
-    maps::zone::{TileType, Zone}, spawner::Spawn,
+    maps::zone::{TileType, Zone},
+    spawner::Spawn,
 };
 
 #[derive(PartialEq, Debug)]
@@ -187,35 +188,8 @@ impl Player {
                             clear_input_queue();
 
                             // Drink from river
-                            let river_drank = Player::try_drink_tile(ecs_world);
-                            if river_drank.is_some() {
-                                // TODO random chance to get something nasty?
-
-                                let _ = ecs_world.insert_one(
-                                    player_entity,
-                                    WantsToDrink {
-                                        item: river_drank.unwrap(),
-                                    },
-                                );
-
-                                run_state = RunState::DoTick;
-                                is_actively_waiting = true;
-                            } else {
-                                let quaffable = Player::take_from_map(ecs_world);
-
-                                if quaffable.is_some() {
-                                    let _ = ecs_world.insert_one(
-                                        player_entity,
-                                        WantsToDrink {
-                                            item: quaffable.unwrap(),
-                                        },
-                                    );
-                                    run_state = RunState::DoTick;
-                                    is_actively_waiting = true;
-                                } else {
-                                    run_state = RunState::ShowInventory(InventoryAction::Quaff);
-                                }
-                            }
+                            (run_state, is_actively_waiting) =
+                                Player::try_drink(ecs_world, player_entity);
                         }
 
                         //Refill item
@@ -360,9 +334,9 @@ impl Player {
         target_item
     }
 
-    fn try_drink_tile(ecs_world: &mut World) -> Option<Entity> {
+    fn try_drink(ecs_world: &mut World, player_entity: Entity) -> (RunState, bool) {
         let mut river_quaffable: Option<Entity> = None;
-        let can_drink: bool;
+        let there_is_river_here: bool;
 
         // Scope for keeping borrow checker quiet
         {
@@ -379,17 +353,39 @@ impl Player {
                 .expect("Player is not in hecs::World");
             let player_position = position;
 
-            // Get Water
-            can_drink = zone.tiles[Zone::get_index_from_xy(player_position.x, player_position.y)]
+            // Get Water from river
+            there_is_river_here = zone.tiles[Zone::get_index_from_xy(player_position.x, player_position.y)]
                 == TileType::Water;
         }
 
-        if can_drink {
+        if there_is_river_here {
             // TODO maybe drink something nasty rolling casually?
-            river_quaffable = Some(Spawn::river_water_entity(ecs_world));
+            let river_entity = Spawn::river_water_entity(ecs_world);
+            let _ = ecs_world.insert_one(
+                player_entity,
+                WantsToDrink {
+                    item: river_entity,
+                },
+            );
+
+            return (RunState::DoTick, true);
+        } else {
+            // Drink a quaffable item on ground
+            let quaffable = Player::take_from_map(ecs_world);
+
+            if quaffable.is_some() {
+                let _ = ecs_world.insert_one(
+                    player_entity,
+                    WantsToDrink {
+                        item: quaffable.unwrap(),
+                    },
+                );
+                return (RunState::DoTick, true);
+            }
         }
 
-        river_quaffable
+        // Show quaffable items in inventory
+        (RunState::ShowInventory(InventoryAction::Quaff), false)
     }
 
     fn try_next_level(ecs_world: &mut World, char_pressed: char) -> RunState {
