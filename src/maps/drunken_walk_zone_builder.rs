@@ -62,10 +62,12 @@ impl ZoneBuilder for DrunkenWalkZoneBuilder {
             zone.player_spawn_point = Zone::get_index_from_xy(try_x, try_y);
         }
 
-        let river_number = max(1, Roll::dice(0, MAX_RIVERS_IN_ZONE + (depth/3)) - 3);
+        let river_number = max(1, Roll::dice(0, MAX_RIVERS_IN_ZONE + (depth / 3)) - 3);
         for _r in 0..river_number {
             RiverBuilder::build(&mut zone);
         }
+        // Populate water tiles here, needed for correct aquatic monster spawning
+        zone.populate_water();
 
         // Generate monster and items spawn points within each room
         let monster_number = Roll::dice(1, MAX_MONSTERS_ON_ROOM_START) + 2;

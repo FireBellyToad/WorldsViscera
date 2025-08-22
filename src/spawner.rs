@@ -93,7 +93,7 @@ impl Spawn {
         for &index in zone.monster_spawn_points.iter() {
             let (x, y) = Zone::get_xy_from_index(index);
             //TODO improve with spawn table
-            if zone.tiles[index] == TileType::Water {
+            if zone.water_tiles[index] {
                 Spawn::eel(ecs_world, x, y)
             } else {
                 Spawn::random_terrain_monster(ecs_world, x as i32, y as i32);

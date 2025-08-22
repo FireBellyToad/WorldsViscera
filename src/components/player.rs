@@ -335,7 +335,7 @@ impl Player {
     }
 
     fn try_drink(ecs_world: &mut World, player_entity: Entity) -> (RunState, bool) {
-        let mut river_quaffable: Option<Entity> = None;
+        
         let there_is_river_here: bool;
 
         // Scope for keeping borrow checker quiet
@@ -354,8 +354,7 @@ impl Player {
             let player_position = position;
 
             // Get Water from river
-            there_is_river_here = zone.tiles[Zone::get_index_from_xy(player_position.x, player_position.y)]
-                == TileType::Water;
+            there_is_river_here = zone.water_tiles[Zone::get_index_from_xy(player_position.x, player_position.y)];
         }
 
         if there_is_river_here {

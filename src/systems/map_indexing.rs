@@ -28,6 +28,9 @@ impl MapIndexing {
             let index = Zone::get_index_from_xy(position.x, position.y);
             zone.blocked_tiles[index] = true;
         }
+        
+        // index all water tiles
+        zone.populate_water();
 
         //index all lit tiles checking all light producers
         zone.lit_tiles.fill(false);
