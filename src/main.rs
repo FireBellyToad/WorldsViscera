@@ -18,10 +18,15 @@ use systems::{
 use crate::{
     components::common::{Position, Viewshed},
     maps::{
-        arena_zone_builder::ArenaZoneBuilder, drunken_walk_zone_builder::DrunkenWalkZoneBuilder, zone::Zone, ZoneBuilder
+        ZoneBuilder, arena_zone_builder::ArenaZoneBuilder,
+        drunken_walk_zone_builder::DrunkenWalkZoneBuilder, zone::Zone,
     },
     systems::{
-        automatic_healing::AutomaticHealing, decay_manager::DecayManager, drinking_quaffables::DrinkingQuaffables, fuel_manager::FuelManager, hunger_check::HungerCheck, map_indexing::MapIndexing, particle_manager::ParticleManager, smell_manager::SmellManager, thirst_check::ThirstCheck, turn_checker::TurnCheck, wet_manager::WetManager, zap_manager::ZapManager
+        automatic_healing::AutomaticHealing, decay_manager::DecayManager,
+        drinking_quaffables::DrinkingQuaffables, fuel_manager::FuelManager,
+        hunger_check::HungerCheck, map_indexing::MapIndexing, particle_manager::ParticleManager,
+        smell_manager::SmellManager, status_manager::StatusManager, thirst_check::ThirstCheck,
+        turn_checker::TurnCheck, wet_manager::WetManager, zap_manager::ZapManager,
     },
     utils::assets::Load,
 };
@@ -121,8 +126,10 @@ async fn main() {
                     game_state.run_state = Inventory::handle_input(&mut game_state.ecs_world, mode);
                 }
                 RunState::MouseTargeting(special_view_mode) => {
-                    game_state.run_state =
-                        Player::checks_input_for_targeting(&mut game_state.ecs_world, special_view_mode);
+                    game_state.run_state = Player::checks_input_for_targeting(
+                        &mut game_state.ecs_world,
+                        special_view_mode,
+                    );
                 }
                 RunState::GoToNextZone => {
                     // Reset heal counter if the player did not wait
@@ -233,6 +240,7 @@ fn do_before_tick_logic(game_state: &mut EngineState) {
     ThirstCheck::run(&mut game_state.ecs_world);
     FuelManager::check_fuel(&mut game_state.ecs_world);
     WetManager::run(&mut game_state.ecs_world);
+    StatusManager::run(&mut game_state.ecs_world);
 }
 
 fn do_in_tick_game_logic(game_state: &mut EngineState) -> bool {
@@ -256,6 +264,6 @@ fn do_in_tick_game_logic(game_state: &mut EngineState) -> bool {
     false
 }
 
-fn do_tickless_logic(game_state: &mut EngineState){
+fn do_tickless_logic(game_state: &mut EngineState) {
     SmellManager::run(&mut game_state.ecs_world);
 }

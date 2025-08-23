@@ -115,8 +115,8 @@ impl Draw {
         let mut zones = ecs_world.query::<&Zone>();
         let (_e, zone) = zones.iter().last().expect("Zone is not in hecs::World");
 
-        let mut player_query = ecs_world.query::<(&Player, &CombatStats, &Hunger, &Thirst)>();
-        let (_e, (_p, player_stats, hunger, thirst)) = player_query
+        let mut player_query = ecs_world.query::<(&CombatStats, &Hunger, &Thirst)>().with::<&Player>();
+        let (_e, (player_stats, hunger, thirst)) = player_query
             .iter()
             .last()
             .expect("Player is not in hecs::World");

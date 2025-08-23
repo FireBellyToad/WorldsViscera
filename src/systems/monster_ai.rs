@@ -4,10 +4,9 @@ use hecs::{Entity, World};
 
 use crate::{
     components::{
-        combat::{CombatStats, IsHidden, WantsToMelee},
+        combat::{CombatStats, WantsToMelee},
         common::*,
-        monster::{Aquatic, Monster},
-        player::Player,
+        monster::{Aquatic, Monster}, player::Player,
     },
     constants::MAX_ACTION_SPEED,
     maps::zone::Zone,
@@ -21,7 +20,6 @@ impl MonsterAI {
     /// Monster acting function
     pub fn act(ecs_world: &mut World) {
         let mut attacker_target_list: Vec<(Entity, Entity)> = Vec::new();
-        let mut hidden_list: Vec<Entity> = Vec::new();
         let mut waiter_speed_list: Vec<(Entity, i32)> = Vec::new();
 
         // Scope for keeping borrow checker quiet
@@ -37,8 +35,8 @@ impl MonsterAI {
                 .last()
                 .expect("Zone is not in hecs::World");
 
-            let mut player_query = ecs_world.query::<(&Player, &Position)>();
-            let (player_entity, (_p, player_position)) = player_query
+            let mut player_query = ecs_world.query::<&Position>().with::<&Player>();
+            let (player_entity, player_position) = player_query
                 .iter()
                 .last()
                 .expect("Player is not in hecs::World");
@@ -57,12 +55,17 @@ impl MonsterAI {
                         player_position.y,
                         zone,
                         true,
-                        acquatic.is_some()
+                        acquatic.is_some(),
                     );
 
                     //If can actually reach the player
                     if pathfinding_result.is_some() {
-                        let distance = Utils::distance(position.x, player_position.x, position.y, player_position.y);
+                        let distance = Utils::distance(
+                            position.x,
+                            player_position.x,
+                            position.y,
+                            player_position.y,
+                        );
 
                         //Attack or move
                         if distance < 1.5 {

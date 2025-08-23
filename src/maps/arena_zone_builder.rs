@@ -1,7 +1,8 @@
 use crate::{
     constants::*,
     maps::{
-        ZoneBuilder,
+        ZoneBuilder, ZoneFeatureBuilder,
+        river_builder::RiverBuilder,
         zone::{TileType, Zone},
     },
     utils::roll::Roll,
@@ -57,6 +58,31 @@ impl ZoneBuilder for ArenaZoneBuilder {
         // Random starting point for DownPassage
         let passage_index = Zone::get_index_from_xy(MAP_WIDTH / 2, MAP_HEIGHT / 2);
         zone.tiles[passage_index] = TileType::DownPassage;
+
+        RiverBuilder::build(&mut zone);
+        RiverBuilder::build(&mut zone);
+        RiverBuilder::build(&mut zone);
+        RiverBuilder::build(&mut zone);
+        RiverBuilder::build(&mut zone);
+        zone.populate_water();
+
+        let monster_number = Roll::dice(1, MAX_MONSTERS_ON_ROOM_START) + 20;
+        for _m in 0..monster_number {
+            for _t in 0..MAX_SPAWN_TENTANTIVES {
+                let x = Roll::dice(1, MAP_WIDTH as i32 - 2) as f32;
+                let y = Roll::dice(1, MAP_HEIGHT as i32 - 2) as f32;
+                let index = Zone::get_index_from_xy_f32(x, y);
+
+                // avoid walls, player and duplicate spawnpoints
+                if index != zone.player_spawn_point {
+                    if zone.tiles[Zone::get_index_from_xy_f32(x, y)] != TileType::Wall {
+                        if zone.monster_spawn_points.insert(index) {
+                            break;
+                        }
+                    }
+                }
+            }
+        }
 
         zone
     }

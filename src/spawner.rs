@@ -1,4 +1,4 @@
-use crate::components::combat::{CombatStats, InflictsDamage, IsHidden, SufferingDamage};
+use crate::components::combat::{CanHide, CombatStats, InflictsDamage, IsHidden, SufferingDamage};
 use crate::components::common::{
     BlocksTile, CanSmell, MyTurn, Named, Position, ProduceCorpse, Renderable, SmellIntensity,
     Smellable, Viewshed,
@@ -173,7 +173,7 @@ impl Spawn {
             y,
         );
 
-        let _ = ecs_world.insert(freshwater_viperfish, (Aquatic {}, IsHidden{}));
+        let _ = ecs_world.insert(freshwater_viperfish, (Aquatic {}, CanHide{}));
     }
 
     fn gremlin(ecs_world: &mut World, x: i32, y: i32) {

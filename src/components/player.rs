@@ -43,7 +43,9 @@ impl Player {
 
         // Scope for keeping borrow checker quiet
         {
-            let mut players = ecs_world.query::<(&Player, &mut Position, &mut Viewshed)>();
+            let mut players = ecs_world
+                .query::<(&mut Position, &mut Viewshed)>()
+                .with::<&Player>();
 
             let mut zone_query = ecs_world.query::<&Zone>();
             let (_e, zone) = zone_query
@@ -51,7 +53,7 @@ impl Player {
                 .last()
                 .expect("Zone is not in hecs::World");
 
-            for (player_entity, (_p, position, viewshed)) in &mut players {
+            for (player_entity, (position, viewshed)) in &mut players {
                 let destination_index =
                     Zone::get_index_from_xy(position.x + delta_x, position.y + delta_y);
 
@@ -316,8 +318,8 @@ impl Player {
     fn take_from_map(ecs_world: &mut World) -> Option<Entity> {
         let mut target_item: Option<Entity> = None;
 
-        let mut player_query = ecs_world.query::<(&Player, &Position)>();
-        let (_e, (_p, position)) = player_query
+        let mut player_query = ecs_world.query::<&Position>().with::<&Player>();
+        let (_e, position) = player_query
             .iter()
             .last()
             .expect("Player is not in hecs::World");
@@ -335,7 +337,6 @@ impl Player {
     }
 
     fn try_drink(ecs_world: &mut World, player_entity: Entity) -> (RunState, bool) {
-        
         let there_is_river_here: bool;
 
         // Scope for keeping borrow checker quiet
@@ -346,26 +347,22 @@ impl Player {
                 .last()
                 .expect("Zone is not in hecs::World");
 
-            let mut player_query = ecs_world.query::<(&Player, &Position)>();
-            let (_e, (_p, position)) = player_query
+            let mut player_query = ecs_world.query::<&Position>().with::<&Player>();
+            let (_e, position) = player_query
                 .iter()
                 .last()
                 .expect("Player is not in hecs::World");
             let player_position = position;
 
             // Get Water from river
-            there_is_river_here = zone.water_tiles[Zone::get_index_from_xy(player_position.x, player_position.y)];
+            there_is_river_here =
+                zone.water_tiles[Zone::get_index_from_xy(player_position.x, player_position.y)];
         }
 
         if there_is_river_here {
             // TODO maybe drink something nasty rolling casually?
             let river_entity = Spawn::river_water_entity(ecs_world);
-            let _ = ecs_world.insert_one(
-                player_entity,
-                WantsToDrink {
-                    item: river_entity,
-                },
-            );
+            let _ = ecs_world.insert_one(player_entity, WantsToDrink { item: river_entity });
 
             return (RunState::DoTick, true);
         } else {
@@ -393,8 +390,8 @@ impl Player {
 
         //Scope to keep borrow checker quiet
         {
-            let mut player_query = ecs_world.query::<(&Player, &Position)>();
-            let (_e, (_p, position)) = player_query
+            let mut player_query = ecs_world.query::<&Position>().with::<&Player>();
+            let (_e, position) = player_query
                 .iter()
                 .last()
                 .expect("Player is not in hecs::World");
@@ -468,9 +465,10 @@ impl Player {
 
     /// Reset heal counter. Usually when the player did anything but wait
     pub fn reset_heal_counter(ecs_world: &World) {
-        let mut players =
-            ecs_world.query::<(&Player, &mut CombatStats, &mut CanAutomaticallyHeal)>();
-        for (_e, (_p, stats, can_heal)) in &mut players {
+        let mut players = ecs_world
+            .query::<(&mut CombatStats, &mut CanAutomaticallyHeal)>()
+            .with::<&Player>();
+        for (_e, (stats, can_heal)) in &mut players {
             if stats.current_stamina < stats.max_stamina {
                 can_heal.tick_counter = MAX_STAMINA_HEAL_TICK_COUNTER
             }

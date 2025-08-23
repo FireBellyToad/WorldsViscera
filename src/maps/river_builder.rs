@@ -30,7 +30,7 @@ impl ZoneFeatureBuilder for RiverBuilder {
         }
 
         //2 - if point is X = MAP_WIDTH-1 or Y = MAP_HEIGHT-1, stop
-        while current_position.0 < MAP_WIDTH - 2 && current_position.1 < MAP_HEIGHT - 2 {
+        while current_position.0 < MAP_WIDTH - 1 && current_position.1 < MAP_HEIGHT - 1 {
             //3 - draw a water tile there
             zone.tiles[Zone::get_index_from_xy(current_position.0, current_position.1)] =
                 TileType::Water;
@@ -56,8 +56,7 @@ impl ZoneFeatureBuilder for RiverBuilder {
             }
 
             // Avoid boundaries, or else skip iteration
-            if dest_x <= 1 || dest_x >= MAP_WIDTH - 1 || dest_y <= 1 || dest_y >= MAP_HEIGHT - 1
-            {
+            if dest_x <= 1 || dest_x >= MAP_WIDTH || dest_y <= 1 || dest_y >= MAP_HEIGHT {
                 continue;
             }
 

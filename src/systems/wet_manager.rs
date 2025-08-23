@@ -6,7 +6,7 @@ use crate::{
         player::Player,
     },
     constants::STARTING_WET_COUNTER,
-    maps::zone::{TileType, Zone},
+    maps::zone::Zone,
 };
 
 pub struct WetManager {}
