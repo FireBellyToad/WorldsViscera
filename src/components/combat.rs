@@ -28,3 +28,5 @@ pub struct InflictsDamage {
     pub number_of_dices: i32,
     pub dice_size: i32,
 }
+
+pub struct IsHidden {}

@@ -4,7 +4,7 @@ use hecs::{Entity, World};
 
 use crate::{
     components::{
-        combat::{CombatStats, WantsToMelee},
+        combat::{CombatStats, IsHidden, WantsToMelee},
         common::*,
         monster::{Aquatic, Monster},
         player::Player,
@@ -21,6 +21,7 @@ impl MonsterAI {
     /// Monster acting function
     pub fn act(ecs_world: &mut World) {
         let mut attacker_target_list: Vec<(Entity, Entity)> = Vec::new();
+        let mut hidden_list: Vec<Entity> = Vec::new();
         let mut waiter_speed_list: Vec<(Entity, i32)> = Vec::new();
 
         // Scope for keeping borrow checker quiet

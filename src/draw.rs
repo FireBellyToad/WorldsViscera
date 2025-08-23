@@ -12,7 +12,7 @@ use macroquad::{
 
 use crate::{
     components::{
-        combat::CombatStats,
+        combat::{CombatStats, IsHidden},
         common::{CanSmell, GameLog, Position, Renderable, SmellIntensity, Smellable},
         health::{Hunger, Thirst},
         player::{Player, SpecialViewMode},
@@ -260,7 +260,7 @@ impl Draw {
     /// Draw all Renderable entities in World
     fn renderables(world: &World, assets: &HashMap<TextureName, Texture2D>, zone: &Zone) {
         //Get all entities in readonly
-        let mut renderables_with_position = world.query::<(&Renderable, &Position)>();
+        let mut renderables_with_position = world.query::<(&Renderable, &Position)>().without::<&IsHidden>();
 
         let mut renderables_vec: Vec<(hecs::Entity, (&Renderable, &Position))> =
             renderables_with_position.iter().collect();

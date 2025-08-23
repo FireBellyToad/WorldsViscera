@@ -1,4 +1,4 @@
-use crate::components::combat::{CombatStats, InflictsDamage, SufferingDamage};
+use crate::components::combat::{CombatStats, InflictsDamage, IsHidden, SufferingDamage};
 use crate::components::common::{
     BlocksTile, CanSmell, MyTurn, Named, Position, ProduceCorpse, Renderable, SmellIntensity,
     Smellable, Viewshed,
@@ -59,7 +59,7 @@ impl Spawn {
             CombatStats {
                 current_stamina: rolled_stamina,
                 max_stamina: rolled_stamina,
-                base_armor: 0,
+                base_armor: 10,
                 unarmed_attack_dice: 4,
                 current_toughness: rolled_toughness,
                 max_toughness: rolled_toughness,
@@ -157,7 +157,7 @@ impl Spawn {
                 current_stamina: 4,
                 max_stamina: 4,
                 base_armor: 0,
-                unarmed_attack_dice: 6,
+                unarmed_attack_dice: 4,
                 current_toughness: 4,
                 max_toughness: 4,
                 current_dexterity: 14,
@@ -173,7 +173,7 @@ impl Spawn {
             y,
         );
 
-        let _ = ecs_world.insert_one(freshwater_viperfish, Aquatic {});
+        let _ = ecs_world.insert(freshwater_viperfish, (Aquatic {}, IsHidden{}));
     }
 
     fn gremlin(ecs_world: &mut World, x: i32, y: i32) {

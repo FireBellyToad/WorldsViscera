@@ -22,10 +22,10 @@ impl ZoneFeatureBuilder for RiverBuilder {
         //1 - select a start point with X or Y = 1
         let mut current_position = (1, 1);
         if Roll::d100() <= 50 {
-            current_position.1 = Roll::dice(1, MAP_HEIGHT - 1) + 2;
+            current_position.1 = Roll::dice(1, MAP_HEIGHT - 1) + 1;
             origin = RiverOrigin::Left;
         } else {
-            current_position.0 = Roll::dice(1, MAP_WIDTH - 1) + 2;
+            current_position.0 = Roll::dice(1, MAP_WIDTH - 1) + 1;
             origin = RiverOrigin::Top;
         }
 
@@ -53,6 +53,12 @@ impl ZoneFeatureBuilder for RiverBuilder {
                     3 => dest_y -= 1,
                     _ => {}
                 },
+            }
+
+            // Avoid boundaries, or else skip iteration
+            if dest_x <= 1 || dest_x >= MAP_WIDTH - 1 || dest_y <= 1 || dest_y >= MAP_HEIGHT - 1
+            {
+                continue;
             }
 
             current_position = (dest_x, dest_y);
