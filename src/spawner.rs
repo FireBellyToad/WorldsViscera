@@ -94,7 +94,7 @@ impl Spawn {
             let (x, y) = Zone::get_xy_from_index(index);
             //TODO improve with spawn table
             if zone.water_tiles[index] {
-                Spawn::eel(ecs_world, x, y)
+                Spawn::freshwater_viperfish(ecs_world, x, y)
             } else {
                 Spawn::random_terrain_monster(ecs_world, x as i32, y as i32);
             }
@@ -149,10 +149,10 @@ impl Spawn {
         );
     }
 
-    fn eel(ecs_world: &mut World, x: i32, y: i32) {
-        let eel = Spawn::create_monster(
+    fn freshwater_viperfish(ecs_world: &mut World, x: i32, y: i32) {
+        let freshwater_viperfish = Spawn::create_monster(
             ecs_world,
-            String::from("River Eel"),
+            String::from("Freshwater viperfish"),
             CombatStats {
                 current_stamina: 4,
                 max_stamina: 4,
@@ -173,7 +173,7 @@ impl Spawn {
             y,
         );
 
-        let _ = ecs_world.insert_one(eel, Aquatic {});
+        let _ = ecs_world.insert_one(freshwater_viperfish, Aquatic {});
     }
 
     fn gremlin(ecs_world: &mut World, x: i32, y: i32) {
