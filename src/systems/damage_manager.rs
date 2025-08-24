@@ -25,7 +25,10 @@ impl DamageManager {
             ecs_world.query::<(&mut SufferingDamage, &mut CombatStats, &Position)>();
 
         let mut zone_query = ecs_world.query::<&mut Zone>();
-        let (_e, zone) = zone_query.iter().last().expect("Zone is not in hecs::World");
+        let (_e, zone) = zone_query
+            .iter()
+            .last()
+            .expect("Zone is not in hecs::World");
 
         for (damaged_entity, (damageable, stats, position)) in &mut damageables {
             if damageable.damage_received > 0 {
@@ -102,7 +105,7 @@ impl DamageManager {
                 y,
                 name,
                 Edible {
-                    nutrition_dice_number:5,
+                    nutrition_dice_number: 5,
                     nutrition_dice_size: 20,
                 },
             );

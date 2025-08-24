@@ -69,7 +69,10 @@ async fn main() {
     let mut tick = 0;
     loop {
         //If there are particles, skip everything and draw
-        let _ = ParticleManager::check_if_animations_are_present(&mut game_engine, &mut game_state);
+        if game_state.run_state != RunState::GameOver {
+            let _ =
+                ParticleManager::check_if_animations_are_present(&mut game_engine, &mut game_state);
+        }
 
         if game_engine.next_tick() {
             // Run system only while not paused, or else wait for player input.
@@ -92,8 +95,8 @@ async fn main() {
                     );
 
                     // TODO refactor
-                    if !must_run_particles {
-                        if !is_game_over {
+                    if !is_game_over {
+                        if !must_run_particles {
                             if Player::can_act(&game_state.ecs_world) {
                                 println!("Player's turn");
                                 game_state.run_state = RunState::WaitingPlayerInput;
@@ -101,9 +104,9 @@ async fn main() {
                                 MonsterAI::act(&mut game_state.ecs_world);
                                 game_state.run_state = RunState::BeforeTick;
                             }
-                        } else {
-                            game_state.run_state = RunState::GameOver;
                         }
+                    } else {
+                        game_state.run_state = RunState::GameOver;
                     }
                 }
                 RunState::WaitingPlayerInput => {

@@ -48,7 +48,6 @@ impl WetManager {
                             game_log.entries.push(format!("You get wet"));
                         }
 
-                        println!("entity {} got wet", entity.id());
                         entities_that_got_wet.push(entity);
                     }
                 } else if is_wet.is_some() {

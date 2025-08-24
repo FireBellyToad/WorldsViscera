@@ -19,7 +19,14 @@ pub struct InBackback {
     pub assigned_char: char,
 }
 
-pub struct Invokable {}
+#[derive(PartialEq, Debug)]
+pub enum InvokablesEnum {
+    LightningWand,
+}
+
+pub struct Invokable {
+    pub invokable_type: InvokablesEnum,
+}
 
 pub struct Perishable {
     pub rot_counter: i32,
@@ -27,12 +34,12 @@ pub struct Perishable {
 
 pub struct Rotten {}
 
-pub struct ProduceLight{
-    pub radius: i32
+pub struct ProduceLight {
+    pub radius: i32,
 }
 
-pub struct MustBeFueled{
+pub struct MustBeFueled {
     pub fuel_counter: i32,
 }
 
-pub struct Refiller{}
+pub struct Refiller {}

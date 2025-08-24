@@ -1,11 +1,12 @@
-use crate::components::combat::{CanHide, CombatStats, InflictsDamage, IsHidden, SufferingDamage};
+use crate::components::combat::{CanHide, CombatStats, InflictsDamage, SufferingDamage};
 use crate::components::common::{
     BlocksTile, CanSmell, MyTurn, Named, Position, ProduceCorpse, Renderable, SmellIntensity,
     Smellable, Viewshed,
 };
 use crate::components::health::{CanAutomaticallyHeal, Hunger, Thirst};
 use crate::components::items::{
-    Edible, Invokable, Item, MustBeFueled, Perishable, ProduceLight, Quaffable, Refiller,
+    Edible, Invokable, InvokablesEnum, Item, MustBeFueled, Perishable, ProduceLight, Quaffable,
+    Refiller,
 };
 use crate::components::monster::{Aquatic, Monster};
 use crate::components::player::Player;
@@ -173,7 +174,7 @@ impl Spawn {
             y,
         );
 
-        let _ = ecs_world.insert(freshwater_viperfish, (Aquatic {}, CanHide{}));
+        let _ = ecs_world.insert(freshwater_viperfish, (Aquatic {}, CanHide {}));
     }
 
     fn gremlin(ecs_world: &mut World, x: i32, y: i32) {
@@ -380,10 +381,12 @@ impl Spawn {
                 z_index: 0,
             },
             Named {
-                name: String::from("Thunder wand"),
+                name: String::from("Lightning wand"),
             },
             Item { item_tile_index },
-            Invokable {},
+            Invokable {
+                invokable_type: InvokablesEnum::LightningWand,
+            },
             InflictsDamage {
                 number_of_dices: 2,
                 dice_size: 4,
@@ -449,7 +452,7 @@ impl Spawn {
     }
 
     /// Generate ad hoc quaffable entity from lake
-    pub fn river_water_entity(ecs_world: &mut World) -> Entity{
+    pub fn river_water_entity(ecs_world: &mut World) -> Entity {
         ecs_world.spawn((
             Named {
                 name: String::from("River water"),

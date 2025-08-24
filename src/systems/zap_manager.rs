@@ -2,8 +2,15 @@ use hecs::{Entity, World};
 
 use crate::{
     components::{
-        actions::WantsToInvoke, combat::{CombatStats, InflictsDamage, SufferingDamage, WantsToZap}, common::{GameLog, Named, Position, Wet}
-    }, constants::AUTOFAIL_SAVING_THROW, maps::zone::Zone, utils::{effect_manager::EffectManager, particle_animation::ParticleAnimation, roll::Roll}
+        actions::WantsToInvoke,
+        combat::{CombatStats, InflictsDamage, SufferingDamage, WantsToZap},
+        common::{GameLog, Named, Position, Wet},
+        items::{Invokable, InvokablesEnum},
+        player::Player,
+    },
+    constants::AUTOFAIL_SAVING_THROW,
+    maps::zone::Zone,
+    utils::{effect_manager::EffectManager, particle_animation::ParticleAnimation, roll::Roll},
 };
 
 pub struct ZapManager {}
@@ -17,7 +24,8 @@ impl ZapManager {
         // Scope for keeping borrow checker quiet
         {
             // List of entities that want to zap stuff
-            let mut zappers = ecs_world.query::<(&WantsToZap, &WantsToInvoke, &Position)>();
+            let mut zappers =
+                ecs_world.query::<(&WantsToZap, &WantsToInvoke, &Position, Option<&Wet>)>();
 
             //Log all the zappings
             let mut game_log_query = ecs_world.query::<&mut GameLog>();
@@ -32,8 +40,25 @@ impl ZapManager {
                 .last()
                 .expect("Zone is not in hecs::World");
 
-            for (zapper, (wants_zap, wants_invoke, zapper_position)) in &mut zappers {
+            let player_id = Player::get_entity_id(ecs_world);
+
+            for (zapper, (wants_zap, wants_invoke, zapper_position, wet)) in &mut zappers {
                 let mut target_list: Vec<&Vec<Entity>> = Vec::new();
+                // Could be needed...
+                let zapper_wrapper = vec![zapper];
+                let is_lightning_wand = ecs_world
+                    .get::<&Invokable>(wants_invoke.item)
+                    .unwrap()
+                    .invokable_type
+                    == InvokablesEnum::LightningWand;
+
+                // If wet, Lightning wand makes zap himself too!
+                if wet.is_some() && is_lightning_wand {
+                    target_list.push(&zapper_wrapper);
+                    game_log.entries.push(format!(
+                        "Using the Lightning wand while wet was a bad idea..."
+                    ));
+                }
 
                 // Do not draw if zapping himself
                 if zapper_position.x != wants_zap.target.0
@@ -73,9 +98,8 @@ impl ZapManager {
 
                             let mut saving_throw_roll = AUTOFAIL_SAVING_THROW;
 
-                            // If target is wet, autofail the saving throw!
-                            // TODO Only for thunder wand
-                            if target_wet.is_err() {
+                            // If target is wet while targeted by lightning wand , autofail the saving throw!
+                            if target_wet.is_err() && is_lightning_wand {
                                 saving_throw_roll = Roll::d20();
                             }
 
@@ -88,15 +112,38 @@ impl ZapManager {
                                 target_damage.unwrap().damage_received += damage_roll;
                             } else {
                                 target_damage.unwrap().damage_received += damage_roll / 2;
-                                game_log
-                                    .entries
-                                    .push(format!("{} ducks some of the blow!", named_target.name));
+                                if target.id() == player_id {
+                                    game_log.entries.push(format!("You duck some of the blow!"));
+                                } else {
+                                    game_log.entries.push(format!(
+                                        "{} ducks some of the blow!",
+                                        named_target.name
+                                    ));
+                                }
                             }
 
-                            game_log.entries.push(format!(
-                                "{} zaps the {} for {} damage",
-                                named_attacker.name, named_target.name, damage_roll
-                            ));
+                            if zapper.id() == player_id {
+                                if target.id() == player_id {
+                                    game_log
+                                        .entries
+                                        .push(format!("You zap yourself for {} damage", damage_roll));
+                                } else {
+                                    game_log.entries.push(format!(
+                                        "You zap the {} for {} damage",
+                                        named_target.name, damage_roll
+                                    ));
+                                }
+                            } else if target.id() == player_id {
+                                game_log.entries.push(format!(
+                                    "{} zaps you for {} damage",
+                                    named_attacker.name, damage_roll
+                                ));
+                            } else {
+                                game_log.entries.push(format!(
+                                    "{} zaps the {} for {} damage",
+                                    named_attacker.name, named_target.name, damage_roll
+                                ));
+                            }
                         };
                     }
                 }

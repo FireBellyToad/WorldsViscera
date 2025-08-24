@@ -1,6 +1,6 @@
 use std::collections::{HashMap, HashSet};
 
-use hecs::{Entity, World};
+use hecs::Entity;
 use macroquad::math::Rect;
 
 use crate::constants::{MAP_HEIGHT, MAP_WIDTH};
@@ -101,7 +101,7 @@ impl Zone {
     /// Populates the water tiles vector appropiately (true = is water )
     pub fn populate_water(&mut self) {
         for (index, tile) in self.tiles.iter_mut().enumerate() {
-            self.water_tiles[index] = (*tile == TileType::Water);
+            self.water_tiles[index] = *tile == TileType::Water;
         }
     }
 

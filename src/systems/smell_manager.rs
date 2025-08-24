@@ -5,7 +5,6 @@ use crate::{
         actions::WantsToSmell,
         common::{CanSmell, GameLog, Position, SmellIntensity, Smellable},
     },
-    constants::PLAYER_SMELL_RADIUS,
     maps::zone::Zone,
     utils::common::Utils,
 };

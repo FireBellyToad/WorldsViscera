@@ -3,10 +3,9 @@ use hecs::World;
 use crate::{
     components::{
         common::*,
-        items::{MustBeFueled, InBackback, ProduceLight},
+        items::{InBackback, MustBeFueled, ProduceLight},
     },
-    constants::BRAZIER_RADIUS,
-    maps::zone::{TileType, Zone},
+    maps::zone::Zone,
     systems::fov::FieldOfView,
 };
 
@@ -28,7 +27,7 @@ impl MapIndexing {
             let index = Zone::get_index_from_xy(position.x, position.y);
             zone.blocked_tiles[index] = true;
         }
-        
+
         // index all water tiles
         zone.populate_water();
 
@@ -61,7 +60,6 @@ impl MapIndexing {
 
     /// Get all the lighters in the zone, even the ones that are stored in the backpack of someone
     fn get_all_working_lighters(ecs_world: &World) -> Vec<ProduceLightPositionDTO> {
-
         // Extract all light producers that could be laying on the ground OR be in a backpack
         // They could or could NOT have Fuel management (think a an oil lanter VS a brazier)
         // Either way get them
