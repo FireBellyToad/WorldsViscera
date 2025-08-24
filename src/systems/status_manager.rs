@@ -4,7 +4,10 @@ use crate::{
     components::{
         combat::{CanHide, CombatStats, IsHidden},
         common::{GameLog, MyTurn, Named, Position},
-    }, constants::MAX_HIDDEN_TURNS, maps::zone::Zone, utils::roll::Roll
+    },
+    constants::MAX_HIDDEN_TURNS,
+    maps::zone::Zone,
+    utils::roll::Roll,
 };
 
 pub struct StatusManager {}
@@ -44,6 +47,11 @@ impl StatusManager {
                 let have_made_dex_saving_throw = Roll::d20() <= stats.current_dexterity;
 
                 can_hide.cooldown -= 1;
+                println!(
+                    "entity {} can_hide.cooldown {}",
+                    entity.id(),
+                    can_hide.cooldown
+                );
 
                 if hidden.is_some() {
                     let hidden_component = hidden.unwrap();
@@ -54,7 +62,7 @@ impl StatusManager {
                         // Do a dex saving throw
                         if have_made_dex_saving_throw {
                             //Reset timer
-                            hidden_component.hidden_counter = stats.current_dexterity / 3;
+                            hidden_component.hidden_counter = (stats.current_dexterity / 3) * stats.speed;
                         } else {
                             // Log if within players view
                             if zone.visible_tiles[Zone::get_index_from_xy(position.x, position.y)] {
@@ -64,13 +72,13 @@ impl StatusManager {
                             }
 
                             // Cannot hide again for 9 -  (stats.current_dexterity / 3) turns
-                            can_hide.cooldown = MAX_HIDDEN_TURNS - (stats.current_dexterity / 3);
+                            can_hide.cooldown = (MAX_HIDDEN_TURNS - (stats.current_dexterity / 3)) * stats.speed;
                             exposed_entities.push(entity);
                         }
                     }
                 } else if have_made_dex_saving_throw && can_hide.cooldown <= 0 {
                     // Just hide if a saving throw has been made
-                    hidden_entities.push((entity, stats.current_dexterity / 3));
+                    hidden_entities.push((entity, (stats.current_dexterity / 3) * stats.speed));
 
                     if zone.visible_tiles[Zone::get_index_from_xy(position.x, position.y)] {
                         game_log

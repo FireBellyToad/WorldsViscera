@@ -6,7 +6,9 @@ use crate::{
     components::{
         combat::{CanHide, CombatStats, IsHidden, SufferingDamage, WantsToMelee},
         common::{GameLog, MyTurn, Named},
-    }, constants::MAX_HIDDEN_TURNS, utils::roll::Roll
+    },
+    constants::MAX_HIDDEN_TURNS,
+    utils::roll::Roll,
 };
 
 pub struct MeleeManager {}
@@ -58,7 +60,9 @@ impl MeleeManager {
 
                         // Cannot hide again for 9 - (stats.current_dexterity / 3) turns
                         let mut can_hide = ecs_world.get::<&mut CanHide>(attacker).unwrap();
-                        can_hide.cooldown = MAX_HIDDEN_TURNS - (attacker_stats.current_dexterity / 3);
+                        can_hide.cooldown = (MAX_HIDDEN_TURNS
+                            - (attacker_stats.current_dexterity / 3))
+                            * attacker_stats.speed;
                     } else {
                         damage_roll = max(
                             0,
