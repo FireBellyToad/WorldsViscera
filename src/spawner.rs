@@ -174,7 +174,7 @@ impl Spawn {
             y,
         );
 
-        let _ = ecs_world.insert(freshwater_viperfish, (Aquatic {}, CanHide {}));
+        let _ = ecs_world.insert(freshwater_viperfish, (Aquatic {}, CanHide { cooldown: 0 }));
     }
 
     fn gremlin(ecs_world: &mut World, x: i32, y: i32) {

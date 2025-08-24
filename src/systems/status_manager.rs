@@ -3,10 +3,8 @@ use hecs::{Entity, World};
 use crate::{
     components::{
         combat::{CanHide, CombatStats, IsHidden},
-        common::{GameLog, MyTurn, Named, Position}
-    },
-    maps::zone::Zone,
-    utils::roll::Roll,
+        common::{GameLog, MyTurn, Named, Position},
+    }, constants::MAX_HIDDEN_TURNS, maps::zone::Zone, utils::roll::Roll
 };
 
 pub struct StatusManager {}
@@ -19,13 +17,15 @@ impl StatusManager {
         // Scope for keeping borrow checker quiet
         {
             // List of perishable entities
-            let mut stealthers = ecs_world.query::<(
-                &CanHide,
-                &CombatStats,
-                &Position,
-                &Named,
-                Option<&mut IsHidden>,
-            )>().with::<&MyTurn>();
+            let mut stealthers = ecs_world
+                .query::<(
+                    &mut CanHide,
+                    &CombatStats,
+                    &Position,
+                    &Named,
+                    Option<&mut IsHidden>,
+                )>()
+                .with::<&MyTurn>();
 
             //Log
             let mut game_log_query = ecs_world.query::<&mut GameLog>();
@@ -40,8 +40,10 @@ impl StatusManager {
                 .last()
                 .expect("Zone is not in hecs::World");
 
-            for (entity, (_c, stats, position, named, hidden)) in &mut stealthers {
+            for (entity, (can_hide, stats, position, named, hidden)) in &mut stealthers {
                 let have_made_dex_saving_throw = Roll::d20() <= stats.current_dexterity;
+
+                can_hide.cooldown -= 1;
 
                 if hidden.is_some() {
                     let hidden_component = hidden.unwrap();
@@ -54,20 +56,19 @@ impl StatusManager {
                             //Reset timer
                             hidden_component.hidden_counter = stats.current_dexterity / 3;
                         } else {
-                            println!("entity {} un-hides", entity.id());
-
-                            // TODO Cannot hide again for 9 -  (stats.current_dexterity / 3) turns
-
                             // Log if within players view
                             if zone.visible_tiles[Zone::get_index_from_xy(position.x, position.y)] {
                                 game_log
                                     .entries
                                     .push(format!("A {} suddenly appears!", named.name));
                             }
+
+                            // Cannot hide again for 9 -  (stats.current_dexterity / 3) turns
+                            can_hide.cooldown = MAX_HIDDEN_TURNS - (stats.current_dexterity / 3);
                             exposed_entities.push(entity);
                         }
                     }
-                } else if have_made_dex_saving_throw {
+                } else if have_made_dex_saving_throw && can_hide.cooldown <= 0 {
                     // Just hide if a saving throw has been made
                     hidden_entities.push((entity, stats.current_dexterity / 3));
 

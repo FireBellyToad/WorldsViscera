@@ -29,7 +29,8 @@ pub struct InflictsDamage {
     pub dice_size: i32,
 }
 
-pub struct CanHide {}
+pub struct CanHide {
+    pub cooldown:i32}
 pub struct IsHidden {
     pub hidden_counter:i32
 }

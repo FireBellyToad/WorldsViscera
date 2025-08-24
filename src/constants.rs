@@ -74,6 +74,7 @@ pub const STARTING_WET_COUNTER: i32 = 50;
 
 /// Monsters related constats
 pub const BASE_MONSTER_VIEW_RADIUS: i32 = 8;
+pub const MAX_HIDDEN_TURNS: i32 = 9;
 
 /// Saving Throw related constants
 pub const AUTOFAIL_SAVING_THROW: i32 = 999;

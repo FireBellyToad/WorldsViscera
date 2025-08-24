@@ -4,10 +4,9 @@ use hecs::{Entity, World};
 
 use crate::{
     components::{
-        combat::{CombatStats, IsHidden, SufferingDamage, WantsToMelee},
+        combat::{CanHide, CombatStats, IsHidden, SufferingDamage, WantsToMelee},
         common::{GameLog, MyTurn, Named},
-    },
-    utils::roll::Roll,
+    }, constants::MAX_HIDDEN_TURNS, utils::roll::Roll
 };
 
 pub struct MeleeManager {}
@@ -56,6 +55,10 @@ impl MeleeManager {
                             named_attacker.name, named_target.name, damage_roll
                         ));
                         hidden_list.push(attacker);
+
+                        // Cannot hide again for 9 - (stats.current_dexterity / 3) turns
+                        let mut can_hide = ecs_world.get::<&mut CanHide>(attacker).unwrap();
+                        can_hide.cooldown = MAX_HIDDEN_TURNS - (attacker_stats.current_dexterity / 3);
                     } else {
                         damage_roll = max(
                             0,
