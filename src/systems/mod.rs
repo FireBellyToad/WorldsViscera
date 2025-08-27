@@ -17,5 +17,5 @@ pub mod fuel_manager;
 pub mod map_indexing;
 pub mod smell_manager;
 pub mod wet_manager;
-pub mod status_manager;
+pub mod hidden_manager;
 

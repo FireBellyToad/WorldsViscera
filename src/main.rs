@@ -25,7 +25,7 @@ use crate::{
         automatic_healing::AutomaticHealing, decay_manager::DecayManager,
         drinking_quaffables::DrinkingQuaffables, fuel_manager::FuelManager,
         hunger_check::HungerCheck, map_indexing::MapIndexing, particle_manager::ParticleManager,
-        smell_manager::SmellManager, status_manager::StatusManager, thirst_check::ThirstCheck,
+        smell_manager::SmellManager, hidden_manager::HiddenManager, thirst_check::ThirstCheck,
         turn_checker::TurnCheck, wet_manager::WetManager, zap_manager::ZapManager,
     },
     utils::assets::Load,
@@ -243,7 +243,7 @@ fn do_before_tick_logic(game_state: &mut EngineState) {
     ThirstCheck::run(&mut game_state.ecs_world);
     FuelManager::check_fuel(&mut game_state.ecs_world);
     WetManager::run(&mut game_state.ecs_world);
-    StatusManager::run(&mut game_state.ecs_world);
+    HiddenManager::run(&mut game_state.ecs_world);
 }
 
 fn do_in_tick_game_logic(game_state: &mut EngineState) -> bool {

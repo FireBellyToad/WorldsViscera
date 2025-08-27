@@ -10,9 +10,9 @@ use crate::{
     utils::roll::Roll,
 };
 
-pub struct StatusManager {}
+pub struct HiddenManager {}
 
-impl StatusManager {
+impl HiddenManager {
     pub fn run(ecs_world: &mut World) {
         let mut hidden_entities: Vec<(Entity, i32)> = Vec::new();
         let mut exposed_entities: Vec<Entity> = Vec::new();
