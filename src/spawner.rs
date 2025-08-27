@@ -6,7 +6,7 @@ use crate::components::common::{
 use crate::components::health::{CanAutomaticallyHeal, Hunger, Thirst};
 use crate::components::items::{
     Edible, Invokable, InvokablesEnum, Item, MustBeFueled, Perishable, ProduceLight, Quaffable,
-    Refiller,
+    Refiller, Rotten,
 };
 use crate::components::monster::{Aquatic, Monster};
 use crate::components::player::Player;
@@ -269,13 +269,13 @@ impl Spawn {
 
     /// Spawn a random monster
     pub fn random_item(ecs_world: &mut World, x: i32, y: i32) {
-        let dice_roll = Roll::dice(1, 6);
+        let dice_roll = Roll::dice(1, 8);
         // Dvergar is stronger, shuold be less common
         match dice_roll {
             1 => Spawn::wand(ecs_world, x, y),
             2 => Spawn::lantern(ecs_world, x, y),
             3 => Spawn::flask_of_oil(ecs_world, x, y),
-            _ => Spawn::flask_of_water(ecs_world, x, y),
+            _ => Spawn::mushroom(ecs_world, x, y),
         }
     }
 
@@ -306,6 +306,113 @@ impl Spawn {
         ecs_world.spawn(meat);
     }
 
+    pub fn mushroom(ecs_world: &mut World, x: i32, y: i32) {
+        let mushroom_type = Roll::dice(1, 5) - 1;
+
+        let common_components = (
+            Item {
+                item_tile_index: mushroom_type + 4,
+            }, // 4 is Item per row, TODO make constat
+            Position { x, y },
+            Renderable {
+                texture_name: TextureName::Items,
+                texture_region: Rect {
+                    x: (mushroom_type * TILE_SIZE) as f32,
+                    y: TILE_SIZE_F32,
+                    w: TILE_SIZE_F32,
+                    h: TILE_SIZE_F32,
+                },
+                z_index: 0,
+            },
+            Smellable {
+                smell_log: String::from("mushrooms"),
+                intensity: SmellIntensity::Faint,
+            },
+        );
+
+        let mushroom_entity = ecs_world.spawn(common_components);
+
+        match mushroom_type {
+            MUSHROOM_EXCELLENT => {
+                let _ = ecs_world.insert(
+                    mushroom_entity,
+                    (
+                        Edible {
+                            nutrition_dice_number: 5,
+                            nutrition_dice_size: 20,
+                        },
+                        Named {
+                            name: String::from("Boletus edulis"),
+                        },
+                    ),
+                );
+            }
+            MUSHROOM_MEDIOCRE => {
+                let _ = ecs_world.insert(
+                    mushroom_entity,
+                    (
+                        Edible {
+                            nutrition_dice_number: 1,
+                            nutrition_dice_size: 20,
+                        },
+                        Named {
+                            name: String::from("Omphalina"),
+                        },
+                    ),
+                );
+            }
+            MUSHROOM_POISONOUS => {
+                let _ = ecs_world.insert(
+                    mushroom_entity,
+                    (
+                        Edible {
+                            nutrition_dice_number: 1,
+                            nutrition_dice_size: 1,
+                        },
+                        Rotten {},
+                        Named {
+                            name: String::from("Amanita citrina"),
+                        },
+                    ),
+                );
+            }
+            MUSHROOM_DEADLY => {
+                let _ = ecs_world.insert(
+                    mushroom_entity,
+                    (
+                        Edible {
+                            nutrition_dice_number: 1,
+                            nutrition_dice_size: 1,
+                        },
+                        Rotten {}, //TODO must be lethal!
+                        Named {
+                            name: String::from("Amanita phalloides"),
+                        },
+                    ),
+                );
+            }
+            MUSHROOM_LUMINESCENT => {
+                let _ = ecs_world.insert(
+                    mushroom_entity,
+                    (
+                        Edible {
+                            nutrition_dice_number: 1,
+                            nutrition_dice_size: 20,
+                        },
+                        ProduceLight {
+                            radius: MUSHROOM_LIGHT_RADIUS,
+                        },
+                        Named {
+                            name: String::from("Mycena roseoflava"),
+                        },
+                    ),
+                );
+            }
+            _ => {}
+        }
+    }
+
+    // TODO unused... keep in mind
     fn flask_of_water(ecs_world: &mut World, x: i32, y: i32) {
         let item_tile_index = 2;
         let flask_of_water = (
@@ -402,7 +509,7 @@ impl Spawn {
 
     fn flask_of_oil(ecs_world: &mut World, x: i32, y: i32) {
         let item_tile_index = 4;
-        let flask_of_water = (
+        let flask_of_oil = (
             Position { x, y },
             Renderable {
                 texture_name: TextureName::Items,
@@ -428,7 +535,7 @@ impl Spawn {
             },
         );
 
-        ecs_world.spawn(flask_of_water);
+        ecs_world.spawn(flask_of_oil);
     }
 
     /// Spawn special tile entities

@@ -72,9 +72,18 @@ pub const LANTERN_RADIUS: i32 = 6;
 pub const STARTING_FUEL: i32 = 400;
 pub const STARTING_WET_COUNTER: i32 = 50;
 
+pub const MUSHROOM_EXCELLENT:i32 = 0;
+pub const MUSHROOM_POISONOUS:i32 = 1;
+pub const MUSHROOM_MEDIOCRE:i32 = 2;
+pub const MUSHROOM_DEADLY:i32 = 3;
+pub const MUSHROOM_LUMINESCENT:i32 = 4;
+pub const MUSHROOM_LIGHT_RADIUS:i32 = 2;
+
+
 /// Monsters related constats
 pub const BASE_MONSTER_VIEW_RADIUS: i32 = 8;
 pub const MAX_HIDDEN_TURNS: i32 = 9;
 
 /// Saving Throw related constants
 pub const AUTOFAIL_SAVING_THROW: i32 = 999;
+
