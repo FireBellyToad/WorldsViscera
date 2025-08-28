@@ -435,7 +435,7 @@ impl Spawn {
                 z_index: 0,
             },
             Named {
-                name: String::from("Flask of water"),
+                name: String::from("flask of water"),
             },
             Item { item_tile: item_tile_index },
             Quaffable {
@@ -462,7 +462,7 @@ impl Spawn {
                 z_index: 0,
             },
             Named {
-                name: String::from("Lantern"),
+                name: String::from("lantern"),
             },
             Item { item_tile: item_tile_index },
             ProduceLight {
@@ -495,7 +495,7 @@ impl Spawn {
                 z_index: 0,
             },
             Named {
-                name: String::from("Lightning wand"),
+                name: String::from("lightning wand"),
             },
             Item { item_tile: item_tile_index },
             Invokable {
@@ -529,7 +529,7 @@ impl Spawn {
                 z_index: 0,
             },
             Named {
-                name: String::from("Flask of oil"),
+                name: String::from("flask of oil"),
             },
             Item { item_tile: item_tile_index },
             MustBeFueled {
@@ -561,7 +561,7 @@ impl Spawn {
                 z_index: 0,
             },
             Named {
-                name: String::from("Shiv"),
+                name: String::from("shiv"),
             },
             Item { item_tile: item_tile_index },
             Equippable {
