@@ -32,7 +32,11 @@ pub struct Perishable {
     pub rot_counter: i32,
 }
 
-pub struct Rotten {}
+pub struct Unsavoury {
+    pub game_log: String,
+}
+
+pub struct Deadly {}
 
 pub struct ProduceLight {
     pub radius: i32,

@@ -5,8 +5,8 @@ use crate::components::common::{
 };
 use crate::components::health::{CanAutomaticallyHeal, Hunger, Thirst};
 use crate::components::items::{
-    Edible, Invokable, InvokablesEnum, Item, MustBeFueled, Perishable, ProduceLight, Quaffable,
-    Refiller, Rotten,
+    Deadly, Edible, Invokable, InvokablesEnum, Item, MustBeFueled, Perishable, ProduceLight,
+    Quaffable, Refiller, Unsavoury,
 };
 use crate::components::monster::{Aquatic, Monster};
 use crate::components::player::Player;
@@ -82,6 +82,10 @@ impl Spawn {
             CanSmell {
                 intensity: SmellIntensity::Faint,
                 radius: PLAYER_SMELL_RADIUS,
+            },
+            Smellable {
+                intensity: SmellIntensity::Faint,
+                smell_log: String::from("yourself"),
             },
         );
 
@@ -307,7 +311,8 @@ impl Spawn {
     }
 
     pub fn mushroom(ecs_world: &mut World, x: i32, y: i32) {
-        let mushroom_type = Roll::dice(1, 5) - 1;
+        let index = Roll::dice(1, 10) - 1;
+        let mushroom_type = MUSHROOM_SPAWN_MAP[index as usize];
 
         let common_components = (
             Item {
@@ -342,7 +347,7 @@ impl Spawn {
                             nutrition_dice_size: 20,
                         },
                         Named {
-                            name: String::from("Boletus edulis"),
+                            name: String::from("very good tasting mushroom"),
                         },
                     ),
                 );
@@ -356,7 +361,7 @@ impl Spawn {
                             nutrition_dice_size: 20,
                         },
                         Named {
-                            name: String::from("Omphalina"),
+                            name: String::from("mediocre tasting mushroom"),
                         },
                     ),
                 );
@@ -369,9 +374,11 @@ impl Spawn {
                             nutrition_dice_number: 1,
                             nutrition_dice_size: 1,
                         },
-                        Rotten {},
+                        Unsavoury {
+                            game_log: String::from("poisonous"),
+                        },
                         Named {
-                            name: String::from("Amanita citrina"),
+                            name: String::from("poisonous mushroom"),
                         },
                     ),
                 );
@@ -384,9 +391,9 @@ impl Spawn {
                             nutrition_dice_number: 1,
                             nutrition_dice_size: 1,
                         },
-                        Rotten {}, //TODO must be lethal!
+                        Deadly {},
                         Named {
-                            name: String::from("Amanita phalloides"),
+                            name: String::from("deadly poisonous mushroom"),
                         },
                     ),
                 );
@@ -403,7 +410,7 @@ impl Spawn {
                             radius: MUSHROOM_LIGHT_RADIUS,
                         },
                         Named {
-                            name: String::from("Mycena roseoflava"),
+                            name: String::from("luminous mushroom"),
                         },
                     ),
                 );

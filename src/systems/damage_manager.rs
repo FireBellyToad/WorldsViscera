@@ -99,6 +99,8 @@ impl DamageManager {
 
             // Create corpse
             // TODO change nutrition based on monster
+            // TODO it would be cool to make the corpse carry on the poison that killed him...
+            // or the poison that the monster used (scorpions and beasts like that)
             Spawn::corpse(
                 ecs_world,
                 x,

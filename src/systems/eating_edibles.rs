@@ -3,9 +3,10 @@ use hecs::{Entity, World};
 use crate::{
     components::{
         actions::WantsToEat,
+        combat::{CombatStats, SufferingDamage},
         common::{GameLog, Named, Position},
         health::Hunger,
-        items::{Edible, Rotten},
+        items::{Deadly, Edible, Unsavoury},
         player::Player,
     },
     maps::zone::{ParticleType, Zone},
@@ -19,6 +20,7 @@ impl EatingEdibles {
     pub fn run(ecs_world: &mut World) {
         let mut eater_list: Vec<Entity> = Vec::new();
         let mut eaten_list: Vec<Entity> = Vec::new();
+        let mut killed_list: Vec<Entity> = Vec::new();
 
         // Scope for keeping borrow checker quiet
         {
@@ -62,20 +64,31 @@ impl EatingEdibles {
                 if eater.id() == player_id {
                     game_log
                         .entries
-                        .push(format!("You ate the {}", named_edible.name));
+                        .push(format!("You ate a {}", named_edible.name));
                 } else {
                     let named_eater = ecs_world.get::<&Named>(eater).unwrap();
 
-                    game_log.entries.push(format!(
-                        "{} ate the {}",
-                        named_eater.name, named_edible.name
-                    ));
+                    game_log
+                        .entries
+                        .push(format!("{} ate a {}", named_eater.name, named_edible.name));
                 }
 
                 // Is it rotten? Then vomit badly
                 // TODO vomit MORE BADLY
-                let is_rotten = ecs_world.get::<&Rotten>(wants_to_eat.item).is_ok();
-                if is_rotten {
+
+                let is_deadly = ecs_world.get::<&Deadly>(wants_to_eat.item).is_ok();
+                if is_deadly {
+                    if eater.id() == player_id {
+                        game_log.entries.push(format!(
+                            "You ate a deadly poisonous food! You agonize and die"
+                        ));
+                    }
+                    killed_list.push(eater);
+                    continue;
+                }
+
+                let unsavoury_component = ecs_world.get::<&Unsavoury>(wants_to_eat.item);
+                if unsavoury_component.is_ok() {
                     hunger.tick_counter -= Roll::dice(3, 10);
                     match hunger.current_status {
                         HungerStatus::Satiated => {
@@ -91,9 +104,10 @@ impl EatingEdibles {
                     }
 
                     if eater.id() == player_id {
-                        game_log
-                            .entries
-                            .push(format!("You ate rotten food! You vomit!"));
+                        game_log.entries.push(format!(
+                            "You ate {} food! You vomit!",
+                            unsavoury_component.unwrap().game_log
+                        ));
                     }
 
                     zone.decals_tiles.insert(
@@ -117,6 +131,12 @@ impl EatingEdibles {
         for eater in eater_list {
             // Remove owner's will to eat
             let _ = ecs_world.remove_one::<WantsToEat>(eater);
+        }
+
+        for killed in killed_list {
+            let mut damage = ecs_world.get::<&mut SufferingDamage>(killed).unwrap();
+            let stats = ecs_world.get::<&mut CombatStats>(killed).unwrap();
+            damage.damage_received = stats.current_stamina + stats.current_toughness;
         }
     }
 }
