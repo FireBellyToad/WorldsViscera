@@ -64,7 +64,7 @@ impl Inventory {
                         .expect("Game log is not in hecs::World");
 
                     //Inventory = Named items in backpack of the Player assigned to the pressed char key
-                    let inventory: Vec<(Entity, String, char, i32)>;
+                    let inventory: Vec<(Entity, String, char, (i32, i32))>;
                     match mode {
                         InventoryAction::Eat => {
                             inventory =
@@ -163,7 +163,7 @@ impl Inventory {
         let texture_to_render = assets.get(&TextureName::Items).expect("Texture not found");
 
         //Inventory = Named items in backpack of the Player
-        let inventory: Vec<(Entity, String, char, i32)>;
+        let inventory: Vec<(Entity, String, char, (i32, i32))>;
         let header_text;
 
         match mode {
@@ -233,6 +233,8 @@ impl Inventory {
                 FONT_SIZE,
                 WHITE,
             );
+
+            println!("item_tile {:?} ",item_tile);
             // Take the texture and draw only the wanted tile ( DrawTextureParams.source )
             draw_texture_ex(
                 texture_to_render,
@@ -241,8 +243,8 @@ impl Inventory {
                 WHITE,
                 DrawTextureParams {
                     source: Some(Rect {
-                        x: (item_tile * TILE_SIZE) as f32,
-                        y: 0.0,
+                        x: (item_tile.0 * TILE_SIZE) as f32,
+                        y: (item_tile.1 * TILE_SIZE) as f32,
                         w: TILE_SIZE_F32,
                         h: TILE_SIZE_F32,
                     }),
@@ -269,7 +271,7 @@ impl Inventory {
     }
 
     /// Get all items in backpack for UI
-    fn get_all_in_backpack(ecs_world: &World) -> Vec<(Entity, String, char, i32)> {
+    fn get_all_in_backpack(ecs_world: &World) -> Vec<(Entity, String, char, (i32, i32))> {
         let player_id = Player::get_entity_id(ecs_world);
         let mut inventory_query = ecs_world.query::<(&Named, &Item, &InBackback)>();
         let mut inventory = inventory_query
@@ -280,10 +282,10 @@ impl Inventory {
                     entity,
                     named.name.clone(),
                     in_backpack.assigned_char,
-                    item.item_tile_index,
+                    item.item_tile,
                 )
             })
-            .collect::<Vec<(Entity, String, char, i32)>>();
+            .collect::<Vec<(Entity, String, char, (i32, i32))>>();
 
         //Sort alphabetically by assigned char
         inventory.sort_by_key(|k| k.2);
@@ -293,7 +295,7 @@ impl Inventory {
     /// Get all items in backpack with a certain component T for UI
     fn get_all_in_backpack_filtered_by<T: Component>(
         ecs_world: &World,
-    ) -> Vec<(Entity, String, char, i32)> {
+    ) -> Vec<(Entity, String, char, (i32, i32))> {
         let player_id = Player::get_entity_id(ecs_world);
 
         let mut inventory_query = ecs_world
@@ -308,10 +310,10 @@ impl Inventory {
                     entity,
                     named.name.clone(),
                     in_backpack.assigned_char,
-                    item.item_tile_index,
+                    item.item_tile,
                 )
             }) //
-            .collect::<Vec<(Entity, String, char, i32)>>();
+            .collect::<Vec<(Entity, String, char, (i32, i32))>>();
 
         //Sort alphabetically by assigned char
         inventory.sort_by_key(|k| k.2);

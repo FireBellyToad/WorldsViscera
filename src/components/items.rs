@@ -1,7 +1,7 @@
 use hecs::Entity;
 
 pub struct Item {
-    pub item_tile_index: i32,
+    pub item_tile: (i32,i32),
 }
 
 pub struct Edible {

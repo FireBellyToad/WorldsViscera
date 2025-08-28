@@ -284,14 +284,14 @@ impl Spawn {
     }
 
     pub fn corpse(ecs_world: &mut World, x: i32, y: i32, name: String, edible: Edible) {
-        let item_tile_index = 0;
+        let item_tile_index = (0,0);
         let meat = (
             Position { x, y },
             Renderable {
                 texture_name: TextureName::Items,
                 texture_region: Rect {
-                    x: (item_tile_index * TILE_SIZE) as f32,
-                    y: 0.0,
+                    x: (item_tile_index.0 * TILE_SIZE) as f32,
+                    y: (item_tile_index.1 * TILE_SIZE) as f32,
                     w: TILE_SIZE_F32,
                     h: TILE_SIZE_F32,
                 },
@@ -300,7 +300,7 @@ impl Spawn {
             Named {
                 name: String::from(format!("{} corpse", name)),
             },
-            Item { item_tile_index },
+            Item { item_tile: item_tile_index },
             edible,
             Perishable {
                 rot_counter: STARTING_ROT_COUNTER + Roll::d20(),
@@ -316,7 +316,7 @@ impl Spawn {
 
         let common_components = (
             Item {
-                item_tile_index: mushroom_type + 4,
+                item_tile: (mushroom_type,1),
             }, // 4 is Item per row, TODO make constat
             Position { x, y },
             Renderable {
@@ -347,7 +347,7 @@ impl Spawn {
                             nutrition_dice_size: 20,
                         },
                         Named {
-                            name: String::from("very good tasting mushroom"),
+                            name: String::from("brown mushroom"),
                         },
                     ),
                 );
@@ -361,7 +361,7 @@ impl Spawn {
                             nutrition_dice_size: 20,
                         },
                         Named {
-                            name: String::from("mediocre tasting mushroom"),
+                            name: String::from("tuft of tiny mushrooms"),
                         },
                     ),
                 );
@@ -378,7 +378,7 @@ impl Spawn {
                             game_log: String::from("poisonous"),
                         },
                         Named {
-                            name: String::from("poisonous mushroom"),
+                            name: String::from("white-spotted red mushroom"),
                         },
                     ),
                 );
@@ -393,7 +393,7 @@ impl Spawn {
                         },
                         Deadly {},
                         Named {
-                            name: String::from("deadly poisonous mushroom"),
+                            name: String::from("white mushroom"),
                         },
                     ),
                 );
@@ -410,7 +410,7 @@ impl Spawn {
                             radius: MUSHROOM_LIGHT_RADIUS,
                         },
                         Named {
-                            name: String::from("luminous mushroom"),
+                            name: String::from("glowing mushroom"),
                         },
                     ),
                 );
@@ -421,14 +421,14 @@ impl Spawn {
 
     // TODO unused... keep in mind
     fn flask_of_water(ecs_world: &mut World, x: i32, y: i32) {
-        let item_tile_index = 2;
+        let item_tile_index = (2,0);
         let flask_of_water = (
             Position { x, y },
             Renderable {
                 texture_name: TextureName::Items,
                 texture_region: Rect {
-                    x: (item_tile_index * TILE_SIZE) as f32,
-                    y: 0.0,
+                    x: (item_tile_index.0 * TILE_SIZE) as f32,
+                    y: (item_tile_index.1 * TILE_SIZE) as f32,
                     w: TILE_SIZE_F32,
                     h: TILE_SIZE_F32,
                 },
@@ -437,7 +437,7 @@ impl Spawn {
             Named {
                 name: String::from("Flask of water"),
             },
-            Item { item_tile_index },
+            Item { item_tile: item_tile_index },
             Quaffable {
                 thirst_dice_number: 4,
                 thirst_dice_size: 20,
@@ -448,14 +448,14 @@ impl Spawn {
     }
 
     fn lantern(ecs_world: &mut World, x: i32, y: i32) {
-        let item_tile_index = 3;
+        let item_tile_index = (3,0);
         let lantern = (
             Position { x, y },
             Renderable {
                 texture_name: TextureName::Items,
                 texture_region: Rect {
-                    x: (item_tile_index * TILE_SIZE) as f32,
-                    y: 0.0,
+                    x: (item_tile_index.0 * TILE_SIZE) as f32,
+                    y: (item_tile_index.1 * TILE_SIZE) as f32,
                     w: TILE_SIZE_F32,
                     h: TILE_SIZE_F32,
                 },
@@ -464,7 +464,7 @@ impl Spawn {
             Named {
                 name: String::from("Lantern"),
             },
-            Item { item_tile_index },
+            Item { item_tile: item_tile_index },
             ProduceLight {
                 radius: LANTERN_RADIUS,
             },
@@ -481,14 +481,14 @@ impl Spawn {
     }
 
     fn wand(ecs_world: &mut World, x: i32, y: i32) {
-        let item_tile_index = 1;
+        let item_tile_index = (1,0);
         let wand = (
             Position { x, y },
             Renderable {
                 texture_name: TextureName::Items,
                 texture_region: Rect {
-                    x: (item_tile_index * TILE_SIZE) as f32,
-                    y: 0.0,
+                    x: (item_tile_index.0 * TILE_SIZE) as f32,
+                    y: (item_tile_index.1 * TILE_SIZE) as f32,
                     w: TILE_SIZE_F32,
                     h: TILE_SIZE_F32,
                 },
@@ -497,7 +497,7 @@ impl Spawn {
             Named {
                 name: String::from("Lightning wand"),
             },
-            Item { item_tile_index },
+            Item { item_tile: item_tile_index },
             Invokable {
                 invokable_type: InvokablesEnum::LightningWand,
             },
@@ -515,14 +515,14 @@ impl Spawn {
     }
 
     fn flask_of_oil(ecs_world: &mut World, x: i32, y: i32) {
-        let item_tile_index = 4;
+        let item_tile_index = (4,0);
         let flask_of_oil = (
             Position { x, y },
             Renderable {
                 texture_name: TextureName::Items,
                 texture_region: Rect {
-                    x: (item_tile_index * TILE_SIZE) as f32,
-                    y: 0.0,
+                    x: (item_tile_index.0 * TILE_SIZE) as f32,
+                    y: (item_tile_index.1 * TILE_SIZE) as f32,
                     w: TILE_SIZE_F32,
                     h: TILE_SIZE_F32,
                 },
@@ -531,7 +531,7 @@ impl Spawn {
             Named {
                 name: String::from("Flask of oil"),
             },
-            Item { item_tile_index },
+            Item { item_tile: item_tile_index },
             MustBeFueled {
                 fuel_counter: STARTING_FUEL + Roll::d100(),
             },
