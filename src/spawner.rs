@@ -5,8 +5,7 @@ use crate::components::common::{
 };
 use crate::components::health::{CanAutomaticallyHeal, Hunger, Thirst};
 use crate::components::items::{
-    Deadly, Edible, Invokable, InvokablesEnum, Item, MustBeFueled, Perishable, ProduceLight,
-    Quaffable, Refiller, Unsavoury,
+    BodyLocation, Deadly, Edible, Equippable, Invokable, InvokablesEnum, Item, MustBeFueled, Perishable, ProduceLight, Quaffable, Refiller, Unsavoury
 };
 use crate::components::monster::{Aquatic, Monster};
 use crate::components::player::Player;
@@ -273,12 +272,13 @@ impl Spawn {
 
     /// Spawn a random monster
     pub fn random_item(ecs_world: &mut World, x: i32, y: i32) {
-        let dice_roll = Roll::dice(1, 10);
+        let dice_roll = Roll::dice(1, 12);
         // Dvergar is stronger, shuold be less common
         match dice_roll {
             1 => Spawn::wand(ecs_world, x, y),
             2 => Spawn::lantern(ecs_world, x, y),
-            3 => Spawn::flask_of_oil(ecs_world, x, y),
+            3 => Spawn::shiv(ecs_world, x, y),
+            4 => Spawn::flask_of_oil(ecs_world, x, y),
             _ => Spawn::mushroom(ecs_world, x, y),
         }
     }
@@ -539,6 +539,33 @@ impl Spawn {
             Smellable {
                 smell_log: String::from("a faint scent of fuel"),
                 intensity: SmellIntensity::Faint,
+            },
+        );
+
+        ecs_world.spawn(flask_of_oil);
+    }
+
+    fn shiv(ecs_world: &mut World, x: i32, y: i32) {
+        //TODO is Weapon!
+        let item_tile_index = (0,2);
+        let flask_of_oil = (
+            Position { x, y },
+            Renderable {
+                texture_name: TextureName::Items,
+                texture_region: Rect {
+                    x: (item_tile_index.0 * TILE_SIZE) as f32,
+                    y: (item_tile_index.1 * TILE_SIZE) as f32,
+                    w: TILE_SIZE_F32,
+                    h: TILE_SIZE_F32,
+                },
+                z_index: 0,
+            },
+            Named {
+                name: String::from("Shiv"),
+            },
+            Item { item_tile: item_tile_index },
+            Equippable {
+                body_location: BodyLocation::RightHand
             },
         );
 

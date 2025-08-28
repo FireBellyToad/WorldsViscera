@@ -19,6 +19,23 @@ pub struct InBackback {
     pub assigned_char: char,
 }
 
+#[derive(PartialEq, Debug, Clone)]
+pub enum BodyLocation {
+    Arms,
+    Hands,
+    LeftHand,
+    RightHand,
+    Torso,
+    Head,
+    Feet,
+}
+
+pub struct Equipped {
+    pub owner: Entity,
+    pub body_location: BodyLocation
+}
+
+
 #[derive(PartialEq, Debug)]
 pub enum InvokablesEnum {
     LightningWand,
@@ -47,3 +64,7 @@ pub struct MustBeFueled {
 }
 
 pub struct Refiller {}
+
+pub struct Equippable {
+    pub body_location: BodyLocation
+}

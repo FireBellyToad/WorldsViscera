@@ -179,6 +179,12 @@ impl Player {
                             run_state = RunState::ShowInventory(InventoryAction::Drop);
                         }
 
+                        //Equip item
+                        'w' => {
+                            clear_input_queue();
+                            run_state = RunState::ShowInventory(InventoryAction::Equip);
+                        }
+
                         //Invoke item
                         'i' => {
                             clear_input_queue();

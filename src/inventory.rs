@@ -12,9 +12,14 @@ use macroquad::{
 
 use crate::{
     components::{
-        actions::{WantsToDrink, WantsToDrop, WantsToEat, WantsToFuel, WantsToInvoke},
+        actions::{
+            WantsToDrink, WantsToDrop, WantsToEat, WantsToEquip, WantsToFuel, WantsToInvoke,
+        },
         common::{GameLog, Named},
-        items::{Edible, InBackback, Invokable, Item, ProduceLight, Quaffable, Refiller},
+        items::{
+            BodyLocation, Edible, Equippable, InBackback, Invokable, Item, ProduceLight, Quaffable,
+            Refiller,
+        },
         player::{Player, SpecialViewMode},
     },
     constants::*,
@@ -30,6 +35,7 @@ pub enum InventoryAction {
     Quaff,
     RefillWhat,
     RefillWith,
+    Equip,
 }
 
 pub struct Inventory {}
@@ -87,6 +93,10 @@ impl Inventory {
                             inventory =
                                 Inventory::get_all_in_backpack_filtered_by::<Refiller>(ecs_world);
                         }
+                        InventoryAction::Equip => {
+                            inventory =
+                                Inventory::get_all_in_backpack_filtered_by::<Equippable>(ecs_world);
+                        }
                         InventoryAction::Drop => {
                             inventory = Inventory::get_all_in_backpack(ecs_world);
                         }
@@ -140,6 +150,22 @@ impl Inventory {
                         let wants_to_fuel = ecs_world.get::<&mut WantsToFuel>(user_entity.unwrap());
                         wants_to_fuel.unwrap().with = Some(item);
                     }
+                    InventoryAction::Equip => {
+                        let body_location;
+                        // Scope to keep the borrow check quiet
+                        {
+                            let equippable = ecs_world.get::<&Equippable>(item).unwrap();
+                            body_location = equippable.body_location.clone();
+                        }
+                        let _ = ecs_world.insert_one(
+                            user_entity.unwrap(),
+                            WantsToEquip {
+                                item,
+                                body_location,
+                            },
+                        );
+                        must_wait = true;
+                    }
                 };
 
                 if must_wait {
@@ -186,6 +212,10 @@ impl Inventory {
             InventoryAction::RefillWith => {
                 header_text = "With what?";
                 inventory = Inventory::get_all_in_backpack_filtered_by::<Refiller>(ecs_world);
+            }
+            InventoryAction::Equip => {
+                header_text = "Equip what?";
+                inventory = Inventory::get_all_in_backpack_filtered_by::<Equippable>(ecs_world);
             }
             InventoryAction::Drop => {
                 header_text = "Drop what?";
@@ -234,7 +264,7 @@ impl Inventory {
                 WHITE,
             );
 
-            println!("item_tile {:?} ",item_tile);
+            println!("item_tile {:?} ", item_tile);
             // Take the texture and draw only the wanted tile ( DrawTextureParams.source )
             draw_texture_ex(
                 texture_to_render,
@@ -272,6 +302,7 @@ impl Inventory {
 
     /// Get all items in backpack for UI
     fn get_all_in_backpack(ecs_world: &World) -> Vec<(Entity, String, char, (i32, i32))> {
+        //TODO show equipped
         let player_id = Player::get_entity_id(ecs_world);
         let mut inventory_query = ecs_world.query::<(&Named, &Item, &InBackback)>();
         let mut inventory = inventory_query
@@ -296,6 +327,7 @@ impl Inventory {
     fn get_all_in_backpack_filtered_by<T: Component>(
         ecs_world: &World,
     ) -> Vec<(Entity, String, char, (i32, i32))> {
+        //TODO show equipped
         let player_id = Player::get_entity_id(ecs_world);
 
         let mut inventory_query = ecs_world

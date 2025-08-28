@@ -18,15 +18,10 @@ use systems::{
 use crate::{
     components::common::{Position, Viewshed},
     maps::{
-        ZoneBuilder, arena_zone_builder::ArenaZoneBuilder,
-        drunken_walk_zone_builder::DrunkenWalkZoneBuilder, zone::Zone,
+        arena_zone_builder::ArenaZoneBuilder, drunken_walk_zone_builder::DrunkenWalkZoneBuilder, zone::Zone, ZoneBuilder
     },
     systems::{
-        automatic_healing::AutomaticHealing, decay_manager::DecayManager,
-        drinking_quaffables::DrinkingQuaffables, fuel_manager::FuelManager,
-        hunger_check::HungerCheck, map_indexing::MapIndexing, particle_manager::ParticleManager,
-        smell_manager::SmellManager, hidden_manager::HiddenManager, thirst_check::ThirstCheck,
-        turn_checker::TurnCheck, wet_manager::WetManager, zap_manager::ZapManager,
+        automatic_healing::AutomaticHealing, decay_manager::DecayManager, drinking_quaffables::DrinkingQuaffables, fuel_manager::FuelManager, hidden_manager::HiddenManager, hunger_check::HungerCheck, item_equipping::ItemEquipping, map_indexing::MapIndexing, particle_manager::ParticleManager, smell_manager::SmellManager, thirst_check::ThirstCheck, turn_checker::TurnCheck, wet_manager::WetManager, zap_manager::ZapManager
     },
     utils::assets::Load,
 };
@@ -259,6 +254,7 @@ fn do_in_tick_game_logic(game_state: &mut EngineState) -> bool {
         MapIndexing::run(&game_state.ecs_world);
         FieldOfView::calculate(&game_state.ecs_world);
         ItemCollection::run(&mut game_state.ecs_world);
+        ItemEquipping::run(&mut game_state.ecs_world);
         ItemDropping::run(&mut game_state.ecs_world);
         EatingEdibles::run(&mut game_state.ecs_world);
         DrinkingQuaffables::run(&mut game_state.ecs_world);
