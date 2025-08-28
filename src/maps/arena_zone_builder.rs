@@ -38,7 +38,7 @@ impl ZoneBuilder for ArenaZoneBuilder {
             TileType::Brazier;
 
         // Generate items spawn points within each room
-        let items_number = Roll::dice(1, MAX_ITEMS_ON_ROOM_START) + 15;
+        let items_number = Roll::dice(1, MAX_ITEMS_IN_ZONE) + 15;
 
         for _i in 0..items_number {
             for _t in 0..MAX_SPAWN_TENTANTIVES {

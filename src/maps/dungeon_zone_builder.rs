@@ -61,8 +61,8 @@ impl ZoneBuilder for DungeonZoneBuilder {
 
         // Generate monster and items spawn points within each room
         for &room in zone.rooms.iter().skip(1) {
-            let monster_number = Roll::dice(1, MAX_MONSTERS_ON_ROOM_START) - 1;
-            let items_number = Roll::dice(1, MAX_ITEMS_ON_ROOM_START) - 1;
+            let monster_number = Roll::dice(1, MAX_MONSTERS_IN_ZONE) - 1;
+            let items_number = Roll::dice(1, MAX_ITEMS_IN_ZONE) - 1;
 
             for _m in 0..monster_number {
                 for _t in 0..MAX_SPAWN_TENTANTIVES {

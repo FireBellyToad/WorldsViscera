@@ -51,8 +51,8 @@ pub const FAST: i32 = 3;
 pub const MAX_ACTION_SPEED: i32 = 4;
 
 /// Spawning related constants
-pub const MAX_MONSTERS_ON_ROOM_START: i32 = 5;
-pub const MAX_ITEMS_ON_ROOM_START: i32 = 5;
+pub const MAX_MONSTERS_IN_ZONE: i32 = 5;
+pub const MAX_ITEMS_IN_ZONE: i32 = 10;
 pub const MAX_SPAWN_TENTANTIVES: i32 = 10;
 
 /// Player related constants

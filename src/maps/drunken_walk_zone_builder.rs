@@ -70,8 +70,8 @@ impl ZoneBuilder for DrunkenWalkZoneBuilder {
         zone.populate_water();
 
         // Generate monster and items spawn points within each room
-        let monster_number = Roll::dice(1, MAX_MONSTERS_ON_ROOM_START) + 2;
-        let items_number = Roll::dice(1, MAX_ITEMS_ON_ROOM_START) + 3;
+        let monster_number = Roll::dice(1, MAX_MONSTERS_IN_ZONE) + depth +1;
+        let items_number = Roll::dice(1, MAX_ITEMS_IN_ZONE) + 3;
         let braziers_number = Roll::dice(1, MAX_BRAZIER_IN_ZONE);
 
         for _m in 0..monster_number {
