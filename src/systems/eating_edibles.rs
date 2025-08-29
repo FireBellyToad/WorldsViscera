@@ -73,9 +73,6 @@ impl EatingEdibles {
                         .push(format!("{} ate a {}", named_eater.name, named_edible.name));
                 }
 
-                // Is it rotten? Then vomit badly
-                // TODO vomit MORE BADLY
-
                 let is_deadly = ecs_world.get::<&Deadly>(wants_to_eat.item).is_ok();
                 if is_deadly {
                     if eater.id() == player_id {
@@ -87,6 +84,7 @@ impl EatingEdibles {
                     continue;
                 }
 
+                // Is it unsavoury? Then vomit badly
                 let unsavoury_component = ecs_world.get::<&Unsavoury>(wants_to_eat.item);
                 if unsavoury_component.is_ok() {
                     hunger.tick_counter -= Roll::dice(3, 10);
