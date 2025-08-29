@@ -360,7 +360,6 @@ impl Player {
         }
 
         if there_is_river_here {
-            // TODO maybe drink something nasty rolling casually?
             let river_entity = Spawn::river_water_entity(ecs_world);
             let _ = ecs_world.insert_one(player_entity, WantsToDrink { item: river_entity });
 
