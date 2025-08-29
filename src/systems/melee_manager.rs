@@ -6,6 +6,7 @@ use crate::{
     components::{
         combat::{CanHide, CombatStats, IsHidden, SufferingDamage, WantsToMelee},
         common::{GameLog, MyTurn, Named},
+        items::{Equipped, InBackback, Weapon},
     },
     constants::MAX_HIDDEN_TURNS,
     utils::roll::Roll,
@@ -24,6 +25,7 @@ impl MeleeManager {
             let mut attackers = ecs_world
                 .query::<(&WantsToMelee, Option<&IsHidden>)>()
                 .with::<&MyTurn>();
+            let mut equipped_weapons = ecs_world.query::<(&Weapon, &Equipped)>();
 
             //Log all the pick ups
             let mut game_log_query = ecs_world.query::<&mut GameLog>();
@@ -43,15 +45,17 @@ impl MeleeManager {
                     // Show appropriate log messages
                     let named_attacker = ecs_world.get::<&Named>(attacker).unwrap();
                     let named_target = ecs_world.get::<&Named>(wants_melee.target).unwrap();
+                    let attacker_dice = MeleeManager::get_damage_dice(
+                        attacker_stats.unarmed_attack_dice,
+                        attacker.id(),
+                        &mut equipped_weapons,
+                    );
 
                     let damage_roll: i32;
                     // Sneak attack doubles damage
                     if hidden.is_some() {
-                        damage_roll = max(
-                            0,
-                            Roll::dice(2, attacker_stats.unarmed_attack_dice)
-                                - target_stats.base_armor,
-                        );
+                        damage_roll =
+                            max(0, Roll::dice(2, attacker_dice) - target_stats.base_armor);
                         game_log.entries.push(format!(
                             "{} sneak attacks the {} for {} damage!",
                             named_attacker.name, named_target.name, damage_roll
@@ -66,7 +70,7 @@ impl MeleeManager {
                     } else {
                         damage_roll = max(
                             0,
-                            Roll::dice(1, attacker_stats.unarmed_attack_dice)
+                            Roll::dice(1, attacker_dice)
                                 - target_stats.base_armor,
                         );
                         game_log.entries.push(format!(
@@ -91,5 +95,24 @@ impl MeleeManager {
         for attacker in hidden_list {
             let _ = ecs_world.remove_one::<IsHidden>(attacker);
         }
+    }
+
+    // Gets attack dice
+    fn get_damage_dice(
+        unarmed_attack_dice: i32,
+        attacker_id: u32,
+        equipped_weapons: &mut hecs::QueryBorrow<'_, (&Weapon, &Equipped)>,
+    ) -> i32 {
+        // Use weapon dice when equipped
+        for (_e, (attacker_weapon, equipped_to)) in equipped_weapons.iter() {
+            if equipped_to.owner.id() == attacker_id {
+                println!(
+                    "Weapon equipped by {:?} is {}",
+                    equipped_to.owner, attacker_weapon.attack_dice
+                );
+                return attacker_weapon.attack_dice;
+            }
+        }
+        return unarmed_attack_dice;
     }
 }

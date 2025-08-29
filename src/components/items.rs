@@ -30,12 +30,6 @@ pub enum BodyLocation {
     Feet,
 }
 
-pub struct Equipped {
-    pub owner: Entity,
-    pub body_location: BodyLocation
-}
-
-
 #[derive(PartialEq, Debug)]
 pub enum InvokablesEnum {
     LightningWand,
@@ -67,4 +61,13 @@ pub struct Refiller {}
 
 pub struct Equippable {
     pub body_location: BodyLocation
+}
+
+pub struct Equipped {
+    pub owner: Entity,
+    pub body_location: BodyLocation
+}
+
+pub struct Weapon {
+    pub attack_dice: i32,
 }

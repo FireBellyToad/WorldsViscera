@@ -5,7 +5,7 @@ use crate::components::common::{
 };
 use crate::components::health::{CanAutomaticallyHeal, Hunger, Thirst};
 use crate::components::items::{
-    BodyLocation, Deadly, Edible, Equippable, Invokable, InvokablesEnum, Item, MustBeFueled, Perishable, ProduceLight, Quaffable, Refiller, Unsavoury
+    BodyLocation, Deadly, Edible, Equippable, Invokable, InvokablesEnum, Item, MustBeFueled, Perishable, ProduceLight, Quaffable, Refiller, Unsavoury, Weapon
 };
 use crate::components::monster::{Aquatic, Monster};
 use crate::components::player::Player;
@@ -60,7 +60,7 @@ impl Spawn {
                 current_stamina: rolled_stamina,
                 max_stamina: rolled_stamina,
                 base_armor: 0,
-                unarmed_attack_dice: 4,
+                unarmed_attack_dice: 2,
                 current_toughness: rolled_toughness,
                 max_toughness: rolled_toughness,
                 current_dexterity: rolled_dexterity,
@@ -135,8 +135,8 @@ impl Spawn {
             CombatStats {
                 current_stamina: 3,
                 max_stamina: 3,
-                base_armor: 1,
-                unarmed_attack_dice: 4,
+                base_armor: 0,
+                unarmed_attack_dice: 3,
                 current_toughness: 8,
                 max_toughness: 8,
                 current_dexterity: 10,
@@ -566,6 +566,9 @@ impl Spawn {
             Item { item_tile: item_tile_index },
             Equippable {
                 body_location: BodyLocation::RightHand
+            },
+            Weapon {
+                attack_dice: 4,
             },
         );
 
