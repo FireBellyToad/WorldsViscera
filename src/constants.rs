@@ -98,4 +98,3 @@ pub const MAX_HIDDEN_TURNS: i32 = 9;
 
 /// Saving Throw related constants
 pub const AUTOFAIL_SAVING_THROW: i32 = 999;
-pub const INSTAKILL_DAMAGE: i32 = 999;

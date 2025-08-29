@@ -8,7 +8,7 @@ use engine::{
 use hecs::World;
 use inventory::Inventory;
 use macroquad::prelude::*;
-use spawner::Spawn;
+use spawning::spawner::Spawn;
 use systems::{
     damage_manager::DamageManager, eating_edibles::EatingEdibles, fov::FieldOfView,
     item_collection::ItemCollection, item_dropping::ItemDropping, melee_manager::MeleeManager,
@@ -32,7 +32,7 @@ mod draw;
 mod engine;
 mod inventory;
 mod maps;
-mod spawner;
+mod spawning;
 mod systems;
 mod utils;
 

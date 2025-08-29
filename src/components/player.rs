@@ -21,7 +21,7 @@ use crate::{
     engine::state::RunState,
     inventory::InventoryAction,
     maps::zone::{TileType, Zone},
-    spawner::Spawn,
+    spawning::spawner::Spawn,
 };
 
 #[derive(PartialEq, Debug)]

@@ -12,7 +12,7 @@ use crate::{
     },
     constants::MAX_STAMINA_HEAL_TICK_COUNTER,
     maps::zone::{ParticleType, Zone},
-    spawner::Spawn,
+    spawning::spawner::Spawn,
     utils::roll::Roll,
 };
 
