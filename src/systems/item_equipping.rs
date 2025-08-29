@@ -3,14 +3,17 @@ use hecs::{Entity, World};
 use crate::components::{
     actions::WantsToEquip,
     common::{GameLog, Named},
-    items::{BodyLocation, Equipped},
+    items::{BodyLocation, Equipped}, player::Player,
 };
 
 pub struct ItemEquipping {}
 
 impl ItemEquipping {
     pub fn run(ecs_world: &mut World) {
-        let mut item_unequip_list: Vec<(Entity, BodyLocation, Entity)> = Vec::new();
+        let mut item_to_equip_list: Vec<(Entity, BodyLocation, Entity)> = Vec::new();
+        let mut item_to_unequip_list: Vec<(Entity, Entity)> = Vec::new();
+
+        let player_id = Player::get_entity_id(ecs_world);
 
         // Scope for keeping borrow checker quiet
         {
@@ -24,32 +27,64 @@ impl ItemEquipping {
                 .last()
                 .expect("Game log is not in hecs::World");
 
-            for (equipper, wants_item) in &mut items_to_equip {
+            for (equipper, wants_to_equip) in &mut items_to_equip {
                 // Show appropriate log messages
-                let named_dropper = ecs_world.get::<&Named>(equipper).unwrap();
-                let named_item = ecs_world.get::<&Named>(wants_item.item).unwrap();
+                let named_item: hecs::Ref<'_, Named> =
+                    ecs_world.get::<&Named>(wants_to_equip.item).unwrap();
+                let is_already_equipped = ecs_world.get::<&Equipped>(wants_to_equip.item).is_ok();
 
-                //TODO check if wants_item.body_location is already taken?
+                if is_already_equipped {
+                    // Unequip item
+                    item_to_unequip_list.push((equipper, wants_to_equip.item));
 
-                // Drop item and keep track of the drop Position
-                item_unequip_list.push((wants_item.item, wants_item.body_location.clone(), equipper));
+                    if player_id == equipper.id() {
+                        game_log
+                            .entries
+                            .push(format!("You unequip the {}", named_item.name));
+                    }
+                } else {
+                    let named_dropper = ecs_world.get::<&Named>(equipper).unwrap();
+                    //TODO check if wants_item.body_location is already taken?
 
-                game_log.entries.push(format!(
-                    "{} equips up the {}",
-                    named_dropper.name, named_item.name
-                ));
+                    // Drop item and keep track of the drop Position
+                    item_to_equip_list.push((
+                        wants_to_equip.item,
+                        wants_to_equip.body_location.clone(),
+                        equipper,
+                    ));
+
+                    if player_id == equipper.id() {
+                        game_log
+                            .entries
+                            .push(format!("You equip the {}", named_item.name));
+                    } else {
+                        game_log.entries.push(format!(
+                            "{} equips the {}",
+                            named_dropper.name, named_item.name
+                        ));
+                    }
+                }
             }
         }
 
-        for (item, body_location, equipper) in item_unequip_list {
-            // Remove owner's will to pick up
+        for (item, body_location, equipper) in item_to_equip_list {
+            // Remove owner's will to equip
             let _ = ecs_world.remove_one::<WantsToEquip>(equipper);
 
             // Equip at specified location
-            let _ = ecs_world.insert_one(item, Equipped{
-                owner: equipper,
-                body_location,
-            });
+            let _ = ecs_world.insert_one(
+                item,
+                Equipped {
+                    owner: equipper,
+                    body_location,
+                },
+            );
+        }
+
+        for (unequipper, item) in item_to_unequip_list {
+            // Unequip
+            let _ = ecs_world.remove_one::<WantsToEquip>(unequipper);
+            let _ = ecs_world.remove_one::<Equipped>(item);
         }
     }
 }

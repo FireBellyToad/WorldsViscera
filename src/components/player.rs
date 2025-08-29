@@ -180,7 +180,7 @@ impl Player {
                         }
 
                         //Equip item
-                        'w' => {
+                        'f' => {
                             clear_input_queue();
                             run_state = RunState::ShowInventory(InventoryAction::Equip);
                         }
