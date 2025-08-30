@@ -5,6 +5,7 @@ use crate::{
         actions::WantsItem,
         common::{GameLog, Named, Position},
         items::{InBackback, Item},
+        player::Player,
     },
     constants::{MAX_ITEMS_IN_BACKPACK, OPTION_TO_CHAR_MAP},
 };
@@ -15,6 +16,7 @@ impl ItemCollection {
     pub fn run(ecs_world: &mut World) {
         let mut item_owner_list: Vec<(Entity, Entity, char)> = Vec::new();
         let mut failed_pick_upper: Vec<Entity> = Vec::new();
+        let player_id = Player::get_entity_id(ecs_world);
 
         // Scope for keeping borrow checker quiet
         {
@@ -43,10 +45,10 @@ impl ItemCollection {
 
                 let named_owner = ecs_world.get::<&Named>(collector).unwrap();
                 if all_currently_assigned_chars.len() == MAX_ITEMS_IN_BACKPACK {
-                    game_log
-                        .entries
-                        .push(format!("{} cannot carry anymore!", named_owner.name));
-                    failed_pick_upper.push(collector);
+                    if player_id == collector.id() {
+                        game_log.entries.push(format!("You cannot carry anymore!"));
+                        failed_pick_upper.push(collector);
+                    }
                 } else {
                     // Assign the first "available" char to picked up item
                     let mut index = 0;
@@ -58,10 +60,16 @@ impl ItemCollection {
                     // Show appropriate log messages
                     let named_item = ecs_world.get::<&Named>(wants_item.item).unwrap();
 
-                    game_log.entries.push(format!(
-                        "{} picks up the {}",
-                        named_owner.name, named_item.name
-                    ));
+                    if player_id == collector.id() {
+                        game_log
+                            .entries
+                            .push(format!("You pick up the {}", named_item.name));
+                    } else {
+                        game_log.entries.push(format!(
+                            "{} picks up the {}",
+                            named_owner.name, named_item.name
+                        ));
+                    }
 
                     // Pick up and keep track of the owner
                     item_owner_list.push((wants_item.item, collector, char_to_assign));

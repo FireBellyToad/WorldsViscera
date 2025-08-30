@@ -128,15 +128,15 @@ impl Spawn {
 
     /// Spawn a random monster
     pub fn random_item(ecs_world: &mut World, x: i32, y: i32) {
-        let dice_roll = Roll::dice(1, 16);
+        let dice_roll = Roll::d20();
         // Dvergar is stronger, shuold be less common
         match dice_roll {
             1 => wand(ecs_world, x, y),
             2 => lantern(ecs_world, x, y),
-            3 => shiv(ecs_world, x, y),
-            4 => flask_of_oil(ecs_world, x, y),
-            5 => rockpick(ecs_world, x, y),
-            6 => maul(ecs_world, x, y),
+            3|4 => shiv(ecs_world, x, y),
+            5|6 => flask_of_oil(ecs_world, x, y),
+            7|8 => rockpick(ecs_world, x, y),
+            9 => maul(ecs_world, x, y),
             _ => mushroom(ecs_world, x, y),
         }
     }

@@ -333,7 +333,7 @@ pub fn maul(ecs_world: &mut World, x: i32, y: i32) {
             z_index: 0,
         },
         Named {
-            name: String::from("Maul"),
+            name: String::from("maul"),
         },
         Item {
             item_tile: item_tile_index,

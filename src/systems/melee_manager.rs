@@ -6,7 +6,7 @@ use crate::{
     components::{
         combat::{CanHide, CombatStats, IsHidden, SufferingDamage, WantsToMelee},
         common::{GameLog, MyTurn, Named},
-        items::{Equipped, InBackback, Weapon},
+        items::{Equipped, Weapon},
     },
     constants::MAX_HIDDEN_TURNS,
     utils::roll::Roll,

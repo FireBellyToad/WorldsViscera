@@ -16,6 +16,7 @@ impl ItemEquipping {
     pub fn run(ecs_world: &mut World) {
         let mut item_to_equip_list: Vec<(Entity, BodyLocation, Entity)> = Vec::new();
         let mut item_to_unequip_list: Vec<(Entity, Entity)> = Vec::new();
+        let mut cleanup_equip: Vec<Entity> = Vec::new();
 
         let player_id = Player::get_entity_id(ecs_world);
 
@@ -25,7 +26,7 @@ impl ItemEquipping {
             let mut items_to_equip = ecs_world.query::<&WantsToEquip>();
             let mut equipped_items = ecs_world.query::<&Equipped>();
 
-            //Log all the drop downs
+            //Log all the equipments
             let mut game_log_query = ecs_world.query::<&mut GameLog>();
             let (_e, game_log) = game_log_query
                 .iter()
@@ -49,44 +50,49 @@ impl ItemEquipping {
                     }
                 } else {
                     let named_dropper = ecs_world.get::<&Named>(equipper).unwrap();
-                    //TODO check if wants_item.body_location is already taken?
 
-                    // Drop item and keep track of the drop Position
-                    item_to_equip_list.push((
-                        wants_to_equip.item,
-                        wants_to_equip.body_location.clone(),
-                        equipper,
-                    ));
-
+                    //Check if wants_item.body_location is already taken
                     let item_in_same_location: Option<(Entity, &Equipped)> =
                         equipped_items.iter().find(|(_e, equipped)| {
                             equipped.owner.id() == equipper.id()
-                                && Utils::has_same_location(
+                                && Utils::occupies_same_location(
                                     &equipped.body_location,
                                     &wants_to_equip.body_location,
                                 )
                         });
+
                     if item_in_same_location.is_some() {
                         let (item_to_remove, _) = item_in_same_location.unwrap();
-                        // Unequip item in same location
-                        item_to_unequip_list.push((equipper, item_to_remove));
+                        let named_item_to_remove = ecs_world.get::<&Named>(item_to_remove).unwrap();
+                        // Log to warning to Unequip item in same location and cleanup
+                        cleanup_equip.push(equipper);
+
+                        if player_id == equipper.id() {
+                            game_log.entries.push(format!(
+                                "You must unequip the {} before equipping the {}",
+                                named_item_to_remove.name, named_item.name
+                            ));
+                        }
+
+                        // TODO must not wait in this case!!
+                    } else {
+                        // Drop item and keep track of the drop Position
+                        item_to_equip_list.push((
+                            wants_to_equip.item,
+                            wants_to_equip.body_location.clone(),
+                            equipper,
+                        ));
 
                         if player_id == equipper.id() {
                             game_log
                                 .entries
-                                .push(format!("You unequip the {}", named_item.name));
+                                .push(format!("You equip the {}", named_item.name));
+                        } else {
+                            game_log.entries.push(format!(
+                                "{} equips the {}",
+                                named_dropper.name, named_item.name
+                            ));
                         }
-                    }
-
-                    if player_id == equipper.id() {
-                        game_log
-                            .entries
-                            .push(format!("You equip the {}", named_item.name));
-                    } else {
-                        game_log.entries.push(format!(
-                            "{} equips the {}",
-                            named_dropper.name, named_item.name
-                        ));
                     }
                 }
             }
@@ -107,9 +113,14 @@ impl ItemEquipping {
         }
 
         for (unequipper, item) in item_to_unequip_list {
-            // Unequip
+            // Unequip and remove owner's will to equip
             let _ = ecs_world.remove_one::<WantsToEquip>(unequipper);
             let _ = ecs_world.remove_one::<Equipped>(item);
+        }
+
+        for to_clean in cleanup_equip {
+            // Remove owner's will to equip
+            let _ = ecs_world.remove_one::<WantsToEquip>(to_clean);
         }
     }
 }
