@@ -309,7 +309,7 @@ impl Inventory {
 
     /// Get all items in backpack for UI
     fn get_all_in_backpack(ecs_world: &World) -> Vec<(Entity, String, char, (i32, i32), bool)> {
-        //TODO show equipped
+        
         let player_id = Player::get_entity_id(ecs_world);
         let mut inventory_query = ecs_world.query::<(&Named, &Item, &InBackback, Option<&Equipped>)>();
         let mut inventory = inventory_query
@@ -335,7 +335,7 @@ impl Inventory {
     fn get_all_in_backpack_filtered_by<T: Component>(
         ecs_world: &World,
     ) -> Vec<(Entity, String, char, (i32, i32),bool)> {
-        //TODO show equipped
+
         let player_id = Player::get_entity_id(ecs_world);
 
         let mut inventory_query = ecs_world

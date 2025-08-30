@@ -33,7 +33,7 @@ pub fn deep_one(ecs_world: &mut World, x: i32, y: i32) {
             smell_log: String::from("dried human sweat"),
             intensity: SmellIntensity::Faint,
         },
-        1.0, //TODO fix
+        1.0,
         x,
         y,
     );
@@ -58,7 +58,7 @@ pub fn freshwater_viperfish(ecs_world: &mut World, x: i32, y: i32) {
             smell_log: String::from("fish"),
             intensity: SmellIntensity::None,
         },
-        4.0, //TODO fix
+        4.0,
         x,
         y,
     );
@@ -85,7 +85,7 @@ pub fn gremlin(ecs_world: &mut World, x: i32, y: i32) {
             smell_log: String::from("cheap leather"),
             intensity: SmellIntensity::Faint,
         },
-        3.0, //TODO fix
+        3.0, 
         x,
         y,
     );
@@ -110,7 +110,7 @@ pub fn dvergar(ecs_world: &mut World, x: i32, y: i32) {
             smell_log: String::from("coal drenched in vinegar"),
             intensity: SmellIntensity::Faint,
         },
-        2.0, //TODO fix
+        2.0,
         x,
         y,
     );
