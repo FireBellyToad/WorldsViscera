@@ -118,22 +118,18 @@ impl Inventory {
             }
 
             // Use selected item
-            let mut must_wait = false;
             let mut new_run_state = RunState::DoTick;
             if selected_item_entity.is_some() {
                 let item: Entity = selected_item_entity.unwrap();
                 match mode {
                     InventoryAction::Eat => {
                         let _ = ecs_world.insert_one(user_entity.unwrap(), WantsToEat { item });
-                        must_wait = true;
                     }
                     InventoryAction::Drop => {
                         let _ = ecs_world.insert_one(user_entity.unwrap(), WantsToDrop { item });
-                        must_wait = true;
                     }
                     InventoryAction::Quaff => {
                         let _ = ecs_world.insert_one(user_entity.unwrap(), WantsToDrink { item });
-                        must_wait = true;
                     }
                     InventoryAction::Invoke => {
                         let _ = ecs_world.insert_one(user_entity.unwrap(), WantsToInvoke { item });
@@ -163,13 +159,9 @@ impl Inventory {
                                 body_location,
                             },
                         );
-                        must_wait = true;
                     }
                 };
 
-                if must_wait {
-                    Player::wait_after_action(ecs_world);
-                }
                 //Avoid strange behaviors
                 clear_input_queue();
                 return new_run_state;

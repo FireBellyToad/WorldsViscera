@@ -1,6 +1,6 @@
 use std::cmp::{max, min};
 
-use hecs::{Entity, World};
+use hecs::{Component, Entity, World};
 use macroquad::input::{
     KeyCode, MouseButton, clear_input_queue, get_char_pressed, get_key_pressed, is_key_down,
     is_mouse_button_down, mouse_position,
@@ -12,7 +12,7 @@ use crate::{
         combat::{CombatStats, WantsToMelee, WantsToZap},
         common::{GameLog, MyTurn, Position, Viewshed, WaitingToAct},
         health::CanAutomaticallyHeal,
-        items::Item,
+        items::{Edible, Item, Quaffable},
     },
     constants::{
         MAP_HEIGHT, MAP_WIDTH, MAX_ACTION_SPEED, MAX_STAMINA_HEAL_TICK_COUNTER, TILE_SIZE_F32,
@@ -22,6 +22,7 @@ use crate::{
     inventory::InventoryAction,
     maps::zone::{TileType, Zone},
     spawning::spawner::Spawn,
+    utils::common::Utils,
 };
 
 #[derive(PartialEq, Debug)]
@@ -141,27 +142,13 @@ impl Player {
 
                         //Pick up
                         'p' => {
-                            Player::pick_up(ecs_world);
-                            run_state = RunState::DoTick;
+                            run_state = Player::pick_up(ecs_world);
                         }
 
                         //Eat item
                         'e' => {
-                            clear_input_queue();
-                            let edible = Player::take_from_map(ecs_world);
-
-                            if edible.is_some() {
-                                let _ = ecs_world.insert_one(
-                                    player_entity,
-                                    WantsToEat {
-                                        item: edible.unwrap(),
-                                    },
-                                );
-                                run_state = RunState::DoTick;
-                                is_actively_waiting = true;
-                            } else {
-                                run_state = RunState::ShowInventory(InventoryAction::Eat);
-                            }
+                            (run_state, is_actively_waiting) =
+                                Player::try_eat(ecs_world, player_entity);
                         }
 
                         //DEBUG ONLY KILL
@@ -219,7 +206,7 @@ impl Player {
         }
 
         // Wait if any real action is taken
-        if run_state != RunState::WaitingPlayerInput {
+        if run_state == RunState::DoTick {
             // Reset heal counter if the player did not wait through space or . key
             if !is_actively_waiting {
                 Player::reset_heal_counter(ecs_world);
@@ -291,7 +278,8 @@ impl Player {
         RunState::MouseTargeting(special_view_mode)
     }
 
-    fn pick_up(ecs_world: &mut World) {
+    /// Picks up something to store in backpack
+    fn pick_up(ecs_world: &mut World) -> RunState {
         let player_entity = Player::get_entity(ecs_world);
 
         let mut picked_something = false;
@@ -314,13 +302,16 @@ impl Player {
             game_log
                 .entries
                 .push(String::from("There is nothing here to pick up"));
+            return RunState::WaitingPlayerInput;
         } else {
             // Reset heal counter if the player did pick up something
             Player::reset_heal_counter(ecs_world);
             Player::wait_after_action(ecs_world);
+            return RunState::DoTick;
         }
     }
 
+    /// Takes something from map.
     fn take_from_map(ecs_world: &mut World) -> Option<Entity> {
         let mut target_item: Option<Entity> = None;
 
@@ -342,6 +333,37 @@ impl Player {
         target_item
     }
 
+    /// Try to drink. Return new Runstate
+    fn try_eat(ecs_world: &mut World, player_entity: Entity) -> (RunState, bool) {
+        clear_input_queue();
+        // TODO ask with modal...
+        let item_on_ground = Player::take_from_map(ecs_world);
+
+        match item_on_ground {
+            Some(item_entity) => {
+                // Is really Quaffable?
+                if ecs_world.get::<&Edible>(item_entity).is_ok() {
+                    let _ = ecs_world.insert_one(player_entity, WantsToEat { item: item_entity });
+                    return (RunState::DoTick, true);
+                } else {
+                    // Avoid losing time trying to drink non quaffable from grounnd
+                    let mut game_log_query = ecs_world.query::<&mut GameLog>();
+                    let (_e, game_log) = game_log_query
+                        .iter()
+                        .last()
+                        .expect("Game log is not in hecs::World");
+
+                    game_log.entries.push(format!("You can't eat that!"));
+                    return (RunState::WaitingPlayerInput, false);
+                }
+            }
+            None => {}
+        }
+
+        (RunState::ShowInventory(InventoryAction::Eat), false)
+    }
+
+    /// Try to drink. Return new Runstate and true if it can heal
     fn try_drink(ecs_world: &mut World, player_entity: Entity) -> (RunState, bool) {
         let there_is_river_here: bool;
 
@@ -369,19 +391,32 @@ impl Player {
             let river_entity = Spawn::river_water_entity(ecs_world);
             let _ = ecs_world.insert_one(player_entity, WantsToDrink { item: river_entity });
 
-            return (RunState::DoTick, true);
+            return (RunState::DoTick, false);
         } else {
             // Drink a quaffable item on ground
-            let quaffable = Player::take_from_map(ecs_world);
+            // TODO ask with modal...
+            let item_on_ground = Player::take_from_map(ecs_world);
 
-            if quaffable.is_some() {
-                let _ = ecs_world.insert_one(
-                    player_entity,
-                    WantsToDrink {
-                        item: quaffable.unwrap(),
-                    },
-                );
-                return (RunState::DoTick, true);
+            match item_on_ground {
+                Some(item_entity) => {
+                    // Is really Quaffable?
+                    if ecs_world.get::<&Quaffable>(item_entity).is_ok() {
+                        let _ =
+                            ecs_world.insert_one(player_entity, WantsToDrink { item: item_entity });
+                        return (RunState::DoTick, true);
+                    } else {
+                        // Avoid losing time trying to drink non quaffable from grounnd
+                        let mut game_log_query = ecs_world.query::<&mut GameLog>();
+                        let (_e, game_log) = game_log_query
+                            .iter()
+                            .last()
+                            .expect("Game log is not in hecs::World");
+
+                        game_log.entries.push(format!("You can't drink that!"));
+                        return (RunState::WaitingPlayerInput, false);
+                    }
+                }
+                None => {}
             }
         }
 
@@ -490,6 +525,7 @@ impl Player {
             speed = ecs_world.get::<&CombatStats>(player).unwrap().speed;
         }
         // TODO account speed penalties
+        println!("Player must wait!!!");
         let _ = ecs_world.exchange_one::<MyTurn, WaitingToAct>(
             player,
             WaitingToAct {

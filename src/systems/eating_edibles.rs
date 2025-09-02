@@ -18,16 +18,15 @@ pub struct EatingEdibles {}
 
 impl EatingEdibles {
     pub fn run(ecs_world: &mut World) {
-        let mut eater_list: Vec<Entity> = Vec::new();
-        let mut eaten_list: Vec<Entity> = Vec::new();
+        let mut eater_cleanup_list: Vec<Entity> = Vec::new();
+        let mut eaten_eater_list: Vec<(Entity, Entity)> = Vec::new();
         let mut killed_list: Vec<Entity> = Vec::new();
+        let player_id = Player::get_entity_id(ecs_world);
 
         // Scope for keeping borrow checker quiet
         {
             // List of entities that want to collect items
             let mut eaters = ecs_world.query::<(&WantsToEat, &mut Hunger, &Position)>();
-
-            let player_id = Player::get_entity_id(ecs_world);
 
             let mut zone_query = ecs_world.query::<&mut Zone>();
             let (_e, zone) = zone_query
@@ -46,89 +45,93 @@ impl EatingEdibles {
                 let possible_edible = ecs_world.get::<&Edible>(wants_to_eat.item);
 
                 // Keep track of the eater
-                eater_list.push(eater);
                 if possible_edible.is_err() {
                     if eater.id() == player_id {
                         game_log.entries.push(format!("You can't eat that!"));
                     }
-                    continue;
-                }
-
-                // Eat!
-                eaten_list.push(wants_to_eat.item);
-
-                let edible_nutrition = possible_edible.unwrap();
-
-                // Show appropriate log messages
-                let named_edible = ecs_world.get::<&Named>(wants_to_eat.item).unwrap();
-                if eater.id() == player_id {
-                    game_log
-                        .entries
-                        .push(format!("You ate a {}", named_edible.name));
+                    eater_cleanup_list.push(eater);
                 } else {
-                    let named_eater = ecs_world.get::<&Named>(eater).unwrap();
+                    // Eat!
+                    eaten_eater_list.push((wants_to_eat.item, eater));
 
-                    game_log
-                        .entries
-                        .push(format!("{} ate a {}", named_eater.name, named_edible.name));
-                }
+                    let edible_nutrition = possible_edible.unwrap();
 
-                let is_deadly = ecs_world.get::<&Deadly>(wants_to_eat.item).is_ok();
-                if is_deadly {
+                    // Show appropriate log messages
+                    let named_edible = ecs_world.get::<&Named>(wants_to_eat.item).unwrap();
                     if eater.id() == player_id {
-                        game_log.entries.push(format!(
-                            "You ate a deadly poisonous food! You agonize and die"
-                        ));
-                    }
-                    killed_list.push(eater);
-                    continue;
-                }
+                        game_log
+                            .entries
+                            .push(format!("You ate a {}", named_edible.name));
+                    } else {
+                        let named_eater = ecs_world.get::<&Named>(eater).unwrap();
 
-                // Is it unsavoury? Then vomit badly
-                let unsavoury_component = ecs_world.get::<&Unsavoury>(wants_to_eat.item);
-                if unsavoury_component.is_ok() {
-                    hunger.tick_counter -= Roll::dice(3, 10);
-                    match hunger.current_status {
-                        HungerStatus::Satiated => {
-                            hunger.current_status = HungerStatus::Normal;
-                        }
-                        HungerStatus::Normal => {
-                            hunger.current_status = HungerStatus::Hungry;
-                        }
-                        HungerStatus::Hungry => {
-                            hunger.current_status = HungerStatus::Starved;
-                        }
-                        HungerStatus::Starved => {}
+                        game_log
+                            .entries
+                            .push(format!("{} ate a {}", named_eater.name, named_edible.name));
                     }
 
-                    if eater.id() == player_id {
-                        game_log.entries.push(format!(
-                            "You ate {} food! You vomit!",
-                            unsavoury_component.unwrap().game_log
-                        ));
+                    let is_deadly = ecs_world.get::<&Deadly>(wants_to_eat.item).is_ok();
+                    if is_deadly {
+                        if eater.id() == player_id {
+                            game_log.entries.push(format!(
+                                "You ate a deadly poisonous food! You agonize and die"
+                            ));
+                        }
+                        killed_list.push(eater);
+                        continue;
                     }
 
-                    zone.decals_tiles.insert(
-                        Zone::get_index_from_xy(position.x, position.y),
-                        ParticleType::Vomit,
-                    );
-                } else {
-                    hunger.tick_counter += Roll::dice(
-                        edible_nutrition.nutrition_dice_number,
-                        edible_nutrition.nutrition_dice_size,
-                    );
+                    // Is it unsavoury? Then vomit badly
+                    let unsavoury_component = ecs_world.get::<&Unsavoury>(wants_to_eat.item);
+                    if unsavoury_component.is_ok() {
+                        hunger.tick_counter -= Roll::dice(3, 10);
+                        match hunger.current_status {
+                            HungerStatus::Satiated => {
+                                hunger.current_status = HungerStatus::Normal;
+                            }
+                            HungerStatus::Normal => {
+                                hunger.current_status = HungerStatus::Hungry;
+                            }
+                            HungerStatus::Hungry => {
+                                hunger.current_status = HungerStatus::Starved;
+                            }
+                            HungerStatus::Starved => {}
+                        }
+
+                        if eater.id() == player_id {
+                            game_log.entries.push(format!(
+                                "You ate {} food! You vomit!",
+                                unsavoury_component.unwrap().game_log
+                            ));
+                        }
+
+                        zone.decals_tiles.insert(
+                            Zone::get_index_from_xy(position.x, position.y),
+                            ParticleType::Vomit,
+                        );
+                    } else {
+                        hunger.tick_counter += Roll::dice(
+                            edible_nutrition.nutrition_dice_number,
+                            edible_nutrition.nutrition_dice_size,
+                        );
+                    }
                 }
             }
         }
 
-        for eaten in eaten_list {
+        for (eaten, eater) in eaten_eater_list {
             // Despawn item from World
             let _ = ecs_world.despawn(eaten);
-        }
-
-        for eater in eater_list {
             // Remove owner's will to eat
             let _ = ecs_world.remove_one::<WantsToEat>(eater);
+            if player_id == eater.id() {
+                Player::wait_after_action(ecs_world);
+            }
+        }
+
+        for to_clean in eater_cleanup_list {
+            // Remove owner's will to eat
+            let _ = ecs_world.remove_one::<WantsToEat>(to_clean);
         }
 
         for killed in killed_list {

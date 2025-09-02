@@ -110,12 +110,20 @@ impl ItemEquipping {
                     body_location,
                 },
             );
+
+            if player_id == equipper.id() {
+                Player::wait_after_action(ecs_world);
+            }
         }
 
         for (unequipper, item) in item_to_unequip_list {
             // Unequip and remove owner's will to equip
             let _ = ecs_world.remove_one::<WantsToEquip>(unequipper);
             let _ = ecs_world.remove_one::<Equipped>(item);
+
+            if player_id == unequipper.id() {
+                Player::wait_after_action(ecs_world);
+            }
         }
 
         for to_clean in cleanup_equip {

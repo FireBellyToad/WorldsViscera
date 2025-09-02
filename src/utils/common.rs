@@ -1,4 +1,6 @@
-use crate::components::items::BodyLocation;
+use hecs::{Component, Entity, World};
+
+use crate::components::{common::GameLog, items::BodyLocation};
 
 pub struct Utils {}
 
@@ -24,5 +26,10 @@ impl Utils {
         }
 
         false
+    }
+
+    /// Return true if entity has component
+    pub fn has_component<T : Component>(ecs_world: &World, entity: Entity) -> bool{
+        ecs_world.get::<&T>(entity).is_ok()
     }
 }

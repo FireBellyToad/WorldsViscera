@@ -79,6 +79,10 @@ impl ItemDropping {
                     y: drop_y,
                 },
             );
+            
+            if player_id == dropper.id() {
+                Player::wait_after_action(ecs_world);
+            }
         }
     }
 }
