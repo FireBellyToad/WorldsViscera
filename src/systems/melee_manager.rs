@@ -39,12 +39,20 @@ impl MeleeManager {
 
                 //Sum damage, keeping in mind that could not have SufferingDamage component
                 if target_damage.is_ok() {
-                    let attacker_stats = ecs_world.get::<&CombatStats>(attacker).unwrap();
-                    let target_stats = ecs_world.get::<&CombatStats>(wants_melee.target).unwrap();
+                    let attacker_stats = ecs_world
+                        .get::<&CombatStats>(attacker)
+                        .expect("Entity does not have CombatStats");
+                    let target_stats = ecs_world
+                        .get::<&CombatStats>(wants_melee.target)
+                        .expect("Entity does not have CombatStats");
 
                     // Show appropriate log messages
-                    let named_attacker = ecs_world.get::<&Named>(attacker).unwrap();
-                    let named_target = ecs_world.get::<&Named>(wants_melee.target).unwrap();
+                    let named_attacker = ecs_world
+                        .get::<&Named>(attacker)
+                        .expect("Entity is not Named");
+                    let named_target = ecs_world
+                        .get::<&Named>(wants_melee.target)
+                        .expect("Entity is not Named");
                     let attacker_dice = MeleeManager::get_damage_dice(
                         attacker_stats.unarmed_attack_dice,
                         attacker.id(),
@@ -53,30 +61,32 @@ impl MeleeManager {
 
                     let damage_roll: i32;
                     // Sneak attack doubles damage
-                    if hidden.is_some() {
-                        damage_roll =
-                            max(0, Roll::dice(2, attacker_dice) - target_stats.base_armor);
-                        game_log.entries.push(format!(
-                            "{} sneak attacks the {} for {} damage!",
-                            named_attacker.name, named_target.name, damage_roll
-                        ));
-                        hidden_list.push(attacker);
+                    match hidden {
+                        Some(_) => {
+                            damage_roll =
+                                max(0, Roll::dice(2, attacker_dice) - target_stats.base_armor);
+                            game_log.entries.push(format!(
+                                "{} sneak attacks the {} for {} damage!",
+                                named_attacker.name, named_target.name, damage_roll
+                            ));
+                            hidden_list.push(attacker);
 
-                        // Cannot hide again for 9 - (stats.current_dexterity / 3) turns
-                        let mut can_hide = ecs_world.get::<&mut CanHide>(attacker).unwrap();
-                        can_hide.cooldown = (MAX_HIDDEN_TURNS
-                            - (attacker_stats.current_dexterity / 3))
-                            * attacker_stats.speed;
-                    } else {
-                        damage_roll = max(
-                            0,
-                            Roll::dice(1, attacker_dice)
-                                - target_stats.base_armor,
-                        );
-                        game_log.entries.push(format!(
-                            "{} hits the {} for {} damage",
-                            named_attacker.name, named_target.name, damage_roll
-                        ));
+                            // Cannot hide again for 9 - (stats.current_dexterity / 3) turns
+                            let mut can_hide = ecs_world
+                                .get::<&mut CanHide>(attacker)
+                                .expect("Entity does not have CanHide");
+                            can_hide.cooldown = (MAX_HIDDEN_TURNS
+                                - (attacker_stats.current_dexterity / 3))
+                                * attacker_stats.speed;
+                        }
+                        None => {
+                            damage_roll =
+                                max(0, Roll::dice(1, attacker_dice) - target_stats.base_armor);
+                            game_log.entries.push(format!(
+                                "{} hits the {} for {} damage",
+                                named_attacker.name, named_target.name, damage_roll
+                            ));
+                        }
                     }
 
                     target_damage.unwrap().damage_received += damage_roll;

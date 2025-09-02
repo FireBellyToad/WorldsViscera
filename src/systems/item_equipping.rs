@@ -61,37 +61,41 @@ impl ItemEquipping {
                                 )
                         });
 
-                    if item_in_same_location.is_some() {
-                        let (item_to_remove, _) = item_in_same_location.unwrap();
-                        let named_item_to_remove = ecs_world.get::<&Named>(item_to_remove).unwrap();
-                        // Log to warning to Unequip item in same location and cleanup
-                        cleanup_equip.push(equipper);
+                    match item_in_same_location {
+                        // Old item in same body location as new one
+                        Some((item_to_remove, _)) => {
+                            let named_item_to_remove =
+                                ecs_world.get::<&Named>(item_to_remove).expect("Entity is not Named");
+                            // Log to warning to Unequip item in same location and cleanup
+                            cleanup_equip.push(equipper);
 
-                        if player_id == equipper.id() {
-                            game_log.entries.push(format!(
-                                "You must unequip the {} before equipping the {}",
-                                named_item_to_remove.name, named_item.name
-                            ));
+                            if player_id == equipper.id() {
+                                game_log.entries.push(format!(
+                                    "You must unequip the {} before equipping the {}",
+                                    named_item_to_remove.name, named_item.name
+                                ));
+                            }
+
+                            // TODO must not wait in this case!!
                         }
-
-                        // TODO must not wait in this case!!
-                    } else {
-                        // Drop item and keep track of the drop Position
-                        item_to_equip_list.push((
-                            wants_to_equip.item,
-                            wants_to_equip.body_location.clone(),
-                            equipper,
-                        ));
-
-                        if player_id == equipper.id() {
-                            game_log
-                                .entries
-                                .push(format!("You equip the {}", named_item.name));
-                        } else {
-                            game_log.entries.push(format!(
-                                "{} equips the {}",
-                                named_dropper.name, named_item.name
+                        None => {
+                            // Drop item and keep track of the drop Position
+                            item_to_equip_list.push((
+                                wants_to_equip.item,
+                                wants_to_equip.body_location.clone(),
+                                equipper,
                             ));
+
+                            if player_id == equipper.id() {
+                                game_log
+                                    .entries
+                                    .push(format!("You equip the {}", named_item.name));
+                            } else {
+                                game_log.entries.push(format!(
+                                    "{} equips the {}",
+                                    named_dropper.name, named_item.name
+                                ));
+                            }
                         }
                     }
                 }
