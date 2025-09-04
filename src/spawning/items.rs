@@ -6,8 +6,7 @@ use crate::{
         combat::InflictsDamage,
         common::{Named, Position, Renderable, SmellIntensity, Smellable},
         items::{
-            BodyLocation, Deadly, Edible, Equippable, Invokable, InvokablesEnum, Item,
-            MustBeFueled, ProduceLight, Quaffable, Refiller, Unsavoury, Weapon,
+            BodyLocation, Deadly, Edible, Equippable, Invokable, InvokablesEnum, Item, MustBeFueled, Perishable, ProduceLight, Quaffable, Refiller, ToBeHarvested, Unsavoury, Weapon
         },
     },
     constants::*,
@@ -37,6 +36,7 @@ pub fn mushroom(ecs_world: &mut World, x: i32, y: i32) {
             smell_log: String::from("mushrooms"),
             intensity: SmellIntensity::Faint,
         },
+        ToBeHarvested {}
     );
 
     let mushroom_entity = ecs_world.spawn(common_components);
@@ -259,7 +259,6 @@ pub fn flask_of_oil(ecs_world: &mut World, x: i32, y: i32) {
 }
 
 pub fn shiv(ecs_world: &mut World, x: i32, y: i32) {
-    
     let item_tile_index = (0, 2);
     let flask_of_oil = (
         Position { x, y },
@@ -289,7 +288,6 @@ pub fn shiv(ecs_world: &mut World, x: i32, y: i32) {
 }
 
 pub fn rockpick(ecs_world: &mut World, x: i32, y: i32) {
-    
     let item_tile_index = (1, 2);
     let flask_of_oil = (
         Position { x, y },
@@ -319,7 +317,6 @@ pub fn rockpick(ecs_world: &mut World, x: i32, y: i32) {
 }
 
 pub fn maul(ecs_world: &mut World, x: i32, y: i32) {
-    
     let item_tile_index = (2, 2);
     let flask_of_oil = (
         Position { x, y },

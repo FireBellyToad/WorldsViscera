@@ -4,10 +4,10 @@ use crate::{
     components::{
         actions::WantsItem,
         common::{GameLog, Named, Position},
-        items::{InBackback, Item},
+        items::{InBackback, Item, Perishable, ToBeHarvested},
         player::Player,
     },
-    constants::{MAX_ITEMS_IN_BACKPACK, OPTION_TO_CHAR_MAP},
+    constants::{MAX_ITEMS_IN_BACKPACK, OPTION_TO_CHAR_MAP, STARTING_ROT_COUNTER}, utils::roll::Roll,
 };
 
 pub struct ItemCollection {}
@@ -16,6 +16,7 @@ impl ItemCollection {
     pub fn run(ecs_world: &mut World) {
         let mut item_owner_list: Vec<(Entity, Entity, char)> = Vec::new();
         let mut failed_pick_upper: Vec<Entity> = Vec::new();
+        let mut harvested_list: Vec<Entity> = Vec::new();
         let player_id = Player::get_entity_id(ecs_world);
 
         // Scope for keeping borrow checker quiet
@@ -43,10 +44,14 @@ impl ItemCollection {
                     .map(|(_e, (_i, b))| b.assigned_char)
                     .collect();
 
-                let named_owner = ecs_world.get::<&Named>(collector).expect("Entity is not Named");
+                let named_owner = ecs_world
+                    .get::<&Named>(collector)
+                    .expect("Entity is not Named");
                 if all_currently_assigned_chars.len() == MAX_ITEMS_IN_BACKPACK {
                     if player_id == collector.id() {
-                        game_log.entries.push("You cannot carry anymore!".to_string());
+                        game_log
+                            .entries
+                            .push("You cannot carry anymore!".to_string());
                         failed_pick_upper.push(collector);
                     }
                 } else {
@@ -58,7 +63,9 @@ impl ItemCollection {
                     }
 
                     // Show appropriate log messages
-                    let named_item = ecs_world.get::<&Named>(wants_item.item).expect("Entity is not Named");
+                    let named_item = ecs_world
+                        .get::<&Named>(wants_item.item)
+                        .expect("Entity is not Named");
 
                     if player_id == collector.id() {
                         game_log
@@ -69,6 +76,11 @@ impl ItemCollection {
                             "{} picks up the {}",
                             named_owner.name, named_item.name
                         ));
+                    }
+
+                    // If needs to be on ground but not starting to rot (usually plants or mushroom)
+                    if ecs_world.get::<&ToBeHarvested>(wants_item.item).is_ok() {
+                        harvested_list.push(wants_item.item);
                     }
 
                     // Pick up and keep track of the owner
@@ -94,6 +106,16 @@ impl ItemCollection {
         for entity in failed_pick_upper {
             // Remove owner's will to pick up
             let _ = ecs_world.remove_one::<WantsItem>(entity);
+        }
+
+        for item in harvested_list {
+            // Start to perish
+            let _ = ecs_world.exchange_one::<ToBeHarvested, Perishable>(
+                item,
+                Perishable {
+                    rot_counter: STARTING_ROT_COUNTER + Roll::d20(),
+                },
+            );
         }
     }
 }

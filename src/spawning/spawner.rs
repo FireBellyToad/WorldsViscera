@@ -164,7 +164,7 @@ impl Spawn {
             },
             edible,
             Perishable {
-                rot_counter: STARTING_ROT_COUNTER + Roll::d20(),
+                rot_counter: STARTING_ROT_COUNTER + Roll::d20()
             },
         );
 

@@ -1,7 +1,7 @@
 use hecs::Entity;
 
 pub struct Item {
-    pub item_tile: (i32,i32),
+    pub item_tile: (i32, i32),
 }
 
 pub struct Edible {
@@ -44,6 +44,8 @@ pub struct Perishable {
     pub rot_counter: i32,
 }
 
+pub struct ToBeHarvested {}
+
 pub struct Unsavoury {
     pub game_log: String,
 }
@@ -61,12 +63,12 @@ pub struct MustBeFueled {
 pub struct Refiller {}
 
 pub struct Equippable {
-    pub body_location: BodyLocation
+    pub body_location: BodyLocation,
 }
 
 pub struct Equipped {
     pub owner: Entity,
-    pub body_location: BodyLocation
+    pub body_location: BodyLocation,
 }
 
 pub struct Weapon {
