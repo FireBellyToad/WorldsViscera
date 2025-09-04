@@ -53,7 +53,6 @@ impl DecayManager {
                             // Rot
                             perishable.rot_counter = STARTING_ROT_COUNTER + Roll::d100();
                             expired_edibles.push(entity);
-                            println!("Entity {} is now rotten", entity.id())
                         }
                     }
                 }

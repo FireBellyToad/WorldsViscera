@@ -12,17 +12,14 @@ impl ParticleAnimation {
         // to give the impression of a growing ray.
         let total_frames = line_effect.len();
         let mut frames: Vec<Vec<(i32, i32)>> = Vec::new();
-        let mut loaded_frame_renders: usize = 0;
         let mut pointer: usize = 0;
 
-        for _ in 0..total_frames {
+        for (loaded_frame_renders, _) in (0..total_frames).enumerate() {
             let mut frame_renders: Vec<(i32, i32)> = Vec::new();
             while pointer <= loaded_frame_renders {
                 frame_renders.push(line_effect[pointer]);
                 pointer += 1;
             }
-
-            loaded_frame_renders += 1;
             pointer = 0;
             frames.push(frame_renders);
         }

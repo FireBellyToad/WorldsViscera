@@ -6,7 +6,8 @@ use crate::{
         combat::InflictsDamage,
         common::{Named, Position, Renderable, SmellIntensity, Smellable},
         items::{
-            BodyLocation, Deadly, Edible, Equippable, Invokable, InvokablesEnum, Item, MustBeFueled, Perishable, ProduceLight, Quaffable, Refiller, ToBeHarvested, Unsavoury, Weapon
+            BodyLocation, Deadly, Edible, Equippable, Invokable, InvokablesEnum, Item,
+            MustBeFueled, ProduceLight, Quaffable, Refiller, ToBeHarvested, Unsavoury, Weapon,
         },
     },
     constants::*,
@@ -36,7 +37,7 @@ pub fn mushroom(ecs_world: &mut World, x: i32, y: i32) {
             smell_log: String::from("mushrooms"),
             intensity: SmellIntensity::Faint,
         },
-        ToBeHarvested {}
+        ToBeHarvested {},
     );
 
     let mushroom_entity = ecs_world.spawn(common_components);
