@@ -69,23 +69,22 @@ impl HungerCheck {
                             hunger.current_status = HungerStatus::Starved;
 
                             if hungry_entity.id() == player_id {
-                                game_log.entries.push(format!("You are starving!"));
+                                game_log.entries.push("You are starving!".to_string());
                             }
                         }
                         HungerStatus::Starved => {
                             // 33% of chance to be damaged by hunger
                             if Roll::d6() <= 2 {
-                                let damage_starving_entity =
-                                    ecs_world.get::<&mut SufferingDamage>(hungry_entity);
-
-                                // if can starve, damage the entity
-                                if damage_starving_entity.is_ok() {
-                                    damage_starving_entity.unwrap().damage_received += 1;
+                                // if can starve and can be damaged, damage the entity
+                                if let Ok(mut damage_starving_entity) =
+                                    ecs_world.get::<&mut SufferingDamage>(hungry_entity)
+                                {
+                                    damage_starving_entity.damage_received += 1;
 
                                     if hungry_entity.id() == player_id {
                                         game_log
                                             .entries
-                                            .push(format!("Starvation wastes you away!"));
+                                            .push("Starvation wastes you away!".to_string());
                                     }
                                 }
                             }
@@ -103,9 +102,9 @@ impl HungerCheck {
                             if Roll::d20() <= stats.current_toughness {
                                 hunger.tick_counter = MAX_HUNGER_TICK_COUNTER;
                                 if hungry_entity.id() == player_id {
-                                    game_log.entries.push(format!(
-                                        "You ate too much and feel slightly nauseous"
-                                    ));
+                                    game_log.entries.push(
+                                        "You ate too much and feel slightly nauseous".to_string(),
+                                    );
                                 }
                             } else {
                                 hunger.tick_counter = MAX_HUNGER_TICK_COUNTER - Roll::dice(3, 10);
@@ -117,7 +116,7 @@ impl HungerCheck {
                                 if hungry_entity.id() == player_id {
                                     game_log
                                         .entries
-                                        .push(format!("You ate too much and vomit!"));
+                                        .push("You ate too much and vomit!".to_string());
                                 }
                             }
                         }
@@ -130,7 +129,9 @@ impl HungerCheck {
                         HungerStatus::Starved => {
                             hunger.current_status = HungerStatus::Hungry;
                             if hungry_entity.id() == player_id {
-                                game_log.entries.push(format!("You are no longer starved"));
+                                game_log
+                                    .entries
+                                    .push("You are no longer starved".to_string());
                             }
                         }
                     }

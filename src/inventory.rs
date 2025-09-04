@@ -69,45 +69,40 @@ impl Inventory {
                         .expect("Game log is not in hecs::World");
 
                     //Inventory = Named items in backpack of the Player assigned to the pressed char key
-                    let inventory: Vec<(Entity, String, char, (i32, i32), bool)>;
-                    match mode {
+                    let inventory: Vec<(Entity, String, char, (i32, i32), bool)> = match mode {
                         InventoryAction::Eat => {
-                            inventory =
-                                Inventory::get_all_in_backpack_filtered_by::<Edible>(ecs_world);
+                            Inventory::get_all_in_backpack_filtered_by::<Edible>(ecs_world)
                         }
                         InventoryAction::Invoke => {
-                            inventory =
-                                Inventory::get_all_in_backpack_filtered_by::<Invokable>(ecs_world);
+                            Inventory::get_all_in_backpack_filtered_by::<Invokable>(ecs_world)
                         }
                         InventoryAction::Quaff => {
-                            inventory =
-                                Inventory::get_all_in_backpack_filtered_by::<Quaffable>(ecs_world);
+                            Inventory::get_all_in_backpack_filtered_by::<Quaffable>(ecs_world)
                         }
                         InventoryAction::RefillWhat => {
-                            inventory = Inventory::get_all_in_backpack_filtered_by::<ProduceLight>(
+                            Inventory::get_all_in_backpack_filtered_by::<ProduceLight>(
                                 ecs_world,
-                            );
+                            )
                         }
                         InventoryAction::RefillWith => {
-                            inventory =
-                                Inventory::get_all_in_backpack_filtered_by::<Refiller>(ecs_world);
+                            Inventory::get_all_in_backpack_filtered_by::<Refiller>(ecs_world)
                         }
                         InventoryAction::Equip => {
-                            inventory =
-                                Inventory::get_all_in_backpack_filtered_by::<Equippable>(ecs_world);
+                            Inventory::get_all_in_backpack_filtered_by::<Equippable>(ecs_world)
                         }
                         InventoryAction::Drop => {
-                            inventory = Inventory::get_all_in_backpack(ecs_world);
+                           Inventory::get_all_in_backpack(ecs_world)
                         }
-                    }
+                    };
 
                     // Validating char input
                     let item_selected = inventory
                         .iter()
                         .find(|(_e, _n, assigned_char, _t, _eq)| *assigned_char == letterkey);
 
-                    if item_selected.is_some() {
-                        selected_item_entity = Some(item_selected.unwrap().0);
+                    // Check if item exist for letter, then register it and go on
+                    if let Some(item_sel_unwrap) = item_selected {
+                        selected_item_entity = Some(item_sel_unwrap.0);
                         user_entity = Some(player_entity);
                     } else {
                         game_log
@@ -119,41 +114,41 @@ impl Inventory {
 
             // Use selected item
             let mut new_run_state = RunState::DoTick;
-            if selected_item_entity.is_some() {
-                let item: Entity = selected_item_entity.unwrap();
+            if let Some(item) = selected_item_entity {
+                let user = user_entity.expect("user_entity is none!");
                 match mode {
                     InventoryAction::Eat => {
-                        let _ = ecs_world.insert_one(user_entity.unwrap(), WantsToEat { item });
+                        let _ = ecs_world.insert_one(user, WantsToEat { item });
                     }
                     InventoryAction::Drop => {
-                        let _ = ecs_world.insert_one(user_entity.unwrap(), WantsToDrop { item });
+                        let _ = ecs_world.insert_one(user, WantsToDrop { item });
                     }
                     InventoryAction::Quaff => {
-                        let _ = ecs_world.insert_one(user_entity.unwrap(), WantsToDrink { item });
+                        let _ = ecs_world.insert_one(user, WantsToDrink { item });
                     }
                     InventoryAction::Invoke => {
-                        let _ = ecs_world.insert_one(user_entity.unwrap(), WantsToInvoke { item });
+                        let _ = ecs_world.insert_one(user, WantsToInvoke { item });
                         new_run_state = RunState::MouseTargeting(SpecialViewMode::ZapTargeting);
                     }
                     InventoryAction::RefillWhat => {
                         // Select what to refill, then which item you are going to refill with
                         let _ = ecs_world
-                            .insert_one(user_entity.unwrap(), WantsToFuel { item, with: None });
+                            .insert_one(user, WantsToFuel { item, with: None });
                         new_run_state = RunState::ShowInventory(InventoryAction::RefillWith);
                     }
                     InventoryAction::RefillWith => {
-                        let wants_to_fuel = ecs_world.get::<&mut WantsToFuel>(user_entity.unwrap());
-                        wants_to_fuel.unwrap().with = Some(item);
+                        let wants_to_fuel = ecs_world.get::<&mut WantsToFuel>(user);
+                        wants_to_fuel.expect("Must Want to Fuel!").with = Some(item);
                     }
                     InventoryAction::Equip => {
                         let body_location;
                         // Scope to keep the borrow check quiet
                         {
-                            let equippable = ecs_world.get::<&Equippable>(item).unwrap();
+                            let equippable = ecs_world.get::<&Equippable>(item).expect("Should be Equippable!");
                             body_location = equippable.body_location.clone();
                         }
                         let _ = ecs_world.insert_one(
-                            user_entity.unwrap(),
+                            user,
                             WantsToEquip {
                                 item,
                                 body_location,
@@ -247,14 +242,12 @@ impl Inventory {
             let y = (INVENTORY_Y + INVENTORY_TOP_SPAN) as f32
                 + ((FONT_SIZE + LETTER_SIZE) * index as f32);
 
-            let text:String;
-
-            if *equipped {
+            let text:String = if *equipped {
                 // TODO show body location
-                text = format!("{} : \t - {} - Equipped", assigned_char, item_name);
+                 format!("{} : \t - {} - Equipped", assigned_char, item_name)
             } else {
-                text = format!("{} : \t - {}", assigned_char, item_name);
-            }
+                format!("{} : \t - {}", assigned_char, item_name)
+            };
 
             draw_text(
                 text,

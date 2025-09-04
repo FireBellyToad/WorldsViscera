@@ -36,18 +36,18 @@ impl SmellManager {
             for (smeller, (wants_to_smell, smell_ability, smeller_position)) in &mut smellers {
                 let index =
                     Zone::get_index_from_xy(wants_to_smell.target.0, wants_to_smell.target.1);
-                let target_list = &zone.tile_content[index];
 
-                if target_list.is_empty() {
-                    game_log.entries.push(format!("You smell nothing strange"));
-                } else {
+                let mut have_smelled_something = false;
+
+                // Targets in water cannot be smelled
+                if !zone.water_tiles[index] {
+                    let target_list = &zone.tile_content[index];
+
                     for &target in target_list {
                         let target_smell = ecs_world.get::<&Smellable>(target);
 
-                        // Targets in water cannot be smelled
-                        if target_smell.is_ok() && !zone.water_tiles[index]{
+                        if let Ok(smells) = target_smell {
                             // Show appropriate log messages
-                            let smells = target_smell.unwrap();
                             let distance = Utils::distance(
                                 wants_to_smell.target.0,
                                 smeller_position.x,
@@ -56,22 +56,23 @@ impl SmellManager {
                             );
 
                             let can_smell = smell_ability.intensity != SmellIntensity::None // the player cannot smell anything (common cold or other penalities)
-                        && ((distance < smell_ability.radius / 2.0 && smells.intensity == SmellIntensity::Faint) // Faint odors can be smell from half normal distance
-                            || (distance < smell_ability.radius
-                                && (smells.intensity == SmellIntensity::Strong // Strong odors can be smelled at double distance. 
-                                    || smell_ability.intensity == SmellIntensity::Strong))); // Player have improved smell (can smell faint odors from far away)
+                                                && ((distance < smell_ability.radius / 2.0 && smells.intensity == SmellIntensity::Faint) // Faint odors can be smell from half normal distance
+                                                    || (distance < smell_ability.radius
+                                                        && (smells.intensity == SmellIntensity::Strong // Strong odors can be smelled at double distance. 
+                                                            || smell_ability.intensity == SmellIntensity::Strong))); // Player have improved smell (can smell faint odors from far away)
 
                             if can_smell {
+                                have_smelled_something = true;
                                 game_log
                                     .entries
                                     .push(format!("You smell {}", smells.smell_log));
-                            } else {
-                                game_log.entries.push(format!("You smell nothing strange"));
                             }
-                        } else {
-                            game_log.entries.push(format!("You smell nothing strange"));
                         }
                     }
+                }
+
+                if !have_smelled_something {
+                    game_log.entries.push("You smell nothing strange".to_string());
                 }
 
                 // prepare lists for removal

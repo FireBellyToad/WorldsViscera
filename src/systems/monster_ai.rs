@@ -59,7 +59,7 @@ impl MonsterAI {
                     );
 
                     //If can actually reach the player
-                    if pathfinding_result.is_some() {
+                    if let Some((path,_)) =  pathfinding_result {
                         let distance = Utils::distance(
                             position.x,
                             player_position.x,
@@ -75,7 +75,6 @@ impl MonsterAI {
                             waiter_speed_list.push((monster_entity, stats.speed));
                         } else {
                             viewshed.must_recalculate = true;
-                            let (path, _c) = pathfinding_result.unwrap();
 
                             // Avoid overlap with other monsters and player
                             if path.len() > 1 {

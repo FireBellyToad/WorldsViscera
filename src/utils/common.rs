@@ -1,6 +1,4 @@
-use hecs::{Component, Entity, World};
-
-use crate::components::{common::GameLog, items::BodyLocation};
+use crate::components::items::BodyLocation;
 
 pub struct Utils {}
 
@@ -10,26 +8,19 @@ impl Utils {
         ((x1.abs_diff(x2).pow(2) + y1.abs_diff(y2).pow(2)) as f32).sqrt()
     }
 
-    pub fn occupies_same_location(b1: &BodyLocation, b2: &BodyLocation) -> bool{
-        if b1 == b2{
+    pub fn occupies_same_location(b1: &BodyLocation, b2: &BodyLocation) -> bool {
+        if b1 == b2 {
             return true;
-        } 
-        
+        }
+
         match b1 {
             BodyLocation::Hands => {
-                return b2 == &BodyLocation::LeftHand ||  b2 == &BodyLocation::RightHand 
-            },
-            BodyLocation::LeftHand | BodyLocation::RightHand  =>{
-                return b2 == &BodyLocation::Hands
-            },
+                return b2 == &BodyLocation::LeftHand || b2 == &BodyLocation::RightHand;
+            }
+            BodyLocation::LeftHand | BodyLocation::RightHand => return b2 == &BodyLocation::Hands,
             _ => {}
         }
 
         false
-    }
-
-    /// Return true if entity has component
-    pub fn has_component<T : Component>(ecs_world: &World, entity: Entity) -> bool{
-        ecs_world.get::<&T>(entity).is_ok()
     }
 }

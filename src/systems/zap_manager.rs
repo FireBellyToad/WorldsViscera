@@ -48,16 +48,16 @@ impl ZapManager {
                 let zapper_wrapper = vec![zapper];
                 let is_lightning_wand = ecs_world
                     .get::<&Invokable>(wants_invoke.item)
-                    .unwrap()
+                    .expect("Must be Invokable!")
                     .invokable_type
                     == InvokablesEnum::LightningWand;
 
                 // If wet, Lightning wand makes zap himself too!
                 if wet.is_some() && is_lightning_wand {
                     target_list.push(&zapper_wrapper);
-                    game_log.entries.push(format!(
+                    game_log.entries.push(
                         "Using the Lightning wand while wet was a bad idea..."
-                    ));
+                    .to_string());
                 }
 
                 // Do not draw if zapping himself
@@ -85,35 +85,34 @@ impl ZapManager {
 
                 for &targets in &target_list {
                     for &target in targets {
-                        let target_damage = ecs_world.get::<&mut SufferingDamage>(target);
 
                         //Sum damage, keeping in mind that could not have SufferingDamage component
-                        if target_damage.is_ok() {
-                            let target_stats = ecs_world.get::<&CombatStats>(target).unwrap();
-                            let target_wet = ecs_world.get::<&Wet>(target);
+                        if let Ok(mut target_damage) =  ecs_world.get::<&mut SufferingDamage>(target) {
+
+                            let target_stats = ecs_world.get::<&CombatStats>(target).expect("Entity has no CombatStats");
                             let item_damage =
-                                ecs_world.get::<&InflictsDamage>(wants_invoke.item).unwrap();
+                                ecs_world.get::<&InflictsDamage>(wants_invoke.item).expect("Entity has no InflictsDamage");
                             let damage_roll =
                                 Roll::dice(item_damage.number_of_dices, item_damage.dice_size);
 
                             let mut saving_throw_roll = AUTOFAIL_SAVING_THROW;
 
                             // If target is wet while targeted by lightning wand , autofail the saving throw!
-                            if target_wet.is_err() && is_lightning_wand {
+                            if ecs_world.get::<&Wet>(target).is_err() && is_lightning_wand {
                                 saving_throw_roll = Roll::d20();
                             }
 
                             // Show appropriate log messages
-                            let named_attacker = ecs_world.get::<&Named>(zapper).unwrap();
-                            let named_target = ecs_world.get::<&Named>(target).unwrap();
+                            let named_attacker = ecs_world.get::<&Named>(zapper).expect("Entity is not Named");
+                            let named_target = ecs_world.get::<&Named>(target).expect("Entity is not Named");
 
                             // Dextery Save made halves damage
                             if saving_throw_roll > target_stats.current_dexterity {
-                                target_damage.unwrap().damage_received += damage_roll;
+                                target_damage.damage_received += damage_roll;
                             } else {
-                                target_damage.unwrap().damage_received += damage_roll / 2;
+                                target_damage.damage_received += damage_roll / 2;
                                 if target.id() == player_id {
-                                    game_log.entries.push(format!("You duck some of the blow!"));
+                                    game_log.entries.push("You duck some of the blow!".to_string());
                                 } else {
                                     game_log.entries.push(format!(
                                         "{} ducks some of the blow!",

@@ -36,7 +36,7 @@ impl ItemEquipping {
             for (equipper, wants_to_equip) in &mut items_to_equip {
                 // Show appropriate log messages
                 let named_item: hecs::Ref<'_, Named> =
-                    ecs_world.get::<&Named>(wants_to_equip.item).unwrap();
+                    ecs_world.get::<&Named>(wants_to_equip.item).expect("Entity is not Named");
                 let is_already_equipped = ecs_world.get::<&Equipped>(wants_to_equip.item).is_ok();
 
                 if is_already_equipped {
@@ -49,7 +49,7 @@ impl ItemEquipping {
                             .push(format!("You unequip the {}", named_item.name));
                     }
                 } else {
-                    let named_dropper = ecs_world.get::<&Named>(equipper).unwrap();
+                    let named_dropper = ecs_world.get::<&Named>(equipper).expect("Entity is not Named");
 
                     //Check if wants_item.body_location is already taken
                     let item_in_same_location: Option<(Entity, &Equipped)> =
@@ -75,8 +75,6 @@ impl ItemEquipping {
                                     named_item_to_remove.name, named_item.name
                                 ));
                             }
-
-                            // TODO must not wait in this case!!
                         }
                         None => {
                             // Drop item and keep track of the drop Position

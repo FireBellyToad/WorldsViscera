@@ -18,10 +18,16 @@ use systems::{
 use crate::{
     components::common::{Position, Viewshed},
     maps::{
-        arena_zone_builder::ArenaZoneBuilder, drunken_walk_zone_builder::DrunkenWalkZoneBuilder, zone::Zone, ZoneBuilder
+        ZoneBuilder, arena_zone_builder::ArenaZoneBuilder,
+        drunken_walk_zone_builder::DrunkenWalkZoneBuilder, zone::Zone,
     },
     systems::{
-        automatic_healing::AutomaticHealing, decay_manager::DecayManager, drinking_quaffables::DrinkingQuaffables, fuel_manager::FuelManager, hidden_manager::HiddenManager, hunger_check::HungerCheck, item_equipping::ItemEquipping, map_indexing::MapIndexing, particle_manager::ParticleManager, smell_manager::SmellManager, thirst_check::ThirstCheck, turn_checker::TurnCheck, wet_manager::WetManager, zap_manager::ZapManager
+        automatic_healing::AutomaticHealing, decay_manager::DecayManager,
+        drinking_quaffables::DrinkingQuaffables, fuel_manager::FuelManager,
+        hidden_manager::HiddenManager, hunger_check::HungerCheck, item_equipping::ItemEquipping,
+        map_indexing::MapIndexing, particle_manager::ParticleManager, smell_manager::SmellManager,
+        thirst_check::ThirstCheck, turn_checker::TurnCheck, wet_manager::WetManager,
+        zap_manager::ZapManager,
     },
     utils::assets::Load,
 };
@@ -131,7 +137,7 @@ async fn main() {
                 }
                 RunState::GoToNextZone => {
                     // Reset heal counter if the player did not wait
-                    Player::reset_heal_counter(&mut game_state.ecs_world);
+                    Player::reset_heal_counter(&game_state.ecs_world);
                     Player::wait_after_action(&mut game_state.ecs_world);
                     change_zone(&mut game_state);
                     clear_input_queue();
@@ -195,38 +201,32 @@ fn change_zone(engine: &mut EngineState) {
 
     let entities_to_delete = engine.get_entities_to_delete_on_zone_change();
 
-    //TODO froze for backtracking
     for e in entities_to_delete {
         let _ = engine.ecs_world.despawn(e);
     }
 
     let zone = DrunkenWalkZoneBuilder::build(current_depth + 1);
 
-    //Set player position in new zone and force a FOV recalculation
-    let player_entity = Player::get_entity(&engine.ecs_world);
-
     // Scope for keeping borrow checker quiet
     {
-        let mut player_position = engine
+        //Set player position in new zone and force a FOV recalculation
+        let mut player_query_viewshed = engine
             .ecs_world
-            .get::<&mut Position>(player_entity)
-            .unwrap();
+            .query::<(&mut Position, &mut Viewshed)>()
+            .with::<&Player>();
 
-        let (x, y) = Zone::get_xy_from_index(zone.player_spawn_point);
-        player_position.x = x;
-        player_position.y = y;
+        for (_e, (player_position, player_viewshed)) in &mut player_query_viewshed {
+            let (x, y) = Zone::get_xy_from_index(zone.player_spawn_point);
+            player_position.x = x;
+            player_position.y = y;
 
-        let mut player_viewshed: hecs::RefMut<'_, Viewshed> = engine
-            .ecs_world
-            .get::<&mut Viewshed>(player_entity)
-            .unwrap();
-        player_viewshed.must_recalculate = true;
+            player_viewshed.must_recalculate = true;
+        }
     }
 
     Spawn::everyhing_in_map(&mut engine.ecs_world, &zone);
 
     // Add zone (previous shuold be removed)
-    //TODO froze for backtracking
     engine.ecs_world.spawn((true, zone));
 }
 
@@ -242,11 +242,10 @@ fn do_before_tick_logic(game_state: &mut EngineState) {
 }
 
 fn do_in_tick_game_logic(game_state: &mut EngineState) -> bool {
-    let game_over;
     ZapManager::run(&mut game_state.ecs_world);
     MeleeManager::run(&mut game_state.ecs_world);
     DamageManager::run(&game_state.ecs_world);
-    game_over = DamageManager::remove_dead_and_check_gameover(&mut game_state.ecs_world);
+    let game_over = DamageManager::remove_dead_and_check_gameover(&mut game_state.ecs_world);
     //Proceed on game logic if is not Game Over
     if game_over {
         return true;

@@ -20,6 +20,7 @@ pub struct InBackback {
 }
 
 #[derive(PartialEq, Debug, Clone)]
+#[allow(dead_code)]
 pub enum BodyLocation {
     Arms,
     Hands,

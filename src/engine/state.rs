@@ -24,7 +24,6 @@ pub struct EngineState {
 impl EngineState {
     
     /// Retain the player, gamelog and backpack items when changing Zone
-    //TODO froze for backtracking
     pub fn get_entities_to_delete_on_zone_change(&mut self) -> Vec<Entity> {
         let mut entities_to_delete: Vec<Entity> = Vec::new();
 

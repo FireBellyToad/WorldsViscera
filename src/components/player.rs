@@ -1,6 +1,6 @@
-use std::cmp::{max, min};
+use std::cmp::max;
 
-use hecs::{Component, Entity, World};
+use hecs::{Entity, World};
 use macroquad::input::{
     KeyCode, MouseButton, clear_input_queue, get_char_pressed, get_key_pressed, is_key_down,
     is_mouse_button_down, mouse_position,
@@ -22,7 +22,6 @@ use crate::{
     inventory::InventoryAction,
     maps::zone::{TileType, Zone},
     spawning::spawner::Spawn,
-    utils::common::Utils,
 };
 
 #[derive(PartialEq, Debug)]
@@ -62,7 +61,7 @@ impl Player {
                 for &potential_target in zone.tile_content[destination_index].iter() {
                     let has_combat_stats = ecs_world
                         .satisfies::<&CombatStats>(potential_target)
-                        .unwrap();
+                        .expect("Entity has no CombatStats");
 
                     if has_combat_stats {
                         attacker_target = Some((player_entity, potential_target));
@@ -70,20 +69,17 @@ impl Player {
                 }
 
                 // Move if not attacking or destination is not blocked
-                if attacker_target.is_none() {
-                    if !zone.blocked_tiles[destination_index] {
-                        position.x = min(MAP_WIDTH - 1, max(0, position.x + delta_x));
-                        position.y = min(MAP_HEIGHT - 1, max(0, position.y + delta_y));
-                        viewshed.must_recalculate = true;
-                        return_state = RunState::DoTick;
-                    }
+                if attacker_target.is_none() && !zone.blocked_tiles[destination_index] {
+                    position.x = (position.x + delta_x).clamp(0, MAP_WIDTH - 1);
+                    position.y = (position.y + delta_y).clamp(0, MAP_HEIGHT - 1);
+                    viewshed.must_recalculate = true;
+                    return_state = RunState::DoTick;
                 }
             }
         }
 
         // Attack if needed
-        if attacker_target.is_some() {
-            let (attacker, target) = attacker_target.unwrap();
+        if let Some((attacker, target)) = attacker_target {
             let _ = ecs_world.insert_one(attacker, WantsToMelee { target });
 
             return_state = RunState::DoTick;
@@ -156,8 +152,8 @@ impl Player {
                             run_state = RunState::GameOver;
                         }
 
-                        '<' | '>' => {
-                            run_state = Player::try_next_level(ecs_world, char);
+                        '>' => {
+                            run_state = Player::try_next_level(ecs_world);
                         }
 
                         //Drop item
@@ -231,7 +227,7 @@ impl Player {
             let rounded_x = (((mouse_x - UI_BORDER_F32) / TILE_SIZE_F32).ceil() - 1.0) as i32;
             let rounded_y = (((mouse_y - UI_BORDER_F32) / TILE_SIZE_F32).ceil() - 1.0) as i32;
 
-            let player_entity = Player::get_entity(&ecs_world);
+            let player_entity = Player::get_entity(ecs_world);
 
             match special_view_mode {
                 SpecialViewMode::ZapTargeting => {
@@ -288,7 +284,7 @@ impl Player {
             Some(item) => {
                 picked_something = true;
                 println!("pick_up {:?}", item);
-                let _ = ecs_world.insert_one(player_entity, WantsItem { item: item });
+                let _ = ecs_world.insert_one(player_entity, WantsItem { item });
             }
         }
 
@@ -302,12 +298,14 @@ impl Player {
             game_log
                 .entries
                 .push(String::from("There is nothing here to pick up"));
-            return RunState::WaitingPlayerInput;
+
+            RunState::WaitingPlayerInput
         } else {
             // Reset heal counter if the player did pick up something
             Player::reset_heal_counter(ecs_world);
             Player::wait_after_action(ecs_world);
-            return RunState::DoTick;
+
+            RunState::DoTick
         }
     }
 
@@ -339,25 +337,22 @@ impl Player {
         // TODO ask with modal...
         let item_on_ground = Player::take_from_map(ecs_world);
 
-        match item_on_ground {
-            Some(item_entity) => {
-                // Is really Quaffable?
-                if ecs_world.get::<&Edible>(item_entity).is_ok() {
-                    let _ = ecs_world.insert_one(player_entity, WantsToEat { item: item_entity });
-                    return (RunState::DoTick, true);
-                } else {
-                    // Avoid losing time trying to drink non quaffable from grounnd
-                    let mut game_log_query = ecs_world.query::<&mut GameLog>();
-                    let (_e, game_log) = game_log_query
-                        .iter()
-                        .last()
-                        .expect("Game log is not in hecs::World");
+        if let Some(item) = item_on_ground {
+            // Is really Quaffable?
+            if ecs_world.get::<&Edible>(item).is_ok() {
+                let _ = ecs_world.insert_one(player_entity, WantsToEat { item });
+                return (RunState::DoTick, true);
+            } else {
+                // Avoid losing time trying to drink non quaffable from grounnd
+                let mut game_log_query = ecs_world.query::<&mut GameLog>();
+                let (_e, game_log) = game_log_query
+                    .iter()
+                    .last()
+                    .expect("Game log is not in hecs::World");
 
-                    game_log.entries.push(format!("You can't eat that!"));
-                    return (RunState::WaitingPlayerInput, false);
-                }
+                game_log.entries.push("You can't eat that!".to_string());
+                return (RunState::WaitingPlayerInput, false);
             }
-            None => {}
         }
 
         (RunState::ShowInventory(InventoryAction::Eat), false)
@@ -397,26 +392,22 @@ impl Player {
             // TODO ask with modal...
             let item_on_ground = Player::take_from_map(ecs_world);
 
-            match item_on_ground {
-                Some(item_entity) => {
-                    // Is really Quaffable?
-                    if ecs_world.get::<&Quaffable>(item_entity).is_ok() {
-                        let _ =
-                            ecs_world.insert_one(player_entity, WantsToDrink { item: item_entity });
-                        return (RunState::DoTick, true);
-                    } else {
-                        // Avoid losing time trying to drink non quaffable from grounnd
-                        let mut game_log_query = ecs_world.query::<&mut GameLog>();
-                        let (_e, game_log) = game_log_query
-                            .iter()
-                            .last()
-                            .expect("Game log is not in hecs::World");
+            if let Some(item) = item_on_ground {
+                // Is really Quaffable?
+                if ecs_world.get::<&Quaffable>(item).is_ok() {
+                    let _ = ecs_world.insert_one(player_entity, WantsToDrink { item });
+                    return (RunState::DoTick, true);
+                } else {
+                    // Avoid losing time trying to drink non quaffable from grounnd
+                    let mut game_log_query = ecs_world.query::<&mut GameLog>();
+                    let (_e, game_log) = game_log_query
+                        .iter()
+                        .last()
+                        .expect("Game log is not in hecs::World");
 
-                        game_log.entries.push(format!("You can't drink that!"));
-                        return (RunState::WaitingPlayerInput, false);
-                    }
+                    game_log.entries.push("You can't drink that!".to_string());
+                    return (RunState::WaitingPlayerInput, false);
                 }
-                None => {}
             }
         }
 
@@ -424,7 +415,7 @@ impl Player {
         (RunState::ShowInventory(InventoryAction::Quaff), false)
     }
 
-    fn try_next_level(ecs_world: &mut World, char_pressed: char) -> RunState {
+    fn try_next_level(ecs_world: &mut World) -> RunState {
         let player_position;
         let standing_on_tile;
 
@@ -453,33 +444,18 @@ impl Player {
 
             game_log
                 .entries
-                .push(String::from("There is nothing here to pick up"));
+                .push("There is nothing here to pick up".to_string());
 
             //TODO skill check
-            match standing_on_tile {
-                TileType::DownPassage => {
-                    if char_pressed == '>' {
-                        game_log.entries.push(format!("You climb down..."));
-                        return RunState::GoToNextZone;
-                    }
-                }
-                TileType::UpPassage => {
-                    if char_pressed == '<' {
-                        game_log.entries.push(format!("You climb up..."));
-                        return RunState::GoToNextZone;
-                    }
-                }
-                _ => {
-                    if char_pressed == '>' {
-                        game_log.entries.push(format!("You can't go down here"));
-                    } else if char_pressed == '<' {
-                        game_log.entries.push(format!("You can't go up here"));
-                    }
-                }
+            if standing_on_tile == &TileType::DownPassage {
+                game_log.entries.push("You climb down...".to_string());
+                return RunState::GoToNextZone;
+            } else {
+                game_log.entries.push("You can't go down here".to_string());
             }
         }
 
-        return RunState::WaitingPlayerInput;
+        RunState::WaitingPlayerInput
     }
 
     /// Extract Player's entity from world and return it with copy
@@ -522,7 +498,10 @@ impl Player {
 
         // Scope for keeping borrow checker quiet
         {
-            speed = ecs_world.get::<&CombatStats>(player).unwrap().speed;
+            speed = ecs_world
+                .get::<&CombatStats>(player)
+                .expect("Entity has no CombatStats")
+                .speed;
         }
         // TODO account speed penalties
         println!("Player must wait!!!");

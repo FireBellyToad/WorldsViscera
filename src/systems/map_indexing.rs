@@ -70,21 +70,19 @@ impl MapIndexing {
             &ProduceLight,
         )>();
 
-        let all_working_lighters = lighters_query
+        lighters_query
             .iter()
             .filter_map(|(_e, (position, in_backpack, fuel, produce_light))| {
-                if fuel.is_none() || fuel.unwrap().fuel_counter > 0 {
-                    if position.is_some() {
-                        let pos = position.unwrap();
+                if fuel.is_none() || fuel.expect("Must have Fuel!").fuel_counter > 0 {
+                    if let Some(pos) = position {
                         return Some(ProduceLightPositionDTO {
                             radius: produce_light.radius,
                             x: pos.x,
                             y: pos.y,
                         });
-                    } else if in_backpack.is_some() {
+                    } else if let Some(back) = in_backpack {
                         // Get position of the owner so we can illuminate from there
-                        let back = in_backpack.unwrap();
-                        let pos = ecs_world.get::<&Position>(back.owner).unwrap();
+                        let pos = ecs_world.get::<&Position>(back.owner).expect("Entity has no Position");
                         return Some(ProduceLightPositionDTO {
                             radius: produce_light.radius,
                             x: pos.x,
@@ -95,9 +93,8 @@ impl MapIndexing {
 
                 None
             })
-            .collect();
-
-        all_working_lighters
+            .collect()
+        
     }
 }
 

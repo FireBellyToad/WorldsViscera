@@ -35,10 +35,9 @@ impl MeleeManager {
                 .expect("Game log is not in hecs::World");
 
             for (attacker, (wants_melee, hidden)) in &mut attackers {
-                let target_damage = ecs_world.get::<&mut SufferingDamage>(wants_melee.target);
-
                 //Sum damage, keeping in mind that could not have SufferingDamage component
-                if target_damage.is_ok() {
+                if let Ok(mut target_damage) = ecs_world.get::<&mut SufferingDamage>(wants_melee.target)
+                {
                     let attacker_stats = ecs_world
                         .get::<&CombatStats>(attacker)
                         .expect("Entity does not have CombatStats");
@@ -89,7 +88,7 @@ impl MeleeManager {
                         }
                     }
 
-                    target_damage.unwrap().damage_received += damage_roll;
+                    target_damage.damage_received += damage_roll;
 
                     wants_to_melee_list.push(attacker);
                 }
@@ -123,6 +122,6 @@ impl MeleeManager {
                 return attacker_weapon.attack_dice;
             }
         }
-        return unarmed_attack_dice;
+        unarmed_attack_dice
     }
 }

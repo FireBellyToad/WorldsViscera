@@ -35,8 +35,8 @@ impl Draw {
             _ => {
                 // Zone and renderables
                 for (_e, zone) in &mut zones {
-                    Draw::zone(&zone, assets);
-                    Draw::renderables(&game_state.ecs_world, &assets, &zone);
+                    Draw::zone(zone, assets);
+                    Draw::renderables(&game_state.ecs_world, assets, zone);
                 }
 
                 //Overlay
@@ -45,7 +45,7 @@ impl Draw {
                         Inventory::draw(assets, &game_state.ecs_world, mode)
                     }
                     RunState::MouseTargeting(special_view_mode) => {
-                        Draw::targeting(&game_state.ecs_world, &assets, special_view_mode);
+                        Draw::targeting(&game_state.ecs_world, assets, special_view_mode);
                     }
                     RunState::DrawParticles => {
                         let mut animations = game_state.ecs_world.query::<&mut ParticleAnimation>();
@@ -115,7 +115,9 @@ impl Draw {
         let mut zones = ecs_world.query::<&Zone>();
         let (_e, zone) = zones.iter().last().expect("Zone is not in hecs::World");
 
-        let mut player_query = ecs_world.query::<(&CombatStats, &Hunger, &Thirst)>().with::<&Player>();
+        let mut player_query = ecs_world
+            .query::<(&CombatStats, &Hunger, &Thirst)>()
+            .with::<&Player>();
         let (_e, (player_stats, hunger, thirst)) = player_query
             .iter()
             .last()
@@ -260,7 +262,9 @@ impl Draw {
     /// Draw all Renderable entities in World
     fn renderables(world: &World, assets: &HashMap<TextureName, Texture2D>, zone: &Zone) {
         //Get all entities in readonly
-        let mut renderables_with_position = world.query::<(&Renderable, &Position)>().without::<&IsHidden>();
+        let mut renderables_with_position = world
+            .query::<(&Renderable, &Position)>()
+            .without::<&IsHidden>();
 
         let mut renderables_vec: Vec<(hecs::Entity, (&Renderable, &Position))> =
             renderables_with_position.iter().collect();
@@ -343,68 +347,71 @@ impl Draw {
     }
 
     /// Draws special targets when in targeting mode
+    #[allow(clippy::single_match)]
     fn special_targets(
         ecs_world: &World,
         assets: &HashMap<TextureName, Texture2D>,
         special_view_mode: &SpecialViewMode,
         zone: &Zone,
     ) {
-        let player_entity = Player::get_entity(ecs_world);
-        let player_position = ecs_world.get::<&Position>(player_entity).unwrap();
-        let player_smell_ability = ecs_world.get::<&CanSmell>(player_entity).unwrap();
+        let mut player_query_smell = ecs_world
+            .query::<(&Position, &CanSmell)>()
+            .with::<&Player>();
 
-        // Draw targets if special
-        match special_view_mode {
-            SpecialViewMode::Smell => {
-                //Show smellable on not visibile tiles
-                let mut smells_with_position = ecs_world.query::<(&Position, &Smellable)>();
-                for (_e, (smell_position, smell)) in &mut smells_with_position {
-                    let index = Zone::get_index_from_xy(smell_position.x, smell_position.y);
+        for (_e, (player_position, player_smell_ability)) in &mut player_query_smell {
+            // Draw targets if special
+            match special_view_mode {
+                SpecialViewMode::Smell => {
+                    //Show smellable on not visibile tiles
+                    let mut smells_with_position = ecs_world.query::<(&Position, &Smellable)>();
+                    for (_e, (smell_position, smell)) in &mut smells_with_position {
+                        let index = Zone::get_index_from_xy(smell_position.x, smell_position.y);
 
-                    let distance = Utils::distance(
-                        smell_position.x,
-                        player_position.x,
-                        smell_position.y,
-                        player_position.y,
-                    );
+                        let distance = Utils::distance(
+                            smell_position.x,
+                            player_position.x,
+                            smell_position.y,
+                            player_position.y,
+                        );
 
-                    let can_smell = player_smell_ability.intensity != SmellIntensity::None // the player cannot smell anything (common cold or other penalities)
+                        let can_smell = player_smell_ability.intensity != SmellIntensity::None // the player cannot smell anything (common cold or other penalities)
                         && !zone.visible_tiles[index]
                         && ((distance < player_smell_ability.radius / 2.0 && smell.intensity == SmellIntensity::Faint) // Faint odors can be smell from half normal distance
                             || (distance < player_smell_ability.radius
                                 && (smell.intensity == SmellIntensity::Strong // Strong odors can be smelled at double distance. 
                                     || player_smell_ability.intensity == SmellIntensity::Strong))); // Player have improved smell (can smell faint odors from far away)
 
-                    //draw not visible smellables within smell radius
-                    if can_smell {
-                        let texture_to_render = assets
-                            .get(&TextureName::Particles)
-                            .expect("Texture not found");
+                        //draw not visible smellables within smell radius
+                        if can_smell {
+                            let texture_to_render = assets
+                                .get(&TextureName::Particles)
+                                .expect("Texture not found");
 
-                        let mut modifier = 0.0;
-                        if smell.intensity == SmellIntensity::Strong{
-                            modifier += 1.0;
+                            let mut modifier = 0.0;
+                            if smell.intensity == SmellIntensity::Strong {
+                                modifier += 1.0;
+                            }
+
+                            draw_texture_ex(
+                                texture_to_render,
+                                (UI_BORDER + (smell_position.x * TILE_SIZE)) as f32,
+                                (UI_BORDER + (smell_position.y * TILE_SIZE)) as f32,
+                                WHITE, // Seems like White color is needed to normal render
+                                DrawTextureParams {
+                                    source: Some(Rect {
+                                        x: (4.0 + modifier) * TILE_SIZE_F32,
+                                        y: 0.0,
+                                        w: TILE_SIZE_F32,
+                                        h: TILE_SIZE_F32,
+                                    }),
+                                    ..Default::default()
+                                },
+                            );
                         }
-
-                        draw_texture_ex(
-                            texture_to_render,
-                            (UI_BORDER + (smell_position.x * TILE_SIZE)) as f32,
-                            (UI_BORDER + (smell_position.y * TILE_SIZE)) as f32,
-                            WHITE, // Seems like White color is needed to normal render
-                            DrawTextureParams {
-                                source: Some(Rect {
-                                    x: (4.0 + modifier)*  TILE_SIZE_F32,
-                                    y: 0.0,
-                                    w: TILE_SIZE_F32,
-                                    h: TILE_SIZE_F32,
-                                }),
-                                ..Default::default()
-                            },
-                        );
                     }
                 }
+                _ => {}
             }
-            _ => {}
         }
     }
 
@@ -415,8 +422,7 @@ impl Draw {
         for x in 0..MAP_WIDTH {
             for y in 0..MAP_HEIGHT {
                 let tile_to_draw = Zone::get_index_from_xy(x, y);
-                let tile_index =
-                    Zone::get_tile_sprite_sheet_index(&zone.tiles[tile_to_draw]) ;
+                let tile_index = Zone::get_tile_sprite_sheet_index(&zone.tiles[tile_to_draw]);
 
                 if zone.revealed_tiles[tile_to_draw] {
                     let mut alpha = DARKGRAY;
@@ -443,14 +449,17 @@ impl Draw {
                     );
 
                     // Decals must be drawn on top of NON water tiles
-                    if zone.visible_tiles[tile_to_draw] && !zone.water_tiles[tile_to_draw]{
-                        if zone.decals_tiles.contains_key(&tile_to_draw) {
-                            Draw::draw_decals(
-                                x,
-                                y,
-                                zone.decals_tiles.get(&tile_to_draw).unwrap(),
-                            );
-                        }
+                    if zone.visible_tiles[tile_to_draw]
+                        && !zone.water_tiles[tile_to_draw]
+                        && zone.decals_tiles.contains_key(&tile_to_draw)
+                    {
+                        Draw::draw_decals(
+                            x,
+                            y,
+                            zone.decals_tiles
+                                .get(&tile_to_draw)
+                                .expect("decals_tiles not available"),
+                        );
                     }
                 }
             }
@@ -459,12 +468,10 @@ impl Draw {
 
     /// Utility for drawing blood blots
     pub fn draw_decals(x: i32, y: i32, particle_type: &ParticleType) {
-        let color;
-
-        match particle_type {
-            ParticleType::Blood => color = Color::from_rgba(255, 10, 10, 32),
-            ParticleType::Vomit => color = ORANGE,
-        }
+        let color = match particle_type {
+            ParticleType::Blood => Color::from_rgba(255, 10, 10, 32),
+            ParticleType::Vomit => ORANGE,
+        };
 
         draw_circle(
             (UI_BORDER + (x * TILE_SIZE) + TILE_SIZE / 2) as f32 - 6.0,

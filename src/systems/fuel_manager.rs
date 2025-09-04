@@ -3,7 +3,7 @@ use hecs::{Entity, World};
 use crate::components::{
     actions::WantsToFuel,
     common::{GameLog, Named, Viewshed},
-    items::{MustBeFueled, InBackback, Refiller},
+    items::{InBackback, MustBeFueled, Refiller},
     player::Player,
 };
 
@@ -12,7 +12,9 @@ pub struct FuelManager {}
 impl FuelManager {
     pub fn check_fuel(ecs_world: &mut World) {
         // List of light producers that use fuel
-        let mut lighters = ecs_world.query::<&mut MustBeFueled>().without::<&Refiller>();
+        let mut lighters = ecs_world
+            .query::<&mut MustBeFueled>()
+            .without::<&Refiller>();
 
         let player_entity = Player::get_entity(ecs_world);
 
@@ -26,13 +28,14 @@ impl FuelManager {
             // Log fuel change for lantern used by player
             let entity_in_backpack = ecs_world.get::<&InBackback>(lighter);
 
-            if entity_in_backpack.is_ok() {
-                let in_backback = entity_in_backpack.unwrap();
-                let named = ecs_world.get::<&Named>(lighter).unwrap();
+            if let Ok(in_backback) = entity_in_backpack {
+                let named = ecs_world
+                    .get::<&Named>(lighter)
+                    .expect("Entity is not Named");
                 // Log messages for fuel status
                 if player_entity.id() == in_backback.owner.id() {
                     match fuel.fuel_counter {
-                        25 => {
+                        30 => {
                             game_log
                                 .entries
                                 .push(format!("Your {} is flickering", named.name));
@@ -46,8 +49,9 @@ impl FuelManager {
                     }
 
                     //show immediately new vision
-                    let mut player_viewshed =
-                        ecs_world.get::<&mut Viewshed>(player_entity).unwrap();
+                    let mut player_viewshed = ecs_world
+                        .get::<&mut Viewshed>(player_entity)
+                        .expect("Player entity does not have a Viewshed");
                     player_viewshed.must_recalculate = true;
                 }
             }
@@ -61,6 +65,7 @@ impl FuelManager {
 
     pub fn do_refills(ecs_world: &mut World) {
         let mut refillers_and_items_used: Vec<(Entity, Entity)> = Vec::new();
+        let player_id = Player::get_entity_id(ecs_world);
 
         // Scope for keeping borrow checker quiet
         {
@@ -77,30 +82,39 @@ impl FuelManager {
 
             for (refiller, wants_to_refill) in wants_to_refill_list {
                 let target = wants_to_refill.item;
-                let item_used = wants_to_refill.with.unwrap();
+                let item_used = wants_to_refill.with.expect("item_used must not be None");
 
-                let item_used_fuel = ecs_world.get::<&MustBeFueled>(item_used).unwrap();
+                let item_used_fuel = ecs_world
+                    .get::<&MustBeFueled>(item_used)
+                    .expect("Entity has not MustBeFueled");
                 let target_fuel_optional = ecs_world.get::<&mut MustBeFueled>(target);
 
-                if target_fuel_optional.is_ok() {
-                    let mut target_fuel = target_fuel_optional.unwrap();
+                match target_fuel_optional {
+                    Ok(mut target_fuel) => {
+                        // Refill!
+                        target_fuel.fuel_counter = item_used_fuel.fuel_counter;
 
-                    // Refill!
-                    target_fuel.fuel_counter = item_used_fuel.fuel_counter;
+                        // Show appropriate log messages
+                        let named_dropper = ecs_world
+                            .get::<&Named>(refiller)
+                            .expect("Entity is not Named");
+                        let named_target = ecs_world
+                            .get::<&Named>(target)
+                            .expect("Entity is not Named");
+                        let named_item_used = ecs_world
+                            .get::<&Named>(item_used)
+                            .expect("Entity is not Named");
 
-                    // Show appropriate log messages
-                    let named_dropper = ecs_world.get::<&Named>(refiller).unwrap();
-                    let named_target = ecs_world.get::<&Named>(target).unwrap();
-                    let named_item_used = ecs_world.get::<&Named>(item_used).unwrap();
-
-                    game_log.entries.push(format!(
-                        "{} refills the {} with the {}",
-                        named_dropper.name, named_target.name, named_item_used.name
-                    ));
-                } else {
-                    game_log
-                        .entries
-                        .push(format!("This item cannot be refilled!"));
+                        game_log.entries.push(format!(
+                            "{} refills the {} with the {}",
+                            named_dropper.name, named_target.name, named_item_used.name
+                        ));
+                    }
+                    Err(_) => {
+                        game_log
+                            .entries
+                            .push("This item cannot be refilled!".to_string());
+                    }
                 }
 
                 // Remember refiller and what has been used to cleanup later
@@ -112,6 +126,10 @@ impl FuelManager {
         for (refiller, item_used) in refillers_and_items_used {
             let _ = ecs_world.remove_one::<WantsToFuel>(refiller);
             let _ = ecs_world.despawn(item_used);
+
+            if player_id == refiller.id() {
+                Player::wait_after_action(ecs_world);
+            }
         }
     }
 }

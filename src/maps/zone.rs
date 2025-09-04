@@ -10,7 +10,6 @@ pub enum TileType {
     Floor,
     Wall,
     DownPassage,
-    UpPassage,
     Brazier,
     Water,
 }
@@ -90,7 +89,7 @@ impl Zone {
     pub fn populate_blocked(&mut self) {
         for (index, tile) in self.tiles.iter_mut().enumerate() {
             match tile {
-                TileType::DownPassage | TileType::UpPassage | TileType::Floor | TileType::Water => {
+                TileType::DownPassage | TileType::Floor | TileType::Water => {
                     self.blocked_tiles[index] = false
                 }
                 _ => self.blocked_tiles[index] = true,
@@ -124,7 +123,6 @@ impl Zone {
             TileType::Floor => (0.0, 0.0),
             TileType::Wall => (1.0, 0.0),
             TileType::DownPassage => (2.0, 0.0),
-            TileType::UpPassage => (3.0, 0.0),
             TileType::Brazier => (4.0, 0.0),
             TileType::Water => (0.0, 1.0),
         }
@@ -144,6 +142,6 @@ impl Zone {
     pub fn get_xy_from_index(index: usize) -> (i32, i32) {
         let x = index as i32 % MAP_WIDTH;
         let y = index as i32 / MAP_WIDTH;
-        (x as i32, y as i32)
+        (x , y )
     }
 }

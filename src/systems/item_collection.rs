@@ -43,10 +43,10 @@ impl ItemCollection {
                     .map(|(_e, (_i, b))| b.assigned_char)
                     .collect();
 
-                let named_owner = ecs_world.get::<&Named>(collector).unwrap();
+                let named_owner = ecs_world.get::<&Named>(collector).expect("Entity is not Named");
                 if all_currently_assigned_chars.len() == MAX_ITEMS_IN_BACKPACK {
                     if player_id == collector.id() {
-                        game_log.entries.push(format!("You cannot carry anymore!"));
+                        game_log.entries.push("You cannot carry anymore!".to_string());
                         failed_pick_upper.push(collector);
                     }
                 } else {
@@ -58,7 +58,7 @@ impl ItemCollection {
                     }
 
                     // Show appropriate log messages
-                    let named_item = ecs_world.get::<&Named>(wants_item.item).unwrap();
+                    let named_item = ecs_world.get::<&Named>(wants_item.item).expect("Entity is not Named");
 
                     if player_id == collector.id() {
                         game_log

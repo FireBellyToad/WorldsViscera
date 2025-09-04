@@ -109,7 +109,7 @@ impl DungeonZoneBuilder {
         for x in min(x1, x2)..=max(x1, x2) {
             let idx = Zone::get_index_from_xy(x, y);
             if idx > 0 && idx < (MAP_WIDTH * MAP_HEIGHT) as usize {
-                game_map.tiles[idx as usize] = TileType::Floor;
+                game_map.tiles[idx] = TileType::Floor;
             }
         }
     }
@@ -118,7 +118,7 @@ impl DungeonZoneBuilder {
         for y in min(y1, y2)..=max(y1, y2) {
             let idx = Zone::get_index_from_xy(x, y);
             if idx > 0 && idx < (MAP_WIDTH * MAP_HEIGHT) as usize {
-                game_map.tiles[idx as usize] = TileType::Floor;
+                game_map.tiles[idx] = TileType::Floor;
             }
         }
     }

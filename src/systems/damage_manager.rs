@@ -18,8 +18,8 @@ use crate::{
 
 pub struct DamageManager {}
 
+/// Damage manager system
 impl DamageManager {
-    ///
     pub fn run(ecs_world: &World) {
         let mut damageables =
             ecs_world.query::<(&mut SufferingDamage, &mut CombatStats, &Position)>();
@@ -42,9 +42,8 @@ impl DamageManager {
                 }
 
                 // If can heal stamina, reset counter
-                let regen = ecs_world.get::<&mut CanAutomaticallyHeal>(damaged_entity);
-                if regen.is_ok() {
-                    regen.unwrap().tick_counter = MAX_STAMINA_HEAL_TICK_COUNTER + 2;
+                if let Ok(mut regen) = ecs_world.get::<&mut CanAutomaticallyHeal>(damaged_entity) {
+                    regen.tick_counter = MAX_STAMINA_HEAL_TICK_COUNTER + 2;
                 }
 
                 //Drench the tile with blood
@@ -112,9 +111,7 @@ impl DamageManager {
                 },
             );
 
-            ecs_world
-                .despawn(ent)
-                .expect(&format!("Cannot despawn entity {:?}", ent));
+            ecs_world.despawn(ent).expect("Cannot despawn entity");
         }
 
         false

@@ -124,6 +124,7 @@ pub fn mushroom(ecs_world: &mut World, x: i32, y: i32) {
 }
 
 // TODO unused... keep in mind
+#[allow(dead_code)]
 pub fn flask_of_water(ecs_world: &mut World, x: i32, y: i32) {
     let item_tile_index = (2, 0);
     let flask_of_water = (

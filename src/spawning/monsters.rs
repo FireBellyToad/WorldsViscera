@@ -144,7 +144,7 @@ pub fn create_monster(
             range: BASE_MONSTER_VIEW_RADIUS,
             must_recalculate: true,
         },
-        Named { name: name },
+        Named { name },
         BlocksTile {},
         combat_stats,
         SufferingDamage { damage_received: 0 },

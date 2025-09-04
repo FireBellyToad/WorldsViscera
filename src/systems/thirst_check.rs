@@ -70,23 +70,22 @@ impl ThirstCheck {
                             thirst.current_status = ThirstStatus::Dehydrated;
 
                             if thirsty_entity.id() == player_id {
-                                game_log.entries.push(format!("You are dehydrated!"));
+                                game_log.entries.push("You are dehydrated!".to_string());
                             }
                         }
                         ThirstStatus::Dehydrated => {
                             // 33% of chance to be damaged by thirst
                             if Roll::d6() <= 2 {
-                                let damage_starving_entity =
-                                    ecs_world.get::<&mut SufferingDamage>(thirsty_entity);
+                                // if can starve and be damaged, damage the entity
+                                if let Ok(mut damage_starving_entity) =
+                                    ecs_world.get::<&mut SufferingDamage>(thirsty_entity)
+                                {
+                                    damage_starving_entity.damage_received += 1;
 
-                                // if can starve, damage the entity
-                                if damage_starving_entity.is_ok() {
-                                    damage_starving_entity.unwrap().damage_received += 1;
-                                    
                                     if thirsty_entity.id() == player_id {
                                         game_log
                                             .entries
-                                            .push(format!("Dehydration wastes you away!"));
+                                            .push("Dehydration wastes you away!".to_string());
                                     }
                                 }
                             }
@@ -104,9 +103,9 @@ impl ThirstCheck {
                             if Roll::d20() <= stats.current_toughness {
                                 thirst.tick_counter = MAX_THIRST_TICK_COUNTER;
                                 if thirsty_entity.id() == player_id {
-                                    game_log.entries.push(format!(
-                                        "You drank too much and feel slightly nauseous"
-                                    ));
+                                    game_log.entries.push(
+                                        "You drank too much and feel slightly nauseous".to_string(),
+                                    );
                                 }
                             } else {
                                 //Less severe than being oversatiated...
@@ -119,7 +118,7 @@ impl ThirstCheck {
                                 if thirsty_entity.id() == player_id {
                                     game_log
                                         .entries
-                                        .push(format!("You drank too much and vomit!"));
+                                        .push("You drank too much and vomit!".to_string());
                                 }
                             }
                         }
@@ -134,7 +133,7 @@ impl ThirstCheck {
                             if thirsty_entity.id() == player_id {
                                 game_log
                                     .entries
-                                    .push(format!("You are no longer dehydrated"));
+                                    .push("You are no longer dehydrated".to_string());
                             }
                         }
                     }

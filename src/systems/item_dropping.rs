@@ -35,14 +35,17 @@ impl ItemDropping {
                     if player_id == dropper.id() {
                         game_log
                             .entries
-                            .push(format!("You cannot drop an equipped item"));
+                            .push("You cannot drop an equipped item".to_string());
                     }
 
                     item_drop_nothing.push(dropper);
                 } else {
-                    let named_item = ecs_world.get::<&Named>(wants_item.item).unwrap();
-                    let drop: hecs::Ref<'_, Position> =
-                        ecs_world.get::<&Position>(dropper).unwrap();
+                    let named_item = ecs_world
+                        .get::<&Named>(wants_item.item)
+                        .expect("Entity is not Named");
+                    let drop = ecs_world
+                        .get::<&Position>(dropper)
+                        .expect("Entity has no Position");
 
                     // Drop item and keep track of the drop Position
                     item_drop_position_list.push((wants_item.item, dropper, (drop.x, drop.y)));
@@ -52,7 +55,9 @@ impl ItemDropping {
                             .entries
                             .push(format!("You drop up the {}", named_item.name));
                     } else {
-                        let named_dropper = ecs_world.get::<&Named>(dropper).unwrap();
+                        let named_dropper = ecs_world
+                            .get::<&Named>(dropper)
+                            .expect("Entity is not Named");
                         game_log.entries.push(format!(
                             "{} drops up a {}",
                             named_dropper.name, named_item.name
@@ -79,7 +84,7 @@ impl ItemDropping {
                     y: drop_y,
                 },
             );
-            
+
             if player_id == dropper.id() {
                 Player::wait_after_action(ecs_world);
             }

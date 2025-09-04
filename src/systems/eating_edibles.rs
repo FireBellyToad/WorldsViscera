@@ -45,45 +45,37 @@ impl EatingEdibles {
                 let possible_edible = ecs_world.get::<&Edible>(wants_to_eat.item);
 
                 // Keep track of the eater
-                if possible_edible.is_err() {
-                    if eater.id() == player_id {
-                        game_log.entries.push(format!("You can't eat that!"));
-                    }
-                    eater_cleanup_list.push(eater);
-                } else {
+                if let Ok(edible_nutrition) = possible_edible {
                     // Eat!
                     eaten_eater_list.push((wants_to_eat.item, eater));
 
-                    let edible_nutrition = possible_edible.unwrap();
-
                     // Show appropriate log messages
-                    let named_edible = ecs_world.get::<&Named>(wants_to_eat.item).unwrap();
+                    let named_edible = ecs_world.get::<&Named>(wants_to_eat.item).expect("Entity is not Named");
                     if eater.id() == player_id {
                         game_log
                             .entries
                             .push(format!("You ate a {}", named_edible.name));
                     } else {
-                        let named_eater = ecs_world.get::<&Named>(eater).unwrap();
+                        let named_eater = ecs_world.get::<&Named>(eater).expect("Entity is not Named");
 
                         game_log
                             .entries
                             .push(format!("{} ate a {}", named_eater.name, named_edible.name));
                     }
 
-                    let is_deadly = ecs_world.get::<&Deadly>(wants_to_eat.item).is_ok();
-                    if is_deadly {
+                    if ecs_world.get::<&Deadly>(wants_to_eat.item).is_ok() {
                         if eater.id() == player_id {
-                            game_log.entries.push(format!(
-                                "You ate a deadly poisonous food! You agonize and die"
-                            ));
+                            game_log.entries.push(
+                                "You ate a deadly poisonous food! You agonize and die".
+                            to_string());
                         }
                         killed_list.push(eater);
                         continue;
                     }
 
                     // Is it unsavoury? Then vomit badly
-                    let unsavoury_component = ecs_world.get::<&Unsavoury>(wants_to_eat.item);
-                    if unsavoury_component.is_ok() {
+                    if let Ok(unsavoury_component) = ecs_world.get::<&Unsavoury>(wants_to_eat.item)
+                    {
                         hunger.tick_counter -= Roll::dice(3, 10);
                         match hunger.current_status {
                             HungerStatus::Satiated => {
@@ -101,7 +93,7 @@ impl EatingEdibles {
                         if eater.id() == player_id {
                             game_log.entries.push(format!(
                                 "You ate {} food! You vomit!",
-                                unsavoury_component.unwrap().game_log
+                                unsavoury_component.game_log
                             ));
                         }
 
@@ -115,6 +107,11 @@ impl EatingEdibles {
                             edible_nutrition.nutrition_dice_size,
                         );
                     }
+                } else {
+                    if eater.id() == player_id {
+                        game_log.entries.push("You can't eat that!".to_string());
+                    }
+                    eater_cleanup_list.push(eater);
                 }
             }
         }
@@ -135,8 +132,8 @@ impl EatingEdibles {
         }
 
         for killed in killed_list {
-            let mut damage = ecs_world.get::<&mut SufferingDamage>(killed).unwrap();
-            let stats = ecs_world.get::<&mut CombatStats>(killed).unwrap();
+            let mut damage = ecs_world.get::<&mut SufferingDamage>(killed).expect("Entity has no SufferingDamage");
+            let stats = ecs_world.get::<&mut CombatStats>(killed).expect("Entity has no CombatStats");
             damage.damage_received = stats.current_stamina + stats.current_toughness;
         }
     }

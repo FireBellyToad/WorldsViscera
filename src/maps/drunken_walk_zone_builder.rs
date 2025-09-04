@@ -70,40 +70,38 @@ impl ZoneBuilder for DrunkenWalkZoneBuilder {
         zone.populate_water();
 
         // Generate monster and items spawn points within each room
-        let monster_number = Roll::dice(1, MAX_MONSTERS_IN_ZONE) + depth +1;
+        let monster_number = Roll::dice(1, MAX_MONSTERS_IN_ZONE) + depth + 1;
         let items_number = Roll::dice(1, MAX_ITEMS_IN_ZONE) + 3;
         let braziers_number = Roll::dice(1, MAX_BRAZIER_IN_ZONE);
 
         for _m in 0..monster_number {
             for _t in 0..MAX_SPAWN_TENTANTIVES {
-                let x = Roll::dice(1, MAP_WIDTH as i32 - 2) as f32;
-                let y = Roll::dice(1, MAP_HEIGHT as i32 - 2) as f32;
+                let x = Roll::dice(1, MAP_WIDTH - 2) as f32;
+                let y = Roll::dice(1, MAP_HEIGHT - 2) as f32;
                 let index = Zone::get_index_from_xy_f32(x, y);
 
                 // avoid walls, player and duplicate spawnpoints
-                if index != zone.player_spawn_point {
-                    if zone.tiles[Zone::get_index_from_xy_f32(x, y)] != TileType::Wall {
-                        if zone.monster_spawn_points.insert(index) {
-                            break;
-                        }
-                    }
+                if index != zone.player_spawn_point
+                    && zone.tiles[Zone::get_index_from_xy_f32(x, y)] != TileType::Wall
+                    && zone.monster_spawn_points.insert(index)
+                {
+                    break;
                 }
             }
         }
 
         for _i in 0..items_number {
             for _t in 0..MAX_SPAWN_TENTANTIVES {
-                let x = Roll::dice(1, MAP_WIDTH as i32 - 2) as f32;
-                let y = Roll::dice(1, MAP_HEIGHT as i32 - 2) as f32;
+                let x = Roll::dice(1, MAP_WIDTH - 2) as f32;
+                let y = Roll::dice(1, MAP_HEIGHT - 2) as f32;
                 let index = Zone::get_index_from_xy_f32(x, y);
 
                 // avoid walls, player and duplicate spawnpoints
-                if index != zone.player_spawn_point {
-                    if zone.tiles[Zone::get_index_from_xy_f32(x, y)] == TileType::Floor {
-                        if zone.item_spawn_points.insert(index) {
-                            break;
-                        }
-                    }
+                if index != zone.player_spawn_point
+                    && zone.tiles[Zone::get_index_from_xy_f32(x, y)] == TileType::Floor
+                    && zone.item_spawn_points.insert(index)
+                {
+                    break;
                 }
             }
         }
@@ -128,10 +126,6 @@ impl ZoneBuilder for DrunkenWalkZoneBuilder {
             passage_index = Zone::get_index_from_xy(try_x, try_y);
         }
         zone.tiles[passage_index] = TileType::DownPassage;
-
-        // Up passage is were player starts
-        // TODO uncomment later when we can guarantee persistance
-        // zone.tiles[zone.player_spawn_point] = TileType::UpPassage;
 
         zone
     }

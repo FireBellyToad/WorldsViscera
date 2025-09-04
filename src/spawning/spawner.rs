@@ -69,11 +69,11 @@ impl Spawn {
             CanAutomaticallyHeal { tick_counter: 0 },
             Hunger {
                 tick_counter: MAX_HUNGER_TICK_COUNTER,
-                current_status: HungerStatus::Normal,
+                current_status: HungerStatus::Satiated,
             },
             Thirst {
                 tick_counter: MAX_THIRST_TICK_COUNTER,
-                current_status: ThirstStatus::Normal,
+                current_status: ThirstStatus::Quenched,
             },
             MyTurn {},
             CanSmell {
@@ -98,19 +98,19 @@ impl Spawn {
             if zone.water_tiles[index] {
                 freshwater_viperfish(ecs_world, x, y)
             } else {
-                Spawn::random_terrain_monster(ecs_world, x as i32, y as i32);
+                Spawn::random_terrain_monster(ecs_world, x, y);
             }
         }
         // Actually spawn the potions
         for &index in zone.item_spawn_points.iter() {
             let (x, y) = Zone::get_xy_from_index(index);
-            Spawn::random_item(ecs_world, x as i32, y as i32);
+            Spawn::random_item(ecs_world, x, y);
         }
 
         // Spawn special entities
         for (index, tile) in zone.tiles.iter().enumerate() {
             let (x, y) = Zone::get_xy_from_index(index);
-            Spawn::tile_entity(ecs_world, x as i32, y as i32, tile);
+            Spawn::tile_entity(ecs_world, x, y, tile);
         }
     }
 
@@ -133,9 +133,9 @@ impl Spawn {
         match dice_roll {
             1 => wand(ecs_world, x, y),
             2 => lantern(ecs_world, x, y),
-            3|4 => shiv(ecs_world, x, y),
-            5|6 => flask_of_oil(ecs_world, x, y),
-            7|8 => rockpick(ecs_world, x, y),
+            3 | 4 => shiv(ecs_world, x, y),
+            5 | 6 => flask_of_oil(ecs_world, x, y),
+            7 | 8 => rockpick(ecs_world, x, y),
             9 => maul(ecs_world, x, y),
             _ => mushroom(ecs_world, x, y),
         }
@@ -157,7 +157,7 @@ impl Spawn {
                 z_index: 0,
             },
             Named {
-                name: String::from(format!("{} corpse", name)),
+                name: format!("{} corpse", name),
             },
             Item {
                 item_tile: item_tile_index,
@@ -172,6 +172,7 @@ impl Spawn {
     }
 
     /// Spawn special tile entities
+    #[allow(clippy::single_match)]
     fn tile_entity(ecs_world: &mut World, x: i32, y: i32, tile: &TileType) {
         match tile {
             TileType::Brazier => {
