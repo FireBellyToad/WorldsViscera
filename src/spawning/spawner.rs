@@ -1,6 +1,6 @@
 use crate::components::combat::{CombatStats, SufferingDamage};
 use crate::components::common::{
-    CanSmell, MyTurn, Named, Position, Renderable, SmellIntensity, Smellable, Viewshed,
+    CanListen, CanSmell, MyTurn, Named, Position, Renderable, SmellIntensity, Smellable, Viewshed
 };
 use crate::components::health::{CanAutomaticallyHeal, Hunger, Thirst};
 use crate::components::items::{Edible, Item, Perishable, ProduceLight, Quaffable};
@@ -84,6 +84,9 @@ impl Spawn {
                 intensity: SmellIntensity::Faint,
                 smell_log: String::from("yourself"),
             },
+            CanListen{
+                listen_cache: Vec::new()
+            }
         );
 
         ecs_world.spawn(player_entity);

@@ -27,25 +27,35 @@ pub struct GameLog {
     pub entries: Vec<String>,
 }
 pub struct WaitingToAct {
-    pub tick_countdown: i32
+    pub tick_countdown: i32,
 }
 
-pub struct MyTurn{}
+pub struct MyTurn {}
 
 #[derive(PartialEq, Debug)]
 pub enum SmellIntensity {
     None,
     Faint,
-    Strong
+    Strong,
 }
-pub struct Smellable{
+
+pub struct Smellable {
     pub smell_log: String,
-    pub intensity: SmellIntensity
-}
-pub struct CanSmell{
     pub intensity: SmellIntensity,
-    pub radius: f32
 }
+
+pub struct CanSmell {
+    pub intensity: SmellIntensity,
+    pub radius: f32,
+}
+
 pub struct Wet {
-    pub tick_countdown: i32
+    pub tick_countdown: i32,
+}
+
+pub struct CanListen {
+    pub listen_cache: Vec<(i32, bool)>,
+}
+pub struct ProduceSound {
+    pub sound_log: String,
 }

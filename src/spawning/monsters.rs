@@ -5,8 +5,8 @@ use crate::{
     components::{
         combat::{CanHide, CombatStats, SufferingDamage},
         common::{
-            BlocksTile, MyTurn, Named, Position, ProduceCorpse, Renderable, SmellIntensity,
-            Smellable, Viewshed,
+            BlocksTile, MyTurn, Named, Position, ProduceCorpse, ProduceSound, Renderable,
+            SmellIntensity, Smellable, Viewshed,
         },
         monster::{Aquatic, Monster},
     },
@@ -17,7 +17,7 @@ use crate::{
 pub fn deep_one(ecs_world: &mut World, x: i32, y: i32) {
     create_monster(
         ecs_world,
-        String::from("Deep One"),
+        "Deep One".to_string(),
         CombatStats {
             current_stamina: 3,
             max_stamina: 3,
@@ -30,8 +30,11 @@ pub fn deep_one(ecs_world: &mut World, x: i32, y: i32) {
             speed: NORMAL,
         },
         Smellable {
-            smell_log: String::from("dried human sweat"),
+            smell_log: "dried human sweat".to_string(),
             intensity: SmellIntensity::Faint,
+        },
+        ProduceSound {
+            sound_log: "someone weezing".to_string(),
         },
         1.0,
         x,
@@ -42,7 +45,7 @@ pub fn deep_one(ecs_world: &mut World, x: i32, y: i32) {
 pub fn freshwater_viperfish(ecs_world: &mut World, x: i32, y: i32) {
     let freshwater_viperfish = create_monster(
         ecs_world,
-        String::from("Freshwater viperfish"),
+        "Freshwater viperfish".to_string(),
         CombatStats {
             current_stamina: 4,
             max_stamina: 4,
@@ -55,8 +58,11 @@ pub fn freshwater_viperfish(ecs_world: &mut World, x: i32, y: i32) {
             speed: NORMAL,
         },
         Smellable {
-            smell_log: String::from("fish"),
+            smell_log: "fish".to_string(),
             intensity: SmellIntensity::None,
+        },
+        ProduceSound {
+            sound_log: "a splash in the water".to_string(),
         },
         4.0,
         x,
@@ -69,7 +75,7 @@ pub fn freshwater_viperfish(ecs_world: &mut World, x: i32, y: i32) {
 pub fn gremlin(ecs_world: &mut World, x: i32, y: i32) {
     create_monster(
         ecs_world,
-        String::from("Gremlin"),
+        "Gremlin".to_string(),
         CombatStats {
             current_stamina: 2,
             max_stamina: 2,
@@ -82,10 +88,13 @@ pub fn gremlin(ecs_world: &mut World, x: i32, y: i32) {
             speed: FAST,
         },
         Smellable {
-            smell_log: String::from("cheap leather"),
+            smell_log: "cheap leather".to_string(),
             intensity: SmellIntensity::Faint,
         },
-        3.0, 
+        ProduceSound {
+            sound_log: "someone cackling".to_string(),
+        },
+        3.0,
         x,
         y,
     );
@@ -94,7 +103,7 @@ pub fn gremlin(ecs_world: &mut World, x: i32, y: i32) {
 pub fn dvergar(ecs_world: &mut World, x: i32, y: i32) {
     create_monster(
         ecs_world,
-        String::from("Dvergar"),
+        "Dvergar".to_string(),
         CombatStats {
             current_stamina: 4,
             max_stamina: 4,
@@ -107,8 +116,11 @@ pub fn dvergar(ecs_world: &mut World, x: i32, y: i32) {
             speed: SLOW,
         },
         Smellable {
-            smell_log: String::from("coal drenched in vinegar"),
+            smell_log: "coal drenched in vinegar".to_string(),
             intensity: SmellIntensity::Faint,
+        },
+        ProduceSound {
+            sound_log: "someone mumbling".to_string(),
         },
         2.0,
         x,
@@ -122,6 +134,7 @@ pub fn create_monster(
     name: String,
     combat_stats: CombatStats,
     smells: Smellable,
+    sounds: ProduceSound,
     tile_index: f32,
     x: i32,
     y: i32,
@@ -151,6 +164,7 @@ pub fn create_monster(
         ProduceCorpse {},
         MyTurn {},
         smells,
+        sounds,
     );
 
     ecs_world.spawn(monster_entity)
