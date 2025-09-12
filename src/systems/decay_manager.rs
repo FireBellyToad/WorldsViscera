@@ -41,12 +41,12 @@ impl DecayManager {
                             // despawn if rot while already rotten
                             rotten_edibles_to_despawn.push(entity);
 
-                            if let Some(in_backpack) = in_backpack_option {
-                                if player_id == in_backpack.owner.id() {
-                                    game_log
-                                        .entries
-                                        .push(format!("Your {} rots away", named.name));
-                                }
+                            if let Some(in_backpack) = in_backpack_option
+                                && player_id == in_backpack.owner.id()
+                            {
+                                game_log
+                                    .entries
+                                    .push(format!("Your {} rots away", named.name));
                             }
                         }
                         Err(_) => {

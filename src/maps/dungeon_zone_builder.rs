@@ -12,6 +12,7 @@ use crate::{
 };
 
 /// Builds a simple dungeon-like zone made of rooms and corridors
+#[allow(dead_code)]
 pub struct DungeonZoneBuilder {}
 
 impl ZoneBuilder for DungeonZoneBuilder {
@@ -96,6 +97,7 @@ impl ZoneBuilder for DungeonZoneBuilder {
 }
 
 /// Other
+#[allow(dead_code)]
 impl DungeonZoneBuilder {
     fn apply_room_to_map(game_map: &mut Zone, room: &Rect) {
         for y in room.y as i32 + 1..(room.y + room.h) as i32 {

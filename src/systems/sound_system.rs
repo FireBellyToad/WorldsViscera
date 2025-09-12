@@ -5,7 +5,7 @@ use crate::{
         common::{CanListen, GameLog, Position, ProduceSound},
         player::Player,
     },
-    constants::{LISTEN_COOLDOWN_START},
+    constants::LISTEN_COOLDOWN_START,
     utils::{common::Utils, roll::Roll},
 };
 
@@ -28,11 +28,8 @@ impl SoundSystem {
                 .with::<&Player>();
             let mut sound_producers = ecs_world.query::<(&ProduceSound, &Position)>();
 
-
             for (_l, (can_listen, listener_pos)) in &mut listeners {
-
                 if can_listen.cooldown == 0 {
-                    
                     for (producer, (produce_sound, producer_pos)) in &mut sound_producers {
                         if Utils::distance(
                             producer_pos.x,
@@ -49,10 +46,8 @@ impl SoundSystem {
                                 .or_insert_with(|| {
                                     (producer, produce_sound.sound_log.clone(), false)
                                 });
-                        } else {
-                            if can_listen.listen_cache.contains_key(&producer.id()) {
-                                let _ = can_listen.listen_cache.remove(&producer.id());
-                            }
+                        } else if can_listen.listen_cache.contains_key(&producer.id()) {
+                            let _ = can_listen.listen_cache.remove(&producer.id());
                         }
                     }
 
@@ -70,7 +65,7 @@ impl SoundSystem {
 
                     can_listen.cooldown = Roll::d20() + LISTEN_COOLDOWN_START;
                 } else {
-                    can_listen.cooldown -=1;
+                    can_listen.cooldown -= 1;
                 }
             }
         }
