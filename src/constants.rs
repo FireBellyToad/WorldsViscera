@@ -99,3 +99,5 @@ pub const MAX_HIDDEN_TURNS: i32 = 9;
 
 /// Saving Throw related constants
 pub const AUTOFAIL_SAVING_THROW: i32 = 999;
+
+pub const LISTEN_COOLDOWN_START:i32 = 19;

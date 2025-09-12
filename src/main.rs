@@ -18,16 +18,10 @@ use systems::{
 use crate::{
     components::common::{Position, Viewshed},
     maps::{
-        ZoneBuilder, arena_zone_builder::ArenaZoneBuilder,
-        drunken_walk_zone_builder::DrunkenWalkZoneBuilder, zone::Zone,
+        arena_zone_builder::ArenaZoneBuilder, drunken_walk_zone_builder::DrunkenWalkZoneBuilder, zone::Zone, ZoneBuilder
     },
     systems::{
-        automatic_healing::AutomaticHealing, decay_manager::DecayManager,
-        drinking_quaffables::DrinkingQuaffables, fuel_manager::FuelManager,
-        hidden_manager::HiddenManager, hunger_check::HungerCheck, item_equipping::ItemEquipping,
-        map_indexing::MapIndexing, particle_manager::ParticleManager, smell_manager::SmellManager,
-        thirst_check::ThirstCheck, turn_checker::TurnCheck, wet_manager::WetManager,
-        zap_manager::ZapManager,
+        automatic_healing::AutomaticHealing, decay_manager::DecayManager, drinking_quaffables::DrinkingQuaffables, fuel_manager::FuelManager, hidden_manager::HiddenManager, hunger_check::HungerCheck, item_equipping::ItemEquipping, map_indexing::MapIndexing, particle_manager::ParticleManager, smell_manager::SmellManager, sound_system::SoundSystem, thirst_check::ThirstCheck, turn_checker::TurnCheck, wet_manager::WetManager, zap_manager::ZapManager
     },
     utils::assets::Load,
 };
@@ -258,6 +252,7 @@ fn do_in_tick_game_logic(game_state: &mut EngineState) -> bool {
         EatingEdibles::run(&mut game_state.ecs_world);
         DrinkingQuaffables::run(&mut game_state.ecs_world);
         FuelManager::do_refills(&mut game_state.ecs_world);
+        SoundSystem::run(&mut game_state.ecs_world);
     }
     false
 }

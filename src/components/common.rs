@@ -1,3 +1,6 @@
+use std::collections::HashMap;
+
+use hecs::Entity;
 use macroquad::math::Rect;
 
 use crate::utils::assets::TextureName;
@@ -54,7 +57,9 @@ pub struct Wet {
 }
 
 pub struct CanListen {
-    pub listen_cache: Vec<(i32, bool)>,
+    pub listen_cache: HashMap<u32, (Entity, String, bool)>,
+    pub radius: f32,
+    pub cooldown: i32,
 }
 pub struct ProduceSound {
     pub sound_log: String,

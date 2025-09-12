@@ -18,5 +18,6 @@ pub mod map_indexing;
 pub mod smell_manager;
 pub mod wet_manager;
 pub mod hidden_manager;
+pub mod sound_system;
 pub mod item_equipping;
 

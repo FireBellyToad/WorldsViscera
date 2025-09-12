@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crate::components::combat::{CombatStats, SufferingDamage};
 use crate::components::common::{
     CanListen, CanSmell, MyTurn, Named, Position, Renderable, SmellIntensity, Smellable, Viewshed
@@ -85,7 +87,9 @@ impl Spawn {
                 smell_log: String::from("yourself"),
             },
             CanListen{
-                listen_cache: Vec::new()
+                listen_cache: HashMap::new(),
+                radius: PLAYER_LISTEN_RADIUS,
+                cooldown: 0
             }
         );
 
