@@ -22,7 +22,7 @@ impl DecayManager {
         {
             //Log all the drop downs
             let mut game_log_query = ecs_world.query::<&mut GameLog>();
-            let (_e, game_log) = game_log_query
+            let (_, game_log) = game_log_query
                 .iter()
                 .last()
                 .expect("Game log is not in hecs::World");

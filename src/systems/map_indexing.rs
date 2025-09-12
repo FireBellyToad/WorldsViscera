@@ -16,14 +16,14 @@ impl MapIndexing {
         let mut entites = ecs_world.query::<&Position>();
         let mut blockers = ecs_world.query::<&Position>().with::<&BlocksTile>();
         let mut zone_query = ecs_world.query::<&mut Zone>();
-        let (_e, zone) = zone_query
+        let (_, zone) = zone_query
             .iter()
             .last()
             .expect("Zone is not in hecs::World");
 
         //index all blocked tiles
         zone.populate_blocked();
-        for (_e, position) in &mut blockers {
+        for (_, position) in &mut blockers {
             let index = Zone::get_index_from_xy(position.x, position.y);
             zone.blocked_tiles[index] = true;
         }
@@ -72,7 +72,7 @@ impl MapIndexing {
 
         lighters_query
             .iter()
-            .filter_map(|(_e, (position, in_backpack, fuel, produce_light))| {
+            .filter_map(|(_, (position, in_backpack, fuel, produce_light))| {
                 if fuel.is_none() || fuel.expect("Must have Fuel!").fuel_counter > 0 {
                     if let Some(pos) = position {
                         return Some(ProduceLightPositionDTO {

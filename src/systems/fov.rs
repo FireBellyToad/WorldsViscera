@@ -16,7 +16,7 @@ impl FieldOfView {
         let player_entity_id = Player::get_entity_id(ecs_world);
 
         let mut zone_query = ecs_world.query::<&mut Zone>();
-        let (_e, zone) = zone_query
+        let (_, zone) = zone_query
             .iter()
             .last()
             .expect("Zone is not in hecs::World");

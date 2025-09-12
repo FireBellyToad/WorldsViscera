@@ -19,7 +19,7 @@ impl FuelManager {
         let player_entity = Player::get_entity(ecs_world);
 
         let mut game_log_query = ecs_world.query::<&mut GameLog>();
-        let (_e, game_log) = game_log_query
+        let (_, game_log) = game_log_query
             .iter()
             .last()
             .expect("Game log is not in hecs::World");
@@ -72,10 +72,10 @@ impl FuelManager {
             // List of light producers with fuel
             let mut query = ecs_world.query::<&WantsToFuel>();
             let wants_to_refill_list: Vec<(Entity, &WantsToFuel)> =
-                query.iter().filter(|(_e, w)| w.with.is_some()).collect();
+                query.iter().filter(|(_, w)| w.with.is_some()).collect();
 
             let mut game_log_query = ecs_world.query::<&mut GameLog>();
-            let (_e, game_log) = game_log_query
+            let (_, game_log) = game_log_query
                 .iter()
                 .last()
                 .expect("Game log is not in hecs::World");

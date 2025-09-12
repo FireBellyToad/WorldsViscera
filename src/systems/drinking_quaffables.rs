@@ -26,12 +26,12 @@ impl DrinkingQuaffables {
 
             //Log all the pick ups
             let mut game_log_query = ecs_world.query::<&mut GameLog>();
-            let (_e, game_log) = game_log_query
+            let (_, game_log) = game_log_query
                 .iter()
                 .last()
                 .expect("Game log is not in hecs::World");
 
-            for (drinker, (wants_to_drink, thirst, _p)) in &mut drinkers {
+            for (drinker, (wants_to_drink, thirst, _)) in &mut drinkers {
                 // Keep track of the drinker
                 drinker_list.push(drinker);
                 //Drink!

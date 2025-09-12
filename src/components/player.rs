@@ -48,7 +48,7 @@ impl Player {
                 .with::<&Player>();
 
             let mut zone_query = ecs_world.query::<&Zone>();
-            let (_e, zone) = zone_query
+            let (_, zone) = zone_query
                 .iter()
                 .last()
                 .expect("Zone is not in hecs::World");
@@ -235,7 +235,7 @@ impl Player {
                     // Scope for keeping borrow checker quiet
                     {
                         let mut zone_query = ecs_world.query::<&Zone>();
-                        let (_e, zone) = zone_query
+                        let (_, zone) = zone_query
                             .iter()
                             .last()
                             .expect("Zone is not in hecs::World");
@@ -290,7 +290,7 @@ impl Player {
 
         if !picked_something {
             let mut game_log_query = ecs_world.query::<&mut GameLog>();
-            let (_e, game_log) = game_log_query
+            let (_, game_log) = game_log_query
                 .iter()
                 .last()
                 .expect("Game log is not in hecs::World");
@@ -314,7 +314,7 @@ impl Player {
         let mut target_item: Option<Entity> = None;
 
         let mut player_query = ecs_world.query::<&Position>().with::<&Player>();
-        let (_e, position) = player_query
+        let (_, position) = player_query
             .iter()
             .last()
             .expect("Player is not in hecs::World");
@@ -322,7 +322,7 @@ impl Player {
 
         let mut items = ecs_world.query::<(&Item, &Position)>();
         // Get item
-        for (item_entity, (_item, item_position)) in &mut items {
+        for (item_entity, (_tem, item_position)) in &mut items {
             if player_position.x == item_position.x && player_position.y == item_position.y {
                 target_item = Some(item_entity);
             }
@@ -345,7 +345,7 @@ impl Player {
             } else {
                 // Avoid losing time trying to drink non quaffable from grounnd
                 let mut game_log_query = ecs_world.query::<&mut GameLog>();
-                let (_e, game_log) = game_log_query
+                let (_, game_log) = game_log_query
                     .iter()
                     .last()
                     .expect("Game log is not in hecs::World");
@@ -365,13 +365,13 @@ impl Player {
         // Scope for keeping borrow checker quiet
         {
             let mut zone_query = ecs_world.query::<&Zone>();
-            let (_e, zone) = zone_query
+            let (_, zone) = zone_query
                 .iter()
                 .last()
                 .expect("Zone is not in hecs::World");
 
             let mut player_query = ecs_world.query::<&Position>().with::<&Player>();
-            let (_e, position) = player_query
+            let (_, position) = player_query
                 .iter()
                 .last()
                 .expect("Player is not in hecs::World");
@@ -400,7 +400,7 @@ impl Player {
                 } else {
                     // Avoid losing time trying to drink non quaffable from grounnd
                     let mut game_log_query = ecs_world.query::<&mut GameLog>();
-                    let (_e, game_log) = game_log_query
+                    let (_, game_log) = game_log_query
                         .iter()
                         .last()
                         .expect("Game log is not in hecs::World");
@@ -422,14 +422,14 @@ impl Player {
         //Scope to keep borrow checker quiet
         {
             let mut player_query = ecs_world.query::<&Position>().with::<&Player>();
-            let (_e, position) = player_query
+            let (_, position) = player_query
                 .iter()
                 .last()
                 .expect("Player is not in hecs::World");
             player_position = position;
 
             let mut zone_query = ecs_world.query::<&Zone>();
-            let (_e, zone) = zone_query
+            let (_, zone) = zone_query
                 .iter()
                 .last()
                 .expect("Zone is not in hecs::World");
@@ -437,7 +437,7 @@ impl Player {
                 &zone.tiles[Zone::get_index_from_xy(player_position.x, player_position.y)];
 
             let mut game_log_query = ecs_world.query::<&mut GameLog>();
-            let (_e, game_log) = game_log_query
+            let (_, game_log) = game_log_query
                 .iter()
                 .last()
                 .expect("Game log is not in hecs::World");
@@ -461,7 +461,7 @@ impl Player {
     /// Extract Player's entity from world and return it with copy
     pub fn get_entity(ecs_world: &World) -> Entity {
         let mut player_query = ecs_world.query::<&Player>();
-        let (player_entity, _p) = player_query
+        let (player_entity, _) = player_query
             .iter()
             .last()
             .expect("Player is not in hecs::World");
@@ -484,7 +484,7 @@ impl Player {
         let mut players = ecs_world
             .query::<(&mut CombatStats, &mut CanAutomaticallyHeal)>()
             .with::<&Player>();
-        for (_e, (stats, can_heal)) in &mut players {
+        for (_, (stats, can_heal)) in &mut players {
             if stats.current_stamina < stats.max_stamina {
                 can_heal.tick_counter = MAX_STAMINA_HEAL_TICK_COUNTER
             }

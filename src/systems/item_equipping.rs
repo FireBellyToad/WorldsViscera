@@ -28,7 +28,7 @@ impl ItemEquipping {
 
             //Log all the equipments
             let mut game_log_query = ecs_world.query::<&mut GameLog>();
-            let (_e, game_log) = game_log_query
+            let (_, game_log) = game_log_query
                 .iter()
                 .last()
                 .expect("Game log is not in hecs::World");
@@ -53,7 +53,7 @@ impl ItemEquipping {
 
                     //Check if wants_item.body_location is already taken
                     let item_in_same_location: Option<(Entity, &Equipped)> =
-                        equipped_items.iter().find(|(_e, equipped)| {
+                        equipped_items.iter().find(|(_, equipped)| {
                             equipped.owner.id() == equipper.id()
                                 && Utils::occupies_same_location(
                                     &equipped.body_location,

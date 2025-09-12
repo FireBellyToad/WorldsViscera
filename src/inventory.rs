@@ -60,14 +60,14 @@ impl Inventory {
                 None => {}
                 Some(letterkey) => {
                     let mut player_query = ecs_world.query::<&Player>();
-                    let (player_entity, _p) = player_query
+                    let (player_entity, _) = player_query
                         .iter()
                         .last()
                         .expect("Player is not in hecs::World");
 
                     //Log
                     let mut game_log_query = ecs_world.query::<&mut GameLog>();
-                    let (_e, game_log) = game_log_query
+                    let (_, game_log) = game_log_query
                         .iter()
                         .last()
                         .expect("Game log is not in hecs::World");
@@ -98,7 +98,7 @@ impl Inventory {
                     // Validating char input
                     let item_selected = inventory
                         .iter()
-                        .find(|(_e, _n, assigned_char, _t, _eq)| *assigned_char == letterkey);
+                        .find(|(_, _, assigned_char, _, _q)| *assigned_char == letterkey);
 
                     // Check if item exist for letter, then register it and go on
                     if let Some(item_sel_unwrap) = item_selected {
@@ -238,7 +238,7 @@ impl Inventory {
         );
 
         // ------- Item List -----------
-        for (index, (_e, item_name, assigned_char, item_tile, equipped)) in
+        for (index, (_, item_name, assigned_char, item_tile, equipped)) in
             inventory.iter().enumerate()
         {
             let x = (INVENTORY_X + UI_BORDER * 2) as f32;
@@ -296,7 +296,7 @@ impl Inventory {
             ecs_world.query::<(&Named, &Item, &InBackback, Option<&Equipped>)>();
         let mut inventory = inventory_query
             .iter()
-            .filter(|(_e, (_n, _i, in_backpack, _eq))| in_backpack.owner.id() == player_id)
+            .filter(|(_, (_, _, in_backpack, _q))| in_backpack.owner.id() == player_id)
             .map(|(entity, (named, item, in_backpack, equipped))| {
                 (
                     entity,
@@ -325,7 +325,7 @@ impl Inventory {
 
         let mut inventory = inventory_query
             .iter()
-            .filter(|(_e, (_n, _i, in_backpack, _eq))| in_backpack.owner.id() == player_id)
+            .filter(|(_, (_, _, in_backpack, _q))| in_backpack.owner.id() == player_id)
             .map(|(entity, (named, item, in_backpack, equipped))| {
                 (
                     entity,

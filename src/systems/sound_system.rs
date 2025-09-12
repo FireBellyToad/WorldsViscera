@@ -15,7 +15,7 @@ impl SoundSystem {
     pub fn run(ecs_world: &mut World) {
         //Log all the equipments
         let mut game_log_query = ecs_world.query::<&mut GameLog>();
-        let (_e, game_log) = game_log_query
+        let (_, game_log) = game_log_query
             .iter()
             .last()
             .expect("Game log is not in hecs::World");
@@ -28,7 +28,7 @@ impl SoundSystem {
                 .with::<&Player>();
             let mut sound_producers = ecs_world.query::<(&ProduceSound, &Position)>();
 
-            for (_l, (can_listen, listener_pos)) in &mut listeners {
+            for (_, (can_listen, listener_pos)) in &mut listeners {
                 if can_listen.cooldown == 0 {
                     for (producer, (produce_sound, producer_pos)) in &mut sound_producers {
                         if Utils::distance(

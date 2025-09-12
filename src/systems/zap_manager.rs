@@ -29,13 +29,13 @@ impl ZapManager {
 
             //Log all the zappings
             let mut game_log_query = ecs_world.query::<&mut GameLog>();
-            let (_e, game_log) = game_log_query
+            let (_, game_log) = game_log_query
                 .iter()
                 .last()
                 .expect("Game log is not in hecs::World");
 
             let mut zone_query = ecs_world.query::<&Zone>();
-            let (_e, zone) = zone_query
+            let (_, zone) = zone_query
                 .iter()
                 .last()
                 .expect("Zone is not in hecs::World");

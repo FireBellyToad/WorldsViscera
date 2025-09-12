@@ -38,14 +38,14 @@ impl HungerCheck {
             let player_id = Player::get_entity_id(ecs_world);
 
             let mut zone_query = ecs_world.query::<&mut Zone>();
-            let (_e, zone) = zone_query
+            let (_, zone) = zone_query
                 .iter()
                 .last()
                 .expect("Zone is not in hecs::World");
 
             //Log all the hunger checks
             let mut game_log_query = ecs_world.query::<&mut GameLog>();
-            let (_e, game_log) = game_log_query
+            let (_, game_log) = game_log_query
                 .iter()
                 .last()
                 .expect("Game log is not in hecs::World");

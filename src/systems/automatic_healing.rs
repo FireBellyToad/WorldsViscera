@@ -20,7 +20,7 @@ impl AutomaticHealing {
             let mut statted_entities =
                 ecs_world.query::<(&mut CombatStats, &mut CanAutomaticallyHeal, &Hunger, &Thirst)>().with::<&MyTurn>();
 
-            for (_e, (stats, stamina_heal, hunger, thirst)) in &mut statted_entities {
+            for (_, (stats, stamina_heal, hunger, thirst)) in &mut statted_entities {
                 // Each 4 ticks, heal 1 STA
                 if stamina_heal.tick_counter == 0 && stats.max_stamina > stats.current_stamina {
                     stamina_heal.tick_counter = MAX_STAMINA_HEAL_TICK_COUNTER;

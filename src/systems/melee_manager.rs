@@ -29,7 +29,7 @@ impl MeleeManager {
 
             //Log all the pick ups
             let mut game_log_query = ecs_world.query::<&mut GameLog>();
-            let (_e, game_log) = game_log_query
+            let (_, game_log) = game_log_query
                 .iter()
                 .last()
                 .expect("Game log is not in hecs::World");
@@ -113,7 +113,7 @@ impl MeleeManager {
         equipped_weapons: &mut hecs::QueryBorrow<'_, (&Weapon, &Equipped)>,
     ) -> i32 {
         // Use weapon dice when equipped
-        for (_e, (attacker_weapon, equipped_to)) in equipped_weapons.iter() {
+        for (_, (attacker_weapon, equipped_to)) in equipped_weapons.iter() {
             if equipped_to.owner.id() == attacker_id {
                 println!(
                     "Weapon equipped by {:?} is {}",

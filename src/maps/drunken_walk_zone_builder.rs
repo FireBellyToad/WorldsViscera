@@ -63,7 +63,7 @@ impl ZoneBuilder for DrunkenWalkZoneBuilder {
         }
 
         let river_number = max(1, Roll::dice(0, MAX_RIVERS_IN_ZONE + (depth / 3)) - 3);
-        for _r in 0..river_number {
+        for _ in 0..river_number {
             RiverBuilder::build(&mut zone);
         }
         // Populate water tiles here, needed for correct aquatic monster spawning
@@ -74,8 +74,8 @@ impl ZoneBuilder for DrunkenWalkZoneBuilder {
         let items_number = Roll::dice(1, MAX_ITEMS_IN_ZONE) + 3;
         let braziers_number = Roll::dice(1, MAX_BRAZIER_IN_ZONE);
 
-        for _m in 0..monster_number {
-            for _t in 0..MAX_SPAWN_TENTANTIVES {
+        for _ in 0..monster_number {
+            for _ in 0..MAX_SPAWN_TENTANTIVES {
                 let x = Roll::dice(1, MAP_WIDTH - 2) as f32;
                 let y = Roll::dice(1, MAP_HEIGHT - 2) as f32;
                 let index = Zone::get_index_from_xy_f32(x, y);
@@ -90,8 +90,8 @@ impl ZoneBuilder for DrunkenWalkZoneBuilder {
             }
         }
 
-        for _i in 0..items_number {
-            for _t in 0..MAX_SPAWN_TENTANTIVES {
+        for _ in 0..items_number {
+            for _ in 0..MAX_SPAWN_TENTANTIVES {
                 let x = Roll::dice(1, MAP_WIDTH - 2) as f32;
                 let y = Roll::dice(1, MAP_HEIGHT - 2) as f32;
                 let index = Zone::get_index_from_xy_f32(x, y);
@@ -108,7 +108,7 @@ impl ZoneBuilder for DrunkenWalkZoneBuilder {
 
         // Random braziers
         // FIXME not sure if its a good idea... for now, leave them
-        for _i in 0..braziers_number {
+        for _ in 0..braziers_number {
             let mut brazier_index = zone.tiles.len() / 2;
             while zone.tiles[brazier_index] != TileType::Floor {
                 try_x = Roll::dice(1, MAP_WIDTH - 2);

@@ -34,7 +34,7 @@ impl Draw {
             RunState::GameOver => Draw::game_over(),
             _ => {
                 // Zone and renderables
-                for (_e, zone) in &mut zones {
+                for (_, zone) in &mut zones {
                     Draw::zone(zone, assets);
                     Draw::renderables(&game_state.ecs_world, assets, zone);
                 }
@@ -85,7 +85,7 @@ impl Draw {
         // ------- Messages log  -----------
 
         let mut game_log_query = ecs_world.query::<&GameLog>();
-        let (_e, game_log) = game_log_query
+        let (_, game_log) = game_log_query
             .iter()
             .last()
             .expect("Game log is not in hecs::World");
@@ -113,12 +113,12 @@ impl Draw {
 
     fn hud_header(ecs_world: &World) {
         let mut zones = ecs_world.query::<&Zone>();
-        let (_e, zone) = zones.iter().last().expect("Zone is not in hecs::World");
+        let (_, zone) = zones.iter().last().expect("Zone is not in hecs::World");
 
         let mut player_query = ecs_world
             .query::<(&CombatStats, &Hunger, &Thirst)>()
             .with::<&Player>();
-        let (_e, (player_stats, hunger, thirst)) = player_query
+        let (_, (player_stats, hunger, thirst)) = player_query
             .iter()
             .last()
             .expect("Player is not in hecs::World");
@@ -268,9 +268,9 @@ impl Draw {
 
         let mut renderables_vec: Vec<(hecs::Entity, (&Renderable, &Position))> =
             renderables_with_position.iter().collect();
-        renderables_vec.sort_by_key(|(_e, (renderable, _p))| renderable.z_index);
+        renderables_vec.sort_by_key(|(_, (renderable, _))| renderable.z_index);
 
-        for (_e, (renderable, position)) in renderables_vec {
+        for (_, (renderable, position)) in renderables_vec {
             let texture_to_render = assets
                 .get(&renderable.texture_name)
                 .expect("Texture not found");
@@ -319,7 +319,7 @@ impl Draw {
         );
 
         let mut zone_query = ecs_world.query::<&Zone>();
-        let (_e, zone) = zone_query
+        let (_, zone) = zone_query
             .iter()
             .last()
             .expect("Zone is not in hecs::World");
@@ -358,13 +358,13 @@ impl Draw {
             .query::<(&Position, &CanSmell)>()
             .with::<&Player>();
 
-        for (_e, (player_position, player_smell_ability)) in &mut player_query_smell {
+        for (_, (player_position, player_smell_ability)) in &mut player_query_smell {
             // Draw targets if special
             match special_view_mode {
                 SpecialViewMode::Smell => {
                     //Show smellable on not visibile tiles
                     let mut smells_with_position = ecs_world.query::<(&Position, &Smellable)>();
-                    for (_e, (smell_position, smell)) in &mut smells_with_position {
+                    for (_, (smell_position, smell)) in &mut smells_with_position {
                         let index = Zone::get_index_from_xy(smell_position.x, smell_position.y);
 
                         let distance = Utils::distance(

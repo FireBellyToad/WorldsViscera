@@ -29,7 +29,7 @@ impl ItemCollection {
 
             //Log all the pick ups
             let mut game_log_query = ecs_world.query::<&mut GameLog>();
-            let (_e, game_log) = game_log_query
+            let (_, game_log) = game_log_query
                 .iter()
                 .last()
                 .expect("Game log is not in hecs::World");
@@ -40,8 +40,8 @@ impl ItemCollection {
                 // All the currently assigned chars of the item carried by the owner
                 let all_currently_assigned_chars: Vec<char> = items_in_backpacks
                     .iter()
-                    .filter(|(_e, (_i, b))| b.owner.id() == collector.id())
-                    .map(|(_e, (_i, b))| b.assigned_char)
+                    .filter(|(_, (_, b))| b.owner.id() == collector.id())
+                    .map(|(_, (_, b))| b.assigned_char)
                     .collect();
 
                 let named_owner = ecs_world

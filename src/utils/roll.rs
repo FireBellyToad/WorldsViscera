@@ -8,7 +8,7 @@ impl Roll {
     pub fn dice(number: i32, size: i32) -> i32 {
         let mut result = 0;
 
-        for _throw in 0..number {
+        for _hrow in 0..number {
             result += gen_range(1, size + 1);
         }
 

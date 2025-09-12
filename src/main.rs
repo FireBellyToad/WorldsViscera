@@ -186,7 +186,7 @@ fn change_zone(engine: &mut EngineState) {
     // Scope for keeping borrow checker quiet
     {
         let mut zone_query = engine.ecs_world.query::<&Zone>();
-        let (_e, zone) = zone_query
+        let (_, zone) = zone_query
             .iter()
             .last()
             .expect("Zone is not in hecs::World");
@@ -209,7 +209,7 @@ fn change_zone(engine: &mut EngineState) {
             .query::<(&mut Position, &mut Viewshed)>()
             .with::<&Player>();
 
-        for (_e, (player_position, player_viewshed)) in &mut player_query_viewshed {
+        for (_, (player_position, player_viewshed)) in &mut player_query_viewshed {
             let (x, y) = Zone::get_xy_from_index(zone.player_spawn_point);
             player_position.x = x;
             player_position.y = y;
