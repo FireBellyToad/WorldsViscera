@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use crate::components::combat::{CombatStats, SufferingDamage};
 use crate::components::common::{
-    CanListen, CanSmell, MyTurn, Named, Position, Renderable, SmellIntensity, Smellable, Viewshed
+    CanListen, CanSmell, MyTurn, Named, Position, ProduceSound, Renderable, SmellIntensity, Smellable, Viewshed
 };
 use crate::components::health::{CanAutomaticallyHeal, Hunger, Thirst};
 use crate::components::items::{Edible, Item, Perishable, ProduceLight, Quaffable};
@@ -179,7 +179,6 @@ impl Spawn {
     }
 
     /// Spawn special tile entities
-    #[allow(clippy::single_match)]
     fn tile_entity(ecs_world: &mut World, x: i32, y: i32, tile: &TileType) {
         match tile {
             TileType::Brazier => {
@@ -192,7 +191,10 @@ impl Spawn {
                     Smellable {
                         smell_log: String::from("burning chemicals"),
                         intensity: SmellIntensity::Strong,
-                    },
+                            },
+                    ProduceSound {
+                        sound_log: "fire burning".to_string(),
+                    }
                 ));
             }
             _ => {}
@@ -208,7 +210,7 @@ impl Spawn {
             Quaffable {
                 thirst_dice_number: 2,
                 thirst_dice_size: 20,
-            },
+            }
         ))
     }
 }
