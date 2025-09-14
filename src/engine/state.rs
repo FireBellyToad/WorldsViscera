@@ -1,6 +1,6 @@
 use hecs::{Entity, World};
 
-use crate::{components::{common::GameLog, items::InBackback, player::{Player, SpecialViewMode}}, inventory::InventoryAction};
+use crate::{components::{common::GameLog, items::InBackback, player::{Player, SpecialViewMode}}, constants::UIAction};
 
 #[derive(PartialEq, Debug)]
 pub enum RunState {
@@ -8,7 +8,8 @@ pub enum RunState {
     WaitingPlayerInput,
     DoTick,
     GameOver,
-    ShowInventory(InventoryAction),
+    ShowInventory(UIAction),
+    ShowDialog(UIAction),
     MouseTargeting(SpecialViewMode),
     DrawParticles,
     GoToNextZone,

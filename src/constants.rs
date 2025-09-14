@@ -101,3 +101,14 @@ pub const MAX_HIDDEN_TURNS: i32 = 9;
 pub const AUTOFAIL_SAVING_THROW: i32 = 999;
 
 pub const LISTEN_COOLDOWN_START:i32 = 19;
+
+#[derive(PartialEq, Debug)]
+pub enum UIAction {
+    Eat,
+    Drop,
+    Invoke,
+    Quaff,
+    RefillWhat,
+    RefillWith,
+    Equip,
+}

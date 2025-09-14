@@ -123,6 +123,10 @@ async fn main() {
                 RunState::ShowInventory(mode) => {
                     game_state.run_state = Inventory::handle_input(&mut game_state.ecs_world, mode);
                 }
+                RunState::ShowDialog(mode) => {
+                    // TODO the wut?
+                    game_state.run_state = Inventory::handle_input(&mut game_state.ecs_world, mode);
+                }
                 RunState::MouseTargeting(special_view_mode) => {
                     game_state.run_state = Player::checks_input_for_targeting(
                         &mut game_state.ecs_world,

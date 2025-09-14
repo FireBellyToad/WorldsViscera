@@ -19,7 +19,7 @@ use crate::{
         UI_BORDER_F32,
     },
     engine::state::RunState,
-    inventory::InventoryAction,
+    constants::UIAction,
     maps::zone::{TileType, Zone},
     spawning::spawner::Spawn,
 };
@@ -159,19 +159,19 @@ impl Player {
                         //Drop item
                         'd' => {
                             clear_input_queue();
-                            run_state = RunState::ShowInventory(InventoryAction::Drop);
+                            run_state = RunState::ShowInventory(UIAction::Drop);
                         }
 
                         //Equip item
                         'f' => {
                             clear_input_queue();
-                            run_state = RunState::ShowInventory(InventoryAction::Equip);
+                            run_state = RunState::ShowInventory(UIAction::Equip);
                         }
 
                         //Invoke item
                         'i' => {
                             clear_input_queue();
-                            run_state = RunState::ShowInventory(InventoryAction::Invoke);
+                            run_state = RunState::ShowInventory(UIAction::Invoke);
                         }
 
                         //Quaff item
@@ -186,7 +186,7 @@ impl Player {
                         //Refill item
                         'r' => {
                             clear_input_queue();
-                            run_state = RunState::ShowInventory(InventoryAction::RefillWhat);
+                            run_state = RunState::ShowInventory(UIAction::RefillWhat);
                         }
 
                         //Smell action
@@ -355,7 +355,7 @@ impl Player {
             }
         }
 
-        (RunState::ShowInventory(InventoryAction::Eat), false)
+        (RunState::ShowInventory(UIAction::Eat), false)
     }
 
     /// Try to drink. Return new Runstate and true if it can heal
@@ -412,7 +412,7 @@ impl Player {
         }
 
         // Show quaffable items in inventory
-        (RunState::ShowInventory(InventoryAction::Quaff), false)
+        (RunState::ShowInventory(UIAction::Quaff), false)
     }
 
     fn try_next_level(ecs_world: &mut World) -> RunState {
