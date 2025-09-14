@@ -40,6 +40,7 @@ impl ZoneBuilder for DrunkenWalkZoneBuilder {
                 // Avoid boundaries, or else skip iteration
                 if dest_x <= 1 || dest_x >= MAP_WIDTH - 1 || dest_y <= 1 || dest_y >= MAP_HEIGHT - 1
                 {
+                    println!("DrunkenWalkZoneBuilder - Try again");
                     continue;
                 }
 

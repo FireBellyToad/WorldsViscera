@@ -57,12 +57,11 @@ impl ZoneFeatureBuilder for RiverBuilder {
 
             // Avoid boundaries, or else skip iteration
             if dest_x <= 1 || dest_x >= MAP_WIDTH || dest_y <= 1 || dest_y >= MAP_HEIGHT {
+                println!("RiverBuilder - Try again");
                 continue;
             }
 
             current_position = (dest_x, dest_y);
-            println!("current_position {:?}", current_position);
-            println!("MAP_WIDTH {} MAP_HEIGHT {}", MAP_WIDTH, MAP_HEIGHT);
             //5 - go to step 2
         }
     }
