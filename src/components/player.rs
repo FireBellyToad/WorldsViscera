@@ -340,8 +340,8 @@ impl Player {
         if let Some(item) = item_on_ground {
             // Is really Quaffable?
             if ecs_world.get::<&Edible>(item).is_ok() {
-                let _ = ecs_world.insert_one(player_entity, WantsToEat { item });
-                return (RunState::DoTick, true);
+                // let _ = ecs_world.insert_one(player_entity, WantsToEat { item });
+                return (RunState::ShowDialog(UIAction::Eat), true);
             } else {
                 // Avoid losing time trying to drink non quaffable from grounnd
                 let mut game_log_query = ecs_world.query::<&mut GameLog>();

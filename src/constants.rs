@@ -35,6 +35,14 @@ pub const ITEM_INVENTORY_LEFT_SPAN: i32 = 12;
 pub const ITEM_INVENTORY_TOP_SPAN: i32 = 10;
 pub const MAX_ITEMS_IN_BACKPACK: usize = 10;
 
+/// Dialog related constants
+pub const DIALOG_X: i32 = 64;
+pub const DIALOG_Y: i32 = 128;
+pub const DIALOG_SIZE: i32 = 512;
+pub const DIALOG_FOOTER_WIDTH: i32 = 186;
+pub const DIALOG_LEFT_SPAN: i32 = DIALOG_FOOTER_WIDTH/4;
+pub const DIALOG_TOP_SPAN: i32 = DIALOG_SIZE/6;
+
 /// UI related constants
 pub const UI_BORDER: i32 = 8;
 pub const UI_BORDER_F32: f32 = UI_BORDER as f32;
