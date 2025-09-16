@@ -1,6 +1,6 @@
 /// Zone related constats
 pub const MAP_WIDTH: i32 = 56;
-pub const MAP_HEIGHT: i32 = 34;
+pub const MAP_HEIGHT: i32 = 32;
 pub const MAP_WIDTH_F32: f32 = MAP_WIDTH as f32;
 pub const MAP_HEIGHT_F32: f32 = MAP_HEIGHT as f32;
 pub const TILE_SIZE: i32 = 24;
@@ -20,8 +20,8 @@ pub const HEADER_LEFT_SPAN: i32 = 64;
 pub const MAX_MESSAGES_IN_LOG: usize = 4;
 
 /// Inventory related constants
-pub const INVENTORY_X: i32 = 64;
-pub const INVENTORY_Y: i32 = 128;
+pub const INVENTORY_X: i32 = (WINDOW_WIDTH/2) - INVENTORY_SIZE/2;
+pub const INVENTORY_Y: i32 = (WINDOW_HEIGHT/3) - INVENTORY_SIZE/2;
 pub const INVENTORY_SIZE: i32 = 512;
 pub const INVENTORY_FOOTER_WIDTH: i32 = 186;
 pub const INVENTORY_LEFT_SPAN: i32 = 20;
@@ -36,8 +36,8 @@ pub const ITEM_INVENTORY_TOP_SPAN: i32 = 10;
 pub const MAX_ITEMS_IN_BACKPACK: usize = 10;
 
 /// Dialog related constants
-pub const DIALOG_X: i32 = 64;
-pub const DIALOG_Y: i32 = 128;
+pub const DIALOG_X: i32 = (WINDOW_WIDTH/2) - DIALOG_SIZE/2; 
+pub const DIALOG_Y: i32 = (WINDOW_HEIGHT/3) - DIALOG_SIZE/2; 
 pub const DIALOG_SIZE: i32 = 512;
 pub const DIALOG_FOOTER_WIDTH: i32 = 186;
 pub const DIALOG_LEFT_SPAN: i32 = DIALOG_FOOTER_WIDTH/4;

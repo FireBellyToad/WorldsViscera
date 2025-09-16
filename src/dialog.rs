@@ -16,26 +16,28 @@ pub struct Dialog {}
 impl Dialog {
     /// Handle dialog input
     pub fn handle_input(ecs_world: &mut World, mode: UIAction) -> RunState {
-        if is_key_pressed(KeyCode::Escape) {
-            // Exit dialog, clear queue to avoid to reopen on cancel
-            // caused by char input queue
-            clear_input_queue();
-            return RunState::WaitingPlayerInput;
-        } else {
-            //Any other key
-            let mut selected_item_entity: Option<Entity> = None;
-            let mut user_entity: Option<Entity> = None;
+        //Any other key
+        let mut selected_item_entity: Option<Entity> = None;
+        let mut user_entity: Option<Entity> = None;
 
-            match get_char_pressed() {
-                None => {}
-                Some(letterkey) => {}
-            }
-            let mut new_run_state = RunState::ShowDialog(mode);
-
-            //Avoid strange behaviors
-            clear_input_queue();
-            return new_run_state;
+        match get_char_pressed() {
+            None => {}
+            Some(letterkey) => match letterkey {
+                'n' => {
+                    // Exit dialog, clear queue to avoid to reopen on cancel
+                    // caused by char input queue
+                    clear_input_queue();
+                    return RunState::WaitingPlayerInput;
+                }
+                'y' => {}
+                _ => {}
+            },
         }
+        let mut new_run_state = RunState::ShowDialog(mode);
+
+        //Avoid strange behaviors
+        clear_input_queue();
+        return new_run_state;
     }
 
     pub fn draw(assets: &HashMap<TextureName, Texture2D>, ecs_world: &World, mode: &UIAction) {
@@ -64,7 +66,7 @@ impl Dialog {
         // ------- Footer -----------
         draw_text(
             "Yes",
-            (DIALOG_X + DIALOG_SIZE - DIALOG_LEFT_SPAN + HUD_BORDER) as f32 - (3.0 * LETTER_SIZE) ,
+            (DIALOG_X + DIALOG_SIZE - DIALOG_LEFT_SPAN + HUD_BORDER) as f32 - (3.0 * LETTER_SIZE),
             (DIALOG_Y + DIALOG_SIZE - DIALOG_TOP_SPAN + HUD_BORDER) as f32,
             FONT_SIZE,
             WHITE,
