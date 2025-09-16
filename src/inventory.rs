@@ -27,6 +27,17 @@ use crate::{
     utils::assets::TextureName,
 };
 
+#[derive(PartialEq, Debug)]
+pub enum InventoryAction {
+    Eat,
+    Drop,
+    Invoke,
+    Quaff,
+    RefillWhat,
+    RefillWith,
+    Equip,
+}
+
 /// Inventory Item Data trasfer type: used for rendering and general inventory usage
 type InventoryItemDtt = Vec<(Entity, String, char, (i32, i32), bool)>;
 
@@ -34,7 +45,7 @@ pub struct Inventory {}
 
 impl Inventory {
     /// Handle inventory input
-    pub fn handle_input(ecs_world: &mut World, mode: UIAction) -> RunState {
+    pub fn handle_input(ecs_world: &mut World, mode: InventoryAction) -> RunState {
         if is_key_pressed(KeyCode::Escape) {
             // Exit inventory, clear queue to avoid to reopen on cancel
             // caused by char input queue
@@ -63,25 +74,25 @@ impl Inventory {
 
                     //Inventory = Named items in backpack of the Player assigned to the pressed char key
                     let inventory: InventoryItemDtt = match mode {
-                        UIAction::Eat => {
+                        InventoryAction::Eat => {
                             Inventory::get_all_in_backpack_filtered_by::<Edible>(ecs_world)
                         }
-                        UIAction::Invoke => {
+                        InventoryAction::Invoke => {
                             Inventory::get_all_in_backpack_filtered_by::<Invokable>(ecs_world)
                         }
-                        UIAction::Quaff => {
+                        InventoryAction::Quaff => {
                             Inventory::get_all_in_backpack_filtered_by::<Quaffable>(ecs_world)
                         }
-                        UIAction::RefillWhat => {
+                        InventoryAction::RefillWhat => {
                             Inventory::get_all_in_backpack_filtered_by::<ProduceLight>(ecs_world)
                         }
-                        UIAction::RefillWith => {
+                        InventoryAction::RefillWith => {
                             Inventory::get_all_in_backpack_filtered_by::<Refiller>(ecs_world)
                         }
-                        UIAction::Equip => {
+                        InventoryAction::Equip => {
                             Inventory::get_all_in_backpack_filtered_by::<Equippable>(ecs_world)
                         }
-                        UIAction::Drop => Inventory::get_all_in_backpack(ecs_world),
+                        InventoryAction::Drop => Inventory::get_all_in_backpack(ecs_world),
                     };
 
                     // Validating char input
@@ -106,29 +117,29 @@ impl Inventory {
             if let Some(item) = selected_item_entity {
                 let user = user_entity.expect("user_entity is none!");
                 match mode {
-                    UIAction::Eat => {
+                    InventoryAction::Eat => {
                         let _ = ecs_world.insert_one(user, WantsToEat { item });
                     }
-                    UIAction::Drop => {
+                    InventoryAction::Drop => {
                         let _ = ecs_world.insert_one(user, WantsToDrop { item });
                     }
-                    UIAction::Quaff => {
+                    InventoryAction::Quaff => {
                         let _ = ecs_world.insert_one(user, WantsToDrink { item });
                     }
-                    UIAction::Invoke => {
+                    InventoryAction::Invoke => {
                         let _ = ecs_world.insert_one(user, WantsToInvoke { item });
                         new_run_state = RunState::MouseTargeting(SpecialViewMode::ZapTargeting);
                     }
-                    UIAction::RefillWhat => {
+                    InventoryAction::RefillWhat => {
                         // Select what to refill, then which item you are going to refill with
                         let _ = ecs_world.insert_one(user, WantsToFuel { item, with: None });
-                        new_run_state = RunState::ShowInventory(UIAction::RefillWith);
+                        new_run_state = RunState::ShowInventory(InventoryAction::RefillWith);
                     }
-                    UIAction::RefillWith => {
+                    InventoryAction::RefillWith => {
                         let wants_to_fuel = ecs_world.get::<&mut WantsToFuel>(user);
                         wants_to_fuel.expect("Must Want to Fuel!").with = Some(item);
                     }
-                    UIAction::Equip => {
+                    InventoryAction::Equip => {
                         let body_location;
                         // Scope to keep the borrow check quiet
                         {
@@ -160,7 +171,7 @@ impl Inventory {
     pub fn draw(
         assets: &HashMap<TextureName, Texture2D>,
         ecs_world: &World,
-        mode: &UIAction,
+        mode: &InventoryAction,
     ) {
         let texture_to_render = assets.get(&TextureName::Items).expect("Texture not found");
 
@@ -169,31 +180,31 @@ impl Inventory {
         let header_text;
 
         match mode {
-            UIAction::Eat => {
+            InventoryAction::Eat => {
                 header_text = "Eat what?";
                 inventory = Inventory::get_all_in_backpack_filtered_by::<Edible>(ecs_world);
             }
-            UIAction::Invoke => {
+            InventoryAction::Invoke => {
                 header_text = "Invoke what?";
                 inventory = Inventory::get_all_in_backpack_filtered_by::<Invokable>(ecs_world);
             }
-            UIAction::Quaff => {
+            InventoryAction::Quaff => {
                 header_text = "Drink what?";
                 inventory = Inventory::get_all_in_backpack_filtered_by::<Quaffable>(ecs_world);
             }
-            UIAction::RefillWhat => {
+            InventoryAction::RefillWhat => {
                 header_text = "Refill what?";
                 inventory = Inventory::get_all_in_backpack_filtered_by::<ProduceLight>(ecs_world);
             }
-            UIAction::RefillWith => {
+            InventoryAction::RefillWith => {
                 header_text = "With what?";
                 inventory = Inventory::get_all_in_backpack_filtered_by::<Refiller>(ecs_world);
             }
-            UIAction::Equip => {
+            InventoryAction::Equip => {
                 header_text = "Equip what?";
                 inventory = Inventory::get_all_in_backpack_filtered_by::<Equippable>(ecs_world);
             }
-            UIAction::Drop => {
+            InventoryAction::Drop => {
                 header_text = "Drop what?";
                 inventory = Inventory::get_all_in_backpack(ecs_world);
             }
