@@ -65,7 +65,7 @@ impl DecayManager {
                 entity,
                 (
                     Unsavoury {
-                        game_log: String::from("rotten"),
+                        game_log: "rotten".to_string(),
                     },
                     Smellable {
                         intensity: SmellIntensity::Faint,

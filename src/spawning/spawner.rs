@@ -54,7 +54,7 @@ impl Spawn {
                 must_recalculate: true,
             },
             Named {
-                name: String::from("Player"),
+                name: "Player".to_string(),
             },
             CombatStats {
                 current_stamina: rolled_stamina,
@@ -84,7 +84,7 @@ impl Spawn {
             },
             Smellable {
                 intensity: SmellIntensity::Faint,
-                smell_log: String::from("yourself"),
+                smell_log: "yourself".to_string(),
             },
             CanListen{
                 listen_cache: HashMap::new(),
@@ -179,6 +179,7 @@ impl Spawn {
     }
 
     /// Spawn special tile entities
+    #[allow(clippy::single_match)]
     fn tile_entity(ecs_world: &mut World, x: i32, y: i32, tile: &TileType) {
         match tile {
             TileType::Brazier => {
@@ -189,7 +190,7 @@ impl Spawn {
                         radius: BRAZIER_RADIUS,
                     },
                     Smellable {
-                        smell_log: String::from("burning chemicals"),
+                        smell_log: "burning chemicals".to_string(),
                         intensity: SmellIntensity::Strong,
                             },
                     ProduceSound {
@@ -205,7 +206,7 @@ impl Spawn {
     pub fn river_water_entity(ecs_world: &mut World) -> Entity {
         ecs_world.spawn((
             Named {
-                name: String::from("River water"),
+                name: "River water".to_string(),
             },
             Quaffable {
                 thirst_dice_number: 2,

@@ -298,7 +298,7 @@ impl Player {
 
             game_log
                 .entries
-                .push(String::from("There is nothing here to pick up"));
+                .push("There is nothing here to pick up".to_string());
 
             RunState::WaitingPlayerInput
         } else {

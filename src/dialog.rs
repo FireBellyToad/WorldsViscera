@@ -38,7 +38,7 @@ impl Dialog {
                     // caused by char input queue
                     // TODO show equivalent inventory action
                     clear_input_queue();
-                    return RunState::WaitingPlayerInput;
+                    RunState::WaitingPlayerInput
                 }
                 'y' => {
                     // Confirm action
@@ -62,41 +62,35 @@ impl Dialog {
 
                     //Avoid strange behaviors
                     clear_input_queue();
-                    return RunState::DoTick;
+                    RunState::DoTick
                 }
-                _ => {
-                    return RunState::ShowDialog(action);
-                }
+                _ => RunState::ShowDialog(action),
             },
-            None => {
-                return RunState::ShowDialog(action);
-            }
+            None => RunState::ShowDialog(action),
         }
     }
 
     pub fn draw(_: &HashMap<TextureName, Texture2D>, ecs_world: &World, action: &DialogAction) {
-        let body_text: Vec<String>;
-
-        match action {
+        let body_text = match action {
             DialogAction::Eat(item) => {
                 let named = ecs_world.get::<&Named>(*item).expect("Item is not named");
-                body_text = vec![
+                vec![
                     "There is a".to_string(),
                     named.name.clone(),
                     "on the ground.".to_string(),
                     "Eat it?".to_string(),
-                ];
+                ]
             }
             DialogAction::Quaff(item) => {
                 let named = ecs_world.get::<&Named>(*item).expect("Item is not named");
-                body_text = vec![
+                vec![
                     "There is a".to_string(),
                     named.name.clone(),
                     "on the ground.".to_string(),
                     "Drink it?".to_string(),
-                ];
+                ]
             }
-        }
+        };
 
         // ------- Background Rectangle -----------
         draw_rectangle(

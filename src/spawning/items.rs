@@ -34,7 +34,7 @@ pub fn mushroom(ecs_world: &mut World, x: i32, y: i32) {
             z_index: 0,
         },
         Smellable {
-            smell_log: String::from("mushrooms"),
+            smell_log: "mushrooms".to_string(),
             intensity: SmellIntensity::Faint,
         },
         ToBeHarvested {},
@@ -52,7 +52,7 @@ pub fn mushroom(ecs_world: &mut World, x: i32, y: i32) {
                         nutrition_dice_size: 20,
                     },
                     Named {
-                        name: String::from("brown mushroom"),
+                        name: "brown mushroom".to_string(),
                     },
                 ),
             );
@@ -66,7 +66,7 @@ pub fn mushroom(ecs_world: &mut World, x: i32, y: i32) {
                         nutrition_dice_size: 20,
                     },
                     Named {
-                        name: String::from("tuft of tiny mushrooms"),
+                        name: "tuft of tiny mushrooms".to_string(),
                     },
                 ),
             );
@@ -80,10 +80,10 @@ pub fn mushroom(ecs_world: &mut World, x: i32, y: i32) {
                         nutrition_dice_size: 1,
                     },
                     Unsavoury {
-                        game_log: String::from("poisonous"),
+                        game_log: "poisonous".to_string(),
                     },
                     Named {
-                        name: String::from("white-spotted red mushroom"),
+                        name: "white-spotted red mushroom".to_string(),
                     },
                 ),
             );
@@ -98,7 +98,7 @@ pub fn mushroom(ecs_world: &mut World, x: i32, y: i32) {
                     },
                     Deadly {},
                     Named {
-                        name: String::from("white mushroom"),
+                        name: "white mushroom".to_string(),
                     },
                 ),
             );
@@ -115,7 +115,7 @@ pub fn mushroom(ecs_world: &mut World, x: i32, y: i32) {
                         radius: MUSHROOM_LIGHT_RADIUS,
                     },
                     Named {
-                        name: String::from("glowing mushroom"),
+                        name: "glowing mushroom".to_string(),
                     },
                 ),
             );
@@ -141,7 +141,7 @@ pub fn flask_of_water(ecs_world: &mut World, x: i32, y: i32) {
             z_index: 0,
         },
         Named {
-            name: String::from("flask of water"),
+            name: "flask of water".to_string(),
         },
         Item {
             item_tile: item_tile_index,
@@ -170,7 +170,7 @@ pub fn lantern(ecs_world: &mut World, x: i32, y: i32) {
             z_index: 0,
         },
         Named {
-            name: String::from("lantern"),
+            name: "lantern".to_string(),
         },
         Item {
             item_tile: item_tile_index,
@@ -182,7 +182,7 @@ pub fn lantern(ecs_world: &mut World, x: i32, y: i32) {
             fuel_counter: STARTING_FUEL + Roll::d100(),
         },
         Smellable {
-            smell_log: String::from("a scent of burning fuel"),
+            smell_log: "a scent of burning fuel".to_string(),
             intensity: SmellIntensity::Faint,
         },
     );
@@ -205,7 +205,7 @@ pub fn wand(ecs_world: &mut World, x: i32, y: i32) {
             z_index: 0,
         },
         Named {
-            name: String::from("lightning wand"),
+            name: "lightning wand".to_string(),
         },
         Item {
             item_tile: item_tile_index,
@@ -218,7 +218,7 @@ pub fn wand(ecs_world: &mut World, x: i32, y: i32) {
             dice_size: 4,
         },
         Smellable {
-            smell_log: String::from("ozone"),
+            smell_log: "ozone".to_string(),
             intensity: SmellIntensity::Faint,
         },
     );
@@ -241,7 +241,7 @@ pub fn flask_of_oil(ecs_world: &mut World, x: i32, y: i32) {
             z_index: 0,
         },
         Named {
-            name: String::from("flask of oil"),
+            name: "flask of oil".to_string(),
         },
         Item {
             item_tile: item_tile_index,
@@ -251,7 +251,7 @@ pub fn flask_of_oil(ecs_world: &mut World, x: i32, y: i32) {
         },
         Refiller {},
         Smellable {
-            smell_log: String::from("a faint scent of fuel"),
+            smell_log: "a faint scent of fuel".to_string(),
             intensity: SmellIntensity::Faint,
         },
     );
@@ -274,7 +274,7 @@ pub fn shiv(ecs_world: &mut World, x: i32, y: i32) {
             z_index: 0,
         },
         Named {
-            name: String::from("shiv"),
+            name: "shiv".to_string(),
         },
         Item {
             item_tile: item_tile_index,
@@ -303,7 +303,7 @@ pub fn rockpick(ecs_world: &mut World, x: i32, y: i32) {
             z_index: 0,
         },
         Named {
-            name: String::from("rock pick"),
+            name: "rock pick".to_string(),
         },
         Item {
             item_tile: item_tile_index,
@@ -332,7 +332,7 @@ pub fn maul(ecs_world: &mut World, x: i32, y: i32) {
             z_index: 0,
         },
         Named {
-            name: String::from("maul"),
+            name: "maul".to_string(),
         },
         Item {
             item_tile: item_tile_index,

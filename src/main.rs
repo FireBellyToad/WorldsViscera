@@ -37,7 +37,7 @@ mod utils;
 //Game configuration
 fn get_game_configuration() -> Conf {
     Conf {
-        window_title: String::from("World's Viscera"),
+        window_title: "World's Viscera".to_string(),
         fullscreen: false,
         window_height: WINDOW_HEIGHT,
         window_width: WINDOW_WIDTH,
