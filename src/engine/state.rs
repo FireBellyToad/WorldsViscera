@@ -1,6 +1,6 @@
 use hecs::{Entity, World};
 
-use crate::{components::{common::GameLog, items::InBackback, player::{Player, SpecialViewMode}}, dialog::DialogAction, inventory::InventoryAction};
+use crate::{components::{common::{CanListen, GameLog}, items::InBackback, player::{Player, SpecialViewMode}}, dialog::DialogAction, inventory::InventoryAction};
 
 #[derive(PartialEq, Debug)]
 pub enum RunState {
@@ -37,10 +37,14 @@ impl EngineState {
             must_delete = true;
 
             if entity.id() == player_id
-                || self.ecs_world.satisfies::<&InBackback>(entity).unwrap()
-                || self.ecs_world.satisfies::<&GameLog>(entity).unwrap()
+                || self.ecs_world.satisfies::<&InBackback>(entity).expect("cannot extract satisfies value")
+                || self.ecs_world.satisfies::<&GameLog>(entity).expect("cannot extract satisfies value")
             {
                 must_delete = false;
+                // Clear listen cache
+                if let Ok(mut can_listen) = self.ecs_world.get::<&mut CanListen>(entity){
+                    can_listen.listen_cache.clear();
+                }
             }
             if must_delete {
                 entities_to_delete.push(entity);

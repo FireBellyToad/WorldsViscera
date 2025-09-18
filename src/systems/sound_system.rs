@@ -29,6 +29,7 @@ impl SoundSystem {
             let mut sound_producers = ecs_world.query::<(&ProduceSound, &Position)>();
 
             for (_, (can_listen, listener_pos)) in &mut listeners {
+                println!("CanListen cache size {}",can_listen.listen_cache.len());
                 if can_listen.cooldown == 0 {
                     for (producer, (produce_sound, producer_pos)) in &mut sound_producers {
                         if Utils::distance(
