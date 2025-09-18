@@ -17,6 +17,7 @@ use crate::{
     },
     constants::*,
     engine::state::RunState,
+    inventory::InventoryAction,
     utils::assets::TextureName,
 };
 
@@ -36,9 +37,13 @@ impl Dialog {
                 'n' => {
                     // Exit dialog, clear queue to avoid to reopen on cancel
                     // caused by char input queue
-                    // TODO show equivalent inventory action
                     clear_input_queue();
-                    RunState::WaitingPlayerInput
+
+                    // show equivalent inventory action on exit
+                    match action {
+                        DialogAction::Eat(_) => RunState::ShowInventory(InventoryAction::Eat),
+                        DialogAction::Quaff(_) => RunState::ShowInventory(InventoryAction::Quaff),
+                    }
                 }
                 'y' => {
                     // Confirm action
