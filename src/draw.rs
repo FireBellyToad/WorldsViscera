@@ -16,13 +16,7 @@ use crate::{
         common::{CanSmell, GameLog, Position, Renderable, SmellIntensity, Smellable},
         health::{Hunger, Thirst},
         player::{Player, SpecialViewMode},
-    },
-    constants::*,
-    engine::state::{EngineState, RunState},
-    inventory::Inventory,
-    maps::zone::{ParticleType, Zone},
-    systems::{hunger_check::HungerStatus, thirst_check::ThirstStatus},
-    utils::{assets::TextureName, common::Utils, particle_animation::ParticleAnimation},
+    }, constants::*, dialog::Dialog, engine::state::{EngineState, RunState}, inventory::Inventory, maps::zone::{ParticleType, Zone}, systems::{hunger_check::HungerStatus, thirst_check::ThirstStatus}, utils::{assets::TextureName, common::Utils, particle_animation::ParticleAnimation}
 };
 
 pub struct Draw {}
@@ -43,6 +37,9 @@ impl Draw {
                 match &game_state.run_state {
                     RunState::ShowInventory(mode) => {
                         Inventory::draw(assets, &game_state.ecs_world, mode)
+                    }
+                    RunState::ShowDialog(mode) => {
+                        Dialog::draw(assets, &game_state.ecs_world, mode)
                     }
                     RunState::MouseTargeting(special_view_mode) => {
                         Draw::targeting(&game_state.ecs_world, assets, special_view_mode);

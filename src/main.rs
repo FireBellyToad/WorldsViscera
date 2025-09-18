@@ -16,14 +16,11 @@ use systems::{
 };
 
 use crate::{
-    components::common::{Position, Viewshed},
-    maps::{
+    components::common::{Position, Viewshed}, dialog::Dialog, maps::{
         arena_zone_builder::ArenaZoneBuilder, drunken_walk_zone_builder::DrunkenWalkZoneBuilder, zone::Zone, ZoneBuilder
-    },
-    systems::{
+    }, systems::{
         automatic_healing::AutomaticHealing, decay_manager::DecayManager, drinking_quaffables::DrinkingQuaffables, fuel_manager::FuelManager, hidden_manager::HiddenManager, hunger_check::HungerCheck, item_equipping::ItemEquipping, map_indexing::MapIndexing, particle_manager::ParticleManager, smell_manager::SmellManager, sound_system::SoundSystem, thirst_check::ThirstCheck, turn_checker::TurnCheck, wet_manager::WetManager, zap_manager::ZapManager
-    },
-    utils::assets::Load,
+    }, utils::assets::Load
 };
 
 mod components;
@@ -31,6 +28,7 @@ mod constants;
 mod draw;
 mod engine;
 mod inventory;
+mod dialog;
 mod maps;
 mod spawning;
 mod systems;
@@ -122,6 +120,9 @@ async fn main() {
                 }
                 RunState::ShowInventory(mode) => {
                     game_state.run_state = Inventory::handle_input(&mut game_state.ecs_world, mode);
+                }
+                RunState::ShowDialog(mode) => {
+                    game_state.run_state = Dialog::handle_input(&mut game_state.ecs_world, mode);
                 }
                 RunState::MouseTargeting(special_view_mode) => {
                     game_state.run_state = Player::checks_input_for_targeting(

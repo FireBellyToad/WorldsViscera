@@ -8,7 +8,7 @@ use macroquad::input::{
 
 use crate::{
     components::{
-        actions::{WantsItem, WantsToDrink, WantsToEat, WantsToSmell},
+        actions::{WantsItem, WantsToDrink, WantsToSmell},
         combat::{CombatStats, WantsToMelee, WantsToZap},
         common::{GameLog, MyTurn, Position, Viewshed, WaitingToAct},
         health::CanAutomaticallyHeal,
@@ -18,6 +18,7 @@ use crate::{
         MAP_HEIGHT, MAP_WIDTH, MAX_ACTION_SPEED, MAX_STAMINA_HEAL_TICK_COUNTER, TILE_SIZE_F32,
         UI_BORDER_F32,
     },
+    dialog::DialogAction,
     engine::state::RunState,
     inventory::InventoryAction,
     maps::zone::{TileType, Zone},
@@ -332,16 +333,14 @@ impl Player {
     }
 
     /// Try to drink. Return new Runstate
-    fn try_eat(ecs_world: &mut World, player_entity: Entity) -> (RunState, bool) {
+    fn try_eat(ecs_world: &mut World, _player_entity: Entity) -> (RunState, bool) {
         clear_input_queue();
-        // TODO ask with modal...
         let item_on_ground = Player::take_from_map(ecs_world);
 
         if let Some(item) = item_on_ground {
             // Is really Quaffable?
             if ecs_world.get::<&Edible>(item).is_ok() {
-                let _ = ecs_world.insert_one(player_entity, WantsToEat { item });
-                return (RunState::DoTick, true);
+                return (RunState::ShowDialog(DialogAction::Eat(item)), true);
             } else {
                 // Avoid losing time trying to drink non quaffable from grounnd
                 let mut game_log_query = ecs_world.query::<&mut GameLog>();
@@ -389,14 +388,12 @@ impl Player {
             return (RunState::DoTick, false);
         } else {
             // Drink a quaffable item on ground
-            // TODO ask with modal...
             let item_on_ground = Player::take_from_map(ecs_world);
 
             if let Some(item) = item_on_ground {
                 // Is really Quaffable?
                 if ecs_world.get::<&Quaffable>(item).is_ok() {
-                    let _ = ecs_world.insert_one(player_entity, WantsToDrink { item });
-                    return (RunState::DoTick, true);
+                    return (RunState::ShowDialog(DialogAction::Quaff(item)), true);
                 } else {
                     // Avoid losing time trying to drink non quaffable from grounnd
                     let mut game_log_query = ecs_world.query::<&mut GameLog>();
