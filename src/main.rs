@@ -142,9 +142,9 @@ async fn main() {
                 }
             }
             next_frame().await;
+            Draw::render_game(&game_state, &assets);
         }
 
-        Draw::render_game(&game_state, &assets);
     }
 }
 
