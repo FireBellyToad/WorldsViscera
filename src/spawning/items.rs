@@ -21,7 +21,7 @@ pub fn mushroom(ecs_world: &mut World, x: i32, y: i32) {
     let common_components = (
         Item {
             item_tile: (mushroom_type, 1),
-        }, // 4 is Item per row, TODO make constat
+        }, 
         Position { x, y },
         Renderable {
             texture_name: TextureName::Items,
