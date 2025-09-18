@@ -11,7 +11,7 @@ use crate::{
         player::Player,
     },
     constants::MAX_STAMINA_HEAL_TICK_COUNTER,
-    maps::zone::{ParticleType, Zone},
+    maps::zone::{DecalType, Zone},
     spawning::spawner::Spawn,
     utils::roll::Roll,
 };
@@ -49,7 +49,7 @@ impl DamageManager {
                 //Drench the tile with blood
                 zone.decals_tiles.insert(
                     Zone::get_index_from_xy(position.x, position.y),
-                    ParticleType::Blood,
+                    DecalType::Blood,
                 );
             }
         }

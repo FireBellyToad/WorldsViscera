@@ -13,7 +13,7 @@ pub enum TileType {
     Brazier,
     Water,
 }
-pub enum ParticleType {
+pub enum DecalType {
     Blood,
     Vomit,
 }
@@ -27,7 +27,7 @@ pub struct Zone {
     pub lit_tiles: Vec<bool>,
     pub blocked_tiles: Vec<bool>,
     pub tile_content: Vec<Vec<Entity>>,
-    pub decals_tiles: HashMap<usize, ParticleType>,
+    pub decals_tiles: HashMap<usize, DecalType>,
     pub depth: i32,
     pub player_spawn_point: usize,
     pub monster_spawn_points: HashSet<usize>,

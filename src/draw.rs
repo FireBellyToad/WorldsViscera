@@ -16,7 +16,7 @@ use crate::{
         common::{CanSmell, GameLog, Position, Renderable, SmellIntensity, Smellable},
         health::{Hunger, Thirst},
         player::{Player, SpecialViewMode},
-    }, constants::*, dialog::Dialog, engine::state::{EngineState, RunState}, inventory::Inventory, maps::zone::{ParticleType, Zone}, systems::{hunger_check::HungerStatus, thirst_check::ThirstStatus}, utils::{assets::TextureName, common::Utils, particle_animation::ParticleAnimation}
+    }, constants::*, dialog::Dialog, engine::state::{EngineState, RunState}, inventory::Inventory, maps::zone::{DecalType, Zone}, systems::{hunger_check::HungerStatus, thirst_check::ThirstStatus}, utils::{assets::TextureName, common::Utils, particle_animation::ParticleAnimation}
 };
 
 pub struct Draw {}
@@ -464,10 +464,10 @@ impl Draw {
     }
 
     /// Utility for drawing blood blots
-    pub fn draw_decals(x: i32, y: i32, particle_type: &ParticleType) {
+    pub fn draw_decals(x: i32, y: i32, particle_type: &DecalType) {
         let color = match particle_type {
-            ParticleType::Blood => Color::from_rgba(255, 10, 10, 32),
-            ParticleType::Vomit => ORANGE,
+            DecalType::Blood => RED,
+            DecalType::Vomit => ORANGE,
         };
 
         draw_circle(

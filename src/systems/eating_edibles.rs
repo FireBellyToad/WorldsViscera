@@ -9,7 +9,7 @@ use crate::{
         items::{Deadly, Edible, Unsavoury},
         player::Player,
     },
-    maps::zone::{ParticleType, Zone},
+    maps::zone::{DecalType, Zone},
     systems::hunger_check::HungerStatus,
     utils::roll::Roll,
 };
@@ -99,7 +99,7 @@ impl EatingEdibles {
 
                         zone.decals_tiles.insert(
                             Zone::get_index_from_xy(position.x, position.y),
-                            ParticleType::Vomit,
+                            DecalType::Vomit,
                         );
                     } else {
                         hunger.tick_counter += Roll::dice(

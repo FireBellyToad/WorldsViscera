@@ -10,7 +10,7 @@ use crate::{
         player::Player,
     },
     constants::MAX_HUNGER_TICK_COUNTER,
-    maps::zone::{ParticleType, Zone},
+    maps::zone::{DecalType, Zone},
     utils::roll::Roll,
 };
 
@@ -111,7 +111,7 @@ impl HungerCheck {
                                 hunger.current_status = HungerStatus::Normal;
                                 zone.decals_tiles.insert(
                                     Zone::get_index_from_xy(position.x, position.y),
-                                    ParticleType::Vomit,
+                                    DecalType::Vomit,
                                 );
                                 if hungry_entity.id() == player_id {
                                     game_log

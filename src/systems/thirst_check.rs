@@ -10,7 +10,7 @@ use crate::{
         player::Player,
     },
     constants::MAX_THIRST_TICK_COUNTER,
-    maps::zone::{ParticleType, Zone},
+    maps::zone::{DecalType, Zone},
     utils::roll::Roll,
 };
 
@@ -113,7 +113,7 @@ impl ThirstCheck {
                                 thirst.current_status = ThirstStatus::Normal;
                                 zone.decals_tiles.insert(
                                     Zone::get_index_from_xy(position.x, position.y),
-                                    ParticleType::Vomit,
+                                    DecalType::Vomit,
                                 );
                                 if thirsty_entity.id() == player_id {
                                     game_log
