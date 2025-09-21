@@ -13,12 +13,12 @@ use macroquad::{
 use crate::{
     components::{
         actions::{
-            WantsToDrink, WantsToDrop, WantsToEat, WantsToEquip, WantsToFuel, WantsToInvoke,
+            WantsToApply, WantsToDrink, WantsToDrop, WantsToEat, WantsToEquip, WantsToFuel, WantsToInvoke
         },
         common::{GameLog, Named},
         items::{
-            Edible, Equippable, Equipped, InBackback, Invokable, Item, ProduceLight, Quaffable,
-            Refiller,
+            Appliable, Edible, Equippable, Equipped, InBackback, Invokable, Item, ProduceLight,
+            Quaffable, Refiller,
         },
         player::{Player, SpecialViewMode},
     },
@@ -36,6 +36,7 @@ pub enum InventoryAction {
     RefillWhat,
     RefillWith,
     Equip,
+    Apply,
 }
 
 /// Inventory Item Data trasfer type: used for rendering and general inventory usage
@@ -91,6 +92,9 @@ impl Inventory {
                         }
                         InventoryAction::Equip => {
                             Inventory::get_all_in_backpack_filtered_by::<Equippable>(ecs_world)
+                        }
+                        InventoryAction::Apply => {
+                            Inventory::get_all_in_backpack_filtered_by::<Appliable>(ecs_world)
                         }
                         InventoryAction::Drop => Inventory::get_all_in_backpack(ecs_world),
                     };
@@ -156,6 +160,10 @@ impl Inventory {
                             },
                         );
                     }
+                    InventoryAction::Apply => {
+                        let _ = ecs_world.insert_one(user, WantsToApply { item });
+                        println!("Player wants to apply {:?}", item.id());
+                    }
                 };
 
                 //Avoid strange behaviors
@@ -207,6 +215,10 @@ impl Inventory {
             InventoryAction::Drop => {
                 header_text = "Drop what?";
                 inventory = Inventory::get_all_in_backpack(ecs_world);
+            }
+            InventoryAction::Apply => {
+                header_text = "Apply what?";
+                inventory = Inventory::get_all_in_backpack_filtered_by::<Appliable>(ecs_world);
             }
         }
 
@@ -314,9 +326,7 @@ impl Inventory {
     }
 
     /// Get all items in backpack with a certain component T for UI
-    fn get_all_in_backpack_filtered_by<T: Component>(
-        ecs_world: &World,
-    ) -> InventoryItemDtt {
+    fn get_all_in_backpack_filtered_by<T: Component>(ecs_world: &World) -> InventoryItemDtt {
         let player_id = Player::get_entity_id(ecs_world);
 
         let mut inventory_query = ecs_world

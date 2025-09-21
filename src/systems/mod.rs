@@ -20,4 +20,5 @@ pub mod wet_manager;
 pub mod hidden_manager;
 pub mod sound_system;
 pub mod item_equipping;
+pub mod apply_system;
 

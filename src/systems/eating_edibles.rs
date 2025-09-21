@@ -34,7 +34,7 @@ impl EatingEdibles {
                 .last()
                 .expect("Zone is not in hecs::World");
 
-            //Log all the pick ups
+            //Log all the eating
             let mut game_log_query = ecs_world.query::<&mut GameLog>();
             let (_, game_log) = game_log_query
                 .iter()

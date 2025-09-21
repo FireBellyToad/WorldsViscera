@@ -6,7 +6,7 @@ use crate::{
         combat::InflictsDamage,
         common::{Named, Position, Renderable, SmellIntensity, Smellable},
         items::{
-            BodyLocation, Deadly, Edible, Equippable, Invokable, InvokablesEnum, Item, MustBeFueled, ProduceLight, Quaffable, Refiller, ToBeHarvested, TurnedOn, Unsavoury, Weapon
+            Appliable, BodyLocation, Deadly, Edible, Equippable, Invokable, InvokablesEnum, Item, MustBeFueled, ProduceLight, Quaffable, Refiller, ToBeHarvested, TurnedOff, TurnedOn, Unsavoury, Weapon
         },
     },
     constants::*,
@@ -185,7 +185,8 @@ pub fn lantern(ecs_world: &mut World, x: i32, y: i32) {
             smell_log: "a scent of burning fuel".to_string(),
             intensity: SmellIntensity::Faint,
         },
-        TurnedOn {},
+        TurnedOff {},
+        Appliable{}
     );
 
     ecs_world.spawn(lantern);
@@ -255,6 +256,7 @@ pub fn flask_of_oil(ecs_world: &mut World, x: i32, y: i32) {
             smell_log: "a faint scent of fuel".to_string(),
             intensity: SmellIntensity::Faint,
         },
+        Appliable{}
     );
 
     ecs_world.spawn(flask_of_oil);
@@ -312,8 +314,10 @@ pub fn rockpick(ecs_world: &mut World, x: i32, y: i32) {
         Equippable {
             body_location: BodyLocation::RightHand,
         },
-        Weapon { attack_dice: 6 },
+        Weapon { attack_dice: 6 }
     );
+
+    //TODO Bonus to climb while wielded
 
     ecs_world.spawn(flask_of_oil);
 }
@@ -342,6 +346,7 @@ pub fn maul(ecs_world: &mut World, x: i32, y: i32) {
             body_location: BodyLocation::Hands,
         },
         Weapon { attack_dice: 8 },
+        Appliable{},
     );
 
     ecs_world.spawn(flask_of_oil);

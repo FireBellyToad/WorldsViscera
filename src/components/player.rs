@@ -13,6 +13,7 @@ use crate::{
         common::{GameLog, MyTurn, Position, Viewshed, WaitingToAct},
         health::CanAutomaticallyHeal,
         items::{Edible, Item, Quaffable},
+        player,
     },
     constants::{
         MAP_HEIGHT, MAP_WIDTH, MAX_ACTION_SPEED, MAX_STAMINA_HEAL_TICK_COUNTER, TILE_SIZE_F32,
@@ -146,6 +147,12 @@ impl Player {
                         'e' => {
                             (run_state, is_actively_waiting) =
                                 Player::try_eat(ecs_world, player_entity);
+                        }
+
+                        //Apply item
+                        'a' => {
+                            clear_input_queue();
+                            run_state = RunState::ShowInventory(InventoryAction::Apply);
                         }
 
                         //DEBUG ONLY KILL
@@ -489,6 +496,7 @@ impl Player {
     }
 
     /// Wait some ticks after action is taken
+    // TODO this is only for player, but must be made common to all entities or else turn system does not work!
     pub fn wait_after_action(ecs_world: &mut World) {
         let player = Player::get_entity(ecs_world);
         let speed;
@@ -508,5 +516,13 @@ impl Player {
                 tick_countdown: max(1, MAX_ACTION_SPEED - speed),
             },
         );
+    }
+
+    /// Utility method for FOV forced recalculation
+    pub fn force_view_recalculation(ecs_world: &World) {
+        let mut player_viewshed = ecs_world
+            .get::<&mut Viewshed>(Player::get_entity(ecs_world))
+            .expect("Player entity does not have a Viewshed");
+        player_viewshed.must_recalculate = true;
     }
 }

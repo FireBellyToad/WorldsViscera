@@ -137,7 +137,8 @@ impl Spawn {
     /// Spawn a random monster
     pub fn random_item(ecs_world: &mut World, x: i32, y: i32) {
         let dice_roll = Roll::d20();
-        // Dvergar is stronger, shuold be less common
+        //TODO test
+        lantern(ecs_world, x, y);
         match dice_roll {
             1 => wand(ecs_world, x, y),
             2 => lantern(ecs_world, x, y),

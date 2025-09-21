@@ -27,6 +27,11 @@ pub struct WantsToInvoke {
     pub item: Entity,
 }
 
+pub struct WantsToApply {
+    pub item: Entity,
+}
+
+
 pub struct WantsToFuel {
     pub item: Entity,
     pub with: Option<Entity>,

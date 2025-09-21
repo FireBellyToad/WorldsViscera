@@ -46,10 +46,7 @@ impl FuelManager {
                     }
 
                     //show immediately new vision
-                    let mut player_viewshed = ecs_world
-                        .get::<&mut Viewshed>(player_entity)
-                        .expect("Player entity does not have a Viewshed");
-                    player_viewshed.must_recalculate = true;
+                    Player::force_view_recalculation(ecs_world);
                 }
             }
 
