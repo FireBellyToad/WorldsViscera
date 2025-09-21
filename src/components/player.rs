@@ -12,8 +12,7 @@ use crate::{
         combat::{CombatStats, WantsToMelee, WantsToZap},
         common::{GameLog, MyTurn, Position, Viewshed, WaitingToAct},
         health::CanAutomaticallyHeal,
-        items::{Edible, Item, Quaffable},
-        player,
+        items::{Edible, Item, Quaffable}
     },
     constants::{
         MAP_HEIGHT, MAP_WIDTH, MAX_ACTION_SPEED, MAX_STAMINA_HEAL_TICK_COUNTER, TILE_SIZE_F32,
@@ -189,12 +188,6 @@ impl Player {
                             // Drink from river
                             (run_state, is_actively_waiting) =
                                 Player::try_drink(ecs_world, player_entity);
-                        }
-
-                        //Refill item
-                        'r' => {
-                            clear_input_queue();
-                            run_state = RunState::ShowInventory(InventoryAction::RefillWhat);
                         }
 
                         //Smell action

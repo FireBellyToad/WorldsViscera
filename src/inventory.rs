@@ -34,7 +34,6 @@ pub enum InventoryAction {
     Invoke,
     Quaff,
     RefillWhat,
-    RefillWith,
     Equip,
     Apply,
 }
@@ -87,9 +86,6 @@ impl Inventory {
                         InventoryAction::RefillWhat => {
                             Inventory::get_all_in_backpack_filtered_by::<ProduceLight>(ecs_world)
                         }
-                        InventoryAction::RefillWith => {
-                            Inventory::get_all_in_backpack_filtered_by::<Refiller>(ecs_world)
-                        }
                         InventoryAction::Equip => {
                             Inventory::get_all_in_backpack_filtered_by::<Equippable>(ecs_world)
                         }
@@ -136,12 +132,8 @@ impl Inventory {
                     }
                     InventoryAction::RefillWhat => {
                         // Select what to refill, then which item you are going to refill with
-                        let _ = ecs_world.insert_one(user, WantsToFuel { item, with: None });
-                        new_run_state = RunState::ShowInventory(InventoryAction::RefillWith);
-                    }
-                    InventoryAction::RefillWith => {
                         let wants_to_fuel = ecs_world.get::<&mut WantsToFuel>(user);
-                        wants_to_fuel.expect("Must Want to Fuel!").with = Some(item);
+                        wants_to_fuel.expect("Must have Fuel!").item = Some(item);
                     }
                     InventoryAction::Equip => {
                         let body_location;
@@ -161,8 +153,15 @@ impl Inventory {
                         );
                     }
                     InventoryAction::Apply => {
-                        let _ = ecs_world.insert_one(user, WantsToApply { item });
-                        println!("Player wants to apply {:?}", item.id());
+                        // Applied refillers must be handled in a custom way
+                        if ecs_world.satisfies::<&Refiller>(item).unwrap_or(false) {                            
+                            let _ = ecs_world.insert_one(user, WantsToFuel { item:None, with: item });
+                            new_run_state = RunState::ShowInventory(InventoryAction::RefillWhat);             
+
+                        } else {                                
+                            let _ = ecs_world.insert_one(user, WantsToApply { item });
+                            println!("Player wants to apply {:?}", item.id());
+                        }
                     }
                 };
 
@@ -202,11 +201,8 @@ impl Inventory {
             }
             InventoryAction::RefillWhat => {
                 header_text = "Refill what?";
+                // TODO shouldn't be MustBeFueled?
                 inventory = Inventory::get_all_in_backpack_filtered_by::<ProduceLight>(ecs_world);
-            }
-            InventoryAction::RefillWith => {
-                header_text = "With what?";
-                inventory = Inventory::get_all_in_backpack_filtered_by::<Refiller>(ecs_world);
             }
             InventoryAction::Equip => {
                 header_text = "Equip what?";

@@ -16,19 +16,34 @@ use systems::{
 };
 
 use crate::{
-    components::common::{Position, Viewshed}, dialog::Dialog, maps::{
-        arena_zone_builder::ArenaZoneBuilder, drunken_walk_zone_builder::DrunkenWalkZoneBuilder, zone::Zone, ZoneBuilder
-    }, systems::{
-        apply_system::ApplySystem, automatic_healing::AutomaticHealing, decay_manager::DecayManager, drinking_quaffables::DrinkingQuaffables, fuel_manager::FuelManager, hidden_manager::HiddenManager, hunger_check::HungerCheck, item_equipping::ItemEquipping, map_indexing::MapIndexing, particle_manager::ParticleManager, smell_manager::SmellManager, sound_system::SoundSystem, thirst_check::ThirstCheck, turn_checker::TurnCheck, wet_manager::WetManager, zap_manager::ZapManager
-    }, utils::assets::Load
+    components::{
+        common::{Position, Viewshed},
+        items::Refiller,
+    },
+    dialog::Dialog,
+    inventory::InventoryAction,
+    maps::{
+        ZoneBuilder, arena_zone_builder::ArenaZoneBuilder,
+        drunken_walk_zone_builder::DrunkenWalkZoneBuilder, zone::Zone,
+    },
+    systems::{
+        apply_system::ApplySystem, automatic_healing::AutomaticHealing,
+        decay_manager::DecayManager, drinking_quaffables::DrinkingQuaffables,
+        fuel_manager::FuelManager, hidden_manager::HiddenManager, hunger_check::HungerCheck,
+        item_equipping::ItemEquipping, map_indexing::MapIndexing,
+        particle_manager::ParticleManager, smell_manager::SmellManager, sound_system::SoundSystem,
+        thirst_check::ThirstCheck, turn_checker::TurnCheck, wet_manager::WetManager,
+        zap_manager::ZapManager,
+    },
+    utils::assets::Load,
 };
 
 mod components;
 mod constants;
+mod dialog;
 mod draw;
 mod engine;
 mod inventory;
-mod dialog;
 mod maps;
 mod spawning;
 mod systems;
@@ -80,7 +95,7 @@ async fn main() {
                 }
                 RunState::DoTick => {
                     println!("DoTick ---------------------------- tick {}", tick);
-                    let is_game_over = do_in_tick_game_logic(&mut game_state);
+                    do_in_tick_game_logic(&mut game_state);
                     //If there are particles, skip everything and draw
                     let must_run_particles = ParticleManager::check_if_animations_are_present(
                         &mut game_engine,
@@ -88,7 +103,7 @@ async fn main() {
                     );
 
                     // TODO refactor
-                    if !is_game_over {
+                    if game_state.run_state != RunState::GameOver {
                         if !must_run_particles {
                             if Player::can_act(&game_state.ecs_world) {
                                 println!("Player's turn");
@@ -98,8 +113,6 @@ async fn main() {
                                 game_state.run_state = RunState::BeforeTick;
                             }
                         }
-                    } else {
-                        game_state.run_state = RunState::GameOver;
                     }
                 }
                 RunState::WaitingPlayerInput => {
@@ -145,7 +158,6 @@ async fn main() {
             next_frame().await;
             Draw::render_game(&game_state, &assets);
         }
-
     }
 }
 
@@ -174,9 +186,7 @@ fn populate_world(ecs_world: &mut World) {
     Spawn::everyhing_in_map(ecs_world, &zone);
 
     // Add zone
-    let me = ecs_world.spawn((true, zone));
-
-    println!("spawn entity {}", me.id());
+    let _ = ecs_world.spawn((true, zone));
 }
 
 fn change_zone(engine: &mut EngineState) {
@@ -236,17 +246,15 @@ fn do_before_tick_logic(game_state: &mut EngineState) {
     HiddenManager::run(&mut game_state.ecs_world);
 }
 
-fn do_in_tick_game_logic(game_state: &mut EngineState) -> bool {
+fn do_in_tick_game_logic(mut game_state: &mut EngineState) {
     ZapManager::run(&mut game_state.ecs_world);
     MeleeManager::run(&mut game_state.ecs_world);
     DamageManager::run(&game_state.ecs_world);
-    let game_over = DamageManager::remove_dead_and_check_gameover(&mut game_state.ecs_world);
+    DamageManager::remove_dead_and_check_gameover(&mut game_state);
     //Proceed on game logic if is not Game Over
-    if game_over {
-        return true;
-    } else {
+    if game_state.run_state != RunState::GameOver {
         ApplySystem::check(&mut game_state.ecs_world);
-        ApplySystem::do_applications(&mut game_state.ecs_world);
+        ApplySystem::do_applications(&mut game_state);
         MapIndexing::run(&game_state.ecs_world);
         FieldOfView::calculate(&game_state.ecs_world);
         ItemCollection::run(&mut game_state.ecs_world);
@@ -257,7 +265,6 @@ fn do_in_tick_game_logic(game_state: &mut EngineState) -> bool {
         FuelManager::do_refills(&mut game_state.ecs_world);
         SoundSystem::run(&mut game_state.ecs_world);
     }
-    false
 }
 
 fn do_tickless_logic(game_state: &mut EngineState) {

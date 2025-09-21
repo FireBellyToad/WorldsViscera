@@ -66,7 +66,7 @@ impl FuelManager {
             // List of light producers with fuel
             let mut query = ecs_world.query::<&WantsToFuel>();
             let wants_to_refill_list: Vec<(Entity, &WantsToFuel)> =
-                query.iter().filter(|(_, w)| w.with.is_some()).collect();
+                query.iter().filter(|(_, w)| w.item.is_some()).collect();
 
             let mut game_log_query = ecs_world.query::<&mut GameLog>();
             let (_, game_log) = game_log_query
@@ -75,8 +75,8 @@ impl FuelManager {
                 .expect("Game log is not in hecs::World");
 
             for (refiller, wants_to_refill) in wants_to_refill_list {
-                let target = wants_to_refill.item;
-                let item_used = wants_to_refill.with.expect("item_used must not be None");
+                let target = wants_to_refill.item.expect("item to refill must not be None");
+                let item_used = wants_to_refill.with;
 
                 let item_used_fuel = ecs_world
                     .get::<&MustBeFueled>(item_used)

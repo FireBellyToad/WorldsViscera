@@ -9,11 +9,7 @@ use crate::{
         health::CanAutomaticallyHeal,
         items::Edible,
         player::Player,
-    },
-    constants::MAX_STAMINA_HEAL_TICK_COUNTER,
-    maps::zone::{DecalType, Zone},
-    spawning::spawner::Spawn,
-    utils::roll::Roll,
+    }, constants::MAX_STAMINA_HEAL_TICK_COUNTER, engine::{gameengine::GameEngine, state::{EngineState, RunState}}, maps::zone::{DecalType, Zone}, spawning::spawner::Spawn, utils::roll::Roll
 };
 
 pub struct DamageManager {}
@@ -56,7 +52,8 @@ impl DamageManager {
     }
 
     /// Check which entities are dead and removes them. Returns true if Player is dead
-    pub fn remove_dead_and_check_gameover(ecs_world: &mut World) -> bool {
+    pub fn remove_dead_and_check_gameover(game_state: &mut EngineState) -> bool {
+        let ecs_world = &mut game_state.ecs_world;
         let mut dead_entities: Vec<(Entity, String, (i32, i32))> = Vec::new();
         let player_entity_id = Player::get_entity_id(ecs_world);
 
@@ -92,8 +89,9 @@ impl DamageManager {
         //Remove all dead entities, stop game if player is dead
         for (ent, name, (x, y)) in dead_entities {
             if ent.id() == player_entity_id {
-                //Game over!
-                return true;
+                //Game over!                
+                game_state.run_state = RunState::GameOver;
+                break;
             }
 
             // Create corpse

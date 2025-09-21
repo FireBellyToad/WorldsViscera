@@ -1,10 +1,13 @@
 use hecs::{Entity, World};
 
-use crate::components::{
-    actions::WantsToApply,
-    common::{GameLog, Named},
-    items::{Applied, InBackback, TurnedOff, TurnedOn},
-    player::Player,
+use crate::{
+    components::{
+        actions::WantsToApply,
+        common::{GameLog, Named},
+        items::{Applied, InBackback, TurnedOff, TurnedOn},
+        player::Player,
+    },
+    engine::state::EngineState,
 };
 
 pub struct ApplySystem {}
@@ -31,7 +34,7 @@ impl ApplySystem {
         for (applier, item) in applicators_items_applied {
             let _ = ecs_world.remove_one::<WantsToApply>(applier);
             let _ = ecs_world.insert_one(item, Applied {});
-            
+
             if player_id == applier.id() {
                 Player::wait_after_action(ecs_world);
             }
@@ -39,7 +42,8 @@ impl ApplySystem {
     }
 
     /// Implement behavious for applied item
-    pub fn do_applications(ecs_world: &mut World) {
+    pub fn do_applications(game_state: &mut EngineState) {
+        let ecs_world = &mut game_state.ecs_world;
         let mut entities_applied: Vec<Entity> = Vec::new();
         let mut entities_to_turn_on: Vec<Entity> = Vec::new();
         let mut entities_to_turn_off: Vec<Entity> = Vec::new();
@@ -56,14 +60,14 @@ impl ApplySystem {
 
             // List of entities that want to act
             let mut applyables_turned_on = ecs_world
-                .query::<(&TurnedOn, &Named, Option<&InBackback>)>()
+                .query::<(&TurnedOn, &Named, &InBackback)>()
                 .with::<&Applied>();
             let mut applyables_turned_off = ecs_world
-                .query::<(&TurnedOff, &Named, Option<&InBackback>)>()
+                .query::<(&TurnedOff, &Named, &InBackback)>()
                 .with::<&Applied>();
 
             // Turn off item
-            for (turnable, (_, named, in_backback_opt)) in &mut applyables_turned_on {
+            for (turnable, (_, named, in_backback)) in &mut applyables_turned_on {
                 entities_to_turn_off.push(turnable);
                 entities_applied.push(turnable);
                 println!(
@@ -71,9 +75,7 @@ impl ApplySystem {
                     turnable.id()
                 );
 
-                if let Some(in_backback) = in_backback_opt
-                    && player_id == in_backback.owner.id()
-                {
+                if player_id == in_backback.owner.id() {
                     game_log
                         .entries
                         .push(format!("You turn off your {}", named.name));
@@ -81,7 +83,7 @@ impl ApplySystem {
             }
 
             // Turn on item
-            for (turnable, (_, named, in_backback_opt)) in &mut applyables_turned_off {
+            for (turnable, (_, named, in_backback)) in &mut applyables_turned_off {
                 entities_to_turn_on.push(turnable);
                 entities_applied.push(turnable);
                 println!(
@@ -89,9 +91,7 @@ impl ApplySystem {
                     turnable.id()
                 );
 
-                if let Some(in_backback) = in_backback_opt
-                    && player_id == in_backback.owner.id()
-                {
+                if player_id == in_backback.owner.id() {
                     game_log
                         .entries
                         .push(format!("You turn on your {}", named.name));

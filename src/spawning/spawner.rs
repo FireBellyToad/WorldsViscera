@@ -139,15 +139,16 @@ impl Spawn {
         let dice_roll = Roll::d20();
         //TODO test
         lantern(ecs_world, x, y);
-        match dice_roll {
-            1 => wand(ecs_world, x, y),
-            2 => lantern(ecs_world, x, y),
-            3 | 4 => shiv(ecs_world, x, y),
-            5 | 6 => flask_of_oil(ecs_world, x, y),
-            7 | 8 => rockpick(ecs_world, x, y),
-            9 => maul(ecs_world, x, y),
-            _ => mushroom(ecs_world, x, y),
-        }
+        flask_of_oil(ecs_world, x, y);
+        // match dice_roll {
+        //     1 => wand(ecs_world, x, y),
+        //     2 => lantern(ecs_world, x, y),
+        //     3 | 4 => shiv(ecs_world, x, y),
+        //     5 | 6 => flask_of_oil(ecs_world, x, y),
+        //     7 | 8 => rockpick(ecs_world, x, y),
+        //     9 => maul(ecs_world, x, y),
+        //     _ => mushroom(ecs_world, x, y),
+        // }
     }
 
     /// Spawn a corpse

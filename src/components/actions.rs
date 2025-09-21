@@ -33,8 +33,8 @@ pub struct WantsToApply {
 
 
 pub struct WantsToFuel {
-    pub item: Entity,
-    pub with: Option<Entity>,
+    pub with: Entity,
+    pub item: Option<Entity>,
 }
 
 pub struct WantsToSmell {
