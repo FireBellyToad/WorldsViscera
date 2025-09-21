@@ -20,11 +20,6 @@ impl ApplySystem {
 
             for (applier, wants_to_apply) in &mut appliers {
                 applicators_items_applied.push((applier, wants_to_apply.item));
-                println!(
-                    "ApplySystem::check applier {} wants to apply {:?}",
-                    applier.id(),
-                    wants_to_apply.item.id()
-                );
             }
         }
 
@@ -66,10 +61,6 @@ impl ApplySystem {
             for (turnable, (_, named, in_backback_opt)) in &mut applyables_turned_on {
                 entities_to_turn_off.push(turnable);
                 entities_applied.push(turnable);
-                println!(
-                    "ApplySystem::do_applications turnable {} is turned off",
-                    turnable.id()
-                );
 
                 if let Some(in_backback) = in_backback_opt
                     && player_id == in_backback.owner.id()
@@ -84,10 +75,6 @@ impl ApplySystem {
             for (turnable, (_, named, in_backback_opt)) in &mut applyables_turned_off {
                 entities_to_turn_on.push(turnable);
                 entities_applied.push(turnable);
-                println!(
-                    "ApplySystem::do_applications turnable {} is turned on",
-                    turnable.id()
-                );
 
                 if let Some(in_backback) = in_backback_opt
                     && player_id == in_backback.owner.id()
