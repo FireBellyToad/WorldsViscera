@@ -62,6 +62,8 @@ pub struct MustBeFueled {
 
 pub struct Refiller {}
 
+pub struct TurnedOn {}
+
 pub struct Equippable {
     pub body_location: BodyLocation,
 }

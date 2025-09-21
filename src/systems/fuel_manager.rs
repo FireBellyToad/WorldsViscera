@@ -3,7 +3,7 @@ use hecs::{Entity, World};
 use crate::components::{
     actions::WantsToFuel,
     common::{GameLog, Named, Viewshed},
-    items::{InBackback, MustBeFueled, Refiller},
+    items::{InBackback, MustBeFueled, Refiller, TurnedOn},
     player::Player,
 };
 
@@ -12,8 +12,9 @@ pub struct FuelManager {}
 impl FuelManager {
     pub fn check_fuel(ecs_world: &mut World) {
         // List of light producers that use fuel
-        let mut lighters = ecs_world
-            .query::<&mut MustBeFueled>()
+        let mut turned_on_lighters = ecs_world
+            .query::<(&mut MustBeFueled, &Named, Option<&InBackback>)>()
+            .with::<&TurnedOn>()
             .without::<&Refiller>();
 
         let player_entity = Player::get_entity(ecs_world);
@@ -24,14 +25,10 @@ impl FuelManager {
             .last()
             .expect("Game log is not in hecs::World");
 
-        for (lighter, fuel) in &mut lighters {
+        for (_, (fuel, named, entity_in_backpack)) in &mut turned_on_lighters {
+            
             // Log fuel change for lantern used by player
-            let entity_in_backpack = ecs_world.get::<&InBackback>(lighter);
-
-            if let Ok(in_backback) = entity_in_backpack {
-                let named = ecs_world
-                    .get::<&Named>(lighter)
-                    .expect("Entity is not Named");
+            if let Some(in_backback) = entity_in_backpack {
                 // Log messages for fuel status
                 if player_entity.id() == in_backback.owner.id() {
                     match fuel.fuel_counter {

@@ -3,7 +3,7 @@ use hecs::World;
 use crate::{
     components::{
         common::*,
-        items::{InBackback, MustBeFueled, ProduceLight},
+        items::{InBackback, MustBeFueled, ProduceLight, TurnedOn},
     },
     maps::zone::Zone,
     systems::fov::FieldOfView,
@@ -67,8 +67,8 @@ impl MapIndexing {
             Option<&Position>,
             Option<&InBackback>,
             Option<&MustBeFueled>,
-            &ProduceLight,
-        )>();
+            &ProduceLight
+        )>().with::<&TurnedOn>();
 
         lighters_query
             .iter()

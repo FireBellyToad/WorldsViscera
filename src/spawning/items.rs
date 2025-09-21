@@ -6,8 +6,7 @@ use crate::{
         combat::InflictsDamage,
         common::{Named, Position, Renderable, SmellIntensity, Smellable},
         items::{
-            BodyLocation, Deadly, Edible, Equippable, Invokable, InvokablesEnum, Item,
-            MustBeFueled, ProduceLight, Quaffable, Refiller, ToBeHarvested, Unsavoury, Weapon,
+            BodyLocation, Deadly, Edible, Equippable, Invokable, InvokablesEnum, Item, MustBeFueled, ProduceLight, Quaffable, Refiller, ToBeHarvested, TurnedOn, Unsavoury, Weapon
         },
     },
     constants::*,
@@ -21,7 +20,7 @@ pub fn mushroom(ecs_world: &mut World, x: i32, y: i32) {
     let common_components = (
         Item {
             item_tile: (mushroom_type, 1),
-        }, 
+        },
         Position { x, y },
         Renderable {
             texture_name: TextureName::Items,
@@ -114,6 +113,7 @@ pub fn mushroom(ecs_world: &mut World, x: i32, y: i32) {
                     ProduceLight {
                         radius: MUSHROOM_LIGHT_RADIUS,
                     },
+                    TurnedOn {},
                     Named {
                         name: "glowing mushroom".to_string(),
                     },
@@ -185,6 +185,7 @@ pub fn lantern(ecs_world: &mut World, x: i32, y: i32) {
             smell_log: "a scent of burning fuel".to_string(),
             intensity: SmellIntensity::Faint,
         },
+        TurnedOn {},
     );
 
     ecs_world.spawn(lantern);

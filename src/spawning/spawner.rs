@@ -2,10 +2,11 @@ use std::collections::HashMap;
 
 use crate::components::combat::{CombatStats, SufferingDamage};
 use crate::components::common::{
-    CanListen, CanSmell, MyTurn, Named, Position, ProduceSound, Renderable, SmellIntensity, Smellable, Viewshed
+    CanListen, CanSmell, MyTurn, Named, Position, ProduceSound, Renderable, SmellIntensity,
+    Smellable, Viewshed,
 };
 use crate::components::health::{CanAutomaticallyHeal, Hunger, Thirst};
-use crate::components::items::{Edible, Item, Perishable, ProduceLight, Quaffable};
+use crate::components::items::{Edible, Item, Perishable, ProduceLight, Quaffable, TurnedOn};
 use crate::components::player::Player;
 use crate::constants::*;
 use crate::maps::zone::{TileType, Zone};
@@ -86,11 +87,11 @@ impl Spawn {
                 intensity: SmellIntensity::Faint,
                 smell_log: "yourself".to_string(),
             },
-            CanListen{
+            CanListen {
                 listen_cache: HashMap::new(),
                 radius: PLAYER_LISTEN_RADIUS,
-                cooldown: 0
-            }
+                cooldown: 0,
+            },
         );
 
         ecs_world.spawn(player_entity);
@@ -171,7 +172,7 @@ impl Spawn {
             },
             edible,
             Perishable {
-                rot_counter: STARTING_ROT_COUNTER + Roll::d20()
+                rot_counter: STARTING_ROT_COUNTER + Roll::d20(),
             },
         );
 
@@ -192,10 +193,11 @@ impl Spawn {
                     Smellable {
                         smell_log: "burning chemicals".to_string(),
                         intensity: SmellIntensity::Strong,
-                            },
+                    },
                     ProduceSound {
                         sound_log: "fire burning".to_string(),
-                    }
+                    },
+                    TurnedOn {},
                 ));
             }
             _ => {}
@@ -211,7 +213,7 @@ impl Spawn {
             Quaffable {
                 thirst_dice_number: 2,
                 thirst_dice_size: 20,
-            }
+            },
         ))
     }
 }
