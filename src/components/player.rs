@@ -12,7 +12,7 @@ use crate::{
         combat::{CombatStats, WantsToMelee, WantsToZap},
         common::{GameLog, MyTurn, Position, Viewshed, WaitingToAct},
         health::CanAutomaticallyHeal,
-        items::{Edible, Item, Quaffable}
+        items::{Edible, Item, Quaffable},
     },
     constants::{
         MAP_HEIGHT, MAP_WIDTH, MAX_ACTION_SPEED, MAX_STAMINA_HEAL_TICK_COUNTER, TILE_SIZE_F32,
@@ -144,8 +144,7 @@ impl Player {
 
                         //Eat item
                         'e' => {
-                            (run_state, is_actively_waiting) =
-                                Player::try_eat(ecs_world, player_entity);
+                            run_state = Player::try_eat(ecs_world, player_entity);
                         }
 
                         //Apply item
@@ -186,8 +185,7 @@ impl Player {
                             clear_input_queue();
 
                             // Drink from river
-                            (run_state, is_actively_waiting) =
-                                Player::try_drink(ecs_world, player_entity);
+                            run_state = Player::try_drink(ecs_world, player_entity);
                         }
 
                         //Smell action
@@ -332,33 +330,23 @@ impl Player {
         target_item
     }
 
-    /// Try to drink. Return new Runstate
-    fn try_eat(ecs_world: &mut World, _player_entity: Entity) -> (RunState, bool) {
+    /// Try to eat. Return new Runstate
+    fn try_eat(ecs_world: &mut World, _player_entity: Entity) -> RunState {
         clear_input_queue();
         let item_on_ground = Player::take_from_map(ecs_world);
 
-        if let Some(item) = item_on_ground {
-            // Is really Quaffable?
-            if ecs_world.get::<&Edible>(item).is_ok() {
-                return (RunState::ShowDialog(DialogAction::Eat(item)), true);
-            } else {
-                // Avoid losing time trying to drink non quaffable from grounnd
-                let mut game_log_query = ecs_world.query::<&mut GameLog>();
-                let (_, game_log) = game_log_query
-                    .iter()
-                    .last()
-                    .expect("Game log is not in hecs::World");
-
-                game_log.entries.push("You can't eat that!".to_string());
-                return (RunState::WaitingPlayerInput, false);
-            }
+        // Is really Edible?
+        if let Some(item) = item_on_ground
+            && ecs_world.satisfies::<&Edible>(item).unwrap_or(false)
+        {
+            return RunState::ShowDialog(DialogAction::Eat(item));
         }
 
-        (RunState::ShowInventory(InventoryAction::Eat), false)
+        RunState::ShowInventory(InventoryAction::Eat)
     }
 
     /// Try to drink. Return new Runstate and true if it can heal
-    fn try_drink(ecs_world: &mut World, player_entity: Entity) -> (RunState, bool) {
+    fn try_drink(ecs_world: &mut World, player_entity: Entity) -> RunState {
         let there_is_river_here: bool;
 
         // Scope for keeping borrow checker quiet
@@ -385,31 +373,21 @@ impl Player {
             let river_entity = Spawn::river_water_entity(ecs_world);
             let _ = ecs_world.insert_one(player_entity, WantsToDrink { item: river_entity });
 
-            return (RunState::DoTick, false);
+           return RunState::DoTick
         } else {
             // Drink a quaffable item on ground
             let item_on_ground = Player::take_from_map(ecs_world);
 
-            if let Some(item) = item_on_ground {
-                // Is really Quaffable?
-                if ecs_world.get::<&Quaffable>(item).is_ok() {
-                    return (RunState::ShowDialog(DialogAction::Quaff(item)), true);
-                } else {
-                    // Avoid losing time trying to drink non quaffable from grounnd
-                    let mut game_log_query = ecs_world.query::<&mut GameLog>();
-                    let (_, game_log) = game_log_query
-                        .iter()
-                        .last()
-                        .expect("Game log is not in hecs::World");
-
-                    game_log.entries.push("You can't drink that!".to_string());
-                    return (RunState::WaitingPlayerInput, false);
-                }
+            // Is really Quaffable?
+            if let Some(item) = item_on_ground
+                && ecs_world.satisfies::<&Quaffable>(item).unwrap_or(false)
+            {
+                return RunState::ShowDialog(DialogAction::Quaff(item));
             }
         }
 
         // Show quaffable items in inventory
-        (RunState::ShowInventory(InventoryAction::Quaff), false)
+        RunState::ShowInventory(InventoryAction::Quaff)
     }
 
     fn try_next_level(ecs_world: &mut World) -> RunState {

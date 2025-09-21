@@ -4,7 +4,7 @@ use crate::{
     components::{
         actions::WantsToFuel,
         combat::{CombatStats, SufferingDamage},
-        common::{GameLog, Named, Viewshed},
+        common::{GameLog, Named},
         items::{InBackback, MustBeFueled, Refiller, TurnedOn},
         player::Player,
     },
@@ -136,7 +136,6 @@ impl FuelManager {
                                 }
                             }
                         } else {
-                            
                             // Refill!
                             target_fuel.fuel_counter = item_used_fuel.fuel_counter;
 
