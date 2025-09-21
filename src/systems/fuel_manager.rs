@@ -1,11 +1,22 @@
 use hecs::{Entity, World};
 
-use crate::components::{
-    actions::WantsToFuel,
-    common::{GameLog, Named, Viewshed},
-    items::{InBackback, MustBeFueled, Refiller, TurnedOn},
-    player::Player,
+use crate::{
+    components::{
+        actions::WantsToFuel,
+        combat::{CombatStats, SufferingDamage},
+        common::{GameLog, Named, Viewshed},
+        items::{InBackback, MustBeFueled, Refiller, TurnedOn},
+        player::Player,
+    },
+    utils::roll::Roll,
 };
+
+type FuelerDTT<'a> = (
+    &'a Named,
+    &'a WantsToFuel,
+    &'a CombatStats,
+    &'a mut SufferingDamage,
+);
 
 pub struct FuelManager {}
 
@@ -26,7 +37,6 @@ impl FuelManager {
             .expect("Game log is not in hecs::World");
 
         for (_, (fuel, named, entity_in_backpack)) in &mut turned_on_lighters {
-            
             // Log fuel change for lantern used by player
             if let Some(in_backback) = entity_in_backpack {
                 // Log messages for fuel status
@@ -64,9 +74,11 @@ impl FuelManager {
         // Scope for keeping borrow checker quiet
         {
             // List of light producers with fuel
-            let mut query = ecs_world.query::<&WantsToFuel>();
-            let wants_to_refill_list: Vec<(Entity, &WantsToFuel)> =
-                query.iter().filter(|(_, w)| w.item.is_some()).collect();
+            let mut query = ecs_world.query::<FuelerDTT>();
+            let wants_to_refill_list: Vec<(Entity, FuelerDTT)> = query
+                .iter()
+                .filter(|(_, (_, w, _, _))| w.item.is_some())
+                .collect();
 
             let mut game_log_query = ecs_world.query::<&mut GameLog>();
             let (_, game_log) = game_log_query
@@ -74,37 +86,79 @@ impl FuelManager {
                 .last()
                 .expect("Game log is not in hecs::World");
 
-            for (refiller, wants_to_refill) in wants_to_refill_list {
-                let target = wants_to_refill.item.expect("item to refill must not be None");
+            for (refiller, (named_fueler, wants_to_refill, fueler_stats, fueler_damage)) in
+                wants_to_refill_list
+            {
+                let target = wants_to_refill
+                    .item
+                    .expect("item to refill must not be None");
                 let item_used = wants_to_refill.with;
 
+                // Components for refiller item
                 let item_used_fuel = ecs_world
                     .get::<&MustBeFueled>(item_used)
                     .expect("Entity has not MustBeFueled");
-                let target_fuel_optional = ecs_world.get::<&mut MustBeFueled>(target);
+
+                // Components for refilled item
+                let mut target_fuel_query = ecs_world
+                    .query_one::<(&mut MustBeFueled, &Named, Option<&TurnedOn>)>(target)
+                    .expect("At least one result");
+                let target_fuel_optional = target_fuel_query.get();
 
                 match target_fuel_optional {
-                    Ok(mut target_fuel) => {
-                        // Refill!
-                        target_fuel.fuel_counter = item_used_fuel.fuel_counter;
+                    Some((target_fuel, named_target, turned_on)) => {
+                        // Bad idea to refill a lit lantern!
+                        if turned_on.is_some() {
+                            // TODO show fire particle on burned guy
+                            if player_id == refiller.id() {
+                                game_log.entries.push(format!(
+                                    "The {} is lit! Flaming oil spills on your skin",
+                                    named_target.name
+                                ));
+                            }
 
-                        // Show appropriate log messages
-                        let named_dropper = ecs_world
-                            .get::<&Named>(refiller)
-                            .expect("Entity is not Named");
-                        let named_target = ecs_world
-                            .get::<&Named>(target)
-                            .expect("Entity is not Named");
-                        let named_item_used = ecs_world
-                            .get::<&Named>(item_used)
-                            .expect("Entity is not Named");
+                            // Dextery Save made halves damage
+                            let saving_throw_roll = Roll::d20();
+                            let damage_roll = Roll::dice(1, 6);
+                            if saving_throw_roll > fueler_stats.current_dexterity {
+                                fueler_damage.damage_received += damage_roll;
+                            } else {
+                                fueler_damage.damage_received += damage_roll / 2;
+                                if target.id() == player_id {
+                                    game_log
+                                        .entries
+                                        .push("You duck some of the damage!".to_string());
+                                } else {
+                                    game_log.entries.push(format!(
+                                        "{} ducks some of the damage!",
+                                        named_fueler.name
+                                    ));
+                                }
+                            }
+                        } else {
+                            
+                            // Refill!
+                            target_fuel.fuel_counter = item_used_fuel.fuel_counter;
 
-                        game_log.entries.push(format!(
-                            "{} refills the {} with the {}",
-                            named_dropper.name, named_target.name, named_item_used.name
-                        ));
+                            // Show appropriate log messages
+                            let named_item_used = ecs_world
+                                .get::<&Named>(item_used)
+                                .expect("Entity is not Named");
+
+                            if player_id == refiller.id() {
+                                game_log.entries.push(format!(
+                                    "You refill the {} with the {}",
+                                    named_target.name, named_item_used.name
+                                ));
+                            } else {
+                                game_log.entries.push(format!(
+                                    "{} refills the {} with the {}",
+                                    named_fueler.name, named_target.name, named_item_used.name
+                                ));
+                            }
+                        }
                     }
-                    Err(_) => {
+                    None => {
                         game_log
                             .entries
                             .push("This item cannot be refilled!".to_string());
