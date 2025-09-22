@@ -60,7 +60,9 @@ pub struct MustBeFueled {
     pub fuel_counter: i32,
 }
 
-pub struct Refiller {}
+pub struct Refiller {
+    pub fuel_counter: i32
+}
 
 pub struct TurnedOn {}
 pub struct TurnedOff {}

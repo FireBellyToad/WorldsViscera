@@ -96,7 +96,7 @@ impl FuelManager {
 
                 // Components for refiller item
                 let item_used_fuel = ecs_world
-                    .get::<&MustBeFueled>(item_used)
+                    .get::<&Refiller>(item_used)
                     .expect("Entity has not MustBeFueled");
 
                 // Components for refilled item

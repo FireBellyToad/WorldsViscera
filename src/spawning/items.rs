@@ -248,10 +248,8 @@ pub fn flask_of_oil(ecs_world: &mut World, x: i32, y: i32) {
         Item {
             item_tile: item_tile_index,
         },
-        MustBeFueled {
-            fuel_counter: STARTING_FUEL + Roll::d100(),
-        },
-        Refiller {},
+        Refiller {
+            fuel_counter: STARTING_FUEL + Roll::d100(),},
         Smellable {
             smell_log: "a faint scent of fuel".to_string(),
             intensity: SmellIntensity::Faint,

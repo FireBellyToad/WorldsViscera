@@ -3,8 +3,8 @@ use hecs::{Entity, World};
 use crate::{
     components::{
         actions::WantsToApply,
-        common::{GameLog, Named},
-        items::{Applied, InBackback, TurnedOff, TurnedOn},
+        common::{GameLog, Named, Wet},
+        items::{Applied, InBackback, MustBeFueled, TurnedOff, TurnedOn},
         player::Player,
     },
     engine::state::EngineState,
@@ -63,7 +63,13 @@ impl ApplySystem {
                 .query::<(&TurnedOn, &Named, &InBackback)>()
                 .with::<&Applied>();
             let mut applyables_turned_off = ecs_world
-                .query::<(&TurnedOff, &Named, &InBackback)>()
+                .query::<(
+                    &TurnedOff,
+                    &Named,
+                    &InBackback,
+                    Option<&Wet>,
+                    Option<&MustBeFueled>,
+                )>()
                 .with::<&Applied>();
 
             // Turn off item
@@ -83,14 +89,38 @@ impl ApplySystem {
             }
 
             // Turn on item
-            for (turnable, (_, named, in_backback)) in &mut applyables_turned_off {
-                entities_to_turn_on.push(turnable);
+            for (turnable, (_, named, in_backback, wet, must_be_fueled)) in
+                &mut applyables_turned_off
+            {
                 entities_applied.push(turnable);
-                println!(
-                    "ApplySystem::do_applications turnable {} is turned on",
-                    turnable.id()
-                );
 
+                match must_be_fueled {
+                    
+                    Some(fuel) => {
+                            println!("ApplySystem::do_applications fuel_ounter {}", fuel.fuel_counter);
+                        if wet.is_some() {
+                            println!("ApplySystem::do_applications is wet");
+                            if player_id == in_backback.owner.id() {
+                                game_log.entries.push(format!(
+                                    "Your {} is too wet to be turned on",
+                                    named.name
+                                ));
+                            }
+                            continue;
+                        } else if fuel.fuel_counter < 1 {
+                            println!("ApplySystem::do_applications is off");
+                            if player_id == in_backback.owner.id() {
+                                game_log
+                                    .entries
+                                    .push(format!("Your {} has no fuel", named.name));
+                            }
+                            continue;
+                        }
+                    }
+                    None => {}
+                }
+
+                entities_to_turn_on.push(turnable);
                 if player_id == in_backback.owner.id() {
                     game_log
                         .entries

@@ -17,8 +17,7 @@ use crate::{
         },
         common::{GameLog, Named},
         items::{
-            Appliable, Edible, Equippable, Equipped, InBackback, Invokable, Item, ProduceLight,
-            Quaffable, Refiller,
+            Appliable, Edible, Equippable, Equipped, InBackback, Invokable, Item, MustBeFueled, ProduceLight, Quaffable, Refiller
         },
         player::{Player, SpecialViewMode},
     },
@@ -84,7 +83,7 @@ impl Inventory {
                             Inventory::get_all_in_backpack_filtered_by::<Quaffable>(ecs_world)
                         }
                         InventoryAction::RefillWhat => {
-                            Inventory::get_all_in_backpack_filtered_by::<ProduceLight>(ecs_world)
+                            Inventory::get_all_in_backpack_filtered_by::<MustBeFueled>(ecs_world)
                         }
                         InventoryAction::Equip => {
                             Inventory::get_all_in_backpack_filtered_by::<Equippable>(ecs_world)
@@ -201,8 +200,7 @@ impl Inventory {
             }
             InventoryAction::RefillWhat => {
                 header_text = "Refill what?";
-                // TODO shouldn't be MustBeFueled?
-                inventory = Inventory::get_all_in_backpack_filtered_by::<ProduceLight>(ecs_world);
+                inventory = Inventory::get_all_in_backpack_filtered_by::<MustBeFueled>(ecs_world);
             }
             InventoryAction::Equip => {
                 header_text = "Equip what?";
