@@ -24,17 +24,22 @@ impl DamageManager {
     pub fn run(ecs_world: &World) {
         let mut damageables =
             ecs_world.query::<(&mut SufferingDamage, &mut CombatStats, &Position)>();
+        let player_entity_id = Player::get_entity_id(ecs_world);
 
         let mut zone_query = ecs_world.query::<&mut Zone>();
         let (_, zone) = zone_query
             .iter()
             .last()
             .expect("Zone is not in hecs::World");
+        let mut game_log_query = ecs_world.query::<&mut GameLog>();
+        let (_, game_log) = game_log_query
+            .iter()
+            .last()
+            .expect("Game log is not in hecs::World");
 
         for (damaged_entity, (damageable, stats, position)) in &mut damageables {
             if damageable.damage_received > 0 {
                 stats.current_stamina -= damageable.damage_received;
-
                 //Decrease stamina. If less then 0, delta is subtracted from toughness
                 if stats.current_stamina < 0 {
                     // We add a negative value
@@ -52,6 +57,29 @@ impl DamageManager {
                     Zone::get_index_from_xy(position.x, position.y),
                     DecalType::Blood,
                 );
+            }
+
+            // Venomous hits
+            if damageable.toughness_damage_received > 0 {
+                let saving_throw_roll = Roll::d20();
+                if saving_throw_roll > stats.current_toughness {
+                    if damaged_entity.id() == player_entity_id {
+                        game_log.entries.push(format!("The hit was venomous!"));
+                    }
+                    stats.current_toughness = max(
+                        1,
+                        stats.current_toughness - damageable.toughness_damage_received,
+                    );
+                    if stats.current_toughness == 1 {
+                        stats.current_stamina = 0;
+                    }
+                } else {
+                    if damaged_entity.id() == player_entity_id {
+                        game_log
+                            .entries
+                            .push(format!("You feel dizzy for a moment, then it passes"));
+                    }
+                }
             }
         }
     }
@@ -75,7 +103,9 @@ impl DamageManager {
             for (entity, (stats, named, damageable, position)) in &mut damageables {
                 // if has been damaged and Stamina is 0, do a thougness saving throw or die.
                 // On 0 or less toughness, die anyway
-                if stats.current_stamina == 0 && damageable.damage_received > 0 {
+                if stats.current_stamina == 0
+                    && (damageable.damage_received > 0 || damageable.toughness_damage_received > 0)
+                {
                     let saving_throw_roll = Roll::d20();
                     if stats.current_toughness < 1 || saving_throw_roll > stats.current_toughness {
                         dead_entities.push((entity, named.name.clone(), (position.x, position.y)));

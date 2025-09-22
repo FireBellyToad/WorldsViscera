@@ -68,7 +68,7 @@ impl Spawn {
                 max_dexterity: rolled_dexterity,
                 speed: NORMAL,
             },
-            SufferingDamage { damage_received: 0 },
+            SufferingDamage { damage_received: 0, toughness_damage_received: 0 },
             CanAutomaticallyHeal { tick_counter: 0 },
             Hunger {
                 tick_counter: MAX_HUNGER_TICK_COUNTER,
@@ -130,6 +130,7 @@ impl Spawn {
         match dice_roll {
             1 => dvergar(ecs_world, x, y),
             2 => gremlin(ecs_world, x, y),
+            3 => centipede(ecs_world, x, y),
             _ => deep_one(ecs_world, x, y),
         }
     }

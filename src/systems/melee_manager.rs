@@ -7,6 +7,7 @@ use crate::{
         combat::{CanHide, CombatStats, IsHidden, SufferingDamage, WantsToMelee},
         common::{GameLog, MyTurn, Named},
         items::{Equipped, Weapon},
+        monster::Venomous,
     },
     constants::MAX_HIDDEN_TURNS,
     utils::roll::Roll,
@@ -23,7 +24,7 @@ impl MeleeManager {
         {
             // List of entities that want to collect items
             let mut attackers = ecs_world
-                .query::<(&WantsToMelee, Option<&IsHidden>)>()
+                .query::<(&WantsToMelee, &Named, Option<&IsHidden>, Option<&Venomous>)>()
                 .with::<&MyTurn>();
             let mut equipped_weapons = ecs_world.query::<(&Weapon, &Equipped)>();
 
@@ -34,9 +35,10 @@ impl MeleeManager {
                 .last()
                 .expect("Game log is not in hecs::World");
 
-            for (attacker, (wants_melee, hidden)) in &mut attackers {
+            for (attacker, (wants_melee, named_attacker, hidden, venomous)) in &mut attackers {
                 //Sum damage, keeping in mind that could not have SufferingDamage component
-                if let Ok(mut target_damage) = ecs_world.get::<&mut SufferingDamage>(wants_melee.target)
+                if let Ok(mut target_damage) =
+                    ecs_world.get::<&mut SufferingDamage>(wants_melee.target)
                 {
                     let attacker_stats = ecs_world
                         .get::<&CombatStats>(attacker)
@@ -46,9 +48,6 @@ impl MeleeManager {
                         .expect("Entity does not have CombatStats");
 
                     // Show appropriate log messages
-                    let named_attacker = ecs_world
-                        .get::<&Named>(attacker)
-                        .expect("Entity is not Named");
                     let named_target = ecs_world
                         .get::<&Named>(wants_melee.target)
                         .expect("Entity is not Named");
@@ -60,6 +59,7 @@ impl MeleeManager {
 
                     let damage_roll: i32;
                     // Sneak attack doubles damage
+
                     match hidden {
                         Some(_) => {
                             damage_roll =
@@ -88,7 +88,16 @@ impl MeleeManager {
                         }
                     }
 
-                    target_damage.damage_received += damage_roll;
+                    //Venomous damage targets toughness
+                    match venomous {
+                        Some(_) => {
+                            // TODO what about venom immunity?
+                            target_damage.toughness_damage_received += damage_roll;
+                        }
+                        None => {
+                            target_damage.damage_received += damage_roll;
+                        }
+                    }
 
                     wants_to_melee_list.push(attacker);
                 }

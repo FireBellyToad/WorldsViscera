@@ -8,7 +8,7 @@ use crate::{
             BlocksTile, MyTurn, Named, Position, ProduceCorpse, ProduceSound, Renderable,
             SmellIntensity, Smellable, Viewshed,
         },
-        monster::{Aquatic, Monster},
+        monster::{Aquatic, Monster, Venomous},
     },
     constants::{BASE_MONSTER_VIEW_RADIUS, FAST, NORMAL, SLOW, TILE_SIZE_F32},
     utils::assets::TextureName,
@@ -100,6 +100,36 @@ pub fn gremlin(ecs_world: &mut World, x: i32, y: i32) {
     );
 }
 
+pub fn centipede(ecs_world: &mut World, x: i32, y: i32) {
+    let centipede = create_monster(
+        ecs_world,
+        "Giant centipede".to_string(),
+        CombatStats {
+            current_stamina: 3,
+            max_stamina: 3,
+            base_armor: 1,
+            unarmed_attack_dice: 3,
+            current_toughness: 6,
+            max_toughness: 6,
+            current_dexterity: 13,
+            max_dexterity: 14,
+            speed: NORMAL,
+        },
+        Smellable {
+            smell_log: "something off and dusty".to_string(),
+            intensity: SmellIntensity::None,
+        },
+        ProduceSound {
+            sound_log: "skittering of many legs".to_string(),
+        },
+        5.0,
+        x,
+        y,
+    );
+
+    let _ = ecs_world.insert_one(centipede, Venomous {});
+}
+
 pub fn dvergar(ecs_world: &mut World, x: i32, y: i32) {
     create_monster(
         ecs_world,
@@ -160,7 +190,7 @@ pub fn create_monster(
         Named { name },
         BlocksTile {},
         combat_stats,
-        SufferingDamage { damage_received: 0 },
+        SufferingDamage { damage_received: 0 , toughness_damage_received: 0},
         ProduceCorpse {},
         MyTurn {},
         smells,

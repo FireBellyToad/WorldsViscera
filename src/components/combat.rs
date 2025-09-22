@@ -14,6 +14,7 @@ pub struct CombatStats {
 
 pub struct SufferingDamage {
     pub damage_received: i32,
+    pub toughness_damage_received: i32,
 }
 
 pub struct WantsToMelee {
