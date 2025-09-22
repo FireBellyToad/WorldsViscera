@@ -16,12 +16,8 @@ use systems::{
 };
 
 use crate::{
-    components::{
-        common::{Position, Viewshed},
-        items::Refiller,
-    },
+    components::common::{Position, Viewshed},
     dialog::Dialog,
-    inventory::InventoryAction,
     maps::{
         ZoneBuilder, arena_zone_builder::ArenaZoneBuilder,
         drunken_walk_zone_builder::DrunkenWalkZoneBuilder, zone::Zone,
@@ -103,15 +99,13 @@ async fn main() {
                     );
 
                     // TODO refactor
-                    if game_state.run_state != RunState::GameOver {
-                        if !must_run_particles {
-                            if Player::can_act(&game_state.ecs_world) {
-                                println!("Player's turn");
-                                game_state.run_state = RunState::WaitingPlayerInput;
-                            } else {
-                                MonsterAI::act(&mut game_state.ecs_world);
-                                game_state.run_state = RunState::BeforeTick;
-                            }
+                    if game_state.run_state != RunState::GameOver && !must_run_particles {
+                        if Player::can_act(&game_state.ecs_world) {
+                            println!("Player's turn");
+                            game_state.run_state = RunState::WaitingPlayerInput;
+                        } else {
+                            MonsterAI::act(&mut game_state.ecs_world);
+                            game_state.run_state = RunState::BeforeTick;
                         }
                     }
                 }
@@ -246,15 +240,15 @@ fn do_before_tick_logic(game_state: &mut EngineState) {
     HiddenManager::run(&mut game_state.ecs_world);
 }
 
-fn do_in_tick_game_logic(mut game_state: &mut EngineState) {
+fn do_in_tick_game_logic(game_state: &mut EngineState) {
     ZapManager::run(&mut game_state.ecs_world);
     MeleeManager::run(&mut game_state.ecs_world);
     DamageManager::run(&game_state.ecs_world);
-    DamageManager::remove_dead_and_check_gameover(&mut game_state);
+    DamageManager::remove_dead_and_check_gameover(game_state);
     //Proceed on game logic if is not Game Over
     if game_state.run_state != RunState::GameOver {
         ApplySystem::check(&mut game_state.ecs_world);
-        ApplySystem::do_applications(&mut game_state);
+        ApplySystem::do_applications(game_state);
         MapIndexing::run(&game_state.ecs_world);
         FieldOfView::calculate(&game_state.ecs_world);
         ItemCollection::run(&mut game_state.ecs_world);

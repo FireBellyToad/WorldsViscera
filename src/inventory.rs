@@ -13,11 +13,13 @@ use macroquad::{
 use crate::{
     components::{
         actions::{
-            WantsToApply, WantsToDrink, WantsToDrop, WantsToEat, WantsToEquip, WantsToFuel, WantsToInvoke
+            WantsToApply, WantsToDrink, WantsToDrop, WantsToEat, WantsToEquip, WantsToFuel,
+            WantsToInvoke,
         },
         common::{GameLog, Named},
         items::{
-            Appliable, Edible, Equippable, Equipped, InBackback, Invokable, Item, MustBeFueled, ProduceLight, Quaffable, Refiller
+            Appliable, Edible, Equippable, Equipped, InBackback, Invokable, Item, MustBeFueled,
+            Quaffable, Refiller,
         },
         player::{Player, SpecialViewMode},
     },
@@ -38,7 +40,7 @@ pub enum InventoryAction {
 }
 
 /// Inventory Item Data trasfer type: used for rendering and general inventory usage
-type InventoryItemDtt = Vec<(Entity, String, char, (i32, i32), bool)>;
+type InventoryItem = Vec<(Entity, String, char, (i32, i32), bool)>;
 
 pub struct Inventory {}
 
@@ -72,7 +74,7 @@ impl Inventory {
                         .expect("Game log is not in hecs::World");
 
                     //Inventory = Named items in backpack of the Player assigned to the pressed char key
-                    let inventory: InventoryItemDtt = match mode {
+                    let inventory: InventoryItem = match mode {
                         InventoryAction::Eat => {
                             Inventory::get_all_in_backpack_filtered_by::<Edible>(ecs_world)
                         }
@@ -153,11 +155,16 @@ impl Inventory {
                     }
                     InventoryAction::Apply => {
                         // Applied refillers must be handled in a custom way
-                        if ecs_world.satisfies::<&Refiller>(item).unwrap_or(false) {                            
-                            let _ = ecs_world.insert_one(user, WantsToFuel { item:None, with: item });
-                            new_run_state = RunState::ShowInventory(InventoryAction::RefillWhat);             
-
-                        } else {                                
+                        if ecs_world.satisfies::<&Refiller>(item).unwrap_or(false) {
+                            let _ = ecs_world.insert_one(
+                                user,
+                                WantsToFuel {
+                                    item: None,
+                                    with: item,
+                                },
+                            );
+                            new_run_state = RunState::ShowInventory(InventoryAction::RefillWhat);
+                        } else {
                             let _ = ecs_world.insert_one(user, WantsToApply { item });
                             println!("Player wants to apply {:?}", item.id());
                         }
@@ -182,7 +189,7 @@ impl Inventory {
         let texture_to_render = assets.get(&TextureName::Items).expect("Texture not found");
 
         //Inventory = Named items in backpack of the Player
-        let inventory: InventoryItemDtt;
+        let inventory: InventoryItem;
         let header_text;
 
         match mode {
@@ -296,7 +303,7 @@ impl Inventory {
     }
 
     /// Get all items in backpack for UI
-    fn get_all_in_backpack(ecs_world: &World) -> InventoryItemDtt {
+    fn get_all_in_backpack(ecs_world: &World) -> InventoryItem {
         let player_id = Player::get_entity_id(ecs_world);
         let mut inventory_query =
             ecs_world.query::<(&Named, &Item, &InBackback, Option<&Equipped>)>();
@@ -312,7 +319,7 @@ impl Inventory {
                     equipped.is_some(),
                 )
             })
-            .collect::<InventoryItemDtt>();
+            .collect::<InventoryItem>();
 
         //Sort alphabetically by assigned char
         inventory.sort_by_key(|k| k.2);
@@ -320,7 +327,7 @@ impl Inventory {
     }
 
     /// Get all items in backpack with a certain component T for UI
-    fn get_all_in_backpack_filtered_by<T: Component>(ecs_world: &World) -> InventoryItemDtt {
+    fn get_all_in_backpack_filtered_by<T: Component>(ecs_world: &World) -> InventoryItem {
         let player_id = Player::get_entity_id(ecs_world);
 
         let mut inventory_query = ecs_world
@@ -339,7 +346,7 @@ impl Inventory {
                     equipped.is_some(),
                 )
             }) //
-            .collect::<InventoryItemDtt>();
+            .collect::<InventoryItem>();
 
         //Sort alphabetically by assigned char
         inventory.sort_by_key(|k| k.2);

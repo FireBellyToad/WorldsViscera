@@ -9,7 +9,12 @@ use crate::{
         health::CanAutomaticallyHeal,
         items::Edible,
         player::Player,
-    }, constants::MAX_STAMINA_HEAL_TICK_COUNTER, engine::{gameengine::GameEngine, state::{EngineState, RunState}}, maps::zone::{DecalType, Zone}, spawning::spawner::Spawn, utils::roll::Roll
+    },
+    constants::MAX_STAMINA_HEAL_TICK_COUNTER,
+    engine::state::{EngineState, RunState},
+    maps::zone::{DecalType, Zone},
+    spawning::spawner::Spawn,
+    utils::roll::Roll,
 };
 
 pub struct DamageManager {}
@@ -89,7 +94,7 @@ impl DamageManager {
         //Remove all dead entities, stop game if player is dead
         for (ent, name, (x, y)) in dead_entities {
             if ent.id() == player_entity_id {
-                //Game over!                
+                //Game over!
                 game_state.run_state = RunState::GameOver;
                 break;
             }

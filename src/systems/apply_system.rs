@@ -94,30 +94,22 @@ impl ApplySystem {
             {
                 entities_applied.push(turnable);
 
-                match must_be_fueled {
-                    
-                    Some(fuel) => {
-                            println!("ApplySystem::do_applications fuel_ounter {}", fuel.fuel_counter);
-                        if wet.is_some() {
-                            println!("ApplySystem::do_applications is wet");
-                            if player_id == in_backback.owner.id() {
-                                game_log.entries.push(format!(
-                                    "Your {} is too wet to be turned on",
-                                    named.name
-                                ));
-                            }
-                            continue;
-                        } else if fuel.fuel_counter < 1 {
-                            println!("ApplySystem::do_applications is off");
-                            if player_id == in_backback.owner.id() {
-                                game_log
-                                    .entries
-                                    .push(format!("Your {} has no fuel", named.name));
-                            }
-                            continue;
+                if let Some(fuel) = must_be_fueled {
+                    if wet.is_some() {
+                        if player_id == in_backback.owner.id() {
+                            game_log
+                                .entries
+                                .push(format!("Your {} is too wet to be turned on", named.name));
                         }
+                        continue;
+                    } else if fuel.fuel_counter < 1 {
+                        if player_id == in_backback.owner.id() {
+                            game_log
+                                .entries
+                                .push(format!("Your {} has no fuel", named.name));
+                        }
+                        continue;
                     }
-                    None => {}
                 }
 
                 entities_to_turn_on.push(turnable);

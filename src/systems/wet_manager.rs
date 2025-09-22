@@ -10,6 +10,12 @@ use crate::{
     maps::zone::Zone,
 };
 
+type WetItemsInBackpack<'a> = (
+    &'a Named,
+    &'a InBackback,
+    Option<&'a TurnedOn>,
+    Option<&'a MustBeFueled>,
+);
 pub struct WetManager {}
 
 impl WetManager {
@@ -53,31 +59,19 @@ impl WetManager {
 
                         entities_that_got_wet.push(entity);
 
-                        let mut items_of_wet_entity = ecs_world.query::<(
-                            &Named,
-                            &InBackback,
-                            Option<&TurnedOn>,
-                            Option<&MustBeFueled>,
-                        )>();
+                        let mut items_of_wet_entity = ecs_world.query::<WetItemsInBackpack>();
 
-                        let items_to_wet: Vec<(
-                            Entity,
-                            (
-                                &Named,
-                                &InBackback,
-                                Option<&TurnedOn>,
-                                Option<&MustBeFueled>,
-                            ),
-                        )> = items_of_wet_entity
-                            .iter()
-                            .filter(|(_, (_, in_backpack, _, _))| {
-                                in_backpack.owner.id() == player_id
-                            })
-                            .collect();
+                        let items_to_wet: Vec<(Entity, WetItemsInBackpack)> =
+                            items_of_wet_entity
+                                .iter()
+                                .filter(|(_, (_, in_backpack, _, _))| {
+                                    in_backpack.owner.id() == player_id
+                                })
+                                .collect();
 
                         for (item, (named, _, turned_on, fueled)) in items_to_wet {
                             entities_that_got_wet.push(item);
-                            if turned_on.is_some() && fueled.is_some(){
+                            if turned_on.is_some() && fueled.is_some() {
                                 entities_in_backpack_to_turn_off.push(item);
                                 if player_id == entity.id() {
                                     game_log.entries.push(format!(

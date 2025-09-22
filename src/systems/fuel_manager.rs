@@ -11,7 +11,7 @@ use crate::{
     utils::roll::Roll,
 };
 
-type FuelerDTT<'a> = (
+type Fueler<'a> = (
     &'a Named,
     &'a WantsToFuel,
     &'a CombatStats,
@@ -74,8 +74,8 @@ impl FuelManager {
         // Scope for keeping borrow checker quiet
         {
             // List of light producers with fuel
-            let mut query = ecs_world.query::<FuelerDTT>();
-            let wants_to_refill_list: Vec<(Entity, FuelerDTT)> = query
+            let mut query = ecs_world.query::<Fueler>();
+            let wants_to_refill_list: Vec<(Entity, Fueler)> = query
                 .iter()
                 .filter(|(_, (_, w, _, _))| w.item.is_some())
                 .collect();
