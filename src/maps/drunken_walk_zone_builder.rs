@@ -41,12 +41,12 @@ impl ZoneBuilder for DrunkenWalkZoneBuilder {
                 // Avoid boundaries, or else skip iteration
                 if dest_x <= 1 || dest_x >= MAP_WIDTH - 1 || dest_y <= 1 || dest_y >= MAP_HEIGHT - 1
                 {
-                    println!("DrunkenWalkZoneBuilder - Try again");
                     if unblock_tentatives < 0 {
                         unblock_tentatives = 10;
                         current_position = (MAP_WIDTH / 2, MAP_HEIGHT / 2);
                     } else {
-                        unblock_tentatives = 1;
+                        unblock_tentatives -= 1;
+                        println!{"DrunkenWalkZoneBuilder - unblock_tentatives {}",unblock_tentatives};
                     }
                     continue;
                 }
