@@ -6,7 +6,7 @@ use crate::{
     components::{
         combat::{CanHide, CombatStats, IsHidden, SufferingDamage, WantsToMelee},
         common::{GameLog, MyTurn, Named},
-        items::{Equipped, Weapon},
+        items::{Armor, Equipped, Weapon},
         monster::Venomous,
     },
     constants::MAX_HIDDEN_TURNS,
@@ -27,6 +27,7 @@ impl MeleeManager {
                 .query::<(&WantsToMelee, &Named, Option<&IsHidden>, Option<&Venomous>)>()
                 .with::<&MyTurn>();
             let mut equipped_weapons = ecs_world.query::<(&Weapon, &Equipped)>();
+            let mut equipped_armors = ecs_world.query::<(&Armor, &Equipped)>();
 
             //Log all the pick ups
             let mut game_log_query = ecs_world.query::<&mut GameLog>();
@@ -58,43 +59,50 @@ impl MeleeManager {
                     );
 
                     let damage_roll: i32;
-                    // Sneak attack doubles damage
+                    let target_armor = MeleeManager::get_armor_value(
+                        target_stats.base_armor,
+                        wants_melee.target.id(),
+                        &mut equipped_armors,
+                    );
 
-                    match hidden {
-                        Some(_) => {
-                            damage_roll =
-                                max(0, Roll::dice(2, attacker_dice) - target_stats.base_armor);
-                            game_log.entries.push(format!(
-                                "{} sneak attacks the {} for {} damage!",
-                                named_attacker.name, named_target.name, damage_roll
-                            ));
-                            hidden_list.push(attacker);
-
-                            // Cannot hide again for 9 - (stats.current_dexterity / 3) turns
-                            let mut can_hide = ecs_world
-                                .get::<&mut CanHide>(attacker)
-                                .expect("Entity does not have CanHide");
-                            can_hide.cooldown = (MAX_HIDDEN_TURNS
-                                - (attacker_stats.current_dexterity / 3))
-                                * attacker_stats.speed;
-                        }
-                        None => {
-                            damage_roll =
-                                max(0, Roll::dice(1, attacker_dice) - target_stats.base_armor);
-                            game_log.entries.push(format!(
-                                "{} hits the {} for {} damage",
-                                named_attacker.name, named_target.name, damage_roll
-                            ));
-                        }
-                    }
-
-                    //Venomous damage targets toughness
+                    //Venomous damage targets toughness ignoring armor
                     match venomous {
                         Some(_) => {
                             // TODO what about venom immunity?
+                            damage_roll = max(0, Roll::dice(2, attacker_dice));
                             target_damage.toughness_damage_received += damage_roll;
                         }
                         None => {
+                            // Sneak attack doubles damage
+                            match hidden {
+                                Some(_) => {
+                                    damage_roll =
+                                        max(0, Roll::dice(2, attacker_dice) - target_armor);
+                                    game_log.entries.push(format!(
+                                        "{} sneak attacks the {} for {} damage!",
+                                        named_attacker.name, named_target.name, damage_roll
+                                    ));
+                                    hidden_list.push(attacker);
+
+                                    // Cannot hide again for 9 - (stats.current_dexterity / 3) turns
+                                    let mut can_hide = ecs_world
+                                        .get::<&mut CanHide>(attacker)
+                                        .expect("Entity does not have CanHide");
+                                    can_hide.cooldown = (MAX_HIDDEN_TURNS
+                                        - (attacker_stats.current_dexterity / 3))
+                                        * attacker_stats.speed;
+                                }
+                                None => {
+                                    damage_roll = max(
+                                        0,
+                                        Roll::dice(1, attacker_dice) - target_stats.base_armor,
+                                    );
+                                    game_log.entries.push(format!(
+                                        "{} hits the {} for {} damage",
+                                        named_attacker.name, named_target.name, damage_roll
+                                    ));
+                                }
+                            }
                             target_damage.damage_received += damage_roll;
                         }
                     }
@@ -124,13 +132,24 @@ impl MeleeManager {
         // Use weapon dice when equipped
         for (_, (attacker_weapon, equipped_to)) in equipped_weapons.iter() {
             if equipped_to.owner.id() == attacker_id {
-                println!(
-                    "Weapon equipped by {:?} is {}",
-                    equipped_to.owner, attacker_weapon.attack_dice
-                );
                 return attacker_weapon.attack_dice;
             }
         }
         unarmed_attack_dice
+    }
+
+    // Gets armor value
+    fn get_armor_value(
+        base_armor: i32,
+        target_id: u32,
+        equipped_armors: &mut hecs::QueryBorrow<'_, (&Armor, &Equipped)>,
+    ) -> i32 {
+        // Use weapon dice when equipped
+        for (_, (attacker_armor, equipped_to)) in equipped_armors.iter() {
+            if equipped_to.owner.id() == target_id {
+                return attacker_armor.value;
+            }
+        }
+        base_armor
     }
 }
