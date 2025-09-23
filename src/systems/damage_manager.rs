@@ -118,6 +118,7 @@ impl DamageManager {
                 }
                 // Reset damage_received
                 damageable.damage_received = 0;
+                damageable.toughness_damage_received = 0;
             }
         }
 
