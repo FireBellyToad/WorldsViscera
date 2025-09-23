@@ -43,7 +43,7 @@ impl WetManager {
             // List of entities that want to drop items
             let mut wettable_entities = ecs_world.query::<(Option<&Position>, Option<&mut Wet>)>();
 
-            for (entity, (position_opt, is_wet)) in &mut wettable_entities {
+            for (got_wet_entity, (position_opt, is_wet)) in &mut wettable_entities {
                 // Wet everyone walking in water
                 if let Some(position) = position_opt
                     && zone.water_tiles[Zone::get_index_from_xy(position.x, position.y)]
@@ -53,11 +53,11 @@ impl WetManager {
                     } else {
                         // Log only the first time the player gets wet
                         // Avoid multiple logs while walking in water
-                        if player_id == entity.id() {
+                        if player_id == got_wet_entity.id() {
                             game_log.entries.push("You get wet".to_string());
                         }
 
-                        entities_that_got_wet.push(entity);
+                        entities_that_got_wet.push(got_wet_entity);
 
                         let mut items_of_wet_entity = ecs_world.query::<WetItemsInBackpack>();
 
@@ -65,7 +65,7 @@ impl WetManager {
                             items_of_wet_entity
                                 .iter()
                                 .filter(|(_, (_, in_backpack, _, _))| {
-                                    in_backpack.owner.id() == player_id
+                                    in_backpack.owner.id() == got_wet_entity.id()
                                 })
                                 .collect();
 
@@ -73,7 +73,7 @@ impl WetManager {
                             entities_that_got_wet.push(item);
                             if turned_on.is_some() && fueled.is_some() {
                                 entities_in_backpack_to_turn_off.push(item);
-                                if player_id == entity.id() {
+                                if player_id == got_wet_entity.id() {
                                     game_log.entries.push(format!(
                                         "Your {} gets wet and turns itself off!",
                                         named.name
@@ -86,9 +86,9 @@ impl WetManager {
                     // Water dries out in time
                     is_wet_component.tick_countdown -= 1;
                     if is_wet_component.tick_countdown <= 0 {
-                        entities_that_dryed.push(entity);
+                        entities_that_dryed.push(got_wet_entity);
 
-                        if player_id == entity.id() {
+                        if player_id == got_wet_entity.id() {
                             game_log.entries.push("You are no longer wet".to_string());
                         }
                     }
