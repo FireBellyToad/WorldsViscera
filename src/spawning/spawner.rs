@@ -6,7 +6,9 @@ use crate::components::common::{
     Smellable, Viewshed,
 };
 use crate::components::health::{CanAutomaticallyHeal, Hunger, Thirst};
-use crate::components::items::{Edible, Item, Perishable, ProduceLight, Quaffable, TurnedOn, Unsavoury};
+use crate::components::items::{
+    Edible, Item, Perishable, ProduceLight, Quaffable, TurnedOn, Unsavoury,
+};
 use crate::components::monster::Venomous;
 use crate::components::player::Player;
 use crate::constants::*;
@@ -17,7 +19,7 @@ use crate::systems::hunger_check::HungerStatus;
 use crate::systems::thirst_check::ThirstStatus;
 use crate::utils::assets::TextureName;
 use crate::utils::roll::Roll;
-use hecs::{ComponentError, Entity, Ref, World};
+use hecs::{Entity, World};
 use macroquad::math::Rect;
 
 /// Spawner of game entities
@@ -149,6 +151,8 @@ impl Spawn {
             5 | 6 => flask_of_oil(ecs_world, x, y),
             7 | 8 => rockpick(ecs_world, x, y),
             9 => maul(ecs_world, x, y),
+            10 | 11 => leather_armor(ecs_world, x, y),
+            12 => breastplate(ecs_world, x, y),
             _ => mushroom(ecs_world, x, y),
         }
     }
@@ -160,7 +164,7 @@ impl Spawn {
         y: i32,
         name: String,
         edible: Edible,
-        is_venomous:  bool
+        is_venomous: bool,
     ) {
         let item_tile_index = (0, 0);
         let corpse = (
@@ -190,7 +194,12 @@ impl Spawn {
         let corpse_spawned = ecs_world.spawn(corpse);
 
         if is_venomous {
-            let _ = ecs_world.insert_one(corpse_spawned, Unsavoury { game_log: "poisoned".to_string() });
+            let _ = ecs_world.insert_one(
+                corpse_spawned,
+                Unsavoury {
+                    game_log: "poisoned".to_string(),
+                },
+            );
         }
     }
 

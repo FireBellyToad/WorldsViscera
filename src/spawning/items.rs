@@ -6,7 +6,7 @@ use crate::{
         combat::InflictsDamage,
         common::{Named, Position, Renderable, SmellIntensity, Smellable},
         items::{
-            Appliable, BodyLocation, Deadly, Edible, Equippable, Invokable, InvokablesEnum, Item, MustBeFueled, ProduceLight, Quaffable, Refiller, ToBeHarvested, TurnedOff, TurnedOn, Unsavoury, Weapon
+            Appliable, Armor, BodyLocation, Bulky, Deadly, Edible, Equippable, Invokable, InvokablesEnum, Item, MustBeFueled, ProduceLight, Quaffable, Refiller, ToBeHarvested, TurnedOff, TurnedOn, Unsavoury, Weapon
         },
     },
     constants::*,
@@ -344,7 +344,68 @@ pub fn maul(ecs_world: &mut World, x: i32, y: i32) {
             body_location: BodyLocation::Hands,
         },
         Weapon { attack_dice: 8 },
-        Appliable{},
+        Appliable {}, // TODO not used right now
+        Bulky {}
+    );
+
+    ecs_world.spawn(flask_of_oil);
+}
+
+
+pub fn leather_armor(ecs_world: &mut World, x: i32, y: i32) {
+    let item_tile_index = (0, 3);
+    let flask_of_oil = (
+        Position { x, y },
+        Renderable {
+            texture_name: TextureName::Items,
+            texture_region: Rect {
+                x: (item_tile_index.0 * TILE_SIZE) as f32,
+                y: (item_tile_index.1 * TILE_SIZE) as f32,
+                w: TILE_SIZE_F32,
+                h: TILE_SIZE_F32,
+            },
+            z_index: 0,
+        },
+        Named {
+            name: "leather armor".to_string(),
+        },
+        Item {
+            item_tile: item_tile_index,
+        },
+        Equippable {
+            body_location: BodyLocation::Torso,
+        },
+        Armor { value: 1 },
+    );
+
+    ecs_world.spawn(flask_of_oil);
+}
+
+pub fn breastplate(ecs_world: &mut World, x: i32, y: i32) {
+    let item_tile_index = (1,3);
+    let flask_of_oil = (
+        Position { x, y },
+        Renderable {
+            texture_name: TextureName::Items,
+            texture_region: Rect {
+                x: (item_tile_index.0 * TILE_SIZE) as f32,
+                y: (item_tile_index.1 * TILE_SIZE) as f32,
+                w: TILE_SIZE_F32,
+                h: TILE_SIZE_F32,
+            },
+            z_index: 0,
+        },
+        Named {
+            name: "breastplate".to_string(),
+        },
+        Item {
+            item_tile: item_tile_index,
+        },
+        Equippable {
+            body_location: BodyLocation::Torso,
+        },
+        Armor { value: 3 },
+        Bulky {}
     );
 
     ecs_world.spawn(flask_of_oil);

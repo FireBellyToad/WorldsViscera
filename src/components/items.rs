@@ -83,3 +83,8 @@ pub struct Equipped {
 pub struct Weapon {
     pub attack_dice: i32,
 }
+
+pub struct Armor {
+    pub value: i32,
+}
+pub struct Bulky {}
