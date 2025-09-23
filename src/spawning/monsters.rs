@@ -3,12 +3,10 @@ use macroquad::math::Rect;
 
 use crate::{
     components::{
-        combat::{CanHide, CombatStats, SufferingDamage},
-        common::{
+        combat::{CanHide, CombatStats, SufferingDamage}, common::{
             BlocksTile, MyTurn, Named, Position, ProduceCorpse, ProduceSound, Renderable,
             SmellIntensity, Smellable, Viewshed,
-        },
-        monster::{Aquatic, Monster, Venomous},
+        }, items::Edible, monster::{Aquatic, Monster, Venomous}
     },
     constants::{BASE_MONSTER_VIEW_RADIUS, FAST, NORMAL, SLOW, TILE_SIZE_F32},
     utils::assets::TextureName,
@@ -29,6 +27,7 @@ pub fn deep_one(ecs_world: &mut World, x: i32, y: i32) {
             max_dexterity: 10,
             speed: NORMAL,
         },
+        Edible { nutrition_dice_number: 3, nutrition_dice_size: 6 },
         Smellable {
             smell_log: "dried human sweat".to_string(),
             intensity: SmellIntensity::Faint,
@@ -57,6 +56,7 @@ pub fn freshwater_viperfish(ecs_world: &mut World, x: i32, y: i32) {
             max_dexterity: 14,
             speed: NORMAL,
         },
+        Edible { nutrition_dice_number: 3, nutrition_dice_size: 4 },
         Smellable {
             smell_log: "fish".to_string(),
             intensity: SmellIntensity::None,
@@ -87,6 +87,7 @@ pub fn gremlin(ecs_world: &mut World, x: i32, y: i32) {
             max_dexterity: 14,
             speed: FAST,
         },
+        Edible { nutrition_dice_number: 3, nutrition_dice_size: 4 },
         Smellable {
             smell_log: "cheap leather".to_string(),
             intensity: SmellIntensity::Faint,
@@ -115,6 +116,7 @@ pub fn centipede(ecs_world: &mut World, x: i32, y: i32) {
             max_dexterity: 14,
             speed: NORMAL,
         },
+        Edible { nutrition_dice_number: 2, nutrition_dice_size: 8 },
         Smellable {
             smell_log: "something off and dusty".to_string(),
             intensity: SmellIntensity::None,
@@ -145,6 +147,7 @@ pub fn dvergar(ecs_world: &mut World, x: i32, y: i32) {
             max_dexterity: 8,
             speed: SLOW,
         },
+        Edible { nutrition_dice_number: 4, nutrition_dice_size: 6 },
         Smellable {
             smell_log: "coal drenched in vinegar".to_string(),
             intensity: SmellIntensity::Faint,
@@ -163,6 +166,7 @@ pub fn create_monster(
     ecs_world: &mut World,
     name: String,
     combat_stats: CombatStats,
+    edible: Edible,
     smells: Smellable,
     sounds: ProduceSound,
     tile_index: f32,
@@ -195,6 +199,7 @@ pub fn create_monster(
         MyTurn {},
         smells,
         sounds,
+        edible
     );
 
     ecs_world.spawn(monster_entity)

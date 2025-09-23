@@ -6,7 +6,8 @@ use crate::components::common::{
     Smellable, Viewshed,
 };
 use crate::components::health::{CanAutomaticallyHeal, Hunger, Thirst};
-use crate::components::items::{Edible, Item, Perishable, ProduceLight, Quaffable, TurnedOn};
+use crate::components::items::{Edible, Item, Perishable, ProduceLight, Quaffable, TurnedOn, Unsavoury};
+use crate::components::monster::Venomous;
 use crate::components::player::Player;
 use crate::constants::*;
 use crate::maps::zone::{TileType, Zone};
@@ -16,7 +17,7 @@ use crate::systems::hunger_check::HungerStatus;
 use crate::systems::thirst_check::ThirstStatus;
 use crate::utils::assets::TextureName;
 use crate::utils::roll::Roll;
-use hecs::{Entity, World};
+use hecs::{ComponentError, Entity, Ref, World};
 use macroquad::math::Rect;
 
 /// Spawner of game entities
@@ -68,7 +69,10 @@ impl Spawn {
                 max_dexterity: rolled_dexterity,
                 speed: NORMAL,
             },
-            SufferingDamage { damage_received: 0, toughness_damage_received: 0 },
+            SufferingDamage {
+                damage_received: 0,
+                toughness_damage_received: 0,
+            },
             CanAutomaticallyHeal { tick_counter: 0 },
             Hunger {
                 tick_counter: MAX_HUNGER_TICK_COUNTER,
@@ -150,9 +154,16 @@ impl Spawn {
     }
 
     /// Spawn a corpse
-    pub fn corpse(ecs_world: &mut World, x: i32, y: i32, name: String, edible: Edible) {
+    pub fn corpse(
+        ecs_world: &mut World,
+        x: i32,
+        y: i32,
+        name: String,
+        edible: Edible,
+        is_venomous:  bool
+    ) {
         let item_tile_index = (0, 0);
-        let meat = (
+        let corpse = (
             Position { x, y },
             Renderable {
                 texture_name: TextureName::Items,
@@ -176,7 +187,11 @@ impl Spawn {
             },
         );
 
-        ecs_world.spawn(meat);
+        let corpse_spawned = ecs_world.spawn(corpse);
+
+        if is_venomous {
+            let _ = ecs_world.insert_one(corpse_spawned, Unsavoury { game_log: "poisoned".to_string() });
+        }
     }
 
     /// Spawn special tile entities

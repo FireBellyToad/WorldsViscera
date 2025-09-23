@@ -8,6 +8,7 @@ use crate::{
         common::{GameLog, Named, Position},
         health::CanAutomaticallyHeal,
         items::Edible,
+        monster::Venomous,
         player::Player,
     },
     constants::MAX_STAMINA_HEAL_TICK_COUNTER,
@@ -134,17 +135,19 @@ impl DamageManager {
             // TODO change nutrition based on monster
             // TODO it would be cool to make the corpse carry on the poison that killed him...
             // or the poison that the monster used (scorpions and beasts like that)
-            Spawn::corpse(
-                ecs_world,
-                x,
-                y,
-                name,
-                Edible {
-                    nutrition_dice_number: 5,
-                    nutrition_dice_size: 20,
-                },
-            );
 
+            let edible;
+            // Scope for keeping borrow checker quiet
+            {
+                let edible_ref = ecs_world.get::<&Edible>(ent).expect("");
+                edible = Edible {
+                    nutrition_dice_number: edible_ref.nutrition_dice_number,
+                    nutrition_dice_size: edible_ref.nutrition_dice_size,
+                }
+            }
+
+            let is_venomous = ecs_world.get::<&Venomous>(ent).is_ok();
+            Spawn::corpse(ecs_world, x, y, name, edible, is_venomous);
             ecs_world.despawn(ent).expect("Cannot despawn entity");
         }
 

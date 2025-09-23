@@ -26,7 +26,7 @@ impl EatingEdibles {
         // Scope for keeping borrow checker quiet
         {
             // List of entities that want to collect items
-            let mut eaters = ecs_world.query::<(&WantsToEat, &mut Hunger, &Position)>();
+            let mut eaters = ecs_world.query::<(&WantsToEat, &mut Hunger, &Position, &Named)>();
 
             let mut zone_query = ecs_world.query::<&mut Zone>();
             let (_, zone) = zone_query
@@ -41,7 +41,7 @@ impl EatingEdibles {
                 .last()
                 .expect("Game log is not in hecs::World");
 
-            for (eater, (wants_to_eat, hunger, position)) in &mut eaters {
+            for (eater, (wants_to_eat, hunger, position, named_eater)) in &mut eaters {
                 let possible_edible = ecs_world.get::<&Edible>(wants_to_eat.item);
 
                 // Keep track of the eater
@@ -56,8 +56,6 @@ impl EatingEdibles {
                             .entries
                             .push(format!("You ate a {}", named_edible.name));
                     } else {
-                        let named_eater = ecs_world.get::<&Named>(eater).expect("Entity is not Named");
-
                         game_log
                             .entries
                             .push(format!("{} ate a {}", named_eater.name, named_edible.name));
@@ -102,10 +100,14 @@ impl EatingEdibles {
                             DecalType::Vomit,
                         );
                     } else {
+                        println!("nutrition_dice_number: {}, nutrition_dice_size {}",
+                            edible_nutrition.nutrition_dice_number,
+                            edible_nutrition.nutrition_dice_size);
                         hunger.tick_counter += Roll::dice(
                             edible_nutrition.nutrition_dice_number,
                             edible_nutrition.nutrition_dice_size,
                         );
+                        println!("hunger.tick_counter {}",hunger.tick_counter);
                     }
                 } else {
                     if eater.id() == player_id {
