@@ -88,3 +88,7 @@ pub struct Armor {
     pub value: i32,
 }
 pub struct Bulky {}
+pub struct Metallic {}
+pub struct Eroded {
+    pub value: u32
+}

@@ -6,7 +6,7 @@ use crate::{
     components::{
         combat::{CanHide, CombatStats, IsHidden, SufferingDamage, WantsToMelee},
         common::{GameLog, MyTurn, Named},
-        items::{Armor, Equipped, Weapon},
+        items::{Armor, Equipped, Eroded, Weapon},
         monster::Venomous,
     },
     constants::MAX_HIDDEN_TURNS,
@@ -26,8 +26,8 @@ impl MeleeManager {
             let mut attackers = ecs_world
                 .query::<(&WantsToMelee, &Named, Option<&IsHidden>, Option<&Venomous>)>()
                 .with::<&MyTurn>();
-            let mut equipped_weapons = ecs_world.query::<(&Weapon, &Equipped)>();
-            let mut equipped_armors = ecs_world.query::<(&Armor, &Equipped)>();
+            let mut equipped_weapons = ecs_world.query::<(&Weapon, &Equipped, Option<&Eroded>)>();
+            let mut equipped_armors = ecs_world.query::<(&Armor, &Equipped, Option<&Eroded>)>();
 
             //Log all the pick ups
             let mut game_log_query = ecs_world.query::<&mut GameLog>();
@@ -93,6 +93,7 @@ impl MeleeManager {
                                         * attacker_stats.speed;
                                 }
                                 None => {
+                                    // Standard attack
                                     damage_roll = max(
                                         0,
                                         Roll::dice(1, attacker_dice) - target_stats.base_armor,
@@ -127,12 +128,16 @@ impl MeleeManager {
     fn get_damage_dice(
         unarmed_attack_dice: i32,
         attacker_id: u32,
-        equipped_weapons: &mut hecs::QueryBorrow<'_, (&Weapon, &Equipped)>,
+        equipped_weapons: &mut hecs::QueryBorrow<'_, (&Weapon, &Equipped, Option<&Eroded>)>,
     ) -> i32 {
-        // Use weapon dice when equipped
-        for (_, (attacker_weapon, equipped_to)) in equipped_weapons.iter() {
+        // Use weapon dice when equipped (reduced by erosion)
+        for (_, (attacker_weapon, equipped_to, eroded)) in equipped_weapons.iter() {
             if equipped_to.owner.id() == attacker_id {
+                if let Some(erosion) = eroded {
+                return max(1 ,attacker_weapon.attack_dice - erosion.value as i32);
+                } else {
                 return attacker_weapon.attack_dice;
+                }
             }
         }
         unarmed_attack_dice
@@ -142,12 +147,16 @@ impl MeleeManager {
     fn get_armor_value(
         base_armor: i32,
         target_id: u32,
-        equipped_armors: &mut hecs::QueryBorrow<'_, (&Armor, &Equipped)>,
+        equipped_armors: &mut hecs::QueryBorrow<'_, (&Armor, &Equipped, Option<&Eroded>)>,
     ) -> i32 {
         // Use weapon dice when equipped
-        for (_, (attacker_armor, equipped_to)) in equipped_armors.iter() {
+        for (_, (attacker_armor, equipped_to, eroded)) in equipped_armors.iter() {
             if equipped_to.owner.id() == target_id {
-                return attacker_armor.value;
+                if let Some(erosion) = eroded {
+                    return max(0,attacker_armor.value - erosion.value as i32);
+                } else {
+                    return attacker_armor.value;
+                }
             }
         }
         base_armor

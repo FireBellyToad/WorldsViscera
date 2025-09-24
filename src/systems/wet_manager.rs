@@ -3,11 +3,12 @@ use hecs::{Entity, World};
 use crate::{
     components::{
         common::{GameLog, Named, Position, Wet},
-        items::{InBackback, MustBeFueled, TurnedOff, TurnedOn},
+        items::{Eroded, InBackback, Metallic, MustBeFueled, TurnedOff, TurnedOn},
         player::Player,
     },
-    constants::STARTING_WET_COUNTER,
+    constants::{RUST_CHANCE, RUST_MAX_VALUE, STARTING_WET_COUNTER},
     maps::zone::Zone,
+    utils::roll::Roll,
 };
 
 type WetItemsInBackpack<'a> = (
@@ -15,6 +16,8 @@ type WetItemsInBackpack<'a> = (
     &'a InBackback,
     Option<&'a TurnedOn>,
     Option<&'a MustBeFueled>,
+    Option<&'a Metallic>,
+    Option<&'a Eroded>,
 );
 pub struct WetManager {}
 
@@ -22,6 +25,7 @@ impl WetManager {
     pub fn run(ecs_world: &mut World) {
         let mut entities_that_got_wet: Vec<Entity> = Vec::new();
         let mut entities_in_backpack_to_turn_off: Vec<Entity> = Vec::new();
+        let mut entities_in_backpack_to_rust: Vec<(Entity, u32)> = Vec::new();
         let mut entities_that_dryed: Vec<Entity> = Vec::new();
 
         let player_id = Player::get_entity_id(ecs_world);
@@ -61,16 +65,17 @@ impl WetManager {
 
                         let mut items_of_wet_entity = ecs_world.query::<WetItemsInBackpack>();
 
-                        let items_to_wet: Vec<(Entity, WetItemsInBackpack)> =
-                            items_of_wet_entity
-                                .iter()
-                                .filter(|(_, (_, in_backpack, _, _))| {
-                                    in_backpack.owner.id() == got_wet_entity.id()
-                                })
-                                .collect();
+                        let items_to_wet: Vec<(Entity, WetItemsInBackpack)> = items_of_wet_entity
+                            .iter()
+                            .filter(|(_, (_, in_backpack, _, _, _, _))| {
+                                in_backpack.owner.id() == got_wet_entity.id()
+                            })
+                            .collect();
 
-                        for (item, (named, _, turned_on, fueled)) in items_to_wet {
+                        for (item, (named, _, turned_on, fueled, metallic, eroded)) in items_to_wet
+                        {
                             entities_that_got_wet.push(item);
+
                             if turned_on.is_some() && fueled.is_some() {
                                 entities_in_backpack_to_turn_off.push(item);
                                 if player_id == got_wet_entity.id() {
@@ -78,6 +83,22 @@ impl WetManager {
                                         "Your {} gets wet and turns itself off!",
                                         named.name
                                     ));
+                                }
+                            } else if metallic.is_some() && Roll::d6() <= RUST_CHANCE {
+                                // Rust metallic object 1/3 of the time (if not rusted enough)
+                                if let Some(rust) = eroded
+                                    && rust.value < RUST_MAX_VALUE
+                                {
+                                    game_log.entries.push(format!(
+                                        "Your {} gets wet and rusts further!",
+                                        named.name
+                                    ));
+                                    entities_in_backpack_to_rust.push((item, rust.value + 1));
+                                } else {
+                                    game_log
+                                        .entries
+                                        .push(format!("Your {} gets wet and rusts!", named.name));
+                                    entities_in_backpack_to_rust.push((item, 0));
                                 }
                             }
                         }
@@ -96,7 +117,7 @@ impl WetManager {
             }
         }
 
-        // Register that now edible is rottend
+        // Register that now edible is rotted
         for entity in entities_that_got_wet {
             let _ = ecs_world.insert_one(
                 entity,
@@ -104,6 +125,10 @@ impl WetManager {
                     tick_countdown: STARTING_WET_COUNTER,
                 },
             );
+        }
+
+        for (entity, value) in entities_in_backpack_to_rust {
+            let _ = ecs_world.insert_one(entity, Eroded { value });
         }
 
         // Dry entity

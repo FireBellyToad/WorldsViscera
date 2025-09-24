@@ -6,7 +6,7 @@ use crate::{
         combat::InflictsDamage,
         common::{Named, Position, Renderable, SmellIntensity, Smellable},
         items::{
-            Appliable, Armor, BodyLocation, Bulky, Deadly, Edible, Equippable, Invokable, InvokablesEnum, Item, MustBeFueled, ProduceLight, Quaffable, Refiller, ToBeHarvested, TurnedOff, TurnedOn, Unsavoury, Weapon
+            Appliable, Armor, BodyLocation, Bulky, Deadly, Edible, Equippable, Invokable, InvokablesEnum, Item, Metallic, MustBeFueled, ProduceLight, Quaffable, Refiller, ToBeHarvested, TurnedOff, TurnedOn, Unsavoury, Weapon
         },
     },
     constants::*,
@@ -312,7 +312,8 @@ pub fn rockpick(ecs_world: &mut World, x: i32, y: i32) {
         Equippable {
             body_location: BodyLocation::RightHand,
         },
-        Weapon { attack_dice: 6 }
+        Weapon { attack_dice: 6 },
+        Metallic {}
     );
 
     //TODO Bonus to climb while wielded
@@ -345,7 +346,8 @@ pub fn maul(ecs_world: &mut World, x: i32, y: i32) {
         },
         Weapon { attack_dice: 8 },
         Appliable {}, // TODO not used right now
-        Bulky {}
+        Bulky {},
+        Metallic {}
     );
 
     ecs_world.spawn(flask_of_oil);
@@ -405,7 +407,8 @@ pub fn breastplate(ecs_world: &mut World, x: i32, y: i32) {
             body_location: BodyLocation::Torso,
         },
         Armor { value: 3 },
-        Bulky {}
+        Bulky {},
+        Metallic {}
     );
 
     ecs_world.spawn(flask_of_oil);

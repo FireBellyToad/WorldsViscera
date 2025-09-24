@@ -18,8 +18,7 @@ use crate::{
         },
         common::{GameLog, Named},
         items::{
-            Appliable, Edible, Equippable, Equipped, InBackback, Invokable, Item, MustBeFueled,
-            Quaffable, Refiller,
+            Appliable, Edible, Equippable, Equipped, Eroded, InBackback, Invokable, Item, MustBeFueled, Quaffable, Refiller
         },
         player::{Player, SpecialViewMode},
     },
@@ -40,7 +39,8 @@ pub enum InventoryAction {
 }
 
 /// Inventory Item Data trasfer type: used for rendering and general inventory usage
-type InventoryItem = Vec<(Entity, String, char, (i32, i32), bool)>;
+type InventoryItem = Vec<(Entity, String, char, (i32, i32), bool, bool)>;
+type InventoryItemComponents<'a> = (&'a Named, &'a Item, &'a InBackback, Option<&'a Equipped>, Option<&'a Eroded>);
 
 pub struct Inventory {}
 
@@ -99,7 +99,7 @@ impl Inventory {
                     // Validating char input
                     let item_selected = inventory
                         .iter()
-                        .find(|(_, _, assigned_char, _, _q)| *assigned_char == letterkey);
+                        .find(|(_, _, assigned_char, _, _q, _)| *assigned_char == letterkey);
 
                     // Check if item exist for letter, then register it and go on
                     if let Some(item_sel_unwrap) = item_selected {
@@ -251,15 +251,19 @@ impl Inventory {
         );
 
         // ------- Item List -----------
-        for (index, (_, item_name, assigned_char, item_tile, equipped)) in
+        for (index, (_, item_name, assigned_char, item_tile, equipped, eroded)) in
             inventory.iter().enumerate()
         {
             let x = (INVENTORY_X + UI_BORDER * 2) as f32;
             let y = (INVENTORY_Y + INVENTORY_TOP_SPAN) as f32
                 + ((FONT_SIZE + LETTER_SIZE) * index as f32);
 
-            let text: String = if *equipped {
-                // TODO show body location
+            // TODO show body location
+            let text: String = if *equipped && *eroded {
+                format!("{} : \t - rusty {} - Equipped", assigned_char, item_name)
+            } else if *eroded {
+                format!("{} : \t - rusty {}", assigned_char, item_name)
+            } else if *equipped {
                 format!("{} : \t - {} - Equipped", assigned_char, item_name)
             } else {
                 format!("{} : \t - {}", assigned_char, item_name)
@@ -306,17 +310,18 @@ impl Inventory {
     fn get_all_in_backpack(ecs_world: &World) -> InventoryItem {
         let player_id = Player::get_entity_id(ecs_world);
         let mut inventory_query =
-            ecs_world.query::<(&Named, &Item, &InBackback, Option<&Equipped>)>();
+            ecs_world.query::<InventoryItemComponents>();
         let mut inventory = inventory_query
             .iter()
-            .filter(|(_, (_, _, in_backpack, _q))| in_backpack.owner.id() == player_id)
-            .map(|(entity, (named, item, in_backpack, equipped))| {
+            .filter(|(_, (_, _, in_backpack, _q,_))| in_backpack.owner.id() == player_id)
+            .map(|(entity, (named, item, in_backpack, equipped, eroded))| {
                 (
                     entity,
                     named.name.clone(),
                     in_backpack.assigned_char,
                     item.item_tile,
                     equipped.is_some(),
+                    eroded.is_some(),
                 )
             })
             .collect::<InventoryItem>();
@@ -331,19 +336,20 @@ impl Inventory {
         let player_id = Player::get_entity_id(ecs_world);
 
         let mut inventory_query = ecs_world
-            .query::<(&Named, &Item, &InBackback, Option<&Equipped>)>()
+            .query::<InventoryItemComponents>()
             .with::<&T>();
 
         let mut inventory = inventory_query
             .iter()
-            .filter(|(_, (_, _, in_backpack, _q))| in_backpack.owner.id() == player_id)
-            .map(|(entity, (named, item, in_backpack, equipped))| {
+            .filter(|(_, (_, _, in_backpack, _q,_))| in_backpack.owner.id() == player_id)
+            .map(|(entity, (named, item, in_backpack, equipped, eroded))| {
                 (
                     entity,
                     named.name.clone(),
                     in_backpack.assigned_char,
                     item.item_tile,
                     equipped.is_some(),
+                    eroded.is_some(),
                 )
             }) //
             .collect::<InventoryItem>();
