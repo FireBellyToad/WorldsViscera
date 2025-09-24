@@ -69,7 +69,7 @@ impl MeleeManager {
                     match venomous {
                         Some(_) => {
                             // TODO what about venom immunity?
-                            damage_roll = max(0, Roll::dice(2, attacker_dice));
+                            damage_roll = max(0, Roll::dice(1, attacker_dice));
                             target_damage.toughness_damage_received += damage_roll;
                         }
                         None => {
