@@ -8,17 +8,9 @@ use crate::{
     },
     constants::{RUST_CHANCE, RUST_MAX_VALUE, STARTING_WET_COUNTER},
     maps::zone::Zone,
-    utils::roll::Roll,
+    utils::{common::ItemsInBackpack, roll::Roll},
 };
 
-type WetItemsInBackpack<'a> = (
-    &'a Named,
-    &'a InBackback,
-    Option<&'a TurnedOn>,
-    Option<&'a MustBeFueled>,
-    Option<&'a Metallic>,
-    Option<&'a Eroded>,
-);
 pub struct WetManager {}
 
 impl WetManager {
@@ -63,9 +55,9 @@ impl WetManager {
 
                         entities_that_got_wet.push(got_wet_entity);
 
-                        let mut items_of_wet_entity = ecs_world.query::<WetItemsInBackpack>();
+                        let mut items_of_wet_entity = ecs_world.query::<ItemsInBackpack>();
 
-                        let items_to_wet: Vec<(Entity, WetItemsInBackpack)> = items_of_wet_entity
+                        let items_to_wet: Vec<(Entity, ItemsInBackpack)> = items_of_wet_entity
                             .iter()
                             .filter(|(_, (_, in_backpack, _, _, _, _))| {
                                 in_backpack.owner.id() == got_wet_entity.id()

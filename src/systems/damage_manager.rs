@@ -10,12 +10,7 @@ use crate::{
         items::Edible,
         monster::Venomous,
         player::Player,
-    },
-    constants::MAX_STAMINA_HEAL_TICK_COUNTER,
-    engine::state::{EngineState, RunState},
-    maps::zone::{DecalType, Zone},
-    spawning::spawner::Spawn,
-    utils::roll::Roll,
+    }, constants::MAX_STAMINA_HEAL_TICK_COUNTER, engine::state::{EngineState, RunState}, maps::zone::{DecalType, Zone}, spawning::spawner::Spawn, systems::item_dropping::ItemDropping, utils::{common::ItemsInBackpack, roll::Roll}
 };
 
 pub struct DamageManager {}
@@ -130,11 +125,13 @@ impl DamageManager {
                 game_state.run_state = RunState::GameOver;
                 break;
             }
+        
+            ItemDropping::drop_all_of(ent, ecs_world, x,y);
 
             // Create corpse
-            // TODO change nutrition based on monster
+            // Change nutrition based on monster
             // TODO it would be cool to make the corpse carry on the poison that killed him...
-            // or the poison that the monster used (scorpions and beasts like that)
+            // The corpse carries the venom that the monster used (scorpions and beasts like that)
 
             let edible;
             // Scope for keeping borrow checker quiet

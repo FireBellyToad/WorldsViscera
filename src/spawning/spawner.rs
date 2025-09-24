@@ -133,12 +133,13 @@ impl Spawn {
         let dice_roll = Roll::dice(1, 5);
 
         // Dvergar is stronger, shuold be less common
-        match dice_roll {
-            1 => dvergar(ecs_world, x, y),
-            2 => gremlin(ecs_world, x, y),
-            3 => centipede(ecs_world, x, y),
-            _ => deep_one(ecs_world, x, y),
-        }
+        dvergar(ecs_world, x, y);
+        // match dice_roll {
+        //     1 => dvergar(ecs_world, x, y),
+        //     2 => gremlin(ecs_world, x, y),
+        //     3 => centipede(ecs_world, x, y),
+        //     _ => deep_one(ecs_world, x, y),
+        // }
     }
 
     /// Spawn a random monster
@@ -154,7 +155,7 @@ impl Spawn {
             10 | 11 => leather_armor(ecs_world, x, y),
             12 => breastplate(ecs_world, x, y),
             _ => mushroom(ecs_world, x, y),
-        }
+        };
     }
 
     /// Spawn a corpse

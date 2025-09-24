@@ -3,12 +3,16 @@ use macroquad::math::Rect;
 
 use crate::{
     components::{
-        combat::{CanHide, CombatStats, SufferingDamage}, common::{
+        combat::{CanHide, CombatStats, SufferingDamage},
+        common::{
             BlocksTile, MyTurn, Named, Position, ProduceCorpse, ProduceSound, Renderable,
             SmellIntensity, Smellable, Viewshed,
-        }, items::Edible, monster::{Aquatic, Monster, Venomous}
+        },
+        items::{Edible, InBackback},
+        monster::{Aquatic, Monster, Venomous},
     },
     constants::{BASE_MONSTER_VIEW_RADIUS, FAST, NORMAL, SLOW, TILE_SIZE_F32},
+    spawning::items::{breastplate, dvergar_chain},
     utils::assets::TextureName,
 };
 
@@ -27,7 +31,10 @@ pub fn deep_one(ecs_world: &mut World, x: i32, y: i32) {
             max_dexterity: 10,
             speed: NORMAL,
         },
-        Edible { nutrition_dice_number: 3, nutrition_dice_size: 6 },
+        Edible {
+            nutrition_dice_number: 3,
+            nutrition_dice_size: 6,
+        },
         Smellable {
             smell_log: "dried human sweat".to_string(),
             intensity: SmellIntensity::Faint,
@@ -56,7 +63,10 @@ pub fn freshwater_viperfish(ecs_world: &mut World, x: i32, y: i32) {
             max_dexterity: 14,
             speed: NORMAL,
         },
-        Edible { nutrition_dice_number: 3, nutrition_dice_size: 4 },
+        Edible {
+            nutrition_dice_number: 3,
+            nutrition_dice_size: 4,
+        },
         Smellable {
             smell_log: "fish".to_string(),
             intensity: SmellIntensity::None,
@@ -87,7 +97,10 @@ pub fn gremlin(ecs_world: &mut World, x: i32, y: i32) {
             max_dexterity: 14,
             speed: FAST,
         },
-        Edible { nutrition_dice_number: 3, nutrition_dice_size: 4 },
+        Edible {
+            nutrition_dice_number: 3,
+            nutrition_dice_size: 4,
+        },
         Smellable {
             smell_log: "cheap leather".to_string(),
             intensity: SmellIntensity::Faint,
@@ -116,7 +129,10 @@ pub fn centipede(ecs_world: &mut World, x: i32, y: i32) {
             max_dexterity: 14,
             speed: NORMAL,
         },
-        Edible { nutrition_dice_number: 2, nutrition_dice_size: 8 },
+        Edible {
+            nutrition_dice_number: 2,
+            nutrition_dice_size: 8,
+        },
         Smellable {
             smell_log: "something off and dusty".to_string(),
             intensity: SmellIntensity::None,
@@ -133,13 +149,13 @@ pub fn centipede(ecs_world: &mut World, x: i32, y: i32) {
 }
 
 pub fn dvergar(ecs_world: &mut World, x: i32, y: i32) {
-    create_monster(
+    let dvergar = create_monster(
         ecs_world,
         "Dvergar".to_string(),
         CombatStats {
             current_stamina: 4,
             max_stamina: 4,
-            base_armor: 2,
+            base_armor: 0,
             unarmed_attack_dice: 6,
             current_toughness: 10,
             max_toughness: 10,
@@ -147,7 +163,10 @@ pub fn dvergar(ecs_world: &mut World, x: i32, y: i32) {
             max_dexterity: 8,
             speed: SLOW,
         },
-        Edible { nutrition_dice_number: 4, nutrition_dice_size: 6 },
+        Edible {
+            nutrition_dice_number: 4,
+            nutrition_dice_size: 6,
+        },
         Smellable {
             smell_log: "coal drenched in vinegar".to_string(),
             intensity: SmellIntensity::Faint,
@@ -159,6 +178,8 @@ pub fn dvergar(ecs_world: &mut World, x: i32, y: i32) {
         x,
         y,
     );
+
+    dvergar_chain(ecs_world, dvergar);
 }
 
 /// Generic monster creation
@@ -194,12 +215,15 @@ pub fn create_monster(
         Named { name },
         BlocksTile {},
         combat_stats,
-        SufferingDamage { damage_received: 0 , toughness_damage_received: 0},
+        SufferingDamage {
+            damage_received: 0,
+            toughness_damage_received: 0,
+        },
         ProduceCorpse {},
         MyTurn {},
         smells,
         sounds,
-        edible
+        edible,
     );
 
     ecs_world.spawn(monster_entity)

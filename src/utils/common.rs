@@ -1,4 +1,13 @@
-use crate::components::items::BodyLocation;
+use crate::components::{common::Named, items::{BodyLocation, Eroded, InBackback, Metallic, MustBeFueled, TurnedOn}};
+
+pub type ItemsInBackpack<'a> = (
+    &'a Named,
+    &'a InBackback,
+    Option<&'a TurnedOn>,
+    Option<&'a MustBeFueled>,
+    Option<&'a Metallic>,
+    Option<&'a Eroded>,
+);
 
 pub struct Utils {}
 

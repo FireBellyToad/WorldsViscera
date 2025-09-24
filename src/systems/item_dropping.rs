@@ -1,10 +1,13 @@
 use hecs::{Entity, World};
 
-use crate::components::{
-    actions::WantsToDrop,
-    common::{GameLog, Named, Position},
-    items::{Equipped, InBackback},
-    player::Player,
+use crate::{
+    components::{
+        actions::WantsToDrop,
+        common::{GameLog, Named, Position},
+        items::{Equipped, InBackback},
+        player::Player,
+    },
+    utils::common::ItemsInBackpack,
 };
 
 pub struct ItemDropping {}
@@ -88,6 +91,35 @@ impl ItemDropping {
             if player_id == dropper.id() {
                 Player::wait_after_action(ecs_world);
             }
+        }
+    }
+
+    /// Drop all items of entity
+    pub fn drop_all_of(ent: Entity, ecs_world: &mut World, drop_x: i32, drop_y: i32) {
+        let items_to_drop: Vec<Entity>;
+
+        {
+            //Drop items
+            let mut items_to_drop_entity = ecs_world.query::<ItemsInBackpack>();
+
+            items_to_drop = items_to_drop_entity
+                .iter()
+                .filter(|(_, (_, in_backpack, _, _, _, _))| in_backpack.owner.id() == ent.id())
+                .map(|(e, (_, _, _, _, _, _))| e.clone())
+                .collect();
+        }
+
+        for item in items_to_drop {
+            // Remove item from back pack Register that now item is in "wants_item" entity backpack
+            let _ = ecs_world.exchange_one::<InBackback, Position>(
+                item,
+                Position {
+                    x: drop_x,
+                    y: drop_y,
+                },
+            );
+
+            let _ = ecs_world.remove_one::<Equipped>(item);
         }
     }
 }

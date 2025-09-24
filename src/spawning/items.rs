@@ -1,4 +1,4 @@
-use hecs::World;
+use hecs::{Entity, World};
 use macroquad::math::Rect;
 
 use crate::{
@@ -6,7 +6,7 @@ use crate::{
         combat::InflictsDamage,
         common::{Named, Position, Renderable, SmellIntensity, Smellable},
         items::{
-            Appliable, Armor, BodyLocation, Bulky, Deadly, Edible, Equippable, Invokable, InvokablesEnum, Item, Metallic, MustBeFueled, ProduceLight, Quaffable, Refiller, ToBeHarvested, TurnedOff, TurnedOn, Unsavoury, Weapon
+            Appliable, Armor, BodyLocation, Bulky, Deadly, Edible, Equippable, Equipped, InBackback, Invokable, InvokablesEnum, Item, Metallic, MustBeFueled, ProduceLight, Quaffable, Refiller, ToBeHarvested, TurnedOff, TurnedOn, Unsavoury, Weapon
         },
     },
     constants::*,
@@ -412,4 +412,40 @@ pub fn breastplate(ecs_world: &mut World, x: i32, y: i32) {
     );
 
     ecs_world.spawn(flask_of_oil);
+}
+
+
+pub fn dvergar_chain(ecs_world: &mut World, owner: Entity) {
+    let item_tile_index = (2,3);
+    let dvergar_chain = (        
+        InBackback {
+            owner,
+            assigned_char: 'a',
+        },
+        Renderable {
+            texture_name: TextureName::Items,
+            texture_region: Rect {
+                x: (item_tile_index.0 * TILE_SIZE) as f32,
+                y: (item_tile_index.1 * TILE_SIZE) as f32,
+                w: TILE_SIZE_F32,
+                h: TILE_SIZE_F32,
+            },
+            z_index: 0,
+        },
+        Named {
+            name: "dvergar chainmail".to_string(),
+        },
+        Item {
+            item_tile: item_tile_index,
+        },
+        Equippable {
+            body_location: BodyLocation::Torso,
+        },
+        Equipped{ owner, body_location:  BodyLocation::Torso },
+        Armor { value: 2 },
+        Bulky {},
+        Metallic {}
+    );
+
+    ecs_world.spawn(dvergar_chain);
 }
