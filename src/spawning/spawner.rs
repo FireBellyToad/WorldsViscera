@@ -132,14 +132,12 @@ impl Spawn {
     pub fn random_terrain_monster(ecs_world: &mut World, x: i32, y: i32) {
         let dice_roll = Roll::dice(1, 5);
 
-        // Dvergar is stronger, shuold be less common
-        dvergar(ecs_world, x, y);
-        // match dice_roll {
-        //     1 => dvergar(ecs_world, x, y),
-        //     2 => gremlin(ecs_world, x, y),
-        //     3 => centipede(ecs_world, x, y),
-        //     _ => deep_one(ecs_world, x, y),
-        // }
+        match dice_roll {
+            1 => dvergar(ecs_world, x, y),
+            2 => gremlin(ecs_world, x, y),
+            3 => centipede(ecs_world, x, y),
+            _ => deep_one(ecs_world, x, y),
+        }
     }
 
     /// Spawn a random monster

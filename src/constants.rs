@@ -38,7 +38,7 @@ pub const MAX_ITEMS_IN_BACKPACK: usize = 10;
 /// Dialog related constants
 pub const DIALOG_X: i32 = (WINDOW_WIDTH/2) - DIALOG_SIZE/2; 
 pub const DIALOG_Y: i32 = (WINDOW_HEIGHT/3) - DIALOG_SIZE/2; 
-pub const DIALOG_SIZE: i32 = 512;
+pub const DIALOG_SIZE: i32 = 640;
 pub const DIALOG_FOOTER_WIDTH: i32 = 186;
 pub const DIALOG_LEFT_SPAN: i32 = DIALOG_FOOTER_WIDTH/4;
 pub const DIALOG_TOP_SPAN: i32 = DIALOG_SIZE/6;
@@ -102,7 +102,7 @@ pub const MUSHROOM_SPAWN_MAP: [i32; 10] = [
 ];
 
 pub const RUST_MAX_VALUE: u32 = 3;
-pub const RUST_CHANCE: i32 = 2;
+pub const RUST_CHANCE: i32 = 3;
 
 /// Monsters related constats
 pub const BASE_MONSTER_VIEW_RADIUS: i32 = 8;

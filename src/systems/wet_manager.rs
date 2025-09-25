@@ -2,8 +2,8 @@ use hecs::{Entity, World};
 
 use crate::{
     components::{
-        common::{GameLog, Named, Position, Wet},
-        items::{Eroded, InBackback, Metallic, MustBeFueled, TurnedOff, TurnedOn},
+        common::{GameLog, Position, Wet},
+        items::{Eroded, TurnedOff, TurnedOn},
         player::Player,
     },
     constants::{RUST_CHANCE, RUST_MAX_VALUE, STARTING_WET_COUNTER},
@@ -44,6 +44,16 @@ impl WetManager {
                 if let Some(position) = position_opt
                     && zone.water_tiles[Zone::get_index_from_xy(position.x, position.y)]
                 {
+                    WetManager::wet_backpack(
+                        ecs_world,
+                        &got_wet_entity,
+                        &player_id,
+                        game_log,
+                        &mut entities_that_got_wet,
+                        &mut entities_in_backpack_to_turn_off,
+                        &mut entities_in_backpack_to_rust,
+                    );
+
                     if let Some(is_wet_component) = is_wet {
                         is_wet_component.tick_countdown = STARTING_WET_COUNTER;
                     } else {
@@ -54,46 +64,6 @@ impl WetManager {
                         }
 
                         entities_that_got_wet.push(got_wet_entity);
-
-                        let mut items_of_wet_entity = ecs_world.query::<ItemsInBackpack>();
-
-                        let items_to_wet: Vec<(Entity, ItemsInBackpack)> = items_of_wet_entity
-                            .iter()
-                            .filter(|(_, (_, in_backpack, _, _, _, _))| {
-                                in_backpack.owner.id() == got_wet_entity.id()
-                            })
-                            .collect();
-
-                        for (item, (named, _, turned_on, fueled, metallic, eroded)) in items_to_wet
-                        {
-                            entities_that_got_wet.push(item);
-
-                            if turned_on.is_some() && fueled.is_some() {
-                                entities_in_backpack_to_turn_off.push(item);
-                                if player_id == got_wet_entity.id() {
-                                    game_log.entries.push(format!(
-                                        "Your {} gets wet and turns itself off!",
-                                        named.name
-                                    ));
-                                }
-                            } else if metallic.is_some() && Roll::d6() <= RUST_CHANCE {
-                                // Rust metallic object 1/3 of the time (if not rusted enough)
-                                if let Some(rust) = eroded
-                                    && rust.value < RUST_MAX_VALUE
-                                {
-                                    game_log.entries.push(format!(
-                                        "Your {} gets wet and rusts further!",
-                                        named.name
-                                    ));
-                                    entities_in_backpack_to_rust.push((item, rust.value + 1));
-                                } else {
-                                    game_log
-                                        .entries
-                                        .push(format!("Your {} gets wet and rusts!", named.name));
-                                    entities_in_backpack_to_rust.push((item, 0));
-                                }
-                            }
-                        }
                     }
                 } else if let Some(is_wet_component) = is_wet {
                     // Water dries out in time
@@ -131,6 +101,55 @@ impl WetManager {
         for entity in entities_in_backpack_to_turn_off {
             let _ = ecs_world.exchange_one::<TurnedOn, TurnedOff>(entity, TurnedOff {});
             Player::force_view_recalculation(ecs_world);
+        }
+    }
+
+    /// Wet backpack
+    fn wet_backpack(
+        ecs_world: &World,
+        got_wet_entity: &Entity,
+        player_id: &u32,
+        game_log: &mut GameLog,
+        entities_that_got_wet: &mut Vec<Entity>,
+        entities_in_backpack_to_turn_off: &mut Vec<Entity>,
+        entities_in_backpack_to_rust: &mut Vec<(Entity, u32)>,
+    ) {
+        let mut items_of_wet_entity = ecs_world.query::<ItemsInBackpack>();
+
+        let items_to_wet: Vec<(Entity, ItemsInBackpack)> = items_of_wet_entity
+            .iter()
+            .filter(|(_, (_, in_backpack, _, _, _, _))| {
+                in_backpack.owner.id() == got_wet_entity.id()
+            })
+            .collect();
+
+        for (item, (named, _, turned_on, fueled, metallic, eroded)) in items_to_wet {
+            entities_that_got_wet.push(item);
+
+            if turned_on.is_some() && fueled.is_some() {
+                entities_in_backpack_to_turn_off.push(item);
+                if *player_id == got_wet_entity.id() {
+                    game_log.entries.push(format!(
+                        "Your {} gets wet and turns itself off!",
+                        named.name
+                    ));
+                }
+            } else if metallic.is_some() && Roll::d100() <= RUST_CHANCE {
+                // Rust metallic object 3% of the time (if not rusted enough)
+                if let Some(rust) = eroded {
+                    if rust.value < RUST_MAX_VALUE {
+                        game_log
+                            .entries
+                            .push(format!("Your {} gets wet and rusts further!", named.name));
+                        entities_in_backpack_to_rust.push((item, rust.value + 1));
+                    }
+                } else {
+                    game_log
+                        .entries
+                        .push(format!("Your {} gets wet and rusts!", named.name));
+                    entities_in_backpack_to_rust.push((item, 0));
+                }
+            }
         }
     }
 }
