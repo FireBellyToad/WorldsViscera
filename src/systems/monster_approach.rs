@@ -4,9 +4,7 @@ use hecs::{Entity, World};
 
 use crate::{
     components::{
-        combat::{CombatStats, WantsToMelee},
-        common::*,
-        monster::{Monster, WantsToApproach},
+        actions::WantsToEat, combat::{CombatStats, WantsToMelee}, common::*, items::{Edible, Item}, monster::{Monster, WantsToApproach}
     },
     constants::MAX_ACTION_SPEED,
     maps::zone::Zone,
@@ -20,6 +18,7 @@ impl MonsterApproach {
     /// Monster acting function
     pub fn run(ecs_world: &mut World) {
         let mut attacker_target_list: Vec<(Entity, Entity)> = Vec::new();
+        let mut eat_target_list: Vec<(Entity, Entity)> = Vec::new();
         let mut waiter_speed_list: Vec<(Entity, i32)> = Vec::new();
 
         // Scope for keeping borrow checker quiet
@@ -68,15 +67,19 @@ impl MonsterApproach {
 
                 //Attack or move
                 // TODO just reaching, maybe we don't need to attack
-                if distance < 1.5 {
-                    let target_stats = ecs_world.get::<&CombatStats>(wants_to_approach.target);
-
-                    if target_stats.is_ok() {
-                        attacker_target_list.push((monster_entity, wants_to_approach.target));
-                        //Monster must wait too after an action!
-                        waiter_speed_list.push((monster_entity, stats.speed));
-                    }
-                } else {
+                let target_has_stats = ecs_world.satisfies::<&CombatStats>(wants_to_approach.target).unwrap_or(false);
+                let target_is_edible_item = ecs_world.satisfies::<(&Item,&Edible)>(wants_to_approach.target).unwrap_or(false);
+                if distance < 1.5 && target_has_stats {
+                    // TODO this is nice, but we must handle it in during the thinking phasse
+                    attacker_target_list.push((monster_entity, wants_to_approach.target));
+                    //Monster must wait too after an action!
+                    waiter_speed_list.push((monster_entity, stats.speed));
+                } else if distance == 0.0 && target_is_edible_item{
+                    // TODO this is nice, but we must handle it in during the thinking phasse
+                    eat_target_list.push((monster_entity, wants_to_approach.target));
+                    //Monster must wait too after an action!
+                    waiter_speed_list.push((monster_entity, stats.speed));
+                }else{
                     // Update view
                     viewshed.must_recalculate = true;
 
@@ -95,6 +98,11 @@ impl MonsterApproach {
         // Attack if needed
         for (attacker, target) in attacker_target_list {
             let _ = ecs_world.insert_one(attacker, WantsToMelee { target });
+        }
+
+        // eat if needed
+        for (eater, item) in eat_target_list {
+            let _ = ecs_world.insert_one(eater, WantsToEat { item});
         }
 
         // TODO account speed penalties

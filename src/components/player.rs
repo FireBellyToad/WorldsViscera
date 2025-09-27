@@ -48,7 +48,7 @@ impl Player {
                 .query::<(&mut Position, &mut Viewshed)>()
                 .with::<&Player>();
 
-            let mut zone_query = ecs_world.query::<&Zone>();
+            let mut zone_query = ecs_world.query::<&mut Zone>();
             let (_, zone) = zone_query
                 .iter()
                 .last()
@@ -74,6 +74,7 @@ impl Player {
                     position.x = (position.x + delta_x).clamp(0, MAP_WIDTH - 1);
                     position.y = (position.y + delta_y).clamp(0, MAP_HEIGHT - 1);
                     viewshed.must_recalculate = true;
+                    zone.blocked_tiles[Zone::get_index_from_xy(position.x, position.y)] = true;
                     return_state = RunState::DoTick;
                 }
             }

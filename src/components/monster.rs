@@ -6,6 +6,8 @@ pub struct Aquatic {}
 
 pub struct Venomous {}
 
+pub struct IsSmart{}
+
 pub struct WantsToApproach {
     pub target: Entity,
     pub move_to_x: i32,

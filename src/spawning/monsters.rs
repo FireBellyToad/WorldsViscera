@@ -8,11 +8,15 @@ use crate::{
             BlocksTile, MyTurn, Named, Position, ProduceCorpse, ProduceSound, Renderable,
             SmellIntensity, Smellable, Viewshed,
         },
-        items::{Edible, InBackback},
-        monster::{Aquatic, Monster, Venomous},
+        health::Hunger,
+        items::Edible,
+        monster::{Aquatic, IsSmart, Monster, Venomous},
     },
-    constants::{BASE_MONSTER_VIEW_RADIUS, FAST, NORMAL, SLOW, TILE_SIZE_F32},
-    spawning::items::{breastplate, dvergar_chain},
+    constants::{
+        BASE_MONSTER_VIEW_RADIUS, FAST, MAX_HUNGER_TICK_COUNTER, NORMAL, SLOW, TILE_SIZE_F32,
+    },
+    spawning::items::dvergar_chain,
+    systems::hunger_check::HungerStatus,
     utils::assets::TextureName,
 };
 
@@ -83,7 +87,7 @@ pub fn freshwater_viperfish(ecs_world: &mut World, x: i32, y: i32) {
 }
 
 pub fn gremlin(ecs_world: &mut World, x: i32, y: i32) {
-    create_monster(
+    let gremlin = create_monster(
         ecs_world,
         "Gremlin".to_string(),
         CombatStats {
@@ -112,6 +116,8 @@ pub fn gremlin(ecs_world: &mut World, x: i32, y: i32) {
         x,
         y,
     );
+
+    let _ = ecs_world.insert_one(gremlin, IsSmart {});
 }
 
 pub fn centipede(ecs_world: &mut World, x: i32, y: i32) {
@@ -220,6 +226,10 @@ pub fn create_monster(
             toughness_damage_received: 0,
         },
         ProduceCorpse {},
+        Hunger {
+            tick_counter: MAX_HUNGER_TICK_COUNTER,
+            current_status: HungerStatus::Normal,
+        },
         MyTurn {},
         smells,
         sounds,

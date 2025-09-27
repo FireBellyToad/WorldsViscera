@@ -5,7 +5,7 @@ pub const MAP_WIDTH_F32: f32 = MAP_WIDTH as f32;
 pub const MAP_HEIGHT_F32: f32 = MAP_HEIGHT as f32;
 pub const TILE_SIZE: i32 = 24;
 pub const TILE_SIZE_F32: f32 = TILE_SIZE as f32;
-pub const BRAZIER_RADIUS: i32 = 10;
+pub const BRAZIER_RADIUS: i32 = 20;
 pub const MAX_BRAZIER_IN_ZONE: i32 = 3;
 pub const MAX_RIVERS_IN_ZONE: i32 = 6;
 
