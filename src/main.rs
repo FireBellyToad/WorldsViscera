@@ -12,7 +12,7 @@ use spawning::spawner::Spawn;
 use systems::{
     damage_manager::DamageManager, eating_edibles::EatingEdibles, fov::FieldOfView,
     item_collection::ItemCollection, item_dropping::ItemDropping, melee_manager::MeleeManager,
-    monster_ai::MonsterAI,
+    monster_think::MonsterThink,
 };
 
 use crate::{
@@ -22,13 +22,7 @@ use crate::{
         arena_zone_builder::ArenaZoneBuilder, drunken_walk_zone_builder::DrunkenWalkZoneBuilder, test_zone_builder::TestZoneBuilder, zone::Zone, ZoneBuilder
     },
     systems::{
-        apply_system::ApplySystem, automatic_healing::AutomaticHealing,
-        decay_manager::DecayManager, drinking_quaffables::DrinkingQuaffables,
-        fuel_manager::FuelManager, hidden_manager::HiddenManager, hunger_check::HungerCheck,
-        item_equipping::ItemEquipping, map_indexing::MapIndexing,
-        particle_manager::ParticleManager, smell_manager::SmellManager, sound_system::SoundSystem,
-        thirst_check::ThirstCheck, turn_checker::TurnCheck, wet_manager::WetManager,
-        zap_manager::ZapManager,
+        apply_system::ApplySystem, automatic_healing::AutomaticHealing, decay_manager::DecayManager, drinking_quaffables::DrinkingQuaffables, fuel_manager::FuelManager, hidden_manager::HiddenManager, hunger_check::HungerCheck, item_equipping::ItemEquipping, map_indexing::MapIndexing, monster_approach::MonsterApproach, particle_manager::ParticleManager, smell_manager::SmellManager, sound_system::SoundSystem, thirst_check::ThirstCheck, turn_checker::TurnCheck, wet_manager::WetManager, zap_manager::ZapManager
     },
     utils::assets::Load,
 };
@@ -103,7 +97,8 @@ async fn main() {
                             println!("Player's turn");
                             game_state.run_state = RunState::WaitingPlayerInput;
                         } else {
-                            MonsterAI::act(&mut game_state.ecs_world);
+                            MonsterThink::run(&mut game_state.ecs_world);
+                            MonsterApproach::run(&mut game_state.ecs_world);
                             game_state.run_state = RunState::BeforeTick;
                         }
                     }

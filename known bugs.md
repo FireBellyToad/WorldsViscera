@@ -1,4 +1,3 @@
 - Sometimes the zone have unconnected rooms
-- Sometimes the zone generation loops and freezes the game
 - Turn systems right now is only working for player actions and monster movements and attacks
-- Lantern seems to start always wet!
+- Right now, probably, the game log will log also stuff that should not be visible to the player

@@ -57,7 +57,7 @@ impl ZoneBuilder for TestZoneBuilder {
 
         // Generate items spawn points within each room
         let items_number = Roll::dice(1, MAX_ITEMS_IN_ZONE) + 15;
-        let monster_number = Roll::dice(1, MAX_MONSTERS_IN_ZONE) - 1;
+        let monster_number = Roll::dice(1, MAX_MONSTERS_IN_ZONE) + 3;
 
         for _ in 0..monster_number {
             for _ in 0..MAX_SPAWN_TENTANTIVES {
