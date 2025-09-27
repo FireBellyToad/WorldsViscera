@@ -74,7 +74,8 @@ impl ZoneBuilder for DrunkenWalkZoneBuilder {
         for _ in 0..river_number {
             RiverBuilder::build(&mut zone);
         }
-        // Populate water tiles here, needed for correct aquatic monster spawning
+        // Populate water and blocked tiles here, needed for correct spawning
+        zone.populate_blocked();
         zone.populate_water();
 
         // Generate monster and items spawn points within each room

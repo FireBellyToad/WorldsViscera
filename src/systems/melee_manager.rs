@@ -7,7 +7,7 @@ use crate::{
         combat::{CanHide, CombatStats, IsHidden, SufferingDamage, WantsToMelee},
         common::{GameLog, MyTurn, Named},
         items::{Armor, Equipped, Eroded, Weapon},
-        monster::Venomous,
+        monster::Venomous, player::Player,
     },
     constants::MAX_HIDDEN_TURNS,
     utils::roll::Roll,
@@ -19,13 +19,21 @@ impl MeleeManager {
     pub fn run(ecs_world: &mut World) {
         let mut wants_to_melee_list: Vec<Entity> = Vec::new();
         let mut hidden_list: Vec<Entity> = Vec::new();
+        let player_id = Player::get_entity_id(ecs_world);
 
         // Scope for keeping borrow checker quiet
         {
             // List of entities that want to collect items
             let mut attackers = ecs_world
-                .query::<(&WantsToMelee, &Named, Option<&IsHidden>, Option<&Venomous>)>()
+                .query::<(
+                    &WantsToMelee,
+                    &Named,
+                    &CombatStats,
+                    Option<&IsHidden>,
+                    Option<&Venomous>,
+                )>()
                 .with::<&MyTurn>();
+
             let mut equipped_weapons = ecs_world.query::<(&Weapon, &Equipped, Option<&Eroded>)>();
             let mut equipped_armors = ecs_world.query::<(&Armor, &Equipped, Option<&Eroded>)>();
 
@@ -36,14 +44,13 @@ impl MeleeManager {
                 .last()
                 .expect("Game log is not in hecs::World");
 
-            for (attacker, (wants_melee, named_attacker, hidden, venomous)) in &mut attackers {
+            for (attacker, (wants_melee, named_attacker, attacker_stats, hidden, venomous)) in
+                &mut attackers
+            {
                 //Sum damage, keeping in mind that could not have SufferingDamage component
                 if let Ok(mut target_damage) =
                     ecs_world.get::<&mut SufferingDamage>(wants_melee.target)
                 {
-                    let attacker_stats = ecs_world
-                        .get::<&CombatStats>(attacker)
-                        .expect("Entity does not have CombatStats");
                     let target_stats = ecs_world
                         .get::<&CombatStats>(wants_melee.target)
                         .expect("Entity does not have CombatStats");
@@ -69,8 +76,22 @@ impl MeleeManager {
                     match venomous {
                         Some(_) => {
                             // TODO what about venom immunity?
-                            damage_roll = max(0, Roll::dice(1, attacker_dice));
-                            target_damage.toughness_damage_received += damage_roll;
+                            let saving_throw_roll = Roll::d20();
+                            if saving_throw_roll > attacker_stats.current_toughness {
+                                damage_roll = max(0, Roll::dice(1, attacker_dice));
+                                target_damage.toughness_damage_received += damage_roll;
+
+                                game_log.entries.push(format!(
+                                    "{} hits the {} for {} venomous damage",
+                                    named_attacker.name, named_target.name, damage_roll
+                                ));
+                            } else {
+                                if wants_melee.target.id() == player_id {
+                                    game_log.entries.push(format!(
+                                        "The hit makes you feel dizzy for a moment, then it passes"
+                                    ));
+                                }
+                            }
                         }
                         None => {
                             // Sneak attack doubles damage
@@ -134,9 +155,9 @@ impl MeleeManager {
         for (_, (attacker_weapon, equipped_to, eroded)) in equipped_weapons.iter() {
             if equipped_to.owner.id() == attacker_id {
                 if let Some(erosion) = eroded {
-                return max(1 ,attacker_weapon.attack_dice - erosion.value as i32);
+                    return max(1, attacker_weapon.attack_dice - erosion.value as i32);
                 } else {
-                return attacker_weapon.attack_dice;
+                    return attacker_weapon.attack_dice;
                 }
             }
         }
@@ -153,7 +174,7 @@ impl MeleeManager {
         for (_, (attacker_armor, equipped_to, eroded)) in equipped_armors.iter() {
             if equipped_to.owner.id() == target_id {
                 if let Some(erosion) = eroded {
-                    return max(0,attacker_armor.value - erosion.value as i32);
+                    return max(0, attacker_armor.value - erosion.value as i32);
                 } else {
                     return attacker_armor.value;
                 }

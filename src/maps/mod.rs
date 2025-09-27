@@ -5,6 +5,7 @@ pub mod zone;
 pub mod arena_zone_builder;
 pub mod drunken_walk_zone_builder;
 pub mod river_builder;
+pub mod test_zone_builder;
 
 /// Trait for Zone Builders
 pub trait ZoneBuilder {

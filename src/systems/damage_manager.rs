@@ -10,7 +10,13 @@ use crate::{
         items::Edible,
         monster::Venomous,
         player::Player,
-    }, constants::MAX_STAMINA_HEAL_TICK_COUNTER, engine::state::{EngineState, RunState}, maps::zone::{DecalType, Zone}, spawning::spawner::Spawn, systems::item_dropping::ItemDropping, utils::{common::ItemsInBackpack, roll::Roll}
+    },
+    constants::MAX_STAMINA_HEAL_TICK_COUNTER,
+    engine::state::{EngineState, RunState},
+    maps::zone::{DecalType, Zone},
+    spawning::spawner::Spawn,
+    systems::item_dropping::ItemDropping,
+    utils::{common::ItemsInBackpack, roll::Roll},
 };
 
 pub struct DamageManager {}
@@ -20,7 +26,6 @@ impl DamageManager {
     pub fn run(ecs_world: &World) {
         let mut damageables =
             ecs_world.query::<(&mut SufferingDamage, &mut CombatStats, &Position)>();
-        let player_entity_id = Player::get_entity_id(ecs_world);
 
         let mut zone_query = ecs_world.query::<&mut Zone>();
         let (_, zone) = zone_query
@@ -57,24 +62,13 @@ impl DamageManager {
 
             // Venomous hits
             if damageable.toughness_damage_received > 0 {
-                let saving_throw_roll = Roll::d20();
-                if saving_throw_roll > stats.current_toughness {
-                    if damaged_entity.id() == player_entity_id {
-                        game_log.entries.push(format!("The hit was venomous!"));
-                    }
-                    stats.current_toughness = max(
-                        1,
-                        stats.current_toughness - damageable.toughness_damage_received,
-                    );
-                    if stats.current_toughness == 1 {
-                        stats.current_stamina = 0;
-                    }
-                } else {
-                    if damaged_entity.id() == player_entity_id {
-                        game_log
-                            .entries
-                            .push(format!("You feel dizzy for a moment, then it passes"));
-                    }
+                stats.current_toughness = max(
+                    1,
+                    stats.current_toughness - damageable.toughness_damage_received,
+                );
+
+                if stats.current_toughness == 1 {
+                    stats.current_stamina = 0;
                 }
             }
         }
@@ -125,8 +119,8 @@ impl DamageManager {
                 game_state.run_state = RunState::GameOver;
                 break;
             }
-        
-            ItemDropping::drop_all_of(ent, ecs_world, x,y);
+
+            ItemDropping::drop_all_of(ent, ecs_world, x, y);
 
             // Create corpse
             // Change nutrition based on monster
