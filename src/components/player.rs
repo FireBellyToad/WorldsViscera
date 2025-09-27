@@ -22,7 +22,7 @@ use crate::{
     engine::state::RunState,
     inventory::InventoryAction,
     maps::zone::{TileType, Zone},
-    spawning::spawner::Spawn,
+    spawning::spawner::Spawn, utils::common::Utils,
 };
 
 #[derive(PartialEq, Debug)]
@@ -480,14 +480,8 @@ impl Player {
                 .expect("Entity has no CombatStats")
                 .speed;
         }
-        // TODO account speed penalties
-        println!("Player must wait!!!");
-        let _ = ecs_world.exchange_one::<MyTurn, WaitingToAct>(
-            player,
-            WaitingToAct {
-                tick_countdown: max(1, MAX_ACTION_SPEED - speed),
-            },
-        );
+        
+        Utils::wait_after_action(ecs_world, player, speed);
     }
 
     /// Utility method for FOV forced recalculation

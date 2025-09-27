@@ -4,11 +4,12 @@ use hecs::{Entity, World};
 
 use crate::{
     components::{
-        actions::WantsToEat, combat::{CombatStats, WantsToMelee}, common::*, items::{Edible, Item}, monster::{Monster, WantsToApproach}
+        combat::CombatStats,
+        common::*,
+        monster::{Aquatic, Monster, WantsToApproach},
     },
-    constants::MAX_ACTION_SPEED,
     maps::zone::Zone,
-    utils::common::Utils,
+    utils::{common::Utils, pathfinding::Pathfinding},
 };
 
 /// Monster AI struct
@@ -17,14 +18,19 @@ pub struct MonsterApproach {}
 impl MonsterApproach {
     /// Monster acting function
     pub fn run(ecs_world: &mut World) {
-        let mut attacker_target_list: Vec<(Entity, Entity)> = Vec::new();
-        let mut eat_target_list: Vec<(Entity, Entity)> = Vec::new();
         let mut waiter_speed_list: Vec<(Entity, i32)> = Vec::new();
+        let mut approacher_list: Vec<Entity> = Vec::new();
 
         // Scope for keeping borrow checker quiet
         {
             let mut named_monsters = ecs_world
-                .query::<(&mut Viewshed, &mut Position, &CombatStats, &WantsToApproach)>()
+                .query::<(
+                    &mut Viewshed,
+                    &mut Position,
+                    &CombatStats,
+                    Option<&Aquatic>,
+                    &WantsToApproach,
+                )>()
                 .with::<(&Monster, &MyTurn)>();
 
             let mut zone_query = ecs_world.query::<&mut Zone>();
@@ -34,7 +40,7 @@ impl MonsterApproach {
                 .expect("Zone is not in hecs::World");
 
             // For each viewshed position monster component join
-            for (monster_entity, (viewshed, position, stats, wants_to_approach)) in
+            for (monster_entity, (viewshed, position, stats, aquatic, wants_to_approach)) in
                 &mut named_monsters
             {
                 /*
@@ -54,65 +60,51 @@ impl MonsterApproach {
                 3. Si muove casualmente nella zona
 
                 */
-                let target_real_position = ecs_world
-                    .get::<&Position>(wants_to_approach.target)
-                    .expect("Entity has no Position");
 
-                let distance = Utils::distance(
-                    position.x,
-                    target_real_position.x,
-                    position.y,
-                    target_real_position.y,
-                );
+                // Does this entity still exist?
+                approacher_list.push(monster_entity);
+                if ecs_world.contains(wants_to_approach.target) {
+                    let target_position = ecs_world
+                        .get::<&Position>(wants_to_approach.target)
+                        .expect("target must have Position");
 
-                //Attack or move
-                // TODO just reaching, maybe we don't need to attack
-                let target_has_stats = ecs_world.satisfies::<&CombatStats>(wants_to_approach.target).unwrap_or(false);
-                let target_is_edible_item = ecs_world.satisfies::<(&Item,&Edible)>(wants_to_approach.target).unwrap_or(false);
-                if distance < 1.5 && target_has_stats {
-                    // TODO this is nice, but we must handle it in during the thinking phasse
-                    attacker_target_list.push((monster_entity, wants_to_approach.target));
-                    //Monster must wait too after an action!
-                    waiter_speed_list.push((monster_entity, stats.speed));
-                } else if distance == 0.0 && target_is_edible_item{
-                    // TODO this is nice, but we must handle it in during the thinking phasse
-                    eat_target_list.push((monster_entity, wants_to_approach.target));
-                    //Monster must wait too after an action!
-                    waiter_speed_list.push((monster_entity, stats.speed));
-                }else{
-                    // Update view
-                    viewshed.must_recalculate = true;
+                    let pathfinding_result = Pathfinding::dijkstra_wrapper(
+                        position.x,
+                        position.y,
+                        target_position.x,
+                        target_position.y,
+                        zone,
+                        true,
+                        aquatic.is_some(),
+                    );
 
-                    // Avoid overlap with other monsters and player
-                    zone.blocked_tiles[Zone::get_index_from_xy(position.x, position.y)] = false;
-                    position.x = wants_to_approach.move_to_x;
-                    position.y = wants_to_approach.move_to_y;
-                    zone.blocked_tiles[Zone::get_index_from_xy(position.x, position.y)] = true;
+                    //If can actually reach the player
+                    if let Some((path, _)) = pathfinding_result
+                        && path.len() > 1
+                    {
+                        // Update view
+                        viewshed.must_recalculate = true;
 
-                    //Monster must wait too after an action!
-                    waiter_speed_list.push((monster_entity, stats.speed));
+                        // Avoid overlap with other monsters and player
+                        zone.blocked_tiles[Zone::get_index_from_xy(position.x, position.y)] = false;
+                        position.x = path[1].0;
+                        position.y = path[1].1;
+                        zone.blocked_tiles[Zone::get_index_from_xy(position.x, position.y)] = true;
+
+                        //Monster must wait too after an action!
+                        waiter_speed_list.push((monster_entity, stats.speed));
+                    }
                 }
             }
         }
 
-        // Attack if needed
-        for (attacker, target) in attacker_target_list {
-            let _ = ecs_world.insert_one(attacker, WantsToMelee { target });
-        }
-
-        // eat if needed
-        for (eater, item) in eat_target_list {
-            let _ = ecs_world.insert_one(eater, WantsToEat { item});
-        }
-
         // TODO account speed penalties
-        for (must_wait, speed) in waiter_speed_list {
-            let _ = ecs_world.exchange_one::<MyTurn, WaitingToAct>(
-                must_wait,
-                WaitingToAct {
-                    tick_countdown: max(1, MAX_ACTION_SPEED - speed),
-                },
-            );
+        for (waiter, speed) in waiter_speed_list {
+            Utils::wait_after_action(ecs_world, waiter, speed);
+        }
+        
+        for approacher in approacher_list {
+           let _ = ecs_world.remove_one::<WantsToApproach>(approacher);
         }
     }
 }

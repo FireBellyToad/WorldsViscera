@@ -11,7 +11,7 @@ use crate::{
     },
     maps::zone::{DecalType, Zone},
     systems::hunger_check::HungerStatus,
-    utils::roll::Roll,
+    utils::{common::Utils, roll::Roll},
 };
 
 pub struct EatingEdibles {}
@@ -19,14 +19,15 @@ pub struct EatingEdibles {}
 impl EatingEdibles {
     pub fn run(ecs_world: &mut World) {
         let mut eater_cleanup_list: Vec<Entity> = Vec::new();
-        let mut eaten_eater_list: Vec<(Entity, Entity)> = Vec::new();
+        let mut eaten_eater_list: Vec<(Entity, Entity, i32)> = Vec::new();
         let mut killed_list: Vec<Entity> = Vec::new();
         let player_id = Player::get_entity_id(ecs_world);
 
         // Scope for keeping borrow checker quiet
         {
             // List of entities that want to collect items
-            let mut eaters = ecs_world.query::<(&WantsToEat, &mut Hunger, &Position, &Named)>();
+            let mut eaters =
+                ecs_world.query::<(&WantsToEat, &CombatStats, &mut Hunger, &Position, &Named)>();
 
             let mut zone_query = ecs_world.query::<&mut Zone>();
             let (_, zone) = zone_query
@@ -41,16 +42,18 @@ impl EatingEdibles {
                 .last()
                 .expect("Game log is not in hecs::World");
 
-            for (eater, (wants_to_eat, hunger, position, named_eater)) in &mut eaters {
+            for (eater, (wants_to_eat, stats, hunger, position, named_eater)) in &mut eaters {
                 let possible_edible = ecs_world.get::<&Edible>(wants_to_eat.item);
 
                 // Keep track of the eater
                 if let Ok(edible_nutrition) = possible_edible {
                     // Eat!
-                    eaten_eater_list.push((wants_to_eat.item, eater));
+                    eaten_eater_list.push((wants_to_eat.item, eater, stats.speed));
 
                     // Show appropriate log messages
-                    let named_edible = ecs_world.get::<&Named>(wants_to_eat.item).expect("Entity is not Named");
+                    let named_edible = ecs_world
+                        .get::<&Named>(wants_to_eat.item)
+                        .expect("Entity is not Named");
                     if eater.id() == player_id {
                         game_log
                             .entries
@@ -64,8 +67,8 @@ impl EatingEdibles {
                     if ecs_world.get::<&Deadly>(wants_to_eat.item).is_ok() {
                         if eater.id() == player_id {
                             game_log.entries.push(
-                                "You ate a deadly poisonous food! You agonize and die".
-                            to_string());
+                                "You ate a deadly poisonous food! You agonize and die".to_string(),
+                            );
                         }
                         killed_list.push(eater);
                         continue;
@@ -100,14 +103,16 @@ impl EatingEdibles {
                             DecalType::Vomit,
                         );
                     } else {
-                        println!("nutrition_dice_number: {}, nutrition_dice_size {}",
+                        println!(
+                            "nutrition_dice_number: {}, nutrition_dice_size {}",
                             edible_nutrition.nutrition_dice_number,
-                            edible_nutrition.nutrition_dice_size);
+                            edible_nutrition.nutrition_dice_size
+                        );
                         hunger.tick_counter += Roll::dice(
                             edible_nutrition.nutrition_dice_number,
                             edible_nutrition.nutrition_dice_size,
                         );
-                        println!("hunger.tick_counter {}",hunger.tick_counter);
+                        println!("hunger.tick_counter {}", hunger.tick_counter);
                     }
                 } else {
                     if eater.id() == player_id {
@@ -118,14 +123,17 @@ impl EatingEdibles {
             }
         }
 
-        for (eaten, eater) in eaten_eater_list {
+        for (eaten, eater, speed) in eaten_eater_list {
             // Despawn item from World
             let _ = ecs_world.despawn(eaten);
             // Remove owner's will to eat
             let _ = ecs_world.remove_one::<WantsToEat>(eater);
-            if player_id == eater.id() {
-                Player::wait_after_action(ecs_world);
-            }
+            println!(
+                "Entity id {} eats!!---------------------------------",
+                eater.id()
+            );
+
+            Utils::wait_after_action(ecs_world, eater, speed);
         }
 
         for to_clean in eater_cleanup_list {
@@ -134,8 +142,12 @@ impl EatingEdibles {
         }
 
         for killed in killed_list {
-            let mut damage = ecs_world.get::<&mut SufferingDamage>(killed).expect("Entity has no SufferingDamage");
-            let stats = ecs_world.get::<&mut CombatStats>(killed).expect("Entity has no CombatStats");
+            let mut damage = ecs_world
+                .get::<&mut SufferingDamage>(killed)
+                .expect("Entity has no SufferingDamage");
+            let stats = ecs_world
+                .get::<&mut CombatStats>(killed)
+                .expect("Entity has no CombatStats");
             damage.damage_received = stats.current_stamina + stats.current_toughness;
         }
     }

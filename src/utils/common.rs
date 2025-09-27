@@ -1,4 +1,8 @@
-use crate::components::{common::Named, items::{BodyLocation, Eroded, InBackback, Metallic, MustBeFueled, TurnedOn}};
+use std::cmp::max;
+
+use hecs::{Entity, World};
+
+use crate::{components::{common::{MyTurn, Named, WaitingToAct}, items::{BodyLocation, Eroded, InBackback, Metallic, MustBeFueled, TurnedOn}}, constants::MAX_ACTION_SPEED};
 
 pub type ItemsInBackpack<'a> = (
     &'a Named,
@@ -31,5 +35,19 @@ impl Utils {
         }
 
         false
+    }
+
+    pub fn wait_after_action(ecs_world: &mut World, waiter: Entity, speed:i32) {
+        
+        let count = max(1, MAX_ACTION_SPEED - speed);
+        println!("Entity id {} must wait {} ticks",waiter.id(),count);
+        // TODO account speed penalties
+        let _ = ecs_world.exchange_one::<MyTurn, WaitingToAct>(
+            waiter,
+            WaitingToAct {
+                tick_countdown: count,
+            },
+        );
+        
     }
 }
