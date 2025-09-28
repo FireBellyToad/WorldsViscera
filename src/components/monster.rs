@@ -9,5 +9,5 @@ pub struct Venomous {}
 pub struct IsSmart{}
 
 pub struct WantsToApproach {
-    pub target: Entity
+    pub target: Option<Entity>
 }

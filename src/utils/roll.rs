@@ -15,6 +15,12 @@ impl Roll {
         result
     }
 
+    /// Roll a d10. Will be used a lot
+    pub fn d10() -> i32 {
+        Roll::dice(1, 10)
+    }
+
+
     /// Roll a d20. Will be used a lot
     pub fn d20() -> i32 {
         Roll::dice(1, 20)

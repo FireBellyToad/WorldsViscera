@@ -64,7 +64,7 @@ pub const MAX_ITEMS_IN_ZONE: i32 = 10;
 pub const MAX_SPAWN_TENTANTIVES: i32 = 10;
 
 /// Player related constants
-pub const BASE_VIEW_RADIUS: i32 = 6;
+pub const BASE_VIEW_RADIUS: i32 = 16;
 pub const MAX_STAMINA_HEAL_TICK_COUNTER: i32 = 4;
 pub const MAX_HUNGER_TICK_COUNTER: i32 = 151;
 pub const MAX_THIRST_TICK_COUNTER: i32 = 151;

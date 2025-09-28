@@ -9,7 +9,7 @@ use crate::{
         monster::{Aquatic, Monster, WantsToApproach},
     },
     maps::zone::Zone,
-    utils::{common::Utils, pathfinding::Pathfinding},
+    utils::{common::Utils, pathfinding::Pathfinding, roll::Roll},
 };
 
 /// Monster AI struct
@@ -63,37 +63,49 @@ impl MonsterApproach {
 
                 // Does this entity still exist?
                 approacher_list.push(monster_entity);
-                if ecs_world.contains(wants_to_approach.target) {
+
+                let (move_to_x, move_to_y) = if let Some(target) = wants_to_approach.target
+                    && ecs_world.contains(target)
+                {
+                    //Go to entity
                     let target_position = ecs_world
-                        .get::<&Position>(wants_to_approach.target)
+                        .get::<&Position>(target)
                         .expect("target must have Position");
 
-                    let pathfinding_result = Pathfinding::dijkstra_wrapper(
-                        position.x,
-                        position.y,
-                        target_position.x,
-                        target_position.y,
-                        zone,
-                        true,
-                        aquatic.is_some(),
-                    );
+                    (target_position.x, target_position.y)
+                } else {
+                    // Wander around
+                    (
+                        Roll::d20() - Roll::d10() + position.x,
+                        Roll::d20() - Roll::d10() + position.y,
+                    )
+                };
 
-                    //If can actually reach the player
-                    if let Some((path, _)) = pathfinding_result
-                        && path.len() > 1
-                    {
-                        // Update view
-                        viewshed.must_recalculate = true;
+                let pathfinding_result = Pathfinding::dijkstra_wrapper(
+                    position.x,
+                    position.y,
+                    move_to_x,
+                    move_to_y,
+                    zone,
+                    true,
+                    aquatic.is_some(),
+                );
 
-                        // Avoid overlap with other monsters and player
-                        zone.blocked_tiles[Zone::get_index_from_xy(position.x, position.y)] = false;
-                        position.x = path[1].0;
-                        position.y = path[1].1;
-                        zone.blocked_tiles[Zone::get_index_from_xy(position.x, position.y)] = true;
+                //If can actually reach the new position, do it or else stay still
+                if let Some((path, _)) = pathfinding_result
+                    && path.len() > 1
+                {
+                    // Update view
+                    viewshed.must_recalculate = true;
 
-                        //Monster must wait too after an action!
-                        waiter_speed_list.push((monster_entity, stats.speed));
-                    }
+                    // Avoid overlap with other monsters and player
+                    zone.blocked_tiles[Zone::get_index_from_xy(position.x, position.y)] = false;
+                    position.x = path[1].0;
+                    position.y = path[1].1;
+                    zone.blocked_tiles[Zone::get_index_from_xy(position.x, position.y)] = true;
+
+                    //Monster must wait too after an action!
+                    waiter_speed_list.push((monster_entity, stats.speed));
                 }
             }
         }
@@ -102,9 +114,9 @@ impl MonsterApproach {
         for (waiter, speed) in waiter_speed_list {
             Utils::wait_after_action(ecs_world, waiter, speed);
         }
-        
+
         for approacher in approacher_list {
-           let _ = ecs_world.remove_one::<WantsToApproach>(approacher);
+            let _ = ecs_world.remove_one::<WantsToApproach>(approacher);
         }
     }
 }

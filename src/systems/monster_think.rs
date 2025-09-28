@@ -21,7 +21,7 @@ pub struct MonsterThink {}
 impl MonsterThink {
     /// Monster acting function
     pub fn run(ecs_world: &mut World) {
-        let mut approacher_list: Vec<(Entity, Entity)> = Vec::new();
+        let mut approacher_list: Vec<(Entity, Option<Entity>)> = Vec::new();
         let mut attacker_target_list: Vec<(Entity, Entity)> = Vec::new();
         let mut eat_target_list: Vec<(Entity, Entity)> = Vec::new();
 
@@ -86,8 +86,6 @@ impl MonsterThink {
                         // TODO this is nice, but we must handle it in during the thinking phasse
                         eat_target_list.push((monster, target));
                     } else {
-                        println!("position x {} y {}", position.x, position.y);
-                        println!("target x {} y {}", target_position.x, target_position.y);
                         let pathfinding_result = Pathfinding::dijkstra_wrapper(
                             position.x,
                             position.y,
@@ -98,28 +96,26 @@ impl MonsterThink {
                             aquatic.is_some(),
                         );
 
-                        //If can actually reach the player
+                        //If can actually reach the position
                         if let Some((path, _)) = pathfinding_result {
-                            println!("path len {}", path.len());
                             if path.len() > 1 {
                                 // Approach something of its interest
                                 // TODO What about wandering monsters? Target must be optional
-                                approacher_list.push((monster, target));
+                                approacher_list.push((monster, Some(target)));
                             }
+                        } else {
+                            approacher_list.push((monster, None));
                         }
                     }
+                } else {
+                    approacher_list.push((monster, None));
                 }
             }
         }
 
         // Approach if needed
         for (approacher, target) in approacher_list {
-            let _ = ecs_world.insert_one(
-                approacher,
-                WantsToApproach {
-                    target
-                },
-            );
+            let _ = ecs_world.insert_one(approacher, WantsToApproach { target });
         }
 
         // Attack if needed
@@ -162,10 +158,8 @@ impl MonsterThink {
         */
 
         for (x, y) in viewshed.visible_tiles.iter() {
-            
             let index = Zone::get_index_from_xy(*x, *y);
             for &entity in &zone.tile_content[index] {
-
                 // If less than Satiated try to eat something edible
                 if hunger.current_status != HungerStatus::Satiated
                     && ecs_world
