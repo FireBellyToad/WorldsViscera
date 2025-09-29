@@ -111,4 +111,10 @@ pub const MAX_HIDDEN_TURNS: i32 = 9;
 /// Saving Throw related constants
 pub const AUTOFAIL_SAVING_THROW: i32 = 999;
 
+/// Position related constants
+
+pub const NEXT_TO_DISTANCE:f32 = 1.5;
+pub const ON_TOP_DISTANCE:f32 = 0.0;
+
 pub const LISTEN_COOLDOWN_START:i32 = 19;
+

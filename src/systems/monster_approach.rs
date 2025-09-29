@@ -64,10 +64,7 @@ impl MonsterApproach {
                 // Does this entity still exist and has a position?
                 approacher_list.push(monster_entity);
 
-                let (move_to_x, move_to_y) = if let Some(target) = wants_to_approach.target
-                    && ecs_world.contains(target)
-                    && ecs_world.satisfies::<&Position>(target).unwrap_or(false)
-                {
+                let (move_to_x,move_to_y) =if wants_to_approach.target_x != -1 && wants_to_approach.target_y != -1 {
                     (wants_to_approach.target_x, wants_to_approach.target_y)
                 } else {
                     // Wander around
