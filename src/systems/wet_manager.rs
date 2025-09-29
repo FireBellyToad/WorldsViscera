@@ -138,15 +138,19 @@ impl WetManager {
                 // Rust metallic object 3% of the time (if not rusted enough)
                 if let Some(rust) = eroded {
                     if rust.value < RUST_MAX_VALUE {
-                        game_log
-                            .entries
-                            .push(format!("Your {} gets wet and rusts further!", named.name));
+                        if *player_id == got_wet_entity.id() {
+                            game_log
+                                .entries
+                                .push(format!("Your {} gets wet and rusts further!", named.name));
+                        }
                         entities_in_backpack_to_rust.push((item, rust.value + 1));
                     }
                 } else {
-                    game_log
-                        .entries
-                        .push(format!("Your {} gets wet and rusts!", named.name));
+                    if *player_id == got_wet_entity.id() {
+                        game_log
+                            .entries
+                            .push(format!("Your {} gets wet and rusts!", named.name));
+                    }
                     entities_in_backpack_to_rust.push((item, 0));
                 }
             }

@@ -303,7 +303,6 @@ impl Player {
         } else {
             // Reset heal counter if the player did pick up something
             Player::reset_heal_counter(ecs_world);
-            Player::wait_after_action(ecs_world);
 
             RunState::DoTick
         }

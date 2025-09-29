@@ -39,8 +39,8 @@ pub enum InventoryAction {
 }
 
 /// Inventory Item Data trasfer type: used for rendering and general inventory usage
-type InventoryItem = Vec<(Entity, String, char, (i32, i32), bool, bool)>;
-type InventoryItemComponents<'a> = (&'a Named, &'a Item, &'a InBackback, Option<&'a Equipped>, Option<&'a Eroded>);
+type InventoryItemData = Vec<(Entity, String, char, (i32, i32), bool, bool)>;
+type InventoryItem<'a> = (&'a Named, &'a Item, &'a InBackback, Option<&'a Equipped>, Option<&'a Eroded>);
 
 pub struct Inventory {}
 
@@ -74,7 +74,7 @@ impl Inventory {
                         .expect("Game log is not in hecs::World");
 
                     //Inventory = Named items in backpack of the Player assigned to the pressed char key
-                    let inventory: InventoryItem = match mode {
+                    let inventory: InventoryItemData = match mode {
                         InventoryAction::Eat => {
                             Inventory::get_all_in_backpack_filtered_by::<Edible>(ecs_world)
                         }
@@ -189,7 +189,7 @@ impl Inventory {
         let texture_to_render = assets.get(&TextureName::Items).expect("Texture not found");
 
         //Inventory = Named items in backpack of the Player
-        let inventory: InventoryItem;
+        let inventory: InventoryItemData;
         let header_text;
 
         match mode {
@@ -307,10 +307,10 @@ impl Inventory {
     }
 
     /// Get all items in backpack for UI
-    fn get_all_in_backpack(ecs_world: &World) -> InventoryItem {
+    fn get_all_in_backpack(ecs_world: &World) -> InventoryItemData {
         let player_id = Player::get_entity_id(ecs_world);
         let mut inventory_query =
-            ecs_world.query::<InventoryItemComponents>();
+            ecs_world.query::<InventoryItem>();
         let mut inventory = inventory_query
             .iter()
             .filter(|(_, (_, _, in_backpack, _q,_))| in_backpack.owner.id() == player_id)
@@ -324,7 +324,7 @@ impl Inventory {
                     eroded.is_some(),
                 )
             })
-            .collect::<InventoryItem>();
+            .collect::<InventoryItemData>();
 
         //Sort alphabetically by assigned char
         inventory.sort_by_key(|k| k.2);
@@ -332,11 +332,11 @@ impl Inventory {
     }
 
     /// Get all items in backpack with a certain component T for UI
-    fn get_all_in_backpack_filtered_by<T: Component>(ecs_world: &World) -> InventoryItem {
+    fn get_all_in_backpack_filtered_by<T: Component>(ecs_world: &World) -> InventoryItemData {
         let player_id = Player::get_entity_id(ecs_world);
 
         let mut inventory_query = ecs_world
-            .query::<InventoryItemComponents>()
+            .query::<InventoryItem>()
             .with::<&T>();
 
         let mut inventory = inventory_query
@@ -352,7 +352,7 @@ impl Inventory {
                     eroded.is_some(),
                 )
             }) //
-            .collect::<InventoryItem>();
+            .collect::<InventoryItemData>();
 
         //Sort alphabetically by assigned char
         inventory.sort_by_key(|k| k.2);

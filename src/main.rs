@@ -19,10 +19,18 @@ use crate::{
     components::common::{Position, Viewshed},
     dialog::Dialog,
     maps::{
-        arena_zone_builder::ArenaZoneBuilder, drunken_walk_zone_builder::DrunkenWalkZoneBuilder, test_zone_builder::TestZoneBuilder, zone::Zone, ZoneBuilder
+        ZoneBuilder, arena_zone_builder::ArenaZoneBuilder,
+        drunken_walk_zone_builder::DrunkenWalkZoneBuilder, test_zone_builder::TestZoneBuilder,
+        zone::Zone,
     },
     systems::{
-        apply_system::ApplySystem, automatic_healing::AutomaticHealing, decay_manager::DecayManager, drinking_quaffables::DrinkingQuaffables, fuel_manager::FuelManager, hidden_manager::HiddenManager, hunger_check::HungerCheck, item_equipping::ItemEquipping, map_indexing::MapIndexing, monster_approach::MonsterApproach, particle_manager::ParticleManager, smell_manager::SmellManager, sound_system::SoundSystem, thirst_check::ThirstCheck, turn_checker::TurnCheck, wet_manager::WetManager, zap_manager::ZapManager
+        apply_system::ApplySystem, automatic_healing::AutomaticHealing,
+        decay_manager::DecayManager, drinking_quaffables::DrinkingQuaffables,
+        fuel_manager::FuelManager, hidden_manager::HiddenManager, hunger_check::HungerCheck,
+        item_equipping::ItemEquipping, map_indexing::MapIndexing,
+        monster_approach::MonsterApproach, particle_manager::ParticleManager,
+        smell_manager::SmellManager, sound_system::SoundSystem, thirst_check::ThirstCheck,
+        turn_checker::TurnCheck, wet_manager::WetManager, zap_manager::ZapManager,
     },
     utils::assets::Load,
 };
@@ -97,7 +105,6 @@ async fn main() {
                             println!("Player's turn");
                             game_state.run_state = RunState::WaitingPlayerInput;
                         } else {
-                            MonsterThink::run(&mut game_state.ecs_world);
                             MonsterApproach::run(&mut game_state.ecs_world);
                             game_state.run_state = RunState::BeforeTick;
                         }
@@ -232,6 +239,7 @@ fn do_before_tick_logic(game_state: &mut EngineState) {
     FuelManager::check_fuel(&mut game_state.ecs_world);
     WetManager::run(&mut game_state.ecs_world);
     HiddenManager::run(&mut game_state.ecs_world);
+    MonsterThink::run(&mut game_state.ecs_world);
 }
 
 fn do_in_tick_game_logic(game_state: &mut EngineState) {

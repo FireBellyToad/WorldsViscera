@@ -2,19 +2,16 @@ use hecs::{Entity, World};
 
 use crate::{
     components::{
-        actions::WantsItem,
-        common::{GameLog, Named, Position},
-        items::{InBackback, Item, Perishable, ToBeHarvested},
-        player::Player,
+        actions::WantsItem, combat::CombatStats, common::{GameLog, Named, Position}, items::{InBackback, Item, Perishable, ToBeHarvested}, player::Player
     },
-    constants::{MAX_ITEMS_IN_BACKPACK, OPTION_TO_CHAR_MAP, STARTING_ROT_COUNTER}, utils::roll::Roll,
+    constants::{MAX_ITEMS_IN_BACKPACK, OPTION_TO_CHAR_MAP, STARTING_ROT_COUNTER}, utils::{common::Utils, roll::Roll},
 };
 
 pub struct ItemCollection {}
 
 impl ItemCollection {
     pub fn run(ecs_world: &mut World) {
-        let mut item_owner_list: Vec<(Entity, Entity, char)> = Vec::new();
+        let mut item_owner_list: Vec<(Entity, Entity, char,i32)> = Vec::new();
         let mut failed_pick_upper: Vec<Entity> = Vec::new();
         let mut harvested_list: Vec<Entity> = Vec::new();
         let player_id = Player::get_entity_id(ecs_world);
@@ -22,7 +19,7 @@ impl ItemCollection {
         // Scope for keeping borrow checker quiet
         {
             // List of entities that want to collect items
-            let mut collectors = ecs_world.query::<&WantsItem>();
+            let mut collectors = ecs_world.query::<(&WantsItem,&CombatStats)>();
 
             //Items in all backpacks
             let mut items_in_backpacks = ecs_world.query::<(&Item, &InBackback)>();
@@ -34,9 +31,10 @@ impl ItemCollection {
                 .last()
                 .expect("Game log is not in hecs::World");
 
-            for (collector, wants_item) in &mut collectors {
+            for (collector, (wants_item,stats)) in &mut collectors {
                 let mut char_to_assign = OPTION_TO_CHAR_MAP[0];
 
+                
                 // All the currently assigned chars of the item carried by the owner
                 let all_currently_assigned_chars: Vec<char> = items_in_backpacks
                     .iter()
@@ -84,12 +82,12 @@ impl ItemCollection {
                     }
 
                     // Pick up and keep track of the owner
-                    item_owner_list.push((wants_item.item, collector, char_to_assign));
+                    item_owner_list.push((wants_item.item, collector, char_to_assign,stats.speed));
                 }
             }
         }
 
-        for (item, owner, to_grab) in item_owner_list {
+        for (item, owner, to_grab, speed) in item_owner_list {
             // Remove owner's will to pick up
             let _ = ecs_world.remove_one::<WantsItem>(owner);
 
@@ -101,6 +99,8 @@ impl ItemCollection {
                     assigned_char: to_grab,
                 },
             );
+
+            Utils::wait_after_action(ecs_world, owner, speed);
         }
 
         for entity in failed_pick_upper {

@@ -61,23 +61,19 @@ impl MonsterApproach {
 
                 */
 
-                // Does this entity still exist?
+                // Does this entity still exist and has a position?
                 approacher_list.push(monster_entity);
 
                 let (move_to_x, move_to_y) = if let Some(target) = wants_to_approach.target
                     && ecs_world.contains(target)
+                    && ecs_world.satisfies::<&Position>(target).unwrap_or(false)
                 {
-                    //Go to entity
-                    let target_position = ecs_world
-                        .get::<&Position>(target)
-                        .expect("target must have Position");
-
-                    (target_position.x, target_position.y)
+                    (wants_to_approach.target_x, wants_to_approach.target_y)
                 } else {
                     // Wander around
                     (
-                        Roll::d20() - Roll::d10() + position.x,
-                        Roll::d20() - Roll::d10() + position.y,
+                        Roll::d6() - Roll::d6() + position.x,
+                        Roll::d6() - Roll::d6() + position.y,
                     )
                 };
 

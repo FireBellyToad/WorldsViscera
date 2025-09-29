@@ -2,17 +2,20 @@ use hecs::{Entity, World};
 
 use crate::{
     components::{
-        actions::WantsToEat,
+        actions::{WantsItem, WantsToEat},
         combat::{CombatStats, WantsToMelee},
         common::*,
         health::Hunger,
-        items::{Edible, Item},
+        items::{Deadly, Edible, Item, Unsavoury},
         monster::{Aquatic, IsSmart, Monster, WantsToApproach},
         player::Player,
     },
     maps::zone::Zone,
     systems::hunger_check::HungerStatus,
-    utils::{common::Utils, pathfinding::Pathfinding},
+    utils::{
+        common::{EdibleItem, Utils},
+        pathfinding::Pathfinding,
+    },
 };
 
 /// Monster Think struct
@@ -21,7 +24,8 @@ pub struct MonsterThink {}
 impl MonsterThink {
     /// Monster acting function
     pub fn run(ecs_world: &mut World) {
-        let mut approacher_list: Vec<(Entity, Option<Entity>)> = Vec::new();
+        let mut approacher_list: Vec<(Entity, Option<Entity>, i32, i32)> = Vec::new();
+        let mut pickup_list: Vec<(Entity, Entity)> = Vec::new();
         let mut attacker_target_list: Vec<(Entity, Entity)> = Vec::new();
         let mut eat_target_list: Vec<(Entity, Entity)> = Vec::new();
 
@@ -31,8 +35,8 @@ impl MonsterThink {
                 .query::<(
                     &mut Viewshed,
                     &mut Position,
-                    &CombatStats,
                     &Hunger,
+                    &Named,
                     Option<&IsSmart>,
                     Option<&Aquatic>,
                 )>()
@@ -47,50 +51,53 @@ impl MonsterThink {
             let player_id = Player::get_entity_id(ecs_world);
 
             // For each viewshed position monster component join
-            for (monster, (viewshed, position, stats, hunger, smart, aquatic)) in
+            for (monster, (viewshed, position, hunger, named, smart, aquatic)) in
                 &mut named_monsters
             {
-                let target_picked = MonsterThink::pick_target(
+                let target_picked = MonsterThink::choose_target(
                     ecs_world,
                     zone,
                     viewshed,
                     hunger,
+                    named,
                     &monster.id(),
                     &player_id,
                     smart.is_some(),
                 );
 
-                //If enemy can see player, follow him and try to attack when close enough
-                if let Some(target) = target_picked {
+                //If enemy can see target, do action relative to it
+                if let (Some(target), target_x, target_y) = target_picked {
+                    // get target position and distance from monster
                     let mut target_query = ecs_world
-                        .query_one::<(&Position, Option<&CombatStats>, Option<(&Item, &Edible)>)>(
-                            target,
-                        )
+                        .query_one::<(Option<&CombatStats>, Option<&Item>, Option<&Edible>)>(target)
                         .expect("target_query failed");
-                    let (target_position, target_has_stats, target_is_edible_item) = target_query
+                    let (target_has_stats, target_is_item, target_is_edible) = target_query
                         .get()
                         .expect("cannot extract result from target_query");
 
-                    let distance = Utils::distance(
-                        position.x,
-                        target_position.x,
-                        position.y,
-                        target_position.y,
-                    );
+                    let distance = Utils::distance(position.x, target_x, position.y, target_y);
 
-                    //Attack or move
                     if distance < 1.5 && target_has_stats.is_some() {
-                        // TODO this is nice, but we must handle it in during the thinking phasse
+                        //Adiacent target, Attack
+                        //TODO there should be something else if not hostile
                         attacker_target_list.push((monster, target));
-                    } else if distance == 0.0 && target_is_edible_item.is_some() {
-                        // TODO this is nice, but we must handle it in during the thinking phasse
-                        eat_target_list.push((monster, target));
+                    } else if distance == 0.0 && target_is_item.is_some() {
+                        //Target below
+                        if target_is_edible.is_some() {
+                            // Is edible, so eat it
+                            eat_target_list.push((monster, target));
+                        } else if smart.is_some() {
+                            //pick up staff if monster is smart enough
+                            pickup_list.push((monster, target));
+                        }
                     } else {
+                        //Target is far away, try to approach it
+                        //TODO if hostile and monster has ranged weapon, should attack
                         let pathfinding_result = Pathfinding::dijkstra_wrapper(
                             position.x,
                             position.y,
-                            target_position.x,
-                            target_position.y,
+                            target_x,
+                            target_y,
                             zone,
                             true,
                             aquatic.is_some(),
@@ -99,23 +106,33 @@ impl MonsterThink {
                         //If can actually reach the position
                         if let Some((path, _)) = pathfinding_result {
                             if path.len() > 1 {
-                                // Approach something of its interest
-                                // TODO What about wandering monsters? Target must be optional
-                                approacher_list.push((monster, Some(target)));
+                                // Approach something of its interest. x,y are passed to avoid unique borrow issues later on
+                                approacher_list.push((monster, Some(target), target_x, target_y));
                             }
                         } else {
-                            approacher_list.push((monster, None));
+                            //No target in sight, wander around
+                            //TODO what about immovable monsters?
+                            approacher_list.push((monster, None, 0, 0));
                         }
                     }
                 } else {
-                    approacher_list.push((monster, None));
+                    //No target in sight, wander around
+                    //TODO what about immovable monsters?
+                    approacher_list.push((monster, None, 0, 0));
                 }
             }
         }
 
         // Approach if needed
-        for (approacher, target) in approacher_list {
-            let _ = ecs_world.insert_one(approacher, WantsToApproach { target });
+        for (approacher, target, target_x, target_y) in approacher_list {
+            let _ = ecs_world.insert_one(
+                approacher,
+                WantsToApproach {
+                    target,
+                    target_x,
+                    target_y,
+                },
+            );
         }
 
         // Attack if needed
@@ -127,18 +144,24 @@ impl MonsterThink {
         for (eater, item) in eat_target_list {
             let _ = ecs_world.insert_one(eater, WantsToEat { item });
         }
+
+        // pick up item
+        for (pickupper, item) in pickup_list {
+            let _ = ecs_world.insert_one(pickupper, WantsItem { item });
+        }
     }
 
     /// pick a target from visible tiles
-    fn pick_target(
+    fn choose_target(
         ecs_world: &World,
         zone: &Zone,
         viewshed: &Viewshed,
         hunger: &Hunger,
-        _self_id: &u32,
+        named: &Named,
+        self_id: &u32,
         player_id: &u32,
-        _is_smart: bool,
-    ) -> Option<Entity> {
+        is_smart: bool,
+    ) -> (Option<Entity>, i32, i32) {
         /*
         1. Quando X vede una creatura Y
 
@@ -157,32 +180,79 @@ impl MonsterThink {
 
         */
 
+        // Search in range of view possible targets
         for (x, y) in viewshed.visible_tiles.iter() {
             let index = Zone::get_index_from_xy(*x, *y);
+
             for &entity in &zone.tile_content[index] {
-                // If less than Satiated try to eat something edible
-                if hunger.current_status != HungerStatus::Satiated
-                    && ecs_world
-                        .satisfies::<(&Item, &Edible)>(entity)
-                        .unwrap_or(false)
-                {
-                    println!(
-                        "Entity with id {} at x {} y {} is edible",
-                        entity.id(),
-                        *x,
-                        *y
-                    );
-                    return Some(entity);
-                } else if *player_id == entity.id() {
-                    // TODO not only player, also things that the monster HATE
-                    println!("Entity with id {} is player", entity.id());
-                    return Some(entity);
+                // If looking at someone else
+                if *self_id != entity.id() {
+                    let is_creature = ecs_world.satisfies::<&Player>(entity).unwrap_or(false)
+                        || ecs_world.satisfies::<&Monster>(entity).unwrap_or(false);
+
+                    if is_creature {
+                        //TODO the player should not be the only enemy
+                        let is_enemy = *player_id == entity.id();
+
+                        // Starvation makes the monster behave more aggressively
+                        // TODO do not make it suicidial, do level check on target
+                        // TODO Should be a cannibal in this state?
+                        if hunger.current_status == HungerStatus::Starved {
+                            println!(
+                                "{} Entity {} - {} is prey",
+                                named.name,
+                                self_id,
+                                entity.id()
+                            );
+                            return (Some(entity), *x, *y);
+                        } else if is_enemy {
+                            println!(
+                                "{} Entity {} - {} is enemy",
+                                named.name,
+                                self_id,
+                                entity.id()
+                            );
+                            return (Some(entity), *x, *y);
+                        }
+                    } else if ecs_world.satisfies::<&Item>(entity).unwrap_or(false) {
+                        // Is item
+                        let is_edible = ecs_world.satisfies::<&Edible>(entity).unwrap_or(false);
+
+                        if is_edible {
+                            let is_deadly = ecs_world.satisfies::<&Deadly>(entity).unwrap_or(false);
+
+                            match hunger.current_status {
+                                HungerStatus::Starved => {
+                                    // If starved and not smart, do stupid stuff like eating deadly food
+                                    if (!is_smart && is_deadly) || !is_deadly {
+                                        println!(
+                                            "{} Entity {} - {} is food",
+                                            named.name,
+                                            self_id,
+                                            entity.id()
+                                        );
+                                        return (Some(entity), *x, *y);
+                                    }
+                                }
+                                HungerStatus::Satiated => {
+                                    //Do nothing with it
+                                    //TODO maybe pick it up for later?
+                                }
+                                _ => return (Some(entity), *x, *y),
+                            }
+                        } else if is_smart {
+                            // TODO should pick it up
+                            return (Some(entity), *x, *y);
+                        }
+                    }
                 }
             }
         }
 
         // TODO Order by priority
 
-        None
+        // No valid target found
+        println!("{} Entity {} - no target", named.name, self_id);
+        (None, 0, 0)
     }
 }

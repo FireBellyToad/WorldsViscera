@@ -4,7 +4,8 @@ use hecs::World;
 use crate::{
     components::{common::*, player::Player},
     constants::{MAP_HEIGHT, MAP_WIDTH},
-    maps::zone::Zone, utils::common::Utils,
+    maps::zone::Zone,
+    utils::common::Utils,
 };
 
 use adam_fov_rs::GridPoint;
@@ -68,6 +69,11 @@ impl FieldOfView {
             is_opaque,
             set_to_visible,
         );
+
+        // Sort visible tiles by distance from origin. Needed for better IA handling
+        viewshed.visible_tiles.sort_by(|(ax, ay), (bx, by)| {
+            Utils::distance(x, *ax, y, *ay).total_cmp(&Utils::distance(x, *bx, y, *by))
+        });
     }
 }
 #[derive(Clone, Copy, PartialEq, Debug)]
