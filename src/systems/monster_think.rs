@@ -3,11 +3,11 @@ use hecs::{Entity, World};
 use crate::{
     components::{
         actions::{WantsItem, WantsToEat, WantsToInvoke},
-        combat::{CombatStats, WantsToMelee, WantsToZap},
+        combat::{ WantsToMelee, WantsToZap},
         common::*,
         health::Hunger,
-        items::{Deadly, Edible, Item},
-        monster::{Aquatic, IsSmart, Monster, WantsToApproach},
+        items::{Bulky, Deadly, Edible, Item},
+        monster::{Aquatic, Monster, Small, Smart, WantsToApproach},
         player::Player,
     },
     constants::{NEXT_TO_DISTANCE, ON_TOP_DISTANCE},
@@ -48,7 +48,8 @@ impl MonsterThink {
                     &mut Position,
                     &Hunger,
                     &Named,
-                    Option<&IsSmart>,
+                    Option<&Small>,
+                    Option<&Smart>,
                     Option<&Aquatic>,
                 )>()
                 .with::<(&Monster, &MyTurn)>();
@@ -62,7 +63,7 @@ impl MonsterThink {
             let player_id = Player::get_entity_id(ecs_world);
 
             // For each viewshed position monster component join
-            for (monster, (viewshed, position, hunger, named, smart, aquatic)) in
+            for (monster, (viewshed, position, hunger, named,small, smart, aquatic)) in
                 &mut named_monsters
             {
                 let mut items_of_monster = ecs_world.query::<ItemsInBackpack>();
@@ -83,6 +84,7 @@ impl MonsterThink {
                     &monster.id(),
                     &player_id,
                     smart.is_some(),
+                    small.is_some(),
                     !invokables.is_empty(),
                 );
 
@@ -125,7 +127,7 @@ impl MonsterThink {
                         }
                     }
                     MonsterAction::Zap => {
-                        if let Some(t) = target {
+                        if target.is_some() {
                             zapper_list.push((monster, invokables[0].0, target_x, target_y));
                         }
                     }
@@ -178,6 +180,7 @@ impl MonsterThink {
         self_id: &u32,
         player_id: &u32,
         is_smart: bool,
+        is_small: bool,
         can_invoke: bool,
     ) -> (MonsterAction, Option<Entity>, i32, i32) {
         /*
@@ -229,6 +232,7 @@ impl MonsterThink {
                     } else if ecs_world.satisfies::<&Item>(entity).unwrap_or(false) {
                         // Is item
                         let is_edible = ecs_world.satisfies::<&Edible>(entity).unwrap_or(false);
+                        let is_bulky = ecs_world.satisfies::<&Bulky>(entity).unwrap_or(false);
 
                         if is_edible {
                             let is_deadly = ecs_world.satisfies::<&Deadly>(entity).unwrap_or(false);
@@ -253,11 +257,14 @@ impl MonsterThink {
                                 }
                             }
                         } else if is_smart {
-                            // Should pick it up if smart enough
-                            if distance == ON_TOP_DISTANCE {
-                                action = MonsterAction::PickUp;
+                            // If item is bulky, small monsters will not pick it up
+                            if !is_bulky || !is_small {
+                                // Should pick it up if smart enough
+                                if distance == ON_TOP_DISTANCE {
+                                    action = MonsterAction::PickUp;
+                                }
+                                return (action, Some(entity), *x, *y);
                             }
-                            return (action, Some(entity), *x, *y);
                         }
                     }
                 }

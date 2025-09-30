@@ -34,6 +34,7 @@ pub const OPTION_TO_CHAR_MAP: [char; 52] = [
 pub const ITEM_INVENTORY_LEFT_SPAN: i32 = 12;
 pub const ITEM_INVENTORY_TOP_SPAN: i32 = 10;
 pub const MAX_ITEMS_IN_BACKPACK: usize = 10;
+pub const MAX_ITEMS_IN_BACKPACK_FOR_SMALL: usize = 3;
 
 /// Dialog related constants
 pub const DIALOG_X: i32 = (WINDOW_WIDTH/2) - DIALOG_SIZE/2; 
@@ -112,7 +113,6 @@ pub const MAX_HIDDEN_TURNS: i32 = 9;
 pub const AUTOFAIL_SAVING_THROW: i32 = 999;
 
 /// Position related constants
-
 pub const NEXT_TO_DISTANCE:f32 = 1.5;
 pub const ON_TOP_DISTANCE:f32 = 0.0;
 

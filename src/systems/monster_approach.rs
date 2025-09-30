@@ -1,5 +1,3 @@
-use std::cmp::max;
-
 use hecs::{Entity, World};
 
 use crate::{

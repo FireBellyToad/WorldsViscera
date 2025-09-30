@@ -2,16 +2,25 @@ use hecs::{Entity, World};
 
 use crate::{
     components::{
-        actions::WantsItem, combat::CombatStats, common::{GameLog, Named, Position}, items::{InBackback, Item, Perishable, ToBeHarvested}, player::Player
+        actions::WantsItem,
+        combat::CombatStats,
+        common::{GameLog, Named, Position},
+        items::{InBackback, Item, Perishable, ToBeHarvested},
+        monster::Small,
+        player::Player,
     },
-    constants::{MAX_ITEMS_IN_BACKPACK, OPTION_TO_CHAR_MAP, STARTING_ROT_COUNTER}, utils::{common::Utils, roll::Roll},
+    constants::{
+        MAX_ITEMS_IN_BACKPACK, MAX_ITEMS_IN_BACKPACK_FOR_SMALL, OPTION_TO_CHAR_MAP,
+        STARTING_ROT_COUNTER,
+    },
+    utils::{common::Utils, roll::Roll},
 };
 
 pub struct ItemCollection {}
 
 impl ItemCollection {
     pub fn run(ecs_world: &mut World) {
-        let mut item_owner_list: Vec<(Entity, Entity, char,i32)> = Vec::new();
+        let mut item_owner_list: Vec<(Entity, Entity, char, i32)> = Vec::new();
         let mut failed_pick_upper: Vec<Entity> = Vec::new();
         let mut harvested_list: Vec<Entity> = Vec::new();
         let player_id = Player::get_entity_id(ecs_world);
@@ -19,7 +28,7 @@ impl ItemCollection {
         // Scope for keeping borrow checker quiet
         {
             // List of entities that want to collect items
-            let mut collectors = ecs_world.query::<(&WantsItem,&CombatStats)>();
+            let mut collectors = ecs_world.query::<(&WantsItem, &CombatStats, Option<&Small>)>();
 
             //Items in all backpacks
             let mut items_in_backpacks = ecs_world.query::<(&Item, &InBackback)>();
@@ -31,10 +40,9 @@ impl ItemCollection {
                 .last()
                 .expect("Game log is not in hecs::World");
 
-            for (collector, (wants_item,stats)) in &mut collectors {
+            for (collector, (wants_item, stats, small)) in &mut collectors {
                 let mut char_to_assign = OPTION_TO_CHAR_MAP[0];
 
-                
                 // All the currently assigned chars of the item carried by the owner
                 let all_currently_assigned_chars: Vec<char> = items_in_backpacks
                     .iter()
@@ -45,7 +53,12 @@ impl ItemCollection {
                 let named_owner = ecs_world
                     .get::<&Named>(collector)
                     .expect("Entity is not Named");
-                if all_currently_assigned_chars.len() == MAX_ITEMS_IN_BACKPACK {
+
+                // Small monster can only pick up 3 items
+                if all_currently_assigned_chars.len() == MAX_ITEMS_IN_BACKPACK
+                    || (small.is_some()
+                        && all_currently_assigned_chars.len() == MAX_ITEMS_IN_BACKPACK_FOR_SMALL)
+                {
                     if player_id == collector.id() {
                         game_log
                             .entries
@@ -82,7 +95,7 @@ impl ItemCollection {
                     }
 
                     // Pick up and keep track of the owner
-                    item_owner_list.push((wants_item.item, collector, char_to_assign,stats.speed));
+                    item_owner_list.push((wants_item.item, collector, char_to_assign, stats.speed));
                 }
             }
         }

@@ -9,7 +9,6 @@ use crate::components::health::{CanAutomaticallyHeal, Hunger, Thirst};
 use crate::components::items::{
     Edible, Item, Perishable, ProduceLight, Quaffable, TurnedOn, Unsavoury,
 };
-use crate::components::monster::Venomous;
 use crate::components::player::Player;
 use crate::constants::*;
 use crate::maps::zone::{TileType, Zone};

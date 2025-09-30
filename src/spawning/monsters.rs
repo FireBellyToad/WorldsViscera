@@ -10,7 +10,7 @@ use crate::{
         },
         health::Hunger,
         items::Edible,
-        monster::{Aquatic, IsSmart, Monster, Venomous},
+        monster::{Aquatic, Monster, Small, Smart, Venomous},
     },
     constants::{
         BASE_MONSTER_VIEW_RADIUS, FAST, MAX_HUNGER_TICK_COUNTER, NORMAL, SLOW, TILE_SIZE_F32,
@@ -117,7 +117,7 @@ pub fn gremlin(ecs_world: &mut World, x: i32, y: i32) {
         y,
     );
 
-    let _ = ecs_world.insert_one(gremlin, IsSmart {});
+    let _ = ecs_world.insert(gremlin, (Smart {},Small{}));
 }
 
 pub fn centipede(ecs_world: &mut World, x: i32, y: i32) {
@@ -151,7 +151,7 @@ pub fn centipede(ecs_world: &mut World, x: i32, y: i32) {
         y,
     );
 
-    let _ = ecs_world.insert_one(centipede, Venomous {});
+    let _ = ecs_world.insert(centipede, (Venomous {},Small{}));
 }
 
 pub fn dvergar(ecs_world: &mut World, x: i32, y: i32) {

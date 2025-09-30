@@ -16,7 +16,7 @@ use crate::{
     maps::zone::{DecalType, Zone},
     spawning::spawner::Spawn,
     systems::item_dropping::ItemDropping,
-    utils::{common::ItemsInBackpack, roll::Roll},
+    utils::roll::Roll,
 };
 
 pub struct DamageManager {}
@@ -32,12 +32,7 @@ impl DamageManager {
             .iter()
             .last()
             .expect("Zone is not in hecs::World");
-        let mut game_log_query = ecs_world.query::<&mut GameLog>();
-        let (_, game_log) = game_log_query
-            .iter()
-            .last()
-            .expect("Game log is not in hecs::World");
-
+        
         for (damaged_entity, (damageable, stats, position)) in &mut damageables {
             if damageable.damage_received > 0 {
                 stats.current_stamina -= damageable.damage_received;
