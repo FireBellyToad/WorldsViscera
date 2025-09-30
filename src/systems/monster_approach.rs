@@ -43,24 +43,6 @@ impl MonsterApproach {
             for (monster_entity, (viewshed, position, stats, aquatic, wants_to_approach)) in
                 &mut named_monsters
             {
-                /*
-                1. Quando X vede una creatura Y
-
-                    1.1 Se Y non è della sua specie e X è STARVED e X ha un livello maggiore o uguale a Y+1, X lo attaccherà
-                    1.2 Se Y è di una specie al quale X è ostile e X è in buona salute e X ha un livello maggiore o uguale a Y+1, X lo attaccherà
-                    1.3 Se Y è di una specie al quale X è ostile e X è in pericolo o X ha un livello minore di Y+1, X fuggirà
-                    1.4 Altrimenti lo ignorerà se non per reagire ad eventuali attacchi.
-
-                1. Quando X vede un oggetto Y
-
-                    2.1 Se Y è edibile e X non è sazio, X prova a mangiarlo.
-                    2.2 Se Y è bevibile e X non è quenched, X prova a berlo
-                    2.3 Se Y è qualcos'altro, X è astuto e ha spazio nell'inventario, X lo raccoglierà
-
-                3. Si muove casualmente nella zona
-
-                */
-
                 // Does this entity still exist and has a position?
                 approacher_list.push(monster_entity);
 

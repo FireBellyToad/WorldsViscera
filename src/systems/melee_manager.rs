@@ -7,7 +7,8 @@ use crate::{
         combat::{CanHide, CombatStats, IsHidden, SufferingDamage, WantsToMelee},
         common::{GameLog, MyTurn, Named},
         items::{Armor, Equipped, Eroded, Weapon},
-        monster::Venomous, player::Player,
+        monster::Venomous,
+        player::Player,
     },
     constants::MAX_HIDDEN_TURNS,
     utils::roll::Roll,
@@ -85,12 +86,11 @@ impl MeleeManager {
                                     "{} hits the {} for {} venomous damage",
                                     named_attacker.name, named_target.name, damage_roll
                                 ));
-                            } else {
-                                if wants_melee.target.id() == player_id {
-                                    game_log.entries.push(format!(
-                                        "The hit makes you feel dizzy for a moment, then it passes"
-                                    ));
-                                }
+                            } else if wants_melee.target.id() == player_id {
+                                game_log.entries.push(
+                                    "The hit makes you feel dizzy for a moment, then it passes"
+                                        .to_string(),
+                                );
                             }
                         }
                         None => {

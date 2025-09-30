@@ -83,7 +83,7 @@ impl MonsterThink {
                     &monster.id(),
                     &player_id,
                     smart.is_some(),
-                    invokables.len() > 0,
+                    !invokables.is_empty(),
                 );
 
                 //If enemy can see target, do action relative to it
@@ -162,12 +162,7 @@ impl MonsterThink {
         for (zapper, item, x, y) in zapper_list {
             let _ = ecs_world.insert(
                 zapper,
-                (
-                    WantsToInvoke { item },
-                    WantsToZap {
-                        target: (x, y),
-                    },
-                ),
+                (WantsToInvoke { item }, WantsToZap { target: (x, y) }),
             );
         }
     }
@@ -245,7 +240,7 @@ impl MonsterThink {
                             match hunger.current_status {
                                 HungerStatus::Starved => {
                                     // If starved and not smart, do stupid stuff like eating deadly food
-                                    if (!is_smart && is_deadly) || !is_deadly {
+                                    if !is_smart || !is_deadly {
                                         return (action, Some(entity), *x, *y);
                                     }
                                 }
