@@ -5,7 +5,7 @@ use hecs::{Entity, World};
 use crate::{
     components::{
         common::{MyTurn, Named, WaitingToAct},
-        items::{BodyLocation, Edible, Eroded, InBackback, Invokable, Item, Metallic, MustBeFueled, TurnedOn},
+        items::{BodyLocation, Eroded, InBackback, Invokable, Metallic, MustBeFueled, TurnedOn},
     },
     constants::MAX_ACTION_SPEED,
 };

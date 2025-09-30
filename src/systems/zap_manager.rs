@@ -10,14 +10,14 @@ use crate::{
     },
     constants::AUTOFAIL_SAVING_THROW,
     maps::zone::Zone,
-    utils::{effect_manager::EffectManager, particle_animation::ParticleAnimation, roll::Roll},
+    utils::{common::Utils, effect_manager::EffectManager, particle_animation::ParticleAnimation, roll::Roll},
 };
 
 pub struct ZapManager {}
 
 impl ZapManager {
     pub fn run(ecs_world: &mut World) {
-        let mut wants_to_zap_list: Vec<Entity> = Vec::new();
+        let mut wants_to_zap_list: Vec<(Entity,i32)> = Vec::new();
         let mut invokable_list: Vec<Entity> = Vec::new();
         let mut particle_animations: Vec<ParticleAnimation> = Vec::new();
 
@@ -25,7 +25,7 @@ impl ZapManager {
         {
             // List of entities that want to zap stuff
             let mut zappers =
-                ecs_world.query::<(&WantsToZap, &WantsToInvoke, &Position, Option<&Wet>)>();
+                ecs_world.query::<(&WantsToZap, &WantsToInvoke, &Position, &CombatStats,Option<&Wet>)>();
 
             //Log all the zappings
             let mut game_log_query = ecs_world.query::<&mut GameLog>();
@@ -42,7 +42,7 @@ impl ZapManager {
 
             let player_id = Player::get_entity_id(ecs_world);
 
-            for (zapper, (wants_zap, wants_invoke, zapper_position, wet)) in &mut zappers {
+            for (zapper, (wants_zap, wants_invoke, zapper_position, stats, wet)) in &mut zappers {
                 let mut target_list: Vec<&Vec<Entity>> = Vec::new();
                 // Could be needed...
                 let zapper_wrapper = vec![zapper];
@@ -148,15 +148,16 @@ impl ZapManager {
                 }
 
                 // prepare lists for removal
-                wants_to_zap_list.push(zapper);
+                wants_to_zap_list.push((zapper,stats.speed));
                 invokable_list.push(wants_invoke.item)
             }
         }
 
         // Remove owner's will to invoke and zap
-        for zapper in wants_to_zap_list {
+        for (zapper,speed) in wants_to_zap_list {
             let _ = ecs_world.remove_one::<WantsToInvoke>(zapper);
             let _ = ecs_world.remove_one::<WantsToZap>(zapper);
+            Utils::wait_after_action(ecs_world, zapper, speed);
         }
 
         for particle in particle_animations {
