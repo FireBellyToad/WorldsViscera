@@ -2,8 +2,8 @@ use hecs::{Entity, World};
 
 use crate::{
     components::{
-        actions::{WantsItem, WantsToEat},
-        combat::{CombatStats, WantsToMelee},
+        actions::{WantsItem, WantsToEat, WantsToInvoke},
+        combat::{CombatStats, WantsToMelee, WantsToZap},
         common::*,
         health::Hunger,
         items::{Deadly, Edible, Item},
@@ -13,7 +13,10 @@ use crate::{
     constants::{NEXT_TO_DISTANCE, ON_TOP_DISTANCE},
     maps::zone::Zone,
     systems::hunger_check::HungerStatus,
-    utils::{common::Utils, pathfinding::Pathfinding},
+    utils::{
+        common::{ItemsInBackpack, Utils},
+        pathfinding::Pathfinding,
+    },
 };
 
 #[derive(PartialEq)]
@@ -22,6 +25,7 @@ pub enum MonsterAction {
     Eat,
     Attack,
     PickUp,
+    Zap,
 }
 
 /// Monster Think struct
@@ -33,6 +37,7 @@ impl MonsterThink {
         let mut approacher_list: Vec<(Entity, i32, i32)> = Vec::new();
         let mut pickup_list: Vec<(Entity, Entity)> = Vec::new();
         let mut attacker_target_list: Vec<(Entity, Entity)> = Vec::new();
+        let mut zapper_list: Vec<(Entity, Entity, i32, i32)> = Vec::new();
         let mut eat_target_list: Vec<(Entity, Entity)> = Vec::new();
 
         // Scope for keeping borrow checker quiet
@@ -60,6 +65,14 @@ impl MonsterThink {
             for (monster, (viewshed, position, hunger, named, smart, aquatic)) in
                 &mut named_monsters
             {
+                let mut items_of_monster = ecs_world.query::<ItemsInBackpack>();
+                let invokables: Vec<(Entity, ItemsInBackpack)> = items_of_monster
+                    .iter()
+                    .filter(|(_, (_, in_backpack, invokable, _, _, _, _))| {
+                        in_backpack.owner.id() == monster.id() && invokable.is_some()
+                    })
+                    .collect();
+
                 let target_picked = MonsterThink::choose_target_and_action(
                     ecs_world,
                     position,
@@ -70,6 +83,7 @@ impl MonsterThink {
                     &monster.id(),
                     &player_id,
                     smart.is_some(),
+                    invokables.len() > 0,
                 );
 
                 //If enemy can see target, do action relative to it
@@ -110,6 +124,11 @@ impl MonsterThink {
                             attacker_target_list.push((monster, t));
                         }
                     }
+                    MonsterAction::Zap => {
+                        if let Some(t) = target {
+                            zapper_list.push((monster, invokables[0].0, target_x, target_y));
+                        }
+                    }
                     MonsterAction::PickUp => {
                         if let Some(t) = target {
                             pickup_list.push((monster, t));
@@ -138,6 +157,19 @@ impl MonsterThink {
         for (pickupper, item) in pickup_list {
             let _ = ecs_world.insert_one(pickupper, WantsItem { item });
         }
+
+        // Zap place
+        for (zapper, item, x, y) in zapper_list {
+            let _ = ecs_world.insert(
+                zapper,
+                (
+                    WantsToInvoke { item },
+                    WantsToZap {
+                        target: (x, y),
+                    },
+                ),
+            );
+        }
     }
 
     /// pick a target from visible tiles
@@ -151,6 +183,7 @@ impl MonsterThink {
         self_id: &u32,
         player_id: &u32,
         is_smart: bool,
+        can_invoke: bool,
     ) -> (MonsterAction, Option<Entity>, i32, i32) {
         /*
         1. Quando X vede una creatura Y
@@ -188,6 +221,8 @@ impl MonsterThink {
 
                         if distance < NEXT_TO_DISTANCE {
                             action = MonsterAction::Attack;
+                        } else if is_smart && can_invoke {
+                            action = MonsterAction::Zap;
                         }
 
                         // Starvation makes the monster behave more aggressively

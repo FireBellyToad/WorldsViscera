@@ -1,5 +1,3 @@
-use std::cmp::max;
-
 use hecs::{Entity, World};
 use macroquad::input::{
     KeyCode, MouseButton, clear_input_queue, get_char_pressed, get_key_pressed, is_key_down,
@@ -10,12 +8,12 @@ use crate::{
     components::{
         actions::{WantsItem, WantsToDrink, WantsToSmell},
         combat::{CombatStats, WantsToMelee, WantsToZap},
-        common::{GameLog, MyTurn, Position, Viewshed, WaitingToAct},
+        common::{GameLog, MyTurn, Position, Viewshed},
         health::CanAutomaticallyHeal,
         items::{Edible, Item, Quaffable},
     },
     constants::{
-        MAP_HEIGHT, MAP_WIDTH, MAX_ACTION_SPEED, MAX_STAMINA_HEAL_TICK_COUNTER, TILE_SIZE_F32,
+        MAP_HEIGHT, MAP_WIDTH,  MAX_STAMINA_HEAL_TICK_COUNTER, TILE_SIZE_F32,
         UI_BORDER_F32,
     },
     dialog::DialogAction,
@@ -255,7 +253,6 @@ impl Player {
                         );
                         // Reset heal counter if the player did not wait
                         Player::reset_heal_counter(ecs_world);
-                        Player::wait_after_action(ecs_world);
                         return RunState::DoTick;
                     }
                 }

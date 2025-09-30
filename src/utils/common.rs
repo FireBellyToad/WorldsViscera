@@ -5,7 +5,7 @@ use hecs::{Entity, World};
 use crate::{
     components::{
         common::{MyTurn, Named, WaitingToAct},
-        items::{BodyLocation, Deadly, Edible, Eroded, InBackback, Item, Metallic, MustBeFueled, TurnedOn, Unsavoury},
+        items::{BodyLocation, Deadly, Edible, Eroded, InBackback, Invokable, Item, Metallic, MustBeFueled, TurnedOn, Unsavoury},
     },
     constants::MAX_ACTION_SPEED,
 };
@@ -13,6 +13,7 @@ use crate::{
 pub type ItemsInBackpack<'a> = (
     &'a Named,
     &'a InBackback,
+    Option<&'a Invokable>,
     Option<&'a TurnedOn>,
     Option<&'a MustBeFueled>,
     Option<&'a Metallic>,

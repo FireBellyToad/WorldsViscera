@@ -118,12 +118,12 @@ impl WetManager {
 
         let items_to_wet: Vec<(Entity, ItemsInBackpack)> = items_of_wet_entity
             .iter()
-            .filter(|(_, (_, in_backpack, _, _, _, _))| {
+            .filter(|(_, (_, in_backpack,_, _, _, _, _))| {
                 in_backpack.owner.id() == got_wet_entity.id()
             })
             .collect();
 
-        for (item, (named, _, turned_on, fueled, metallic, eroded)) in items_to_wet {
+        for (item, (named, _, _,turned_on, fueled, metallic, eroded)) in items_to_wet {
             entities_that_got_wet.push(item);
 
             if turned_on.is_some() && fueled.is_some() {
