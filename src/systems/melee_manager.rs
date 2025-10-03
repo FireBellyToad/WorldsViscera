@@ -5,7 +5,7 @@ use hecs::{Entity, World};
 use crate::{
     components::{
         combat::{CanHide, CombatStats, IsHidden, SufferingDamage, WantsToMelee},
-        common::{GameLog, MyTurn, Named},
+        common::{GameLog, Hates, MyTurn, Named},
         items::{Armor, Equipped, Eroded, Weapon},
         monster::Venomous,
         player::Player,
@@ -55,6 +55,18 @@ impl MeleeManager {
                     let target_stats = ecs_world
                         .get::<&CombatStats>(wants_melee.target)
                         .expect("Entity does not have CombatStats");
+
+                    // From now on, attacked entity will be hostile
+                    if ecs_world
+                            .satisfies::<&mut Hates>(wants_melee.target)
+                            .unwrap_or(false){
+                        let mut target_hates = ecs_world
+                            .get::<&mut Hates>(wants_melee.target)
+                            .expect("Entity does not have Hates");
+
+                        target_hates.list.insert(attacker.id());
+
+                    }
 
                     // Show appropriate log messages
                     let named_target = ecs_world

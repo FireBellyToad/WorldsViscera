@@ -8,18 +8,12 @@ impl Roll {
     pub fn dice(number: i32, size: i32) -> i32 {
         let mut result = 0;
 
-        for _hrow in 0..number {
+        for _ in 0..number {
             result += gen_range(1, size + 1);
         }
 
         result
     }
-
-    /// Roll a d10. Will be used a lot
-    pub fn d10() -> i32 {
-        Roll::dice(1, 10)
-    }
-
 
     /// Roll a d20. Will be used a lot
     pub fn d20() -> i32 {

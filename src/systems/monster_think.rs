@@ -1,16 +1,20 @@
+use std::collections::HashSet;
+
 use hecs::{Entity, World};
 
 use crate::{
     components::{
         actions::{WantsItem, WantsToEat, WantsToInvoke},
-        combat::{ WantsToMelee, WantsToZap},
+        combat::{WantsToMelee, WantsToZap},
         common::*,
         health::Hunger,
         items::{Bulky, Deadly, Edible, Item},
         monster::{Aquatic, Monster, Small, Smart, WantsToApproach},
         player::Player,
     },
-    constants::{NEXT_TO_DISTANCE, ON_TOP_DISTANCE},
+    constants::{
+        MAX_ITEMS_IN_BACKPACK, MAX_ITEMS_IN_BACKPACK_FOR_SMALL, NEXT_TO_DISTANCE, ON_TOP_DISTANCE,
+    },
     maps::zone::Zone,
     systems::hunger_check::HungerStatus,
     utils::{
@@ -46,6 +50,8 @@ impl MonsterThink {
                 .query::<(
                     &mut Viewshed,
                     &mut Position,
+                    &Species,
+                    &Hates,
                     &Hunger,
                     &Named,
                     Option<&Small>,
@@ -63,16 +69,23 @@ impl MonsterThink {
             let player_id = Player::get_entity_id(ecs_world);
 
             // For each viewshed position monster component join
-            for (monster, (viewshed, position, hunger, named,small, smart, aquatic)) in
-                &mut named_monsters
+            for (
+                monster,
+                (viewshed, position, spieces, hates, hunger, named, small, smart, aquatic),
+            ) in &mut named_monsters
             {
-                let mut items_of_monster = ecs_world.query::<ItemsInBackpack>();
-                let invokables: Vec<(Entity, ItemsInBackpack)> = items_of_monster
+                let mut items_of_monster_query = ecs_world.query::<ItemsInBackpack>();
+                let items_of_monster: Vec<(Entity, ItemsInBackpack)> =
+                    items_of_monster_query.iter().collect();
+
+                let invokables: Vec<&(Entity, ItemsInBackpack)> = items_of_monster
                     .iter()
                     .filter(|(_, (_, in_backpack, invokable, _, _, _, _))| {
                         in_backpack.owner.id() == monster.id() && invokable.is_some()
                     })
                     .collect();
+
+                let total_items = items_of_monster.iter().len();
 
                 let target_picked = MonsterThink::choose_target_and_action(
                     ecs_world,
@@ -86,6 +99,10 @@ impl MonsterThink {
                     smart.is_some(),
                     small.is_some(),
                     !invokables.is_empty(),
+                    &spieces.value,
+                    &hates.list,
+                    (total_items < MAX_ITEMS_IN_BACKPACK
+                        || (small.is_some() && total_items < MAX_ITEMS_IN_BACKPACK_FOR_SMALL)),
                 );
 
                 //If enemy can see target, do action relative to it
@@ -178,10 +195,13 @@ impl MonsterThink {
         hunger: &Hunger,
         named: &Named,
         self_id: &u32,
-        player_id: &u32,
+        _player_id: &u32,
         is_smart: bool,
         is_small: bool,
         can_invoke: bool,
+        species: &SpeciesEnum,
+        hates: &HashSet<u32>,
+        backpack_is_not_full: bool,
     ) -> (MonsterAction, Option<Entity>, i32, i32) {
         /*
         1. Quando X vede una creatura Y
@@ -214,9 +234,6 @@ impl MonsterThink {
                         || ecs_world.satisfies::<&Monster>(entity).unwrap_or(false);
 
                     if is_creature {
-                        //TODO the player should not be the only enemy
-                        let is_enemy = *player_id == entity.id();
-
                         if distance < NEXT_TO_DISTANCE {
                             action = MonsterAction::Attack;
                         } else if is_smart && can_invoke {
@@ -224,10 +241,22 @@ impl MonsterThink {
                         }
 
                         // Starvation makes the monster behave more aggressively
+                        // Should be a cannibal in this state
                         // TODO do not make it suicidial, do level check on target
-                        // TODO Should be a cannibal in this state?
-                        if hunger.current_status == HungerStatus::Starved || is_enemy {
+                        if hunger.current_status == HungerStatus::Starved {
                             return (action, Some(entity), *x, *y);
+                        } else {
+                            let target_species = ecs_world
+                                .get::<&Species>(entity)
+                                .expect("must have Species");
+
+                            let is_enemy = Utils::what_hates(&species)
+                                .contains(&target_species.value)
+                                || hates.contains(&entity.id());
+
+                            if is_enemy {
+                                return (action, Some(entity), *x, *y);
+                            }
                         }
                     } else if ecs_world.satisfies::<&Item>(entity).unwrap_or(false) {
                         // Is item
@@ -256,7 +285,7 @@ impl MonsterThink {
                                     return (action, Some(entity), *x, *y);
                                 }
                             }
-                        } else if is_smart {
+                        } else if is_smart && backpack_is_not_full {
                             // If item is bulky, small monsters will not pick it up
                             if !is_bulky || !is_small {
                                 // Should pick it up if smart enough

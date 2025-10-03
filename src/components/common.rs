@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use hecs::Entity;
 use macroquad::math::Rect;
@@ -61,6 +61,28 @@ pub struct CanListen {
     pub radius: f32,
     pub cooldown: i32,
 }
+
 pub struct ProduceSound {
     pub sound_log: String,
+}
+
+pub struct Species {
+    pub value: SpeciesEnum,
+}
+pub struct Hates {
+    pub list: HashSet<u32>,
+}
+
+#[derive(PartialEq, Debug)]
+pub enum SpeciesEnum {
+    Human,
+    Dvergar,
+    Fish,
+    Slime,
+    Gastropod,
+    Myconid,
+    Bug,
+    Gremlin,
+    DeepSpawn,
+    Undead
 }

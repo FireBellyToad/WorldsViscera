@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use hecs::{Entity, World};
 use macroquad::math::Rect;
 
@@ -5,8 +7,8 @@ use crate::{
     components::{
         combat::{CanHide, CombatStats, SufferingDamage},
         common::{
-            BlocksTile, MyTurn, Named, Position, ProduceCorpse, ProduceSound, Renderable,
-            SmellIntensity, Smellable, Viewshed,
+            BlocksTile, Hates, MyTurn, Named, Position, ProduceCorpse, ProduceSound, Renderable,
+            SmellIntensity, Smellable, Species, SpeciesEnum, Viewshed,
         },
         health::Hunger,
         items::Edible,
@@ -24,6 +26,9 @@ pub fn deep_one(ecs_world: &mut World, x: i32, y: i32) {
     create_monster(
         ecs_world,
         "Deep One".to_string(),
+        Species {
+            value: SpeciesEnum::DeepSpawn,
+        },
         CombatStats {
             current_stamina: 3,
             max_stamina: 3,
@@ -56,6 +61,9 @@ pub fn freshwater_viperfish(ecs_world: &mut World, x: i32, y: i32) {
     let freshwater_viperfish = create_monster(
         ecs_world,
         "Freshwater viperfish".to_string(),
+        Species {
+            value: SpeciesEnum::Fish,
+        },
         CombatStats {
             current_stamina: 4,
             max_stamina: 4,
@@ -90,6 +98,9 @@ pub fn gremlin(ecs_world: &mut World, x: i32, y: i32) {
     let gremlin = create_monster(
         ecs_world,
         "Gremlin".to_string(),
+        Species {
+            value: SpeciesEnum::Gremlin,
+        },
         CombatStats {
             current_stamina: 2,
             max_stamina: 2,
@@ -117,13 +128,16 @@ pub fn gremlin(ecs_world: &mut World, x: i32, y: i32) {
         y,
     );
 
-    let _ = ecs_world.insert(gremlin, (Smart {},Small{}));
+    let _ = ecs_world.insert(gremlin, (Smart {}, Small {}));
 }
 
 pub fn centipede(ecs_world: &mut World, x: i32, y: i32) {
     let centipede = create_monster(
         ecs_world,
         "Giant centipede".to_string(),
+        Species {
+            value: SpeciesEnum::Bug,
+        },
         CombatStats {
             current_stamina: 3,
             max_stamina: 3,
@@ -151,13 +165,16 @@ pub fn centipede(ecs_world: &mut World, x: i32, y: i32) {
         y,
     );
 
-    let _ = ecs_world.insert(centipede, (Venomous {},Small{}));
+    let _ = ecs_world.insert(centipede, (Venomous {}, Small {}));
 }
 
 pub fn dvergar(ecs_world: &mut World, x: i32, y: i32) {
     let dvergar = create_monster(
         ecs_world,
         "Dvergar".to_string(),
+        Species {
+            value: SpeciesEnum::Dvergar,
+        },
         CombatStats {
             current_stamina: 4,
             max_stamina: 4,
@@ -192,6 +209,7 @@ pub fn dvergar(ecs_world: &mut World, x: i32, y: i32) {
 pub fn create_monster(
     ecs_world: &mut World,
     name: String,
+    species: Species,
     combat_stats: CombatStats,
     edible: Edible,
     smells: Smellable,
@@ -202,6 +220,7 @@ pub fn create_monster(
 ) -> Entity {
     let monster_entity = (
         Monster {},
+        species,
         Position { x, y },
         Renderable {
             texture_name: TextureName::Creatures,
@@ -228,7 +247,7 @@ pub fn create_monster(
         ProduceCorpse {},
         Hunger {
             tick_counter: MAX_HUNGER_TICK_COUNTER,
-            current_status: HungerStatus::Starved,
+            current_status: HungerStatus::Satiated,
         },
         MyTurn {},
         smells,
@@ -236,5 +255,14 @@ pub fn create_monster(
         edible,
     );
 
-    ecs_world.spawn(monster_entity)
+    let monster_spawned = ecs_world.spawn(monster_entity);
+
+    let _ = ecs_world.insert_one(
+        monster_spawned,
+        Hates {
+            list: HashSet::new(),
+        },
+    );
+
+    monster_spawned
 }

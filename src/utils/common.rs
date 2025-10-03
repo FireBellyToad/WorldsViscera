@@ -4,7 +4,7 @@ use hecs::{Entity, World};
 
 use crate::{
     components::{
-        common::{MyTurn, Named, WaitingToAct},
+        common::{MyTurn, Named, SpeciesEnum, WaitingToAct},
         items::{BodyLocation, Eroded, InBackback, Invokable, Metallic, MustBeFueled, TurnedOn},
     },
     constants::MAX_ACTION_SPEED,
@@ -54,5 +54,20 @@ impl Utils {
                 tick_countdown: count,
             },
         );
+    }
+
+    pub fn what_hates(hater: &SpeciesEnum) -> Vec<SpeciesEnum>{
+        match hater {
+            SpeciesEnum::Human => vec![SpeciesEnum::Fish,SpeciesEnum::Gastropod,SpeciesEnum::Gremlin, SpeciesEnum::Undead],
+            SpeciesEnum::Dvergar => vec![SpeciesEnum::Bug,SpeciesEnum::Gremlin,SpeciesEnum::DeepSpawn, SpeciesEnum::Undead],
+            SpeciesEnum::Fish => vec![SpeciesEnum::Human,SpeciesEnum::Bug,SpeciesEnum::Gastropod],
+            SpeciesEnum::Slime => vec![SpeciesEnum::Human,SpeciesEnum::Dvergar,SpeciesEnum::DeepSpawn],
+            SpeciesEnum::Gastropod => vec![SpeciesEnum::Human,SpeciesEnum::Myconid,SpeciesEnum::DeepSpawn],
+            SpeciesEnum::Myconid => vec![SpeciesEnum::Human,SpeciesEnum::Slime,SpeciesEnum::Bug, SpeciesEnum::Undead],
+            SpeciesEnum::Bug => vec![SpeciesEnum::Human,SpeciesEnum::Bug,SpeciesEnum::Fish, SpeciesEnum::Gastropod],
+            SpeciesEnum::Gremlin => vec![SpeciesEnum::Human,SpeciesEnum::Dvergar,SpeciesEnum::DeepSpawn, SpeciesEnum::Undead],
+            SpeciesEnum::DeepSpawn => vec![SpeciesEnum::Human,SpeciesEnum::Fish,SpeciesEnum::Dvergar, SpeciesEnum::Undead],
+            SpeciesEnum::Undead =>vec![SpeciesEnum::Human,SpeciesEnum::Dvergar,SpeciesEnum::DeepSpawn, SpeciesEnum::Gremlin],
+        }
     }
 }

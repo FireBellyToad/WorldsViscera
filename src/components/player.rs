@@ -69,6 +69,7 @@ impl Player {
 
                 // Move if not attacking or destination is not blocked
                 if attacker_target.is_none() && !zone.blocked_tiles[destination_index] {
+                    zone.blocked_tiles[Zone::get_index_from_xy(position.x, position.y)] = false;
                     position.x = (position.x + delta_x).clamp(0, MAP_WIDTH - 1);
                     position.y = (position.y + delta_y).clamp(0, MAP_HEIGHT - 1);
                     viewshed.must_recalculate = true;
