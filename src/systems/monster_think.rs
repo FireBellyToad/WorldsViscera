@@ -32,6 +32,22 @@ pub enum MonsterAction {
     Zap,
 }
 
+struct MonsterThinkData<'a> {
+    pub position: &'a Position,
+    pub zone: &'a Zone,
+    pub viewshed: &'a Viewshed,
+    pub hunger: &'a Hunger,
+    pub named: &'a Named,
+    pub self_id: &'a u32,
+    pub _player_id: &'a u32,
+    pub is_smart: bool,
+    pub is_small: bool,
+    pub can_invoke: bool,
+    pub species: &'a SpeciesEnum,
+    pub hates: &'a HashSet<u32>,
+    pub backpack_is_not_full: bool,
+}
+
 /// Monster Think struct
 pub struct MonsterThink {}
 
@@ -71,7 +87,7 @@ impl MonsterThink {
             // For each viewshed position monster component join
             for (
                 monster,
-                (viewshed, position, spieces, hates, hunger, named, small, smart, aquatic),
+                (viewshed, position, species, hates, hunger, named, small, smart, aquatic),
             ) in &mut named_monsters
             {
                 let mut items_of_monster_query = ecs_world.query::<ItemsInBackpack>();
@@ -89,20 +105,23 @@ impl MonsterThink {
 
                 let target_picked = MonsterThink::choose_target_and_action(
                     ecs_world,
-                    position,
-                    zone,
-                    viewshed,
-                    hunger,
-                    named,
-                    &monster.id(),
-                    &player_id,
-                    smart.is_some(),
-                    small.is_some(),
-                    !invokables.is_empty(),
-                    &spieces.value,
-                    &hates.list,
-                    (total_items < MAX_ITEMS_IN_BACKPACK
-                        || (small.is_some() && total_items < MAX_ITEMS_IN_BACKPACK_FOR_SMALL)),
+                    MonsterThinkData {
+                        position,
+                        zone,
+                        viewshed,
+                        hunger,
+                        named,
+                        self_id: &monster.id(),
+                        _player_id: &player_id,
+                        is_smart: smart.is_some(),
+                        is_small: small.is_some(),
+                        can_invoke: !invokables.is_empty(),
+                        species: &species.value,
+                        hates: &hates.list,
+                        backpack_is_not_full: (!small.is_some()
+                            && total_items < MAX_ITEMS_IN_BACKPACK)
+                            || (small.is_some() && total_items < MAX_ITEMS_IN_BACKPACK_FOR_SMALL),
+                    },
                 );
 
                 //If enemy can see target, do action relative to it
@@ -189,19 +208,7 @@ impl MonsterThink {
     /// pick a target from visible tiles
     fn choose_target_and_action(
         ecs_world: &World,
-        position: &Position,
-        zone: &Zone,
-        viewshed: &Viewshed,
-        hunger: &Hunger,
-        named: &Named,
-        self_id: &u32,
-        _player_id: &u32,
-        is_smart: bool,
-        is_small: bool,
-        can_invoke: bool,
-        species: &SpeciesEnum,
-        hates: &HashSet<u32>,
-        backpack_is_not_full: bool,
+        monster_dto: MonsterThinkData,
     ) -> (MonsterAction, Option<Entity>, i32, i32) {
         /*
         1. Quando X vede una creatura Y
@@ -222,37 +229,38 @@ impl MonsterThink {
         */
 
         // Search in range of view possible targets
-        for (x, y) in viewshed.visible_tiles.iter() {
+        for (x, y) in monster_dto.viewshed.visible_tiles.iter() {
             let index = Zone::get_index_from_xy(*x, *y);
-            let distance: f32 = Utils::distance(position.x, *x, position.y, *y);
+            let distance: f32 =
+                Utils::distance(monster_dto.position.x, *x, monster_dto.position.y, *y);
             let mut action = MonsterAction::Move;
 
-            for &entity in &zone.tile_content[index] {
+            for &entity in &monster_dto.zone.tile_content[index] {
                 // If looking at someone else
-                if *self_id != entity.id() {
+                if *monster_dto.self_id != entity.id() {
                     let is_creature = ecs_world.satisfies::<&Player>(entity).unwrap_or(false)
                         || ecs_world.satisfies::<&Monster>(entity).unwrap_or(false);
 
                     if is_creature {
                         if distance < NEXT_TO_DISTANCE {
                             action = MonsterAction::Attack;
-                        } else if is_smart && can_invoke {
+                        } else if monster_dto.is_smart && monster_dto.can_invoke {
                             action = MonsterAction::Zap;
                         }
 
                         // Starvation makes the monster behave more aggressively
                         // Should be a cannibal in this state
                         // TODO do not make it suicidial, do level check on target
-                        if hunger.current_status == HungerStatus::Starved {
+                        if monster_dto.hunger.current_status == HungerStatus::Starved {
                             return (action, Some(entity), *x, *y);
                         } else {
                             let target_species = ecs_world
                                 .get::<&Species>(entity)
                                 .expect("must have Species");
 
-                            let is_enemy = Utils::what_hates(&species)
+                            let is_enemy = Utils::what_hates(&monster_dto.species)
                                 .contains(&target_species.value)
-                                || hates.contains(&entity.id());
+                                || monster_dto.hates.contains(&entity.id());
 
                             if is_enemy {
                                 return (action, Some(entity), *x, *y);
@@ -270,10 +278,10 @@ impl MonsterThink {
                                 action = MonsterAction::Eat;
                             }
 
-                            match hunger.current_status {
+                            match monster_dto.hunger.current_status {
                                 HungerStatus::Starved => {
                                     // If starved and not smart, do stupid stuff like eating deadly food
-                                    if !is_smart || !is_deadly {
+                                    if !monster_dto.is_smart || !is_deadly {
                                         return (action, Some(entity), *x, *y);
                                     }
                                 }
@@ -285,9 +293,9 @@ impl MonsterThink {
                                     return (action, Some(entity), *x, *y);
                                 }
                             }
-                        } else if is_smart && backpack_is_not_full {
+                        } else if monster_dto.is_smart && monster_dto.backpack_is_not_full {
                             // If item is bulky, small monsters will not pick it up
-                            if !is_bulky || !is_small {
+                            if !is_bulky || !monster_dto.is_small {
                                 // Should pick it up if smart enough
                                 if distance == ON_TOP_DISTANCE {
                                     action = MonsterAction::PickUp;
@@ -303,7 +311,10 @@ impl MonsterThink {
         // TODO Order by priority
 
         // No valid target found
-        println!("{} Entity {} - no target", named.name, self_id);
+        println!(
+            "{} Entity {} - no target",
+            monster_dto.named.name, monster_dto.self_id
+        );
         (MonsterAction::Move, None, -1, -1)
     }
 }
