@@ -58,14 +58,14 @@ impl MeleeManager {
 
                     // From now on, attacked entity will be hostile
                     if ecs_world
-                            .satisfies::<&mut Hates>(wants_melee.target)
-                            .unwrap_or(false){
+                        .satisfies::<&mut Hates>(wants_melee.target)
+                        .unwrap_or(false)
+                    {
                         let mut target_hates = ecs_world
                             .get::<&mut Hates>(wants_melee.target)
                             .expect("Entity does not have Hates");
 
                         target_hates.list.insert(attacker.id());
-
                     }
 
                     // Show appropriate log messages
@@ -169,10 +169,18 @@ impl MeleeManager {
                 if let Some(erosion) = eroded {
                     return max(1, attacker_weapon.attack_dice - erosion.value as i32);
                 } else {
+                    println!(
+                        "Attacker {} uses weapon dice {}",
+                        attacker_id, attacker_weapon.attack_dice,
+                    );
                     return attacker_weapon.attack_dice;
                 }
             }
         }
+        println!(
+            "Attacker {} uses unarmed attack dice {}",
+            attacker_id, unarmed_attack_dice
+        );
         unarmed_attack_dice
     }
 

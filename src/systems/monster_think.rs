@@ -1,10 +1,11 @@
+use crate::components::items::Equippable;
 use std::collections::HashSet;
 
 use hecs::{Entity, World};
 
 use crate::{
     components::{
-        actions::{WantsItem, WantsToEat, WantsToInvoke},
+        actions::{WantsItem, WantsToEat, WantsToEquip, WantsToInvoke},
         combat::{WantsToMelee, WantsToZap},
         common::*,
         health::Hunger,
@@ -59,6 +60,7 @@ impl MonsterThink {
         let mut attacker_target_list: Vec<(Entity, Entity)> = Vec::new();
         let mut zapper_list: Vec<(Entity, Entity, i32, i32)> = Vec::new();
         let mut eat_target_list: Vec<(Entity, Entity)> = Vec::new();
+        let mut equipper_item_list: Vec<(Entity, Entity)> = Vec::new();
 
         // Scope for keeping borrow checker quiet
         {
@@ -94,82 +96,101 @@ impl MonsterThink {
                 let items_of_monster: Vec<(Entity, ItemsInBackpack)> =
                     items_of_monster_query.iter().collect();
 
-                let invokables: Vec<&(Entity, ItemsInBackpack)> = items_of_monster
+                // Equippable items that has not been equipped yet by the monster
+                let equipement: Vec<&(Entity, ItemsInBackpack)> = items_of_monster
                     .iter()
-                    .filter(|(_, (_, in_backpack, invokable, _, _, _, _))| {
-                        in_backpack.owner.id() == monster.id() && invokable.is_some()
-                    })
+                    .filter(
+                        |(_, (_, in_backpack, _, _, _, _, _, equippable, equipped))| {
+                            in_backpack.owner.id() == monster.id()
+                                && equippable.is_some()
+                                && equipped.is_none()
+                        },
+                    )
                     .collect();
 
-                let total_items = items_of_monster.iter().len();
+                // Equip the first available equippable item if available
+                if !equipement.is_empty() && smart.is_some() {
+                    equipper_item_list.push((monster, equipement[0].0));
+                } else {
+                    let total_items = items_of_monster.iter().len();
 
-                let target_picked = MonsterThink::choose_target_and_action(
-                    ecs_world,
-                    MonsterThinkData {
-                        position,
-                        zone,
-                        viewshed,
-                        hunger,
-                        named,
-                        self_id: &monster.id(),
-                        _player_id: &player_id,
-                        is_smart: smart.is_some(),
-                        is_small: small.is_some(),
-                        can_invoke: !invokables.is_empty(),
-                        species: &species.value,
-                        hates: &hates.list,
-                        backpack_is_not_full: (!small.is_some()
-                            && total_items < MAX_ITEMS_IN_BACKPACK)
-                            || (small.is_some() && total_items < MAX_ITEMS_IN_BACKPACK_FOR_SMALL),
-                    },
-                );
+                    let invokables: Vec<&(Entity, ItemsInBackpack)> = items_of_monster
+                        .iter()
+                        .filter(|(_, (_, in_backpack, invokable, _, _, _, _, _, _))| {
+                            in_backpack.owner.id() == monster.id() && invokable.is_some()
+                        })
+                        .collect();
 
-                //If enemy can see target, do action relative to it
-                let (action, target, target_x, target_y) = target_picked;
-                match action {
-                    MonsterAction::Move => {
-                        //Target is far away, try to approach it
-                        //TODO if hostile and monster has ranged weapon, should attack
-                        let pathfinding_result = Pathfinding::dijkstra_wrapper(
-                            position.x,
-                            position.y,
-                            target_x,
-                            target_y,
+                    // Look around for a target and decide what to do
+                    let target_picked = MonsterThink::choose_target_and_action(
+                        ecs_world,
+                        MonsterThinkData {
+                            position,
                             zone,
-                            true,
-                            aquatic.is_some(),
-                        );
+                            viewshed,
+                            hunger,
+                            named,
+                            self_id: &monster.id(),
+                            _player_id: &player_id,
+                            is_smart: smart.is_some(),
+                            is_small: small.is_some(),
+                            can_invoke: !invokables.is_empty(),
+                            species: &species.value,
+                            hates: &hates.list,
+                            backpack_is_not_full: (!small.is_some()
+                                && total_items < MAX_ITEMS_IN_BACKPACK)
+                                || (small.is_some()
+                                    && total_items < MAX_ITEMS_IN_BACKPACK_FOR_SMALL),
+                        },
+                    );
 
-                        //If can actually reach the position
-                        if let Some((path, _)) = pathfinding_result {
-                            if path.len() > 1 {
-                                // Approach something of its interest. x,y are passed to avoid unique borrow issues later on
-                                approacher_list.push((monster, target_x, target_y));
+                    //If enemy can see target, do action relative to it
+                    let (action, target, target_x, target_y) = target_picked;
+                    match action {
+                        MonsterAction::Move => {
+                            //Target is far away, try to approach it
+                            //TODO if hostile and monster has ranged weapon, should attack
+                            let pathfinding_result = Pathfinding::dijkstra_wrapper(
+                                position.x,
+                                position.y,
+                                target_x,
+                                target_y,
+                                zone,
+                                true,
+                                aquatic.is_some(),
+                            );
+
+                            //If can actually reach the position
+                            if let Some((path, _)) = pathfinding_result {
+                                if path.len() > 1 {
+                                    // Approach something of its interest. x,y are passed to avoid unique borrow issues later on
+                                    approacher_list.push((monster, target_x, target_y));
+                                }
+                            } else {
+                                //No target in sight, wander around
+                                //TODO what about immovable monsters?
+                                approacher_list.push((monster, -1, -1));
                             }
-                        } else {
-                            //No target in sight, wander around
-                            //TODO what about immovable monsters?
-                            approacher_list.push((monster, -1, -1));
                         }
-                    }
-                    MonsterAction::Eat => {
-                        if let Some(t) = target {
-                            eat_target_list.push((monster, t));
+                        MonsterAction::Eat => {
+                            if let Some(t) = target {
+                                eat_target_list.push((monster, t));
+                            }
                         }
-                    }
-                    MonsterAction::Attack => {
-                        if let Some(t) = target {
-                            attacker_target_list.push((monster, t));
+                        MonsterAction::Attack => {
+                            if let Some(t) = target {
+                                attacker_target_list.push((monster, t));
+                            }
                         }
-                    }
-                    MonsterAction::Zap => {
-                        if target.is_some() {
-                            zapper_list.push((monster, invokables[0].0, target_x, target_y));
+                        MonsterAction::Zap => {
+                            if target.is_some() {
+                                zapper_list.push((monster, invokables[0].0, target_x, target_y));
+                            }
                         }
-                    }
-                    MonsterAction::PickUp => {
-                        if let Some(t) = target {
-                            pickup_list.push((monster, t));
+                        MonsterAction::PickUp => {
+                            if let Some(t) = target {
+                                pickup_list.push((monster, t));
+                            }
                         }
                     }
                 }
@@ -201,6 +222,25 @@ impl MonsterThink {
             let _ = ecs_world.insert(
                 zapper,
                 (WantsToInvoke { item }, WantsToZap { target: (x, y) }),
+            );
+        }
+
+        // Equip item
+        for (equipper, item) in equipper_item_list {
+            let body_location;
+            // Scope to keep the borrow check quiet
+            {
+                let equippable = ecs_world
+                    .get::<&Equippable>(item)
+                    .expect("Should be Equippable!");
+                body_location = equippable.body_location.clone();
+            }
+            let _ = ecs_world.insert_one(
+                equipper,
+                WantsToEquip {
+                    item,
+                    body_location,
+                },
             );
         }
     }

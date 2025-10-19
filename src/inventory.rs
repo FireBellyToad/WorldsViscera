@@ -18,7 +18,8 @@ use crate::{
         },
         common::{GameLog, Named},
         items::{
-            Appliable, Edible, Equippable, Equipped, Eroded, InBackback, Invokable, Item, MustBeFueled, Quaffable, Refiller
+            Appliable, Edible, Equippable, Equipped, Eroded, InBackback, Invokable, Item,
+            MustBeFueled, Quaffable, Refiller,
         },
         player::{Player, SpecialViewMode},
     },
@@ -40,7 +41,13 @@ pub enum InventoryAction {
 
 /// Inventory Item Data trasfer type: used for rendering and general inventory usage
 type InventoryItemData = Vec<(Entity, String, char, (i32, i32), bool, bool)>;
-type InventoryItem<'a> = (&'a Named, &'a Item, &'a InBackback, Option<&'a Equipped>, Option<&'a Eroded>);
+type InventoryItem<'a> = (
+    &'a Named,
+    &'a Item,
+    &'a InBackback,
+    Option<&'a Equipped>,
+    Option<&'a Eroded>,
+);
 
 pub struct Inventory {}
 
@@ -309,11 +316,10 @@ impl Inventory {
     /// Get all items in backpack for UI
     fn get_all_in_backpack(ecs_world: &World) -> InventoryItemData {
         let player_id = Player::get_entity_id(ecs_world);
-        let mut inventory_query =
-            ecs_world.query::<InventoryItem>();
+        let mut inventory_query = ecs_world.query::<InventoryItem>();
         let mut inventory = inventory_query
             .iter()
-            .filter(|(_, (_, _, in_backpack, _q,_))| in_backpack.owner.id() == player_id)
+            .filter(|(_, (_, _, in_backpack, _q, _))| in_backpack.owner.id() == player_id)
             .map(|(entity, (named, item, in_backpack, equipped, eroded))| {
                 (
                     entity,
@@ -335,13 +341,11 @@ impl Inventory {
     fn get_all_in_backpack_filtered_by<T: Component>(ecs_world: &World) -> InventoryItemData {
         let player_id = Player::get_entity_id(ecs_world);
 
-        let mut inventory_query = ecs_world
-            .query::<InventoryItem>()
-            .with::<&T>();
+        let mut inventory_query = ecs_world.query::<InventoryItem>().with::<&T>();
 
         let mut inventory = inventory_query
             .iter()
-            .filter(|(_, (_, _, in_backpack, _q,_))| in_backpack.owner.id() == player_id)
+            .filter(|(_, (_, _, in_backpack, _q, _))| in_backpack.owner.id() == player_id)
             .map(|(entity, (named, item, in_backpack, equipped, eroded))| {
                 (
                     entity,

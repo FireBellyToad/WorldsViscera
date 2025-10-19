@@ -53,7 +53,6 @@ fn get_game_configuration() -> Conf {
         fullscreen: false,
         window_height: WINDOW_HEIGHT,
         window_width: WINDOW_WIDTH,
-        window_resizable: false,
         //use the default options:
         ..Default::default()
     }

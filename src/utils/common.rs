@@ -1,3 +1,4 @@
+use crate::components::items::Equippable;
 use std::cmp::max;
 
 use hecs::{Entity, World};
@@ -5,7 +6,9 @@ use hecs::{Entity, World};
 use crate::{
     components::{
         common::{MyTurn, Named, SpeciesEnum, WaitingToAct},
-        items::{BodyLocation, Eroded, InBackback, Invokable, Metallic, MustBeFueled, TurnedOn},
+        items::{
+            BodyLocation, Equipped, Eroded, InBackback, Invokable, Metallic, MustBeFueled, TurnedOn,
+        },
     },
     constants::MAX_ACTION_SPEED,
 };
@@ -18,6 +21,8 @@ pub type ItemsInBackpack<'a> = (
     Option<&'a MustBeFueled>,
     Option<&'a Metallic>,
     Option<&'a Eroded>,
+    Option<&'a Equippable>,
+    Option<&'a Equipped>,
 );
 
 pub struct Utils {}
@@ -56,18 +61,61 @@ impl Utils {
         );
     }
 
-    pub fn what_hates(hater: &SpeciesEnum) -> Vec<SpeciesEnum>{
+    pub fn what_hates(hater: &SpeciesEnum) -> Vec<SpeciesEnum> {
         match hater {
-            SpeciesEnum::Human => vec![SpeciesEnum::Fish,SpeciesEnum::Gastropod,SpeciesEnum::Gremlin, SpeciesEnum::Undead],
-            SpeciesEnum::Dvergar => vec![SpeciesEnum::Bug,SpeciesEnum::Gremlin,SpeciesEnum::DeepSpawn, SpeciesEnum::Undead],
-            SpeciesEnum::Fish => vec![SpeciesEnum::Human,SpeciesEnum::Bug,SpeciesEnum::Gastropod],
-            SpeciesEnum::Slime => vec![SpeciesEnum::Human,SpeciesEnum::Dvergar,SpeciesEnum::DeepSpawn],
-            SpeciesEnum::Gastropod => vec![SpeciesEnum::Human,SpeciesEnum::Myconid,SpeciesEnum::DeepSpawn],
-            SpeciesEnum::Myconid => vec![SpeciesEnum::Human,SpeciesEnum::Slime,SpeciesEnum::Bug, SpeciesEnum::Undead],
-            SpeciesEnum::Bug => vec![SpeciesEnum::Human,SpeciesEnum::Bug,SpeciesEnum::Fish, SpeciesEnum::Gastropod],
-            SpeciesEnum::Gremlin => vec![SpeciesEnum::Human,SpeciesEnum::Dvergar,SpeciesEnum::DeepSpawn, SpeciesEnum::Undead],
-            SpeciesEnum::DeepSpawn => vec![SpeciesEnum::Human,SpeciesEnum::Fish,SpeciesEnum::Dvergar, SpeciesEnum::Undead],
-            SpeciesEnum::Undead =>vec![SpeciesEnum::Human,SpeciesEnum::Dvergar,SpeciesEnum::DeepSpawn, SpeciesEnum::Gremlin],
+            SpeciesEnum::Human => vec![
+                SpeciesEnum::Fish,
+                SpeciesEnum::Gastropod,
+                SpeciesEnum::Gremlin,
+                SpeciesEnum::Undead,
+            ],
+            SpeciesEnum::Dvergar => vec![
+                SpeciesEnum::Bug,
+                SpeciesEnum::Gremlin,
+                SpeciesEnum::DeepSpawn,
+                SpeciesEnum::Undead,
+            ],
+            SpeciesEnum::Fish => vec![SpeciesEnum::Human, SpeciesEnum::Bug, SpeciesEnum::Gastropod],
+            SpeciesEnum::Slime => vec![
+                SpeciesEnum::Human,
+                SpeciesEnum::Dvergar,
+                SpeciesEnum::DeepSpawn,
+            ],
+            SpeciesEnum::Gastropod => vec![
+                SpeciesEnum::Human,
+                SpeciesEnum::Myconid,
+                SpeciesEnum::DeepSpawn,
+            ],
+            SpeciesEnum::Myconid => vec![
+                SpeciesEnum::Human,
+                SpeciesEnum::Slime,
+                SpeciesEnum::Bug,
+                SpeciesEnum::Undead,
+            ],
+            SpeciesEnum::Bug => vec![
+                SpeciesEnum::Human,
+                SpeciesEnum::Bug,
+                SpeciesEnum::Fish,
+                SpeciesEnum::Gastropod,
+            ],
+            SpeciesEnum::Gremlin => vec![
+                SpeciesEnum::Human,
+                SpeciesEnum::Dvergar,
+                SpeciesEnum::DeepSpawn,
+                SpeciesEnum::Undead,
+            ],
+            SpeciesEnum::DeepSpawn => vec![
+                SpeciesEnum::Human,
+                SpeciesEnum::Fish,
+                SpeciesEnum::Dvergar,
+                SpeciesEnum::Undead,
+            ],
+            SpeciesEnum::Undead => vec![
+                SpeciesEnum::Human,
+                SpeciesEnum::Dvergar,
+                SpeciesEnum::DeepSpawn,
+                SpeciesEnum::Gremlin,
+            ],
         }
     }
 }

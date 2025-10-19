@@ -20,8 +20,8 @@ pub const HEADER_LEFT_SPAN: i32 = 64;
 pub const MAX_MESSAGES_IN_LOG: usize = 4;
 
 /// Inventory related constants
-pub const INVENTORY_X: i32 = (WINDOW_WIDTH/2) - INVENTORY_SIZE/2;
-pub const INVENTORY_Y: i32 = (WINDOW_HEIGHT/3) - INVENTORY_SIZE/2;
+pub const INVENTORY_X: i32 = (WINDOW_WIDTH / 2) - INVENTORY_SIZE / 2;
+pub const INVENTORY_Y: i32 = (WINDOW_HEIGHT / 3) - INVENTORY_SIZE / 2;
 pub const INVENTORY_SIZE: i32 = 512;
 pub const INVENTORY_FOOTER_WIDTH: i32 = 186;
 pub const INVENTORY_LEFT_SPAN: i32 = 20;
@@ -37,12 +37,12 @@ pub const MAX_ITEMS_IN_BACKPACK: usize = 10;
 pub const MAX_ITEMS_IN_BACKPACK_FOR_SMALL: usize = 3;
 
 /// Dialog related constants
-pub const DIALOG_X: i32 = (WINDOW_WIDTH/2) - DIALOG_SIZE/2; 
-pub const DIALOG_Y: i32 = (WINDOW_HEIGHT/3) - DIALOG_SIZE/2; 
+pub const DIALOG_X: i32 = (WINDOW_WIDTH / 2) - DIALOG_SIZE / 2;
+pub const DIALOG_Y: i32 = (WINDOW_HEIGHT / 3) - DIALOG_SIZE / 2;
 pub const DIALOG_SIZE: i32 = 640;
 pub const DIALOG_FOOTER_WIDTH: i32 = 186;
-pub const DIALOG_LEFT_SPAN: i32 = DIALOG_FOOTER_WIDTH/4;
-pub const DIALOG_TOP_SPAN: i32 = DIALOG_SIZE/6;
+pub const DIALOG_LEFT_SPAN: i32 = DIALOG_FOOTER_WIDTH / 4;
+pub const DIALOG_TOP_SPAN: i32 = DIALOG_SIZE / 6;
 
 /// UI related constants
 pub const UI_BORDER: i32 = 8;
@@ -65,7 +65,7 @@ pub const MAX_ITEMS_IN_ZONE: i32 = 10;
 pub const MAX_SPAWN_TENTANTIVES: i32 = 10;
 
 /// Player related constants
-pub const BASE_VIEW_RADIUS: i32 = 16;
+pub const BASE_VIEW_RADIUS: i32 = 24;
 pub const MAX_STAMINA_HEAL_TICK_COUNTER: i32 = 4;
 pub const MAX_HUNGER_TICK_COUNTER: i32 = 151;
 pub const MAX_THIRST_TICK_COUNTER: i32 = 151;
@@ -113,8 +113,7 @@ pub const MAX_HIDDEN_TURNS: i32 = 9;
 pub const AUTOFAIL_SAVING_THROW: i32 = 999;
 
 /// Position related constants
-pub const NEXT_TO_DISTANCE:f32 = 1.5;
-pub const ON_TOP_DISTANCE:f32 = 0.0;
+pub const NEXT_TO_DISTANCE: f32 = 1.5;
+pub const ON_TOP_DISTANCE: f32 = 0.0;
 
-pub const LISTEN_COOLDOWN_START:i32 = 19;
-
+pub const LISTEN_COOLDOWN_START: i32 = 19;

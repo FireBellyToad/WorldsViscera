@@ -4,9 +4,9 @@ pub struct Aquatic {}
 
 pub struct Venomous {}
 
-pub struct Smart{}
+pub struct Smart {}
 
-pub struct Small{}
+pub struct Small {}
 
 pub struct WantsToApproach {
     pub target_x: i32,
