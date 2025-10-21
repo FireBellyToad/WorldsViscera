@@ -1,4 +1,5 @@
 use crate::components::items::Equippable;
+use crate::utils::roll::Roll;
 use std::collections::HashSet;
 
 use hecs::{Entity, World};
@@ -55,7 +56,7 @@ pub struct MonsterThink {}
 impl MonsterThink {
     /// Monster acting function
     pub fn run(ecs_world: &mut World) {
-        let mut approacher_list: Vec<(Entity, i32, i32)> = Vec::new();
+        let mut approacher_list: Vec<(Entity, i32, i32, u32)> = Vec::new();
         let mut pickup_list: Vec<(Entity, Entity)> = Vec::new();
         let mut attacker_target_list: Vec<(Entity, Entity)> = Vec::new();
         let mut zapper_list: Vec<(Entity, Entity, i32, i32)> = Vec::new();
@@ -75,6 +76,7 @@ impl MonsterThink {
                     Option<&Small>,
                     Option<&Smart>,
                     Option<&Aquatic>,
+                    Option<&WantsToApproach>,
                 )>()
                 .with::<(&Monster, &MyTurn)>();
 
@@ -89,7 +91,18 @@ impl MonsterThink {
             // For each viewshed position monster component join
             for (
                 monster,
-                (viewshed, position, species, hates, hunger, named, small, smart, aquatic),
+                (
+                    viewshed,
+                    position,
+                    species,
+                    hates,
+                    hunger,
+                    named,
+                    small,
+                    smart,
+                    aquatic,
+                    wants_to_approach,
+                ),
             ) in &mut named_monsters
             {
                 let mut items_of_monster_query = ecs_world.query::<ItemsInBackpack>();
@@ -161,15 +174,21 @@ impl MonsterThink {
                             );
 
                             //If can actually reach the position
-                            if let Some((path, _)) = pathfinding_result {
-                                if path.len() > 1 {
-                                    // Approach something of its interest. x,y are passed to avoid unique borrow issues later on
-                                    approacher_list.push((monster, target_x, target_y));
-                                }
-                            } else {
-                                //No target in sight, wander around
+                            if let Some((path, _)) = pathfinding_result
+                                && path.len() > 1
+                                && target.is_some()
+                            {
+                                // Approach something of its interest. x,y are passed to avoid unique borrow issues later on
+                                approacher_list.push((monster, target_x, target_y, 0));
+                            } else if wants_to_approach.is_none() {
+                                //No target in sight, wander around for a while (if not already doing so)
                                 //TODO what about immovable monsters?
-                                approacher_list.push((monster, -1, -1));
+                                approacher_list.push((
+                                    monster,
+                                    Roll::d6() - Roll::d6() + position.x,
+                                    Roll::d6() - Roll::d6() + position.y,
+                                    3,
+                                ));
                             }
                         }
                         MonsterAction::Eat => {
@@ -198,8 +217,15 @@ impl MonsterThink {
         }
 
         // Approach if needed
-        for (approacher, target_x, target_y) in approacher_list {
-            let _ = ecs_world.insert_one(approacher, WantsToApproach { target_x, target_y });
+        for (approacher, target_x, target_y, counter) in approacher_list {
+            let _ = ecs_world.insert_one(
+                approacher,
+                WantsToApproach {
+                    target_x,
+                    target_y,
+                    counter,
+                },
+            );
         }
 
         // Attack if needed
@@ -349,12 +375,7 @@ impl MonsterThink {
         }
 
         // TODO Order by priority
-
         // No valid target found
-        println!(
-            "{} Entity {} - no target",
-            monster_dto.named.name, monster_dto.self_id
-        );
         (MonsterAction::Move, None, -1, -1)
     }
 }

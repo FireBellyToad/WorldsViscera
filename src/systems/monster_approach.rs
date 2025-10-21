@@ -27,7 +27,7 @@ impl MonsterApproach {
                     &mut Position,
                     &CombatStats,
                     Option<&Aquatic>,
-                    &WantsToApproach,
+                    &mut WantsToApproach,
                 )>()
                 .with::<(&Monster, &MyTurn)>();
 
@@ -41,18 +41,8 @@ impl MonsterApproach {
             for (monster_entity, (viewshed, position, stats, aquatic, wants_to_approach)) in
                 &mut named_monsters
             {
-                // Does this entity still exist and has a position?
-                approacher_list.push(monster_entity);
-
-                let (move_to_x,move_to_y) =if wants_to_approach.target_x != -1 && wants_to_approach.target_y != -1 {
-                    (wants_to_approach.target_x, wants_to_approach.target_y)
-                } else {
-                    // Wander around
-                    (
-                        Roll::d6() - Roll::d6() + position.x,
-                        Roll::d6() - Roll::d6() + position.y,
-                    )
-                };
+                let (move_to_x, move_to_y) =
+                    (wants_to_approach.target_x, wants_to_approach.target_y);
 
                 let pathfinding_result = Pathfinding::dijkstra_wrapper(
                     position.x,
@@ -79,6 +69,13 @@ impl MonsterApproach {
 
                     //Monster must wait too after an action!
                     waiter_speed_list.push((monster_entity, stats.speed));
+                }
+
+                if wants_to_approach.counter == 0 {
+                    // Does this entity still exist and has a position?
+                    approacher_list.push(monster_entity);
+                } else {
+                    wants_to_approach.counter -= 1;
                 }
             }
         }
