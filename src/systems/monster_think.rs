@@ -40,7 +40,6 @@ struct MonsterThinkData<'a> {
     pub zone: &'a Zone,
     pub viewshed: &'a Viewshed,
     pub hunger: &'a Hunger,
-    pub named: &'a Named,
     pub self_id: &'a u32,
     pub _player_id: &'a u32,
     pub is_smart: bool,
@@ -73,7 +72,6 @@ impl MonsterThink {
                     &Species,
                     &Hates,
                     &Hunger,
-                    &Named,
                     Option<&Small>,
                     Option<&Smart>,
                     Option<&Aquatic>,
@@ -98,7 +96,6 @@ impl MonsterThink {
                     species,
                     hates,
                     hunger,
-                    named,
                     small,
                     smart,
                     aquatic,
@@ -138,7 +135,6 @@ impl MonsterThink {
                             zone,
                             viewshed,
                             hunger,
-                            named,
                             self_id: &monster.id(),
                             _player_id: &player_id,
                             is_smart: smart.is_some(),
@@ -146,7 +142,7 @@ impl MonsterThink {
                             can_invoke: !invokables.is_empty(),
                             species: &species.value,
                             hates: &hates.list,
-                            backpack_is_not_full: (!small.is_some()
+                            backpack_is_not_full: (small.is_none()
                                 && total_items < MAX_ITEMS_IN_BACKPACK)
                                 || (small.is_some()
                                     && total_items < MAX_ITEMS_IN_BACKPACK_FOR_SMALL),
@@ -271,20 +267,7 @@ impl MonsterThink {
         equipper_item_list: &mut Vec<(Entity, Entity)>,
         monster: Entity,
         smart: Option<&Smart>,
-        items_of_monster: &Vec<(
-            Entity,
-            (
-                &Named,
-                &crate::components::items::InBackback,
-                Option<&crate::components::items::Invokable>,
-                Option<&crate::components::items::TurnedOn>,
-                Option<&crate::components::items::MustBeFueled>,
-                Option<&crate::components::items::Metallic>,
-                Option<&crate::components::items::Eroded>,
-                Option<&Equippable>,
-                Option<&Equipped>,
-            ),
-        )>,
+        items_of_monster: &Vec<(Entity, ItemsInBackpack)>,
     ) -> Option<bool> {
         let equippables: Vec<(&Entity, &Equippable)> = items_of_monster
             .iter()
@@ -391,7 +374,7 @@ impl MonsterThink {
                                 .get::<&Species>(entity)
                                 .expect("must have Species");
 
-                            let is_enemy = Utils::what_hates(&monster_dto.species)
+                            let is_enemy = Utils::what_hates(monster_dto.species)
                                 .contains(&target_species.value)
                                 || monster_dto.hates.contains(&entity.id());
 

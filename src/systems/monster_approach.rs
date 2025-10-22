@@ -7,7 +7,7 @@ use crate::{
         monster::{Aquatic, Monster, WantsToApproach},
     },
     maps::zone::Zone,
-    utils::{common::Utils, pathfinding::Pathfinding, roll::Roll},
+    utils::{common::Utils, pathfinding::Pathfinding},
 };
 
 /// Monster AI struct
