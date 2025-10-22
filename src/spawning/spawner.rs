@@ -2,7 +2,8 @@ use std::collections::HashMap;
 
 use crate::components::combat::{CombatStats, SufferingDamage};
 use crate::components::common::{
-    CanListen, CanSmell, MyTurn, Named, Position, ProduceSound, Renderable, SmellIntensity, Smellable, Species, SpeciesEnum, Viewshed
+    CanListen, CanSmell, MyTurn, Named, Position, ProduceSound, Renderable, SmellIntensity,
+    Smellable, Species, SpeciesEnum, Viewshed,
 };
 use crate::components::health::{CanAutomaticallyHeal, Hunger, Thirst};
 use crate::components::items::{
@@ -96,9 +97,9 @@ impl Spawn {
                 radius: PLAYER_LISTEN_RADIUS,
                 cooldown: 0,
             },
-            Species{
-                value: SpeciesEnum::Human
-            }
+            Species {
+                value: SpeciesEnum::Human,
+            },
         );
 
         ecs_world.spawn(player_entity);

@@ -69,13 +69,16 @@ impl MonsterApproach {
 
                     //Monster must wait too after an action!
                     waiter_speed_list.push((monster_entity, stats.speed));
-                }
 
-                if wants_to_approach.counter == 0 {
-                    // Does this entity still exist and has a position?
-                    approacher_list.push(monster_entity);
+                    if wants_to_approach.counter == 0 {
+                        // Approached point, stop moving
+                        approacher_list.push(monster_entity);
+                    } else {
+                        wants_to_approach.counter -= 1;
+                    }
                 } else {
-                    wants_to_approach.counter -= 1;
+                    // Approached point, stop moving
+                    approacher_list.push(monster_entity);
                 }
             }
         }

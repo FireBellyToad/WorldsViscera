@@ -1,4 +1,5 @@
 use crate::components::items::Equippable;
+use crate::components::items::Equipped;
 use crate::utils::roll::Roll;
 use std::collections::HashSet;
 
@@ -109,22 +110,17 @@ impl MonsterThink {
                 let items_of_monster: Vec<(Entity, ItemsInBackpack)> =
                     items_of_monster_query.iter().collect();
 
-                // Equippable items that has not been equipped yet by the monster
-                let equipement: Vec<&(Entity, ItemsInBackpack)> = items_of_monster
-                    .iter()
-                    .filter(
-                        |(_, (_, in_backpack, _, _, _, _, _, equippable, equipped))| {
-                            in_backpack.owner.id() == monster.id()
-                                && equippable.is_some()
-                                && equipped.is_none()
-                        },
-                    )
-                    .collect();
+                let item_to_equip_found = match MonsterThink::has_nothing_to_equip(
+                    &mut equipper_item_list,
+                    monster,
+                    smart,
+                    &items_of_monster,
+                ) {
+                    Some(result) => result,
+                    None => continue,
+                };
 
-                // Equip the first available equippable item if available
-                if !equipement.is_empty() && smart.is_some() {
-                    equipper_item_list.push((monster, equipement[0].0));
-                } else {
+                if !item_to_equip_found {
                     let total_items = items_of_monster.iter().len();
 
                     let invokables: Vec<&(Entity, ItemsInBackpack)> = items_of_monster
@@ -269,6 +265,77 @@ impl MonsterThink {
                 },
             );
         }
+    }
+
+    fn has_nothing_to_equip(
+        equipper_item_list: &mut Vec<(Entity, Entity)>,
+        monster: Entity,
+        smart: Option<&Smart>,
+        items_of_monster: &Vec<(
+            Entity,
+            (
+                &Named,
+                &crate::components::items::InBackback,
+                Option<&crate::components::items::Invokable>,
+                Option<&crate::components::items::TurnedOn>,
+                Option<&crate::components::items::MustBeFueled>,
+                Option<&crate::components::items::Metallic>,
+                Option<&crate::components::items::Eroded>,
+                Option<&Equippable>,
+                Option<&Equipped>,
+            ),
+        )>,
+    ) -> Option<bool> {
+        let equippables: Vec<(&Entity, &Equippable)> = items_of_monster
+            .iter()
+            .filter(
+                |(_, (_, in_backpack, _, _, _, _, _, equippable, equipped))| {
+                    in_backpack.owner.id() == monster.id()
+                        && equippable.is_some()
+                        && equipped.is_none()
+                },
+            )
+            .map(|(entity, (_, _, _, _, _, _, _, equippable, _))| {
+                (entity, equippable.expect("Equippable item is missing"))
+            })
+            .collect();
+        let equipped: Vec<(&Entity, &Equipped)> = items_of_monster
+            .iter()
+            .filter(
+                |(_, (_, in_backpack, _, _, _, _, _, equippable, equipped))| {
+                    in_backpack.owner.id() == monster.id()
+                        && equippable.is_some()
+                        && equipped.is_some()
+                },
+            )
+            .map(|(entity, (_, _, _, _, _, _, _, _, equipped))| {
+                (entity, equipped.expect("Equippable item is missing"))
+            })
+            .collect();
+        let mut item_to_equip_found = false;
+        if !equippables.is_empty() && smart.is_some() {
+            for (item_a, equippable_a) in equippables {
+                // Get a list of items which body location do not overlap with the equipped items
+                item_to_equip_found = equipped.iter().any(|(_, equipped_b)| {
+                    !Utils::occupies_same_location(
+                        &equippable_a.body_location,
+                        &equipped_b.body_location,
+                    )
+                });
+
+                if item_to_equip_found {
+                    // Equip the first item that does not overlap
+                    equipper_item_list.push((monster, *item_a));
+                    break;
+                }
+            }
+
+            if item_to_equip_found {
+                // If something is equipped, continue to the next monster
+                return None;
+            }
+        }
+        Some(item_to_equip_found)
     }
 
     /// pick a target from visible tiles
