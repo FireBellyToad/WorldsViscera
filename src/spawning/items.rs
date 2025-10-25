@@ -16,7 +16,7 @@ use crate::{
 };
 
 pub fn mushroom(ecs_world: &mut World, x: i32, y: i32) {
-    let index = Roll::dice(1, 10) - 1;
+    let index = Roll::dice(1, MUSHROOM_SPAWN_MAP.len() as i32) - 1;
     let mushroom_type = MUSHROOM_SPAWN_MAP[index as usize];
 
     let common_components = (

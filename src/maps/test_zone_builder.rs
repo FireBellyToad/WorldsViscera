@@ -8,6 +8,7 @@ use crate::{
 };
 
 /// Builds a simple arena zone, with only the boundary walls
+#[allow(dead_code)]
 pub struct TestZoneBuilder {}
 
 impl ZoneBuilder for TestZoneBuilder {
@@ -39,7 +40,7 @@ impl ZoneBuilder for TestZoneBuilder {
                 }
             }
         }
-        
+
         // Populate water and blocked tiles here, needed for correct spawning
         zone.populate_blocked();
         zone.populate_water();

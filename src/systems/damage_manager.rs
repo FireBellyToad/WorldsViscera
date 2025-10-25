@@ -32,7 +32,7 @@ impl DamageManager {
             .iter()
             .last()
             .expect("Zone is not in hecs::World");
-        
+
         for (damaged_entity, (damageable, stats, position)) in &mut damageables {
             if damageable.damage_received > 0 {
                 stats.current_stamina -= damageable.damage_received;
@@ -83,6 +83,12 @@ impl DamageManager {
                 .last()
                 .expect("Game log is not in hecs::World");
 
+            let mut zone_query = ecs_world.query::<&mut Zone>();
+            let (_, zone) = zone_query
+                .iter()
+                .last()
+                .expect("Zone is not in hecs::World");
+
             let mut damageables =
                 ecs_world.query::<(&CombatStats, &Named, &mut SufferingDamage, &Position)>();
             for (entity, (stats, named, damageable, position)) in &mut damageables {
@@ -92,13 +98,35 @@ impl DamageManager {
                     && (damageable.damage_received > 0 || damageable.toughness_damage_received > 0)
                 {
                     let saving_throw_roll = Roll::d20();
-                    if stats.current_toughness < 1 || saving_throw_roll > stats.current_toughness {
-                        dead_entities.push((entity, named.name.clone(), (position.x, position.y)));
-                        game_log.entries.push(format!("{} dies!", named.name));
-                    } else if stats.current_toughness > 0 {
-                        game_log
-                            .entries
-                            .push(format!("{} staggers in pain!", named.name));
+                    if entity.id() == player_entity_id {
+                        if stats.current_toughness < 1
+                            || saving_throw_roll > stats.current_toughness
+                        {
+                            dead_entities.push((
+                                entity,
+                                named.name.clone(),
+                                (position.x, position.y),
+                            ));
+                            game_log.entries.push("You die!".to_string());
+                        } else if stats.current_toughness > 0 {
+                            game_log.entries.push("You stagger in pain!".to_string());
+                        }
+                    } else if zone.visible_tiles[Zone::get_index_from_xy(position.x, position.y)] {
+                        // Log npc deaths only if visible by player
+                        if stats.current_toughness < 1
+                            || saving_throw_roll > stats.current_toughness
+                        {
+                            dead_entities.push((
+                                entity,
+                                named.name.clone(),
+                                (position.x, position.y),
+                            ));
+                            game_log.entries.push(format!("{} dies!", named.name));
+                        } else if stats.current_toughness > 0 {
+                            game_log
+                                .entries
+                                .push(format!("{} staggers in pain!", named.name));
+                        }
                     }
                 }
                 // Reset damage_received

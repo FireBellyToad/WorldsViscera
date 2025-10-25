@@ -58,7 +58,8 @@ impl EatingEdibles {
                         game_log
                             .entries
                             .push(format!("You ate a {}", named_edible.name));
-                    } else {
+                    } else if zone.visible_tiles[Zone::get_index_from_xy(position.x, position.y)] {
+                        // Log NPC infighting only if visible
                         game_log
                             .entries
                             .push(format!("{} ate a {}", named_eater.name, named_edible.name));
@@ -96,6 +97,13 @@ impl EatingEdibles {
                                 "You ate {} food! You vomit!",
                                 unsavoury_component.game_log
                             ));
+                        } else if zone.visible_tiles
+                            [Zone::get_index_from_xy(position.x, position.y)]
+                        {
+                            // Log NPC infighting only if visible
+                            game_log
+                                .entries
+                                .push(format!("The {} vomits!", named_eater.name));
                         }
 
                         zone.decals_tiles.insert(
