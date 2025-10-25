@@ -5,12 +5,13 @@ use hecs::{Entity, World};
 use crate::{
     components::{
         combat::{CanHide, CombatStats, IsHidden, SufferingDamage, WantsToMelee},
-        common::{GameLog, Hates, MyTurn, Named},
+        common::{GameLog, Hates, MyTurn, Named, Position},
         items::{Armor, Equipped, Eroded, Weapon},
         monster::Venomous,
         player::Player,
     },
     constants::MAX_HIDDEN_TURNS,
+    maps::zone::Zone,
     utils::roll::Roll,
 };
 
@@ -29,6 +30,7 @@ impl MeleeManager {
                 .query::<(
                     &WantsToMelee,
                     &Named,
+                    &Position,
                     &CombatStats,
                     Option<&IsHidden>,
                     Option<&Venomous>,
@@ -38,16 +40,28 @@ impl MeleeManager {
             let mut equipped_weapons = ecs_world.query::<(&Weapon, &Equipped, Option<&Eroded>)>();
             let mut equipped_armors = ecs_world.query::<(&Armor, &Equipped, Option<&Eroded>)>();
 
-            //Log all the pick ups
+            //Log all the fights
+            // TODO what about unseen fights? Something should be heard by the player
             let mut game_log_query = ecs_world.query::<&mut GameLog>();
             let (_, game_log) = game_log_query
                 .iter()
                 .last()
                 .expect("Game log is not in hecs::World");
 
-            for (attacker, (wants_melee, named_attacker, attacker_stats, hidden, venomous)) in
-                &mut attackers
+            let mut zone_query = ecs_world.query::<&mut Zone>();
+            let (_, zone) = zone_query
+                .iter()
+                .last()
+                .expect("Zone is not in hecs::World");
+
+            for (
+                attacker,
+                (wants_melee, named_attacker, attacker_position, attacker_stats, hidden, venomous),
+            ) in &mut attackers
             {
+                let attacker_is_player = attacker.id() == player_id;
+                let target_is_player = wants_melee.target.id() == player_id;
+
                 //Sum damage, keeping in mind that could not have SufferingDamage component
                 if let Ok(mut target_damage) =
                     ecs_world.get::<&mut SufferingDamage>(wants_melee.target)
@@ -94,11 +108,29 @@ impl MeleeManager {
                                 damage_roll = max(0, Roll::dice(1, attacker_dice));
                                 target_damage.toughness_damage_received += damage_roll;
 
-                                game_log.entries.push(format!(
-                                    "{} hits the {} for {} venomous damage",
-                                    named_attacker.name, named_target.name, damage_roll
-                                ));
-                            } else if wants_melee.target.id() == player_id {
+                                if attacker_is_player {
+                                    game_log.entries.push(format!(
+                                        "You hit the {} for {} venomous damage",
+                                        named_target.name, damage_roll
+                                    ));
+                                } else if target_is_player {
+                                    game_log.entries.push(format!(
+                                        "The {} hits you for {} venomous damage",
+                                        named_attacker.name, damage_roll
+                                    ));
+                                } else {
+                                    // Log NPC infighting only if visible
+                                    if zone.visible_tiles[Zone::get_index_from_xy(
+                                        attacker_position.x,
+                                        attacker_position.y,
+                                    )] {
+                                        game_log.entries.push(format!(
+                                            "The {} hits the {} for {} venomous damage",
+                                            named_attacker.name, named_target.name, damage_roll
+                                        ));
+                                    }
+                                }
+                            } else if target_is_player {
                                 game_log.entries.push(
                                     "The hit makes you feel dizzy for a moment, then it passes"
                                         .to_string(),
@@ -111,10 +143,29 @@ impl MeleeManager {
                                 Some(_) => {
                                     damage_roll =
                                         max(0, Roll::dice(2, attacker_dice) - target_armor);
-                                    game_log.entries.push(format!(
-                                        "{} sneak attacks the {} for {} damage!",
-                                        named_attacker.name, named_target.name, damage_roll
-                                    ));
+
+                                    if attacker_is_player {
+                                        game_log.entries.push(format!(
+                                            "You sneak attack the {} for {} damage!",
+                                            named_target.name, damage_roll
+                                        ));
+                                    } else if target_is_player {
+                                        game_log.entries.push(format!(
+                                            "The{} sneak attacks you for {} damage!",
+                                            named_attacker.name, damage_roll
+                                        ));
+                                    } else {
+                                        // Log NPC infighting only if visible
+                                        if zone.visible_tiles[Zone::get_index_from_xy(
+                                            attacker_position.x,
+                                            attacker_position.y,
+                                        )] {
+                                            game_log.entries.push(format!(
+                                                "The {} sneak attacks the {} for {} damage!",
+                                                named_attacker.name, named_target.name, damage_roll
+                                            ));
+                                        }
+                                    }
                                     hidden_list.push(attacker);
 
                                     // Cannot hide again for 9 - (stats.current_dexterity / 3) turns
@@ -131,10 +182,28 @@ impl MeleeManager {
                                         0,
                                         Roll::dice(1, attacker_dice) - target_stats.base_armor,
                                     );
-                                    game_log.entries.push(format!(
-                                        "{} hits the {} for {} damage",
-                                        named_attacker.name, named_target.name, damage_roll
-                                    ));
+                                    if attacker_is_player {
+                                        game_log.entries.push(format!(
+                                            "You hit the {} for {} damage",
+                                            named_target.name, damage_roll
+                                        ));
+                                    } else if target_is_player {
+                                        game_log.entries.push(format!(
+                                            "The {} hits you for {} damage",
+                                            named_attacker.name, damage_roll
+                                        ));
+                                    } else {
+                                        // Log NPC infighting only if visible
+                                        if zone.visible_tiles[Zone::get_index_from_xy(
+                                            attacker_position.x,
+                                            attacker_position.y,
+                                        )] {
+                                            game_log.entries.push(format!(
+                                                "{} hits the {} for {} damage",
+                                                named_attacker.name, named_target.name, damage_roll
+                                            ));
+                                        }
+                                    }
                                 }
                             }
                             target_damage.damage_received += damage_roll;

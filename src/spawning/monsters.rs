@@ -247,7 +247,7 @@ pub fn create_monster(
         ProduceCorpse {},
         Hunger {
             tick_counter: MAX_HUNGER_TICK_COUNTER,
-            current_status: HungerStatus::Satiated,
+            current_status: HungerStatus::Normal,
         },
         MyTurn {},
         smells,

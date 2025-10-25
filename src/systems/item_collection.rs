@@ -13,6 +13,7 @@ use crate::{
         MAX_ITEMS_IN_BACKPACK, MAX_ITEMS_IN_BACKPACK_FOR_SMALL, OPTION_TO_CHAR_MAP,
         STARTING_ROT_COUNTER,
     },
+    maps::zone::Zone,
     utils::{common::Utils, roll::Roll},
 };
 
@@ -28,7 +29,8 @@ impl ItemCollection {
         // Scope for keeping borrow checker quiet
         {
             // List of entities that want to collect items
-            let mut collectors = ecs_world.query::<(&WantsItem, &CombatStats, Option<&Small>)>();
+            let mut collectors =
+                ecs_world.query::<(&WantsItem, &CombatStats, &Position, Option<&Small>)>();
 
             //Items in all backpacks
             let mut items_in_backpacks = ecs_world.query::<(&Item, &InBackback)>();
@@ -40,7 +42,13 @@ impl ItemCollection {
                 .last()
                 .expect("Game log is not in hecs::World");
 
-            for (collector, (wants_item, stats, small)) in &mut collectors {
+            let mut zone_query = ecs_world.query::<&mut Zone>();
+            let (_, zone) = zone_query
+                .iter()
+                .last()
+                .expect("Zone is not in hecs::World");
+
+            for (collector, (wants_item, stats, position, small)) in &mut collectors {
                 let mut char_to_assign = OPTION_TO_CHAR_MAP[0];
 
                 // All the currently assigned chars of the item carried by the owner
@@ -82,9 +90,10 @@ impl ItemCollection {
                         game_log
                             .entries
                             .push(format!("You pick up the {}", named_item.name));
-                    } else {
+                    } else if zone.visible_tiles[Zone::get_index_from_xy(position.x, position.y)] {
+                        // Log NPC infighting only if visible
                         game_log.entries.push(format!(
-                            "{} picks up the {}",
+                            "The {} picks up the {}",
                             named_owner.name, named_item.name
                         ));
                     }

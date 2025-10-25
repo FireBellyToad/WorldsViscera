@@ -3,10 +3,11 @@ use hecs::{Entity, World};
 use crate::{
     components::{
         actions::WantsToEquip,
-        common::{GameLog, Named},
+        common::{GameLog, Named, Position},
         items::{BodyLocation, Equipped},
         player::Player,
     },
+    maps::zone::Zone,
     utils::common::Utils,
 };
 
@@ -23,7 +24,7 @@ impl ItemEquipping {
         // Scope for keeping borrow checker quiet
         {
             // List of entities that want to equip items
-            let mut items_to_equip = ecs_world.query::<&WantsToEquip>();
+            let mut items_to_equip = ecs_world.query::<(&WantsToEquip, &Position)>();
             let mut equipped_items = ecs_world.query::<&Equipped>();
 
             //Log all the equipments
@@ -33,10 +34,17 @@ impl ItemEquipping {
                 .last()
                 .expect("Game log is not in hecs::World");
 
-            for (equipper, wants_to_equip) in &mut items_to_equip {
+            let mut zone_query = ecs_world.query::<&mut Zone>();
+            let (_, zone) = zone_query
+                .iter()
+                .last()
+                .expect("Zone is not in hecs::World");
+
+            for (equipper, (wants_to_equip, position)) in &mut items_to_equip {
                 // Show appropriate log messages
-                let named_item: hecs::Ref<'_, Named> =
-                    ecs_world.get::<&Named>(wants_to_equip.item).expect("Entity is not Named");
+                let named_item: hecs::Ref<'_, Named> = ecs_world
+                    .get::<&Named>(wants_to_equip.item)
+                    .expect("Entity is not Named");
                 let is_already_equipped = ecs_world.get::<&Equipped>(wants_to_equip.item).is_ok();
 
                 if is_already_equipped {
@@ -49,7 +57,9 @@ impl ItemEquipping {
                             .push(format!("You unequip the {}", named_item.name));
                     }
                 } else {
-                    let named_dropper = ecs_world.get::<&Named>(equipper).expect("Entity is not Named");
+                    let named_dropper = ecs_world
+                        .get::<&Named>(equipper)
+                        .expect("Entity is not Named");
 
                     //Check if wants_item.body_location is already taken
                     let item_in_same_location: Option<(Entity, &Equipped)> =
@@ -64,8 +74,9 @@ impl ItemEquipping {
                     match item_in_same_location {
                         // Old item in same body location as new one
                         Some((item_to_remove, _)) => {
-                            let named_item_to_remove =
-                                ecs_world.get::<&Named>(item_to_remove).expect("Entity is not Named");
+                            let named_item_to_remove = ecs_world
+                                .get::<&Named>(item_to_remove)
+                                .expect("Entity is not Named");
                             // Log to warning to Unequip item in same location and cleanup
                             cleanup_equip.push(equipper);
 
@@ -88,7 +99,9 @@ impl ItemEquipping {
                                 game_log
                                     .entries
                                     .push(format!("You equip the {}", named_item.name));
-                            } else {
+                            } else if zone.visible_tiles
+                                [Zone::get_index_from_xy(position.x, position.y)]
+                            {
                                 game_log.entries.push(format!(
                                     "{} equips the {}",
                                     named_dropper.name, named_item.name
