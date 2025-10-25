@@ -6,7 +6,9 @@ use crate::{
         combat::InflictsDamage,
         common::{Named, Position, Renderable, SmellIntensity, Smellable},
         items::{
-            Appliable, Armor, BodyLocation, Bulky, Deadly, Edible, Equippable, Equipped, InBackback, Invokable, InvokablesEnum, Item, Metallic, MustBeFueled, ProduceLight, Quaffable, Refiller, ToBeHarvested, TurnedOff, TurnedOn, Unsavoury, Weapon
+            Appliable, Armor, BodyLocation, Bulky, Deadly, Edible, Equippable, Equipped,
+            InBackback, Invokable, InvokablesEnum, Item, Metallic, MustBeFueled, ProduceLight,
+            Quaffable, Refiller, ToBeHarvested, TurnedOff, TurnedOn, Unsavoury, Weapon,
         },
     },
     constants::*,
@@ -61,8 +63,8 @@ pub fn mushroom(ecs_world: &mut World, x: i32, y: i32) {
                 mushroom_entity,
                 (
                     Edible {
-                        nutrition_dice_number: 1,
-                        nutrition_dice_size: 20,
+                        nutrition_dice_number: 3,
+                        nutrition_dice_size: 6,
                     },
                     Named {
                         name: "tuft of tiny mushrooms".to_string(),
@@ -119,6 +121,22 @@ pub fn mushroom(ecs_world: &mut World, x: i32, y: i32) {
                     },
                 ),
             );
+        }
+        MUSHROOM_LICHEN => {
+            let _ = ecs_world.insert(
+                mushroom_entity,
+                (
+                    Edible {
+                        nutrition_dice_number: 2,
+                        nutrition_dice_size: 10,
+                    },
+                    Named {
+                        name: "lichen".to_string(),
+                    },
+                ),
+            );
+            //Lichen does not rot after being harvested
+            let _ = ecs_world.remove_one::<ToBeHarvested>(mushroom_entity);
         }
         _ => {}
     }
@@ -186,7 +204,7 @@ pub fn lantern(ecs_world: &mut World, x: i32, y: i32) {
             intensity: SmellIntensity::Faint,
         },
         TurnedOff {},
-        Appliable{}
+        Appliable {},
     );
 
     ecs_world.spawn(lantern);
@@ -249,12 +267,13 @@ pub fn flask_of_oil(ecs_world: &mut World, x: i32, y: i32) {
             item_tile: item_tile_index,
         },
         Refiller {
-            fuel_counter: STARTING_FUEL + Roll::d100(),},
+            fuel_counter: STARTING_FUEL + Roll::d100(),
+        },
         Smellable {
             smell_log: "a faint scent of fuel".to_string(),
             intensity: SmellIntensity::Faint,
         },
-        Appliable{}
+        Appliable {},
     );
 
     ecs_world.spawn(flask_of_oil);
@@ -313,7 +332,7 @@ pub fn rockpick(ecs_world: &mut World, x: i32, y: i32) {
             body_location: BodyLocation::RightHand,
         },
         Weapon { attack_dice: 6 },
-        Metallic {}
+        Metallic {},
     );
 
     //TODO Bonus to climb while wielded
@@ -347,12 +366,11 @@ pub fn maul(ecs_world: &mut World, x: i32, y: i32) {
         Weapon { attack_dice: 8 },
         Appliable {}, // TODO not used right now
         Bulky {},
-        Metallic {}
+        Metallic {},
     );
 
     ecs_world.spawn(flask_of_oil);
 }
-
 
 pub fn leather_armor(ecs_world: &mut World, x: i32, y: i32) {
     let item_tile_index = (0, 3);
@@ -384,7 +402,7 @@ pub fn leather_armor(ecs_world: &mut World, x: i32, y: i32) {
 }
 
 pub fn breastplate(ecs_world: &mut World, x: i32, y: i32) {
-    let item_tile_index = (1,3);
+    let item_tile_index = (1, 3);
     let flask_of_oil = (
         Position { x, y },
         Renderable {
@@ -408,16 +426,15 @@ pub fn breastplate(ecs_world: &mut World, x: i32, y: i32) {
         },
         Armor { value: 3 },
         Bulky {},
-        Metallic {}
+        Metallic {},
     );
 
     ecs_world.spawn(flask_of_oil);
 }
 
-
 pub fn dvergar_chain(ecs_world: &mut World, owner: Entity) {
-    let item_tile_index = (2,3);
-    let dvergar_chain = (        
+    let item_tile_index = (2, 3);
+    let dvergar_chain = (
         InBackback {
             owner,
             assigned_char: 'a',
@@ -441,10 +458,13 @@ pub fn dvergar_chain(ecs_world: &mut World, owner: Entity) {
         Equippable {
             body_location: BodyLocation::Torso,
         },
-        Equipped{ owner, body_location:  BodyLocation::Torso },
+        Equipped {
+            owner,
+            body_location: BodyLocation::Torso,
+        },
         Armor { value: 2 },
         Bulky {},
-        Metallic {}
+        Metallic {},
     );
 
     ecs_world.spawn(dvergar_chain);

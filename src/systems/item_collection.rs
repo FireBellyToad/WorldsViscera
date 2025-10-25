@@ -29,8 +29,13 @@ impl ItemCollection {
         // Scope for keeping borrow checker quiet
         {
             // List of entities that want to collect items
-            let mut collectors =
-                ecs_world.query::<(&WantsItem, &CombatStats, &Position, Option<&Small>)>();
+            let mut collectors = ecs_world.query::<(
+                &WantsItem,
+                &CombatStats,
+                &Position,
+                Option<&Small>,
+                Option<&ToBeHarvested>,
+            )>();
 
             //Items in all backpacks
             let mut items_in_backpacks = ecs_world.query::<(&Item, &InBackback)>();
@@ -48,7 +53,9 @@ impl ItemCollection {
                 .last()
                 .expect("Zone is not in hecs::World");
 
-            for (collector, (wants_item, stats, position, small)) in &mut collectors {
+            for (collector, (wants_item, stats, position, small, to_be_harvested)) in
+                &mut collectors
+            {
                 let mut char_to_assign = OPTION_TO_CHAR_MAP[0];
 
                 // All the currently assigned chars of the item carried by the owner
@@ -99,7 +106,7 @@ impl ItemCollection {
                     }
 
                     // If needs to be on ground but not starting to rot (usually plants or mushroom)
-                    if ecs_world.get::<&ToBeHarvested>(wants_item.item).is_ok() {
+                    if to_be_harvested.is_some() {
                         harvested_list.push(wants_item.item);
                     }
 
