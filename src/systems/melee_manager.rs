@@ -178,10 +178,8 @@ impl MeleeManager {
                                 }
                                 None => {
                                     // Standard attack
-                                    damage_roll = max(
-                                        0,
-                                        Roll::dice(1, attacker_dice) - target_stats.base_armor,
-                                    );
+                                    damage_roll =
+                                        max(0, Roll::dice(1, attacker_dice) - target_armor);
                                     if attacker_is_player {
                                         game_log.entries.push(format!(
                                             "You hit the {} for {} damage",
