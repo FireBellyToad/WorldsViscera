@@ -1,3 +1,4 @@
+use crate::utils::common::Utils;
 use std::cmp::max;
 
 use hecs::{Entity, World};
@@ -19,7 +20,7 @@ pub struct MeleeManager {}
 
 impl MeleeManager {
     pub fn run(ecs_world: &mut World) {
-        let mut wants_to_melee_list: Vec<Entity> = Vec::new();
+        let mut wants_to_melee_list: Vec<(Entity, i32)> = Vec::new();
         let mut hidden_list: Vec<Entity> = Vec::new();
         let player_id = Player::get_entity_id(ecs_world);
 
@@ -208,14 +209,15 @@ impl MeleeManager {
                         }
                     }
 
-                    wants_to_melee_list.push(attacker);
+                    wants_to_melee_list.push((attacker, attacker_stats.speed));
                 }
             }
         }
 
         // Remove owner's will to attack
-        for attacker in wants_to_melee_list {
+        for (attacker, speed) in wants_to_melee_list {
             let _ = ecs_world.remove_one::<WantsToMelee>(attacker);
+            Utils::wait_after_action(ecs_world, attacker, speed);
         }
 
         //No longer hidden
