@@ -539,6 +539,10 @@ impl Draw {
                             direction = 3.0;
                         }
                     }
+                }
+                // If the previous position is the starting one and the animation should exclude the first frame, skip drawing
+                // This is important for the rays and projectiles animations
+                if (previous_x != -1 && previous_y != 1) || !animation.exclude_first_frame {
                     // Take the texture and draw only the wanted tile ( DrawTextureParams.source )
                     draw_texture_ex(
                         texture_to_render,

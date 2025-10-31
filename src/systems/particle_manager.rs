@@ -43,7 +43,7 @@ impl ParticleManager {
         // Only one animation must be present to enter into the DrawParticles state
         if (&mut animations).into_iter().next().is_some() {
             game_state.run_state = RunState::DrawParticles;
-            game_engine.set_delay(100.0);
+            game_engine.set_delay(75.0);
             return true;
         }
         false

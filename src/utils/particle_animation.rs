@@ -36,14 +36,16 @@ impl ParticleAnimation {
 
     /// Create a new particle animation with a single frame at the given position.
     pub fn simple_particle(x: i32, y: i32, particle_type: u32) -> ParticleAnimation {
+        // Six frame to be sure that is visible
         Self {
             current_frame: 0,
             frames: vec![
-                vec![(x, y), (x, y)],
-                vec![(x, y), (x, y)],
-                vec![(x, y), (x, y)],
-                vec![(x, y), (x, y)],
-                vec![(x, y), (x, y)],
+                vec![(x, y)],
+                vec![(x, y)],
+                vec![(x, y)],
+                vec![(x, y)],
+                vec![(x, y)],
+                vec![(x, y)],
             ],
             particle_type,
             exclude_first_frame: false,
