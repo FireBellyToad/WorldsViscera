@@ -39,12 +39,11 @@ impl ParticleAnimation {
         Self {
             current_frame: 0,
             frames: vec![
-                vec![(x, y), (x, y), (x, y), (x, y)],
-                vec![(x, y), (x, y), (x, y), (x, y)],
-                vec![(x, y), (x, y), (x, y), (x, y)],
-                vec![(x, y), (x, y), (x, y), (x, y)],
-                vec![(x, y), (x, y), (x, y), (x, y)],
-                vec![(x, y), (x, y), (x, y), (x, y)],
+                vec![(x, y), (x, y)],
+                vec![(x, y), (x, y)],
+                vec![(x, y), (x, y)],
+                vec![(x, y), (x, y)],
+                vec![(x, y), (x, y)],
             ],
             particle_type,
             exclude_first_frame: false,
