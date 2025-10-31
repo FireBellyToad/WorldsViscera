@@ -41,9 +41,11 @@ impl ParticleManager {
         let mut animations = game_state.ecs_world.query::<&ParticleAnimation>();
 
         // Only one animation must be present to enter into the DrawParticles state
-        if (&mut animations).into_iter().next().is_some() {
+        let animation_next = (&mut animations).into_iter().next();
+        if animation_next.is_some() {
+            let (_, animation) = animation_next.expect("Animation entity not found");
             game_state.run_state = RunState::DrawParticles;
-            game_engine.set_delay(75.0);
+            game_engine.set_delay(animation.frame_duration);
             return true;
         }
         false
