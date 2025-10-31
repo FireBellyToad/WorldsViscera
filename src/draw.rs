@@ -16,7 +16,14 @@ use crate::{
         common::{CanSmell, GameLog, Position, Renderable, SmellIntensity, Smellable},
         health::{Hunger, Thirst},
         player::{Player, SpecialViewMode},
-    }, constants::*, dialog::Dialog, engine::state::{EngineState, RunState}, inventory::Inventory, maps::zone::{DecalType, Zone}, systems::{hunger_check::HungerStatus, thirst_check::ThirstStatus}, utils::{assets::TextureName, common::Utils, particle_animation::ParticleAnimation}
+    },
+    constants::*,
+    dialog::Dialog,
+    engine::state::{EngineState, RunState},
+    inventory::Inventory,
+    maps::zone::{DecalType, Zone},
+    systems::{hunger_check::HungerStatus, thirst_check::ThirstStatus},
+    utils::{assets::TextureName, common::Utils, particle_animation::ParticleAnimation},
 };
 
 pub struct Draw {}
@@ -38,9 +45,7 @@ impl Draw {
                     RunState::ShowInventory(mode) => {
                         Inventory::draw(assets, &game_state.ecs_world, mode)
                     }
-                    RunState::ShowDialog(mode) => {
-                        Dialog::draw(assets, &game_state.ecs_world, mode)
-                    }
+                    RunState::ShowDialog(mode) => Dialog::draw(assets, &game_state.ecs_world, mode),
                     RunState::MouseTargeting(special_view_mode) => {
                         Draw::targeting(&game_state.ecs_world, assets, special_view_mode);
                     }
@@ -375,7 +380,7 @@ impl Draw {
                         && !zone.visible_tiles[index]
                         && ((distance < player_smell_ability.radius / 2.0 && smell.intensity == SmellIntensity::Faint) // Faint odors can be smell from half normal distance
                             || (distance < player_smell_ability.radius
-                                && (smell.intensity == SmellIntensity::Strong // Strong odors can be smelled at double distance. 
+                                && (smell.intensity == SmellIntensity::Strong // Strong odors can be smelled at double distance.
                                     || player_smell_ability.intensity == SmellIntensity::Strong))); // Player have improved smell (can smell faint odors from far away)
 
                         //draw not visible smellables within smell radius
@@ -534,7 +539,6 @@ impl Draw {
                             direction = 3.0;
                         }
                     }
-
                     // Take the texture and draw only the wanted tile ( DrawTextureParams.source )
                     draw_texture_ex(
                         texture_to_render,
@@ -544,7 +548,7 @@ impl Draw {
                         DrawTextureParams {
                             source: Some(Rect {
                                 x: direction * TILE_SIZE_F32,
-                                y: 0.0,
+                                y: animation.particle_type as f32 * TILE_SIZE_F32,
                                 w: TILE_SIZE_F32,
                                 h: TILE_SIZE_F32,
                             }),

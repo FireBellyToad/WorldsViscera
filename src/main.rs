@@ -20,7 +20,8 @@ use crate::{
     dialog::Dialog,
     maps::{
         ZoneBuilder, arena_zone_builder::ArenaZoneBuilder,
-        drunken_walk_zone_builder::DrunkenWalkZoneBuilder, zone::Zone,
+        drunken_walk_zone_builder::DrunkenWalkZoneBuilder, test_zone_builder::TestZoneBuilder,
+        zone::Zone,
     },
     systems::{
         apply_system::ApplySystem, automatic_healing::AutomaticHealing,
@@ -173,7 +174,7 @@ fn populate_world(ecs_world: &mut World) {
         },
     ));
 
-    let zone = ArenaZoneBuilder::build(1);
+    let zone = TestZoneBuilder::build(1);
 
     Spawn::player(ecs_world, &zone);
     Spawn::everyhing_in_map(ecs_world, &zone);

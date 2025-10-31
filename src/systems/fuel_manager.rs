@@ -1,3 +1,7 @@
+use crate::{
+    components::common::Position, constants::FLAME_PARTICLE_TYPE,
+    utils::particle_animation::ParticleAnimation,
+};
 use hecs::{Entity, World};
 
 use crate::{
@@ -14,10 +18,12 @@ use crate::{
 type Fueler<'a> = (
     &'a Named,
     &'a WantsToFuel,
+    &'a Position,
     &'a CombatStats,
     &'a mut SufferingDamage,
 );
 
+/// System for managing fuel consumption and refueling.
 pub struct FuelManager {}
 
 impl FuelManager {
@@ -70,6 +76,7 @@ impl FuelManager {
     pub fn do_refills(ecs_world: &mut World) {
         let mut refillers_and_items_used: Vec<(Entity, Entity)> = Vec::new();
         let player_id = Player::get_entity_id(ecs_world);
+        let mut particle_animations: Vec<ParticleAnimation> = Vec::new();
 
         // Scope for keeping borrow checker quiet
         {
@@ -77,7 +84,7 @@ impl FuelManager {
             let mut query = ecs_world.query::<Fueler>();
             let wants_to_refill_list: Vec<(Entity, Fueler)> = query
                 .iter()
-                .filter(|(_, (_, w, _, _))| w.item.is_some())
+                .filter(|(_, (_, w, _, _, _))| w.item.is_some())
                 .collect();
 
             let mut game_log_query = ecs_world.query::<&mut GameLog>();
@@ -86,8 +93,10 @@ impl FuelManager {
                 .last()
                 .expect("Game log is not in hecs::World");
 
-            for (refiller, (named_fueler, wants_to_refill, fueler_stats, fueler_damage)) in
-                wants_to_refill_list
+            for (
+                refiller,
+                (named_fueler, wants_to_refill, position, fueler_stats, fueler_damage),
+            ) in wants_to_refill_list
             {
                 let target = wants_to_refill
                     .item
@@ -109,13 +118,18 @@ impl FuelManager {
                     Some((target_fuel, named_target, turned_on)) => {
                         // Bad idea to refill a lit lantern!
                         if turned_on.is_some() {
-                            // TODO show fire particle on burned guy
                             if player_id == refiller.id() {
                                 game_log.entries.push(format!(
                                     "The {} is lit! Flaming oil spills on your skin",
                                     named_target.name
                                 ));
                             }
+                            // show fire particle on burned guy
+                            particle_animations.push(ParticleAnimation::simple_particle(
+                                position.x,
+                                position.y,
+                                FLAME_PARTICLE_TYPE,
+                            ));
 
                             // Dextery Save made halves damage
                             let saving_throw_roll = Roll::d20();
@@ -177,6 +191,10 @@ impl FuelManager {
             if player_id == refiller.id() {
                 Player::wait_after_action(ecs_world);
             }
+        }
+
+        for particle in particle_animations {
+            let _ = ecs_world.spawn((true, particle));
         }
     }
 }

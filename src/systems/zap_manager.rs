@@ -8,24 +8,32 @@ use crate::{
         items::{Invokable, InvokablesEnum},
         player::Player,
     },
-    constants::AUTOFAIL_SAVING_THROW,
+    constants::{AUTOFAIL_SAVING_THROW, LIGHTING_PARTICLE_TYPE},
     maps::zone::Zone,
-    utils::{common::Utils, effect_manager::EffectManager, particle_animation::ParticleAnimation, roll::Roll},
+    utils::{
+        common::Utils, effect_manager::EffectManager, particle_animation::ParticleAnimation,
+        roll::Roll,
+    },
 };
 
 pub struct ZapManager {}
 
 impl ZapManager {
     pub fn run(ecs_world: &mut World) {
-        let mut wants_to_zap_list: Vec<(Entity,i32)> = Vec::new();
+        let mut wants_to_zap_list: Vec<(Entity, i32)> = Vec::new();
         let mut invokable_list: Vec<Entity> = Vec::new();
         let mut particle_animations: Vec<ParticleAnimation> = Vec::new();
 
         // Scope for keeping borrow checker quiet
         {
             // List of entities that want to zap stuff
-            let mut zappers =
-                ecs_world.query::<(&WantsToZap, &WantsToInvoke, &Position, &CombatStats,Option<&Wet>)>();
+            let mut zappers = ecs_world.query::<(
+                &WantsToZap,
+                &WantsToInvoke,
+                &Position,
+                &CombatStats,
+                Option<&Wet>,
+            )>();
 
             //Log all the zappings
             let mut game_log_query = ecs_world.query::<&mut GameLog>();
@@ -55,9 +63,9 @@ impl ZapManager {
                 // If wet, Lightning wand makes zap himself too!
                 if wet.is_some() && is_lightning_wand {
                     target_list.push(&zapper_wrapper);
-                    game_log.entries.push(
-                        "Using the Lightning wand while wet was a bad idea..."
-                    .to_string());
+                    game_log
+                        .entries
+                        .push("Using the Lightning wand while wet was a bad idea...".to_string());
                 }
 
                 // Do not draw if zapping himself
@@ -76,7 +84,11 @@ impl ZapManager {
                         target_list.push(&zone.tile_content[index]);
                     }
 
-                    particle_animations.push(ParticleAnimation::new_line(line_effect));
+                    //TODO use particle type given by zapper item
+                    particle_animations.push(ParticleAnimation::new_line(
+                        line_effect,
+                        LIGHTING_PARTICLE_TYPE,
+                    ));
                 } else {
                     // Only one if zapping himself
                     let index = Zone::get_index_from_xy(wants_zap.target.0, wants_zap.target.1);
@@ -85,13 +97,15 @@ impl ZapManager {
 
                 for &targets in &target_list {
                     for &target in targets {
-
                         //Sum damage, keeping in mind that could not have SufferingDamage component
-                        if let Ok(mut target_damage) =  ecs_world.get::<&mut SufferingDamage>(target) {
-
-                            let target_stats = ecs_world.get::<&CombatStats>(target).expect("Entity has no CombatStats");
-                            let item_damage =
-                                ecs_world.get::<&InflictsDamage>(wants_invoke.item).expect("Entity has no InflictsDamage");
+                        if let Ok(mut target_damage) = ecs_world.get::<&mut SufferingDamage>(target)
+                        {
+                            let target_stats = ecs_world
+                                .get::<&CombatStats>(target)
+                                .expect("Entity has no CombatStats");
+                            let item_damage = ecs_world
+                                .get::<&InflictsDamage>(wants_invoke.item)
+                                .expect("Entity has no InflictsDamage");
                             let damage_roll =
                                 Roll::dice(item_damage.number_of_dices, item_damage.dice_size);
 
@@ -103,8 +117,12 @@ impl ZapManager {
                             }
 
                             // Show appropriate log messages
-                            let named_attacker = ecs_world.get::<&Named>(zapper).expect("Entity is not Named");
-                            let named_target = ecs_world.get::<&Named>(target).expect("Entity is not Named");
+                            let named_attacker = ecs_world
+                                .get::<&Named>(zapper)
+                                .expect("Entity is not Named");
+                            let named_target = ecs_world
+                                .get::<&Named>(target)
+                                .expect("Entity is not Named");
 
                             // Dextery Save made halves damage
                             if saving_throw_roll > target_stats.current_dexterity {
@@ -112,7 +130,9 @@ impl ZapManager {
                             } else {
                                 target_damage.damage_received += damage_roll / 2;
                                 if target.id() == player_id {
-                                    game_log.entries.push("You duck some of the blow!".to_string());
+                                    game_log
+                                        .entries
+                                        .push("You duck some of the blow!".to_string());
                                 } else {
                                     game_log.entries.push(format!(
                                         "{} ducks some of the blow!",
@@ -123,9 +143,10 @@ impl ZapManager {
 
                             if zapper.id() == player_id {
                                 if target.id() == player_id {
-                                    game_log
-                                        .entries
-                                        .push(format!("You zap yourself for {} damage", damage_roll));
+                                    game_log.entries.push(format!(
+                                        "You zap yourself for {} damage",
+                                        damage_roll
+                                    ));
                                 } else {
                                     game_log.entries.push(format!(
                                         "You zap the {} for {} damage",
@@ -148,13 +169,13 @@ impl ZapManager {
                 }
 
                 // prepare lists for removal
-                wants_to_zap_list.push((zapper,stats.speed));
+                wants_to_zap_list.push((zapper, stats.speed));
                 invokable_list.push(wants_invoke.item)
             }
         }
 
         // Remove owner's will to invoke and zap
-        for (zapper,speed) in wants_to_zap_list {
+        for (zapper, speed) in wants_to_zap_list {
             let _ = ecs_world.remove_one::<WantsToInvoke>(zapper);
             let _ = ecs_world.remove_one::<WantsToZap>(zapper);
             Utils::wait_after_action(ecs_world, zapper, speed);

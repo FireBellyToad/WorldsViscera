@@ -1,3 +1,2 @@
 - Sometimes the zone have unconnected rooms
-- Turn systems right now is only working for player actions and monster movements and attacks
-- Right now, probably, the game log will log also stuff that should not be visible to the player
+- sometimes the npcs moves in the player's square

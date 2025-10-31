@@ -123,3 +123,7 @@ pub const NEXT_TO_DISTANCE: f32 = 1.5;
 pub const ON_TOP_DISTANCE: f32 = 0.0;
 
 pub const LISTEN_COOLDOWN_START: i32 = 19;
+
+/// Particle related constants
+pub const LIGHTING_PARTICLE_TYPE: u32 = 0;
+pub const FLAME_PARTICLE_TYPE: u32 = 1;
