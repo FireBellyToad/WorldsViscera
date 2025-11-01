@@ -144,21 +144,18 @@ impl Spawn {
 
     /// Spawn a random monster
     pub fn random_item(ecs_world: &mut World, x: i32, y: i32) {
-        flask_of_oil(ecs_world, x, y);
-        lantern(ecs_world, x, y);
-        wand(ecs_world, x, y);
-        // let dice_roll = Roll::d20();
-        // match dice_roll {
-        //     1 => wand(ecs_world, x, y),
-        //     2 => lantern(ecs_world, x, y),
-        //     3 | 4 => shiv(ecs_world, x, y),
-        //     5 | 6 => flask_of_oil(ecs_world, x, y),
-        //     7 | 8 => rockpick(ecs_world, x, y),
-        //     9 => maul(ecs_world, x, y),
-        //     10 | 11 => leather_armor(ecs_world, x, y),
-        //     12 => breastplate(ecs_world, x, y),
-        //     _ => mushroom(ecs_world, x, y),
-        // };
+        let dice_roll = Roll::d20();
+        match dice_roll {
+            1 => wand(ecs_world, x, y),
+            2 => lantern(ecs_world, x, y),
+            3 | 4 => shiv(ecs_world, x, y),
+            5 | 6 => flask_of_oil(ecs_world, x, y),
+            7 | 8 => rockpick(ecs_world, x, y),
+            9 => maul(ecs_world, x, y),
+            10 | 11 => leather_armor(ecs_world, x, y),
+            12 => breastplate(ecs_world, x, y),
+            _ => mushroom(ecs_world, x, y),
+        };
     }
 
     /// Spawn a corpse

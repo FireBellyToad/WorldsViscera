@@ -42,8 +42,7 @@ impl ParticleManager {
 
         // Only one animation must be present to enter into the DrawParticles state
         let animation_next = (&mut animations).into_iter().next();
-        if animation_next.is_some() {
-            let (_, animation) = animation_next.expect("Animation entity not found");
+        if let Some((_, animation)) = animation_next {
             game_state.run_state = RunState::DrawParticles;
             game_engine.set_delay(animation.frame_duration);
             return true;
