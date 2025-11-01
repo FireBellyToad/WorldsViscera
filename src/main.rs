@@ -98,7 +98,6 @@ async fn main() {
                         &mut game_state,
                     );
 
-                    // TODO refactor
                     if game_state.run_state != RunState::GameOver && !must_run_particles {
                         if Player::can_act(&game_state.ecs_world) {
                             println!("Player's turn");
@@ -149,8 +148,9 @@ async fn main() {
                     ParticleManager::run(&mut game_state);
                 }
             }
-            next_frame().await;
+
             Draw::render_game(&game_state, &assets);
+            next_frame().await;
         }
     }
 }

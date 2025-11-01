@@ -32,7 +32,7 @@ impl ParticleAnimation {
             frames,
             particle_type,
             exclude_first_frame: true,
-            frame_duration: 75.0,
+            frame_duration: 150.0,
         }
     }
 
@@ -41,7 +41,7 @@ impl ParticleAnimation {
         // Two frames to be sure that is visible
         Self {
             current_frame: 0,
-            frames: vec![vec![(x, y)], vec![(x, y)]],
+            frames: vec![vec![(x, y)]],
             particle_type,
             exclude_first_frame: false,
             frame_duration: 300.0,
