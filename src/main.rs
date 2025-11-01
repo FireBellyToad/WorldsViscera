@@ -91,14 +91,11 @@ async fn main() {
                 }
                 RunState::DoTick => {
                     println!("DoTick ---------------------------- tick {}", tick);
-                    do_in_tick_game_logic(&mut game_state);
-                    //If there are particles, skip everything and draw
-                    let must_run_particles = ParticleManager::check_if_animations_are_present(
-                        &mut game_engine,
-                        &mut game_state,
-                    );
+                    do_in_tick_game_logic(&mut game_engine, &mut game_state);
 
-                    if game_state.run_state != RunState::GameOver && !must_run_particles {
+                    if game_state.run_state != RunState::GameOver
+                        && game_state.run_state != RunState::DrawParticles
+                    {
                         if Player::can_act(&game_state.ecs_world) {
                             println!("Player's turn");
                             game_state.run_state = RunState::WaitingPlayerInput;
@@ -241,24 +238,29 @@ fn do_before_tick_logic(game_state: &mut EngineState) {
     MonsterThink::run(&mut game_state.ecs_world);
 }
 
-fn do_in_tick_game_logic(game_state: &mut EngineState) {
+fn do_in_tick_game_logic(game_engine: &mut GameEngine, game_state: &mut EngineState) {
+    // Every System that could produce particle animations should be run before the particle manager check
+    // This makes sure that the particle animations will not be executed after the Entity has been killed
     ZapManager::run(&mut game_state.ecs_world);
-    MeleeManager::run(&mut game_state.ecs_world);
-    DamageManager::run(&game_state.ecs_world);
-    DamageManager::remove_dead_and_check_gameover(game_state);
-    //Proceed on game logic if is not Game Over
-    if game_state.run_state != RunState::GameOver {
-        ApplySystem::check(&mut game_state.ecs_world);
-        ApplySystem::do_applications(game_state);
-        MapIndexing::run(&game_state.ecs_world);
-        FieldOfView::calculate(&game_state.ecs_world);
-        ItemCollection::run(&mut game_state.ecs_world);
-        ItemEquipping::run(&mut game_state.ecs_world);
-        ItemDropping::run(&mut game_state.ecs_world);
-        EatingEdibles::run(&mut game_state.ecs_world);
-        DrinkingQuaffables::run(&mut game_state.ecs_world);
-        FuelManager::do_refills(&mut game_state.ecs_world);
-        SoundSystem::run(&mut game_state.ecs_world);
+    FuelManager::do_refills(&mut game_state.ecs_world);
+    //If there are particles, skip everything and draw
+    if !ParticleManager::check_if_animations_are_present(game_engine, game_state) {
+        MeleeManager::run(&mut game_state.ecs_world);
+        DamageManager::run(&game_state.ecs_world);
+        DamageManager::remove_dead_and_check_gameover(game_state);
+        //Proceed on game logic if is not Game Over
+        if game_state.run_state != RunState::GameOver {
+            ApplySystem::check(&mut game_state.ecs_world);
+            ApplySystem::do_applications(game_state);
+            MapIndexing::run(&game_state.ecs_world);
+            FieldOfView::calculate(&game_state.ecs_world);
+            ItemCollection::run(&mut game_state.ecs_world);
+            ItemEquipping::run(&mut game_state.ecs_world);
+            ItemDropping::run(&mut game_state.ecs_world);
+            EatingEdibles::run(&mut game_state.ecs_world);
+            DrinkingQuaffables::run(&mut game_state.ecs_world);
+            SoundSystem::run(&mut game_state.ecs_world);
+        }
     }
 }
 
