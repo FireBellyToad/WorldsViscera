@@ -53,10 +53,10 @@ pub const FONT_SIZE: f32 = 32.0;
 pub const LETTER_SIZE: f32 = 15.0;
 
 /// Timing related constants
-pub const SECONDS_TO_WAIT: f32 = 0.1;
+pub const MILLISECONDS_TO_WAIT: f32 = 50.1;
 pub const SLOW: i32 = 1;
 pub const NORMAL: i32 = 2;
-pub const FAST: i32 = 3;
+pub const FAST: i32 = 4;
 pub const MAX_ACTION_SPEED: i32 = 4;
 
 /// Spawning related constants

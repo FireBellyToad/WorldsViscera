@@ -50,7 +50,7 @@ impl Utils {
     }
 
     pub fn wait_after_action(ecs_world: &mut World, waiter: Entity, speed: i32) {
-        let count = max(1, MAX_ACTION_SPEED - speed);
+        let count = max(1, MAX_ACTION_SPEED / speed);
         println!("Entity id {} must wait {} ticks", waiter.id(), count);
         // TODO account speed penalties
         let _ = ecs_world.exchange_one::<MyTurn, WaitingToAct>(

@@ -19,8 +19,8 @@ use crate::{
     components::common::{Position, Viewshed},
     dialog::Dialog,
     maps::{
-        ZoneBuilder, arena_zone_builder::ArenaZoneBuilder,
-        drunken_walk_zone_builder::DrunkenWalkZoneBuilder, zone::Zone,
+        ZoneBuilder, drunken_walk_zone_builder::DrunkenWalkZoneBuilder,
+        test_zone_builder::TestZoneBuilder, zone::Zone,
     },
     systems::{
         apply_system::ApplySystem, automatic_healing::AutomaticHealing,
@@ -99,7 +99,6 @@ async fn main() {
                             println!("Player's turn");
                             game_state.run_state = RunState::WaitingPlayerInput;
                         } else {
-                            MonsterApproach::run(&mut game_state.ecs_world);
                             game_state.run_state = RunState::BeforeTick;
                         }
                     }
@@ -170,7 +169,7 @@ fn populate_world(ecs_world: &mut World) {
         },
     ));
 
-    let zone = ArenaZoneBuilder::build(1);
+    let zone = TestZoneBuilder::build(1);
 
     Spawn::player(ecs_world, &zone);
     Spawn::everyhing_in_map(ecs_world, &zone);
@@ -251,14 +250,16 @@ fn do_in_tick_game_logic(game_engine: &mut GameEngine, game_state: &mut EngineSt
         if game_state.run_state != RunState::GameOver {
             ApplySystem::check(&mut game_state.ecs_world);
             ApplySystem::do_applications(game_state);
-            MapIndexing::run(&game_state.ecs_world);
-            FieldOfView::calculate(&game_state.ecs_world);
             ItemCollection::run(&mut game_state.ecs_world);
             ItemEquipping::run(&mut game_state.ecs_world);
             ItemDropping::run(&mut game_state.ecs_world);
             EatingEdibles::run(&mut game_state.ecs_world);
             DrinkingQuaffables::run(&mut game_state.ecs_world);
             SoundSystem::run(&mut game_state.ecs_world);
+            MonsterApproach::run(&mut game_state.ecs_world);
+            // These Systems must always be run last
+            MapIndexing::run(&game_state.ecs_world);
+            FieldOfView::calculate(&game_state.ecs_world);
         }
     }
 }

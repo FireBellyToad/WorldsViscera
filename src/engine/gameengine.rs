@@ -1,6 +1,6 @@
 use macroquad::time::get_frame_time;
 
-use crate::constants::SECONDS_TO_WAIT;
+use crate::constants::MILLISECONDS_TO_WAIT;
 
 pub struct GameEngine {
     engine_time: f32,
@@ -20,7 +20,7 @@ impl GameEngine {
         self.engine_time += get_frame_time();
 
         // needed for the engine
-        if self.engine_time > self.tick_delay + SECONDS_TO_WAIT {
+        if self.engine_time > self.tick_delay + MILLISECONDS_TO_WAIT {
             self.engine_time = 0.0;
             self.tick_delay = 0.0;
         }
