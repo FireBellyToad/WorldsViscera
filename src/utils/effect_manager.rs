@@ -3,7 +3,6 @@ use bresenham::Bresenham;
 pub struct EffectManager {}
 
 impl EffectManager {
-
     //Gets a line of effect
     pub fn new_line(start: (i32, i32), end: (i32, i32)) -> Vec<(i32, i32)> {
         // convert start and end
@@ -15,7 +14,7 @@ impl EffectManager {
             .map(|(x, y)| (x as i32, y as i32))
             .collect();
 
-        //Add last point and remove start point
+        //Add last point
         line.push(end);
 
         line

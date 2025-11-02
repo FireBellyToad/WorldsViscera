@@ -7,7 +7,7 @@ use crate::{
     components::{
         combat::{CanHide, CombatStats, IsHidden, SufferingDamage, WantsToMelee},
         common::{GameLog, Hates, MyTurn, Named, Position},
-        items::{Armor, Equipped, Eroded, Weapon},
+        items::{Armor, Equipped, Eroded, MeleeWeapon},
         monster::Venomous,
         player::Player,
     },
@@ -38,7 +38,8 @@ impl MeleeManager {
                 )>()
                 .with::<&MyTurn>();
 
-            let mut equipped_weapons = ecs_world.query::<(&Weapon, &Equipped, Option<&Eroded>)>();
+            let mut equipped_weapons =
+                ecs_world.query::<(&MeleeWeapon, &Equipped, Option<&Eroded>)>();
             let mut equipped_armors = ecs_world.query::<(&Armor, &Equipped, Option<&Eroded>)>();
 
             //Log all the fights
@@ -94,7 +95,7 @@ impl MeleeManager {
                     );
 
                     let damage_roll: i32;
-                    let target_armor = MeleeManager::get_armor_value(
+                    let target_armor = Utils::get_armor_value(
                         target_stats.base_armor,
                         wants_melee.target.id(),
                         &mut equipped_armors,
@@ -230,7 +231,7 @@ impl MeleeManager {
     fn get_damage_dice(
         unarmed_attack_dice: i32,
         attacker_id: u32,
-        equipped_weapons: &mut hecs::QueryBorrow<'_, (&Weapon, &Equipped, Option<&Eroded>)>,
+        equipped_weapons: &mut hecs::QueryBorrow<'_, (&MeleeWeapon, &Equipped, Option<&Eroded>)>,
     ) -> i32 {
         // Use weapon dice when equipped (reduced by erosion)
         for (_, (attacker_weapon, equipped_to, eroded)) in equipped_weapons.iter() {
@@ -243,24 +244,5 @@ impl MeleeManager {
             }
         }
         unarmed_attack_dice
-    }
-
-    // Gets armor value
-    fn get_armor_value(
-        base_armor: i32,
-        target_id: u32,
-        equipped_armors: &mut hecs::QueryBorrow<'_, (&Armor, &Equipped, Option<&Eroded>)>,
-    ) -> i32 {
-        // Use weapon dice when equipped
-        for (_, (attacker_armor, equipped_to, eroded)) in equipped_armors.iter() {
-            if equipped_to.owner.id() == target_id {
-                if let Some(erosion) = eroded {
-                    return max(0, attacker_armor.value - erosion.value as i32);
-                } else {
-                    return attacker_armor.value;
-                }
-            }
-        }
-        base_armor
     }
 }

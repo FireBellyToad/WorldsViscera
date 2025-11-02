@@ -151,9 +151,10 @@ impl Spawn {
             3 | 4 => shiv(ecs_world, x, y),
             5 | 6 => flask_of_oil(ecs_world, x, y),
             7 | 8 => rockpick(ecs_world, x, y),
-            9 => maul(ecs_world, x, y),
-            10 | 11 => leather_armor(ecs_world, x, y),
-            12 => breastplate(ecs_world, x, y),
+            9 | 10 => crowssbow(ecs_world, x, y),
+            11 => maul(ecs_world, x, y),
+            12 | 13 => leather_armor(ecs_world, x, y),
+            16 => breastplate(ecs_world, x, y),
             _ => mushroom(ecs_world, x, y),
         };
     }

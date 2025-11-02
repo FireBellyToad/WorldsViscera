@@ -9,7 +9,7 @@ pub struct CombatStats {
     pub max_dexterity: i32,
     pub base_armor: i32,
     pub unarmed_attack_dice: i32,
-    pub speed: i32
+    pub speed: i32,
 }
 
 pub struct SufferingDamage {
@@ -21,8 +21,8 @@ pub struct WantsToMelee {
     pub target: Entity,
 }
 
-pub struct WantsToZap{
-    pub target: (i32,i32),
+pub struct WantsToZap {
+    pub target: (i32, i32),
 }
 
 pub struct InflictsDamage {
@@ -31,7 +31,13 @@ pub struct InflictsDamage {
 }
 
 pub struct CanHide {
-    pub cooldown:i32}
+    pub cooldown: i32,
+}
+
 pub struct IsHidden {
-    pub hidden_counter:i32
+    pub hidden_counter: i32,
+}
+
+pub struct WantsToShoot {
+    pub weapon: Entity,
 }

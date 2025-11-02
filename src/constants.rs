@@ -127,3 +127,5 @@ pub const LISTEN_COOLDOWN_START: i32 = 19;
 /// Particle related constants
 pub const LIGHTING_PARTICLE_TYPE: u32 = 0;
 pub const FLAME_PARTICLE_TYPE: u32 = 1;
+pub const SMELL_PARTICLE_TYPE: u32 = 2;
+pub const BOLT_PARTICLE_TYPE: u32 = 3;

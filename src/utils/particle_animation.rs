@@ -3,15 +3,16 @@ pub struct ParticleAnimation {
     pub frames: Vec<Vec<(i32, i32)>>,
     pub particle_type: u32,
     pub exclude_first_frame: bool,
-    pub frame_duration: f32,
+    pub frame_duration: f32, //TODO this is ambiguous! Refactor ASAP!
 }
 
 impl ParticleAnimation {
     /// Create a line effect animation.
+    /// Prepare all the "frames" that will be rendered.
+    /// this means that we will create a vector of (x,y) for each frame,
+    /// to give the impression of a growing ray.
+    /// Example: [[(x1, y1)], [(x1, y1),(x2, y2)], [(x1, y1),(x2, y2),(x3, y3)],...]
     pub fn new_line(line_effect: Vec<(i32, i32)>, particle_type: u32) -> ParticleAnimation {
-        // Prepare all the "frames" that will be rendered.
-        // this means that we will create a vector of (x,y) for each frame,
-        // to give the impression of a growing ray.
         let total_frames = line_effect.len();
         let mut frames: Vec<Vec<(i32, i32)>> = Vec::new();
         let mut pointer: usize = 0;
@@ -37,14 +38,37 @@ impl ParticleAnimation {
     }
 
     /// Create a new particle animation with a single frame at the given position.
+    /// Prepare the single frame that will be rendered.
+    /// Keeping the nested array of (x, y) elements for compatibility with other particle effects.
+    /// Example: [(x, y)]
     pub fn simple_particle(x: i32, y: i32, particle_type: u32) -> ParticleAnimation {
-        // Two frames to be sure that is visible
         Self {
             current_frame: 0,
             frames: vec![vec![(x, y)]],
             particle_type,
             exclude_first_frame: false,
             frame_duration: 300.0,
+        }
+    }
+
+    /// Create a projectile effect animation.
+    /// This animation is like a ray, but instead of creating a list of growing lists of (x,y) elements,
+    /// each element is saved inside an array,
+    /// Example: [[(x1, y1)],[(x2, y2)],[(x3, y3)],...]
+    pub fn new_projectile(line_effect: Vec<(i32, i32)>, particle_type: u32) -> ParticleAnimation {
+        let mut frames: Vec<Vec<(i32, i32)>> = Vec::new();
+
+        for frame in line_effect {
+            frames.push(vec![frame]);
+        }
+
+        // Return the particle line effect
+        Self {
+            current_frame: 1, // Avoid overlap with the origin
+            frames,
+            particle_type,
+            exclude_first_frame: false,
+            frame_duration: 150.0,
         }
     }
 }

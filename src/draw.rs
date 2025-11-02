@@ -389,9 +389,9 @@ impl Draw {
                                 .get(&TextureName::Particles)
                                 .expect("Texture not found");
 
-                            let mut modifier = 0.0;
+                            let mut index = 0.0;
                             if smell.intensity == SmellIntensity::Strong {
-                                modifier += 1.0;
+                                index += 1.0;
                             }
 
                             draw_texture_ex(
@@ -401,8 +401,8 @@ impl Draw {
                                 WHITE, // Seems like White color is needed to normal render
                                 DrawTextureParams {
                                     source: Some(Rect {
-                                        x: (4.0 + modifier) * TILE_SIZE_F32,
-                                        y: 0.0,
+                                        x: (index) * TILE_SIZE_F32,
+                                        y: SMELL_PARTICLE_TYPE as f32 * TILE_SIZE_F32,
                                         w: TILE_SIZE_F32,
                                         h: TILE_SIZE_F32,
                                     }),
@@ -523,18 +523,30 @@ impl Draw {
                 // First particle must not be rendered
                 if previous_x != -1 && previous_y != 1 {
                     if previous_y == *y {
-                        direction = 0.0;
-                    } else if previous_x == *x {
-                        direction = 1.0;
-                    } else if previous_y > *y {
                         if previous_x < *x {
-                            direction = 2.0;
+                            // Right
+                            direction = 40.0;
                         } else {
-                            direction = 3.0;
+                            //Left
+                            direction = 0.0;
+                        }
+                    } else if previous_x == *x {
+                        if previous_y < *y {
+                            //Down
+                            direction = 6.0;
+                        } else {
+                            //Up
+                            direction = 2.0;
                         }
                     } else if previous_y < *y {
+                        if previous_x < *x {
+                            direction = 5.0;
+                        } else {
+                            direction = 7.0;
+                        }
+                    } else if previous_y > *y {
                         if previous_x > *x {
-                            direction = 2.0;
+                            direction = 1.0;
                         } else {
                             direction = 3.0;
                         }

@@ -1,4 +1,4 @@
-use crate::maps::arena_zone_builder::ArenaZoneBuilder;
+use crate::{maps::arena_zone_builder::ArenaZoneBuilder, systems::ranged_manager::RangedManager};
 use components::{common::GameLog, player::Player};
 use constants::*;
 use draw::Draw;
@@ -241,6 +241,7 @@ fn do_in_tick_game_logic(game_engine: &mut GameEngine, game_state: &mut EngineSt
     // Every System that could produce particle animations should be run before the particle manager check
     // This makes sure that the particle animations will not be executed after the Entity has been killed
     ZapManager::run(&mut game_state.ecs_world);
+    RangedManager::run(&mut game_state.ecs_world);
     FuelManager::do_refills(&mut game_state.ecs_world);
     //If there are particles, skip everything and draw
     if !ParticleManager::check_if_animations_are_present(game_engine, game_state) {

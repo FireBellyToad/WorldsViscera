@@ -23,7 +23,7 @@ pub struct InBackback {
 #[allow(dead_code)]
 pub enum BodyLocation {
     Arms,
-    Hands,
+    BothHands,
     LeftHand,
     RightHand,
     Torso,
@@ -34,6 +34,7 @@ pub enum BodyLocation {
 #[derive(PartialEq, Debug)]
 pub enum InvokablesEnum {
     LightningWand,
+    Crossbow, // TODO temporary
 }
 
 pub struct Invokable {
@@ -61,7 +62,7 @@ pub struct MustBeFueled {
 }
 
 pub struct Refiller {
-    pub fuel_counter: i32
+    pub fuel_counter: i32,
 }
 
 pub struct TurnedOn {}
@@ -69,7 +70,6 @@ pub struct TurnedOff {}
 
 pub struct Appliable {}
 pub struct Applied {}
-
 
 pub struct Equippable {
     pub body_location: BodyLocation,
@@ -80,7 +80,11 @@ pub struct Equipped {
     pub body_location: BodyLocation,
 }
 
-pub struct Weapon {
+pub struct MeleeWeapon {
+    pub attack_dice: i32,
+}
+
+pub struct RangedWeapon {
     pub attack_dice: i32,
 }
 
@@ -90,5 +94,5 @@ pub struct Armor {
 pub struct Bulky {}
 pub struct Metallic {}
 pub struct Eroded {
-    pub value: u32
+    pub value: u32,
 }

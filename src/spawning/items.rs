@@ -1,3 +1,4 @@
+use crate::components::items::RangedWeapon;
 use hecs::{Entity, World};
 use macroquad::math::Rect;
 
@@ -7,8 +8,8 @@ use crate::{
         common::{Named, Position, Renderable, SmellIntensity, Smellable},
         items::{
             Appliable, Armor, BodyLocation, Bulky, Deadly, Edible, Equippable, Equipped,
-            InBackback, Invokable, InvokablesEnum, Item, Metallic, MustBeFueled, ProduceLight,
-            Quaffable, Refiller, ToBeHarvested, TurnedOff, TurnedOn, Unsavoury, Weapon,
+            InBackback, Invokable, InvokablesEnum, Item, MeleeWeapon, Metallic, MustBeFueled,
+            ProduceLight, Quaffable, Refiller, ToBeHarvested, TurnedOff, TurnedOn, Unsavoury,
         },
     },
     constants::*,
@@ -246,6 +247,35 @@ pub fn wand(ecs_world: &mut World, x: i32, y: i32) {
     ecs_world.spawn(wand);
 }
 
+pub fn crowssbow(ecs_world: &mut World, x: i32, y: i32) {
+    let item_tile_index = (3, 2);
+    let crowssbow = (
+        Position { x, y },
+        Renderable {
+            texture_name: TextureName::Items,
+            texture_region: Rect {
+                x: (item_tile_index.0 * TILE_SIZE) as f32,
+                y: (item_tile_index.1 * TILE_SIZE) as f32,
+                w: TILE_SIZE_F32,
+                h: TILE_SIZE_F32,
+            },
+            z_index: 0,
+        },
+        Named {
+            name: "crossbow".to_string(),
+        },
+        Item {
+            item_tile: item_tile_index,
+        },
+        Equippable {
+            body_location: BodyLocation::BothHands,
+        },
+        RangedWeapon { attack_dice: 4 }, // TODO store bolts
+    );
+
+    ecs_world.spawn(crowssbow);
+}
+
 pub fn flask_of_oil(ecs_world: &mut World, x: i32, y: i32) {
     let item_tile_index = (4, 0);
     let flask_of_oil = (
@@ -302,7 +332,7 @@ pub fn shiv(ecs_world: &mut World, x: i32, y: i32) {
         Equippable {
             body_location: BodyLocation::RightHand,
         },
-        Weapon { attack_dice: 4 },
+        MeleeWeapon { attack_dice: 4 },
     );
 
     ecs_world.spawn(flask_of_oil);
@@ -331,7 +361,7 @@ pub fn rockpick(ecs_world: &mut World, x: i32, y: i32) {
         Equippable {
             body_location: BodyLocation::RightHand,
         },
-        Weapon { attack_dice: 6 },
+        MeleeWeapon { attack_dice: 6 },
         Metallic {},
     );
 
@@ -361,9 +391,9 @@ pub fn maul(ecs_world: &mut World, x: i32, y: i32) {
             item_tile: item_tile_index,
         },
         Equippable {
-            body_location: BodyLocation::Hands,
+            body_location: BodyLocation::BothHands,
         },
-        Weapon { attack_dice: 8 },
+        MeleeWeapon { attack_dice: 8 },
         Appliable {}, // TODO not used right now
         Bulky {},
         Metallic {},

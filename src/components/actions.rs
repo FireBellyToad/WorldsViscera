@@ -31,7 +31,6 @@ pub struct WantsToApply {
     pub item: Entity,
 }
 
-
 pub struct WantsToFuel {
     pub with: Entity,
     pub item: Option<Entity>,

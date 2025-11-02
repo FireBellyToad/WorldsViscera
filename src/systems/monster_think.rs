@@ -103,24 +103,24 @@ impl MonsterThink {
                 ),
             ) in &mut named_monsters
             {
-                let mut items_of_monster_query = ecs_world.query::<ItemsInBackpack>();
-                let items_of_monster: Vec<(Entity, ItemsInBackpack)> =
-                    items_of_monster_query.iter().collect();
+                let mut items_in_backpacks_query = ecs_world.query::<ItemsInBackpack>();
+                let items_in_backpacks: Vec<(Entity, ItemsInBackpack)> =
+                    items_in_backpacks_query.iter().collect();
 
                 let item_to_equip_found = match MonsterThink::has_nothing_to_equip(
                     &mut equipper_item_list,
                     monster,
                     smart,
-                    &items_of_monster,
+                    &items_in_backpacks,
                 ) {
                     Some(result) => result,
                     None => continue,
                 };
 
                 if !item_to_equip_found {
-                    let total_items = items_of_monster.iter().len();
+                    let total_items = items_in_backpacks.iter().len();
 
-                    let invokables: Vec<&(Entity, ItemsInBackpack)> = items_of_monster
+                    let invokables: Vec<&(Entity, ItemsInBackpack)> = items_in_backpacks
                         .iter()
                         .filter(|(_, (_, in_backpack, invokable, _, _, _, _, _, _))| {
                             in_backpack.owner.id() == monster.id() && invokable.is_some()
@@ -263,12 +263,15 @@ impl MonsterThink {
         }
     }
 
+    /// Check if the monster has nothing that can equip.
+    /// Will also check if the monster has equippables that overlaps on a body location which is already equipped with something else
     fn has_nothing_to_equip(
         equipper_item_list: &mut Vec<(Entity, Entity)>,
         monster: Entity,
         smart: Option<&Smart>,
         items_of_monster: &Vec<(Entity, ItemsInBackpack)>,
     ) -> Option<bool> {
+        // All equippables that are not equipped by the monster
         let equippables: Vec<(&Entity, &Equippable)> = items_of_monster
             .iter()
             .filter(
@@ -282,6 +285,8 @@ impl MonsterThink {
                 (entity, equippable.expect("Equippable item is missing"))
             })
             .collect();
+
+        // All equippables that are equipped by the monster
         let equipped: Vec<(&Entity, &Equipped)> = items_of_monster
             .iter()
             .filter(

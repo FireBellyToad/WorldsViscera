@@ -1,3 +1,6 @@
+use crate::components::combat::WantsToShoot;
+use crate::components::items::{Equipped, RangedWeapon};
+use crate::utils::common::ItemsInBackpack;
 use hecs::{Entity, World};
 use macroquad::input::{
     KeyCode, MouseButton, clear_input_queue, get_char_pressed, get_key_pressed, is_key_down,
@@ -13,19 +16,20 @@ use crate::{
         items::{Edible, Item, Quaffable},
     },
     constants::{
-        MAP_HEIGHT, MAP_WIDTH,  MAX_STAMINA_HEAL_TICK_COUNTER, TILE_SIZE_F32,
-        UI_BORDER_F32,
+        MAP_HEIGHT, MAP_WIDTH, MAX_STAMINA_HEAL_TICK_COUNTER, TILE_SIZE_F32, UI_BORDER_F32,
     },
     dialog::DialogAction,
     engine::state::RunState,
     inventory::InventoryAction,
     maps::zone::{TileType, Zone},
-    spawning::spawner::Spawn, utils::common::Utils,
+    spawning::spawner::Spawn,
+    utils::common::Utils,
 };
 
 #[derive(PartialEq, Debug)]
 pub enum SpecialViewMode {
     ZapTargeting,
+    RangedTargeting,
     Smell,
 }
 
@@ -188,10 +192,19 @@ impl Player {
                             run_state = Player::try_drink(ecs_world, player_entity);
                         }
 
-                        //Smell action
-                        's' => {
+                        //Smell (whiff) action
+                        'w' => {
                             clear_input_queue();
                             run_state = RunState::MouseTargeting(SpecialViewMode::Smell);
+                        }
+
+                        //Shoot
+                        's' => {
+                            clear_input_queue();
+                            // TODO change with equipped ranged weapon, so check if it is ranged and equipped before
+                            // entering in target mode
+
+                            run_state = Player::try_shoot(ecs_world, player_entity);
                         }
 
                         _ => {}
@@ -229,7 +242,7 @@ impl Player {
             let player_entity = Player::get_entity(ecs_world);
 
             match special_view_mode {
-                SpecialViewMode::ZapTargeting => {
+                SpecialViewMode::ZapTargeting | SpecialViewMode::RangedTargeting => {
                     let mut is_valid_tile = false;
                     // Scope for keeping borrow checker quiet
                     {
@@ -371,7 +384,7 @@ impl Player {
             let river_entity = Spawn::river_water_entity(ecs_world);
             let _ = ecs_world.insert_one(player_entity, WantsToDrink { item: river_entity });
 
-           return RunState::DoTick
+            return RunState::DoTick;
         } else {
             // Drink a quaffable item on ground
             let item_on_ground = Player::take_from_map(ecs_world);
@@ -431,6 +444,47 @@ impl Player {
         RunState::WaitingPlayerInput
     }
 
+    /// Try to shoot a ranged weapon: checks if the player has a ranged weapon equipped
+    fn try_shoot(ecs_world: &mut World, player_entity: Entity) -> RunState {
+        let mut weapon_opt: Option<Entity> = None;
+        //Scope to keep borrow checker quiet
+        {
+            let mut ranged_weapons_in_backpacks_query =
+                ecs_world.query::<ItemsInBackpack>().with::<&RangedWeapon>();
+
+            let player_ranged_weapons: Vec<(Entity, ItemsInBackpack)> =
+                ranged_weapons_in_backpacks_query
+                    .iter()
+                    .filter(|(_, (_, in_backpack, _, _, _, _, _, _, equipped))| {
+                        in_backpack.owner.id() == player_entity.id() && equipped.is_some()
+                    })
+                    .collect();
+
+            let mut game_log_query = ecs_world.query::<&mut GameLog>();
+            let (_, game_log) = game_log_query
+                .iter()
+                .last()
+                .expect("Game log is not in hecs::World");
+
+            if player_ranged_weapons.is_empty() {
+                game_log
+                    .entries
+                    .push("You don't have a ranged weapon equipped".to_string());
+            } else {
+                // Should be one, anyway
+                weapon_opt = Some(player_ranged_weapons[0].0);
+            }
+        }
+
+        // if has weapon, go to target mode
+        if let Some(weapon) = weapon_opt {
+            let _ = ecs_world.insert_one(player_entity, WantsToShoot { weapon });
+            return RunState::MouseTargeting(SpecialViewMode::ZapTargeting);
+        }
+
+        RunState::WaitingPlayerInput
+    }
+
     /// Extract Player's entity from world and return it with copy
     pub fn get_entity(ecs_world: &World) -> Entity {
         let mut player_query = ecs_world.query::<&Player>();
@@ -477,7 +531,7 @@ impl Player {
                 .expect("Entity has no CombatStats")
                 .speed;
         }
-        
+
         Utils::wait_after_action(ecs_world, player, speed);
     }
 

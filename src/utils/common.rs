@@ -1,4 +1,4 @@
-use crate::components::items::Equippable;
+use crate::components::items::{Armor, Equippable};
 use std::cmp::max;
 
 use hecs::{Entity, World};
@@ -39,10 +39,12 @@ impl Utils {
         }
 
         match b1 {
-            BodyLocation::Hands => {
+            BodyLocation::BothHands => {
                 return b2 == &BodyLocation::LeftHand || b2 == &BodyLocation::RightHand;
             }
-            BodyLocation::LeftHand | BodyLocation::RightHand => return b2 == &BodyLocation::Hands,
+            BodyLocation::LeftHand | BodyLocation::RightHand => {
+                return b2 == &BodyLocation::BothHands;
+            }
             _ => {}
         }
 
@@ -59,6 +61,25 @@ impl Utils {
                 tick_countdown: count,
             },
         );
+    }
+
+    // Gets armor value
+    pub fn get_armor_value(
+        base_armor: i32,
+        target_id: u32,
+        equipped_armors: &mut hecs::QueryBorrow<'_, (&Armor, &Equipped, Option<&Eroded>)>,
+    ) -> i32 {
+        // Use weapon dice when equipped
+        for (_, (attacker_armor, equipped_to, eroded)) in equipped_armors.iter() {
+            if equipped_to.owner.id() == target_id {
+                if let Some(erosion) = eroded {
+                    return max(0, attacker_armor.value - erosion.value as i32);
+                } else {
+                    return attacker_armor.value;
+                }
+            }
+        }
+        base_armor
     }
 
     pub fn what_hates(hater: &SpeciesEnum) -> Vec<SpeciesEnum> {
