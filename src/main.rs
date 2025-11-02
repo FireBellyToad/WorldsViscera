@@ -1,3 +1,4 @@
+use crate::maps::arena_zone_builder::ArenaZoneBuilder;
 use components::{common::GameLog, player::Player};
 use constants::*;
 use draw::Draw;
@@ -169,7 +170,7 @@ fn populate_world(ecs_world: &mut World) {
         },
     ));
 
-    let zone = TestZoneBuilder::build(1);
+    let zone = ArenaZoneBuilder::build(1);
 
     Spawn::player(ecs_world, &zone);
     Spawn::everyhing_in_map(ecs_world, &zone);
