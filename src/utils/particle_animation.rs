@@ -2,7 +2,7 @@ pub struct ParticleAnimation {
     pub current_frame: usize,
     pub frames: Vec<Vec<(i32, i32)>>,
     pub particle_type: u32,
-    pub exclude_first_frame: bool,
+    pub exclude_first_frame_index: bool,
     pub frame_duration: f32, //TODO this is ambiguous! Refactor ASAP!
 }
 
@@ -32,7 +32,7 @@ impl ParticleAnimation {
             current_frame: 0,
             frames,
             particle_type,
-            exclude_first_frame: true,
+            exclude_first_frame_index: true,
             frame_duration: 150.0,
         }
     }
@@ -46,7 +46,7 @@ impl ParticleAnimation {
             current_frame: 0,
             frames: vec![vec![(x, y)]],
             particle_type,
-            exclude_first_frame: false,
+            exclude_first_frame_index: false,
             frame_duration: 300.0,
         }
     }
@@ -67,7 +67,7 @@ impl ParticleAnimation {
             current_frame: 1, // Avoid overlap with the origin
             frames,
             particle_type,
-            exclude_first_frame: false,
+            exclude_first_frame_index: false,
             frame_duration: 150.0,
         }
     }

@@ -519,13 +519,20 @@ impl Draw {
             //Render different directions for particles
             let mut direction = 0.0;
             let (mut previous_x, mut previous_y) = (-1, -1);
-            for (x, y) in frame_to_render {
+
+            if animation.current_frame > 0 {
+                let previous_frame = &animation.frames[animation.current_frame - 1];
+                previous_x = previous_frame[0].0;
+                previous_y = previous_frame[0].1;
+            }
+
+            for (index, (x, y)) in frame_to_render.iter().enumerate() {
                 // First particle must not be rendered
                 if previous_x != -1 && previous_y != 1 {
                     if previous_y == *y {
                         if previous_x < *x {
                             // Right
-                            direction = 40.0;
+                            direction = 4.0;
                         } else {
                             //Left
                             direction = 0.0;
@@ -554,7 +561,7 @@ impl Draw {
                 }
                 // If the previous position is the starting one and the animation should exclude the first frame, skip drawing
                 // This is important for the rays and projectiles animations
-                if (previous_x != -1 && previous_y != 1) || !animation.exclude_first_frame {
+                if index > 0 || !animation.exclude_first_frame_index {
                     // Take the texture and draw only the wanted tile ( DrawTextureParams.source )
                     draw_texture_ex(
                         texture_to_render,

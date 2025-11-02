@@ -2,13 +2,12 @@ use hecs::{Entity, World};
 
 use crate::{
     components::{
-        actions::WantsToInvoke,
-        combat::{CombatStats, InflictsDamage, SufferingDamage, WantsToShoot, WantsToZap},
-        common::{GameLog, Named, Position, Wet},
-        items::{Armor, Equipped, Eroded, Invokable, InvokablesEnum, RangedWeapon},
+        combat::{CombatStats, SufferingDamage, WantsToShoot, WantsToZap},
+        common::{GameLog, Named, Position},
+        items::{Armor, Equipped, Eroded, RangedWeapon},
         player::Player,
     },
-    constants::{AUTOFAIL_SAVING_THROW, BOLT_PARTICLE_TYPE, LIGHTING_PARTICLE_TYPE},
+    constants::BOLT_PARTICLE_TYPE,
     maps::zone::Zone,
     utils::{
         common::Utils, effect_manager::EffectManager, particle_animation::ParticleAnimation,
@@ -132,18 +131,17 @@ impl RangedManager {
                             ));
                         }
                     };
-
-                    // prepare lists for removal
-                    wants_to_shoot_list.push((shooter, stats.speed));
-                    // ranged_list.push(wants_to_shoot.weapon); // TODO ammunitions count
                 }
+
+                // prepare lists for removal
+                wants_to_shoot_list.push((shooter, stats.speed));
+                // ranged_list.push(wants_to_shoot.weapon); // TODO ammunitions count
             }
         }
 
         // Remove owner's will to invoke and zap
         for (shooter, speed) in wants_to_shoot_list {
-            let _ = ecs_world.remove_one::<WantsToShoot>(shooter);
-            let _ = ecs_world.remove_one::<WantsToZap>(shooter);
+            let _ = ecs_world.remove::<(WantsToShoot, WantsToZap)>(shooter);
             Utils::wait_after_action(ecs_world, shooter, speed);
         }
 
