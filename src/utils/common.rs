@@ -1,4 +1,4 @@
-use crate::components::items::{Armor, Equippable};
+use crate::components::items::{Armor, Equippable, RangedWeapon};
 use std::cmp::max;
 
 use hecs::{Entity, World};
@@ -23,6 +23,7 @@ pub type ItemsInBackpack<'a> = (
     Option<&'a Eroded>,
     Option<&'a Equippable>,
     Option<&'a Equipped>,
+    Option<&'a RangedWeapon>,
 );
 
 pub struct Utils {}

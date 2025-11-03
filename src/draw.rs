@@ -56,7 +56,10 @@ impl Draw {
                     RunState::DrawParticles => {
                         let mut animations = game_state.ecs_world.query::<&mut ParticleAnimation>();
                         for a in &mut animations {
-                            Draw::particles(a.1, assets);
+                            // For each zone, draw particles. Usually is only one zone!
+                            for (_, zone) in &mut zones {
+                                Draw::particles(a.1, assets, zone);
+                            }
                         }
                     }
                     _ => {}
@@ -513,7 +516,11 @@ impl Draw {
     }
 
     /// Draw particles
-    pub fn particles(animation: &mut ParticleAnimation, assets: &HashMap<TextureName, Texture2D>) {
+    pub fn particles(
+        animation: &mut ParticleAnimation,
+        assets: &HashMap<TextureName, Texture2D>,
+        zone: &Zone,
+    ) {
         if animation.current_frame < animation.frames.len() {
             let texture_to_render = assets
                 .get(&TextureName::Particles)
@@ -551,7 +558,9 @@ impl Draw {
                 }
                 // If the previous position is the starting one and the animation should exclude the first subframe, skip drawing
                 // This is important for the rays animations, avoiding overlap of the first subframe with the origin
-                if animation.animation_type != ParticleAnimationType::Ray || subframe_idx > 0 {
+                if zone.visible_tiles[Zone::get_index_from_xy(*x, *y)]
+                    && (animation.animation_type != ParticleAnimationType::Ray || subframe_idx > 0)
+                {
                     // Take the texture and draw only the wanted tile ( DrawTextureParams.source )
                     draw_texture_ex(
                         texture_to_render,

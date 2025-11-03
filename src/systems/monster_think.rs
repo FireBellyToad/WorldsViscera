@@ -1,3 +1,4 @@
+use crate::components::combat::WantsToShoot;
 use crate::components::items::Equippable;
 use crate::components::items::Equipped;
 use crate::utils::roll::Roll;
@@ -31,6 +32,7 @@ pub enum MonsterAction {
     Move,
     Eat,
     Attack,
+    Shoot,
     PickUp,
     Zap,
 }
@@ -45,6 +47,7 @@ struct MonsterThinkData<'a> {
     pub is_smart: bool,
     pub is_small: bool,
     pub can_invoke: bool,
+    pub can_shoot: bool,
     pub species: &'a SpeciesEnum,
     pub hates: &'a HashSet<u32>,
     pub backpack_is_not_full: bool,
@@ -60,6 +63,7 @@ impl MonsterThink {
         let mut pickup_list: Vec<(Entity, Entity)> = Vec::new();
         let mut attacker_target_list: Vec<(Entity, Entity)> = Vec::new();
         let mut zapper_list: Vec<(Entity, Entity, i32, i32)> = Vec::new();
+        let mut shooter_list: Vec<(Entity, Entity, i32, i32)> = Vec::new();
         let mut eat_target_list: Vec<(Entity, Entity)> = Vec::new();
         let mut equipper_item_list: Vec<(Entity, Entity)> = Vec::new();
 
@@ -107,25 +111,41 @@ impl MonsterThink {
                 let items_in_backpacks: Vec<(Entity, ItemsInBackpack)> =
                     items_in_backpacks_query.iter().collect();
 
-                let item_to_equip_found = match MonsterThink::has_nothing_to_equip(
-                    &mut equipper_item_list,
-                    monster,
-                    smart,
-                    &items_in_backpacks,
-                ) {
-                    Some(result) => result,
-                    None => continue,
-                };
+                // if smart, try to equip potential items
+                let mut item_to_equip_found = false;
+                if smart.is_some() {
+                    item_to_equip_found = match MonsterThink::has_nothing_to_equip(
+                        &mut equipper_item_list,
+                        monster,
+                        &items_in_backpacks,
+                    ) {
+                        Some(result) => result,
+                        None => continue,
+                    };
+                }
 
                 if !item_to_equip_found {
                     let total_items = items_in_backpacks.iter().len();
 
                     let invokables: Vec<&(Entity, ItemsInBackpack)> = items_in_backpacks
                         .iter()
-                        .filter(|(_, (_, in_backpack, invokable, _, _, _, _, _, _))| {
+                        .filter(|(_, (_, in_backpack, invokable, _, _, _, _, _, _, _))| {
                             in_backpack.owner.id() == monster.id() && invokable.is_some()
                         })
                         .collect();
+
+                    // TODO ammunitions check
+                    let equipped_ranged_weapons: Vec<&(Entity, ItemsInBackpack)> =
+                        items_in_backpacks
+                            .iter()
+                            .filter(
+                                |(_, (_, in_backpack, _, _, _, _, _, _, equipped, ranged))| {
+                                    in_backpack.owner.id() == monster.id()
+                                        && equipped.is_some()
+                                        && ranged.is_some()
+                                },
+                            )
+                            .collect();
 
                     // Look around for a target and decide what to do
                     let target_picked = MonsterThink::choose_target_and_action(
@@ -140,6 +160,7 @@ impl MonsterThink {
                             is_smart: smart.is_some(),
                             is_small: small.is_some(),
                             can_invoke: !invokables.is_empty(),
+                            can_shoot: !equipped_ranged_weapons.is_empty(),
                             species: &species.value,
                             hates: &hates.list,
                             backpack_is_not_full: (small.is_none()
@@ -198,6 +219,16 @@ impl MonsterThink {
                                 zapper_list.push((monster, invokables[0].0, target_x, target_y));
                             }
                         }
+                        MonsterAction::Shoot => {
+                            if target.is_some() {
+                                shooter_list.push((
+                                    monster,
+                                    equipped_ranged_weapons[0].0,
+                                    target_x,
+                                    target_y,
+                                ));
+                            }
+                        }
                         MonsterAction::PickUp => {
                             if let Some(t) = target {
                                 pickup_list.push((monster, t));
@@ -243,6 +274,14 @@ impl MonsterThink {
             );
         }
 
+        // Shoot place
+        for (shooter, weapon, x, y) in shooter_list {
+            let _ = ecs_world.insert(
+                shooter,
+                (WantsToShoot { weapon }, WantsToZap { target: (x, y) }),
+            );
+        }
+
         // Equip item
         for (equipper, item) in equipper_item_list {
             let body_location;
@@ -268,20 +307,19 @@ impl MonsterThink {
     fn has_nothing_to_equip(
         equipper_item_list: &mut Vec<(Entity, Entity)>,
         monster: Entity,
-        smart: Option<&Smart>,
         items_of_monster: &Vec<(Entity, ItemsInBackpack)>,
     ) -> Option<bool> {
         // All equippables that are not equipped by the monster
         let equippables: Vec<(&Entity, &Equippable)> = items_of_monster
             .iter()
             .filter(
-                |(_, (_, in_backpack, _, _, _, _, _, equippable, equipped))| {
+                |(_, (_, in_backpack, _, _, _, _, _, equippable, equipped, _))| {
                     in_backpack.owner.id() == monster.id()
                         && equippable.is_some()
                         && equipped.is_none()
                 },
             )
-            .map(|(entity, (_, _, _, _, _, _, _, equippable, _))| {
+            .map(|(entity, (_, _, _, _, _, _, _, equippable, _, _))| {
                 (entity, equippable.expect("Equippable item is missing"))
             })
             .collect();
@@ -289,27 +327,25 @@ impl MonsterThink {
         // All equippables that are equipped by the monster
         let equipped: Vec<(&Entity, &Equipped)> = items_of_monster
             .iter()
-            .filter(
-                |(_, (_, in_backpack, _, _, _, _, _, equippable, equipped))| {
-                    in_backpack.owner.id() == monster.id()
-                        && equippable.is_some()
-                        && equipped.is_some()
-                },
-            )
-            .map(|(entity, (_, _, _, _, _, _, _, _, equipped))| {
+            .filter(|(_, (_, in_backpack, _, _, _, _, _, _, equipped, _))| {
+                in_backpack.owner.id() == monster.id() && equipped.is_some()
+            })
+            .map(|(entity, (_, _, _, _, _, _, _, _, equipped, _))| {
                 (entity, equipped.expect("Equippable item is missing"))
             })
             .collect();
-        let mut item_to_equip_found = false;
-        if !equippables.is_empty() && smart.is_some() {
+        let mut item_to_equip_found = !equippables.is_empty();
+        if !equippables.is_empty() {
             for (item_a, equippable_a) in equippables {
-                // Get a list of items which body location do not overlap with the equipped items
-                item_to_equip_found = equipped.iter().any(|(_, equipped_b)| {
-                    !Utils::occupies_same_location(
-                        &equippable_a.body_location,
-                        &equipped_b.body_location,
-                    )
-                });
+                // If has nothing equipped or has at least one item which body location do not overlap
+                // with currently equipped items
+                item_to_equip_found = equipped.is_empty()
+                    || equipped.iter().any(|(_, equipped_b)| {
+                        !Utils::occupies_same_location(
+                            &equippable_a.body_location,
+                            &equipped_b.body_location,
+                        )
+                    });
 
                 if item_to_equip_found {
                     // Equip the first item that does not overlap
@@ -354,6 +390,7 @@ impl MonsterThink {
             let index = Zone::get_index_from_xy(*x, *y);
             let distance: f32 =
                 Utils::distance(monster_dto.position.x, *x, monster_dto.position.y, *y);
+            // Start by moving towards a potential target
             let mut action = MonsterAction::Move;
 
             for &entity in &monster_dto.zone.tile_content[index] {
@@ -367,6 +404,8 @@ impl MonsterThink {
                             action = MonsterAction::Attack;
                         } else if monster_dto.is_smart && monster_dto.can_invoke {
                             action = MonsterAction::Zap;
+                        } else if monster_dto.is_smart && monster_dto.can_shoot {
+                            action = MonsterAction::Shoot;
                         }
 
                         // Starvation makes the monster behave more aggressively

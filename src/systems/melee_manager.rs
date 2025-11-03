@@ -73,14 +73,7 @@ impl MeleeManager {
                         .expect("Entity does not have CombatStats");
 
                     // From now on, attacked entity will be hostile
-                    if ecs_world
-                        .satisfies::<&mut Hates>(wants_melee.target)
-                        .unwrap_or(false)
-                    {
-                        let mut target_hates = ecs_world
-                            .get::<&mut Hates>(wants_melee.target)
-                            .expect("Entity does not have Hates");
-
+                    if let Ok(mut target_hates) = ecs_world.get::<&mut Hates>(wants_melee.target) {
                         target_hates.list.insert(attacker.id());
                     }
 

@@ -1,9 +1,11 @@
+use std::cmp::max;
+
 use hecs::{Entity, World};
 
 use crate::{
     components::{
         combat::{CombatStats, SufferingDamage, WantsToShoot, WantsToZap},
-        common::{GameLog, Named, Position},
+        common::{GameLog, Hates, Named, Position},
         items::{Armor, Equipped, Eroded, RangedWeapon},
         player::Player,
     },
@@ -67,13 +69,31 @@ impl RangedManager {
                         let index = Zone::get_index_from_xy(x, y);
 
                         if !zone.tile_content[index].is_empty() {
-                            target_opt = Some(zone.tile_content[index][0]);
-                            must_truncate_line_at = (true, i + 1);
-                            break;
-                        } else if zone.blocked_tiles[index] {
-                            game_log.entries.push(
-                                "The projectile stucks itself into something solid".to_string(),
-                            );
+                            //Get the first damageable entity
+                            for &entity in &zone.tile_content[index] {
+                                if ecs_world
+                                    .satisfies::<&SufferingDamage>(entity)
+                                    .unwrap_or(false)
+                                {
+                                    target_opt = Some(entity);
+                                    must_truncate_line_at = (true, i + 1);
+                                    break;
+                                }
+                            }
+                            //If target is found, break the loop
+                            if target_opt.is_some() {
+                                break;
+                            }
+                        }
+
+                        // If no valid target is found, check for solid obstacle
+                        if target_opt.is_none() && zone.blocked_tiles[index] {
+                            // Log only if visible
+                            if zone.visible_tiles[Zone::get_index_from_xy(x, y)] {
+                                game_log.entries.push(
+                                    "The projectile gets stuck into something solid".to_string(),
+                                );
+                            }
                             must_truncate_line_at = (true, i + 1);
                         }
                     }
@@ -82,11 +102,15 @@ impl RangedManager {
                         line_effect.truncate(must_truncate_line_at.1);
                     }
 
-                    //TODO use particle type given by ranged weapon
-                    particle_animations.push(ParticleAnimation::new_projectile(
-                        line_effect,
-                        BOLT_PARTICLE_TYPE,
-                    ));
+                    // TODO use particle type given by ranged weapon
+                    if zone.visible_tiles
+                        [Zone::get_index_from_xy(wants_to_zap.target.0, wants_to_zap.target.1)]
+                    {
+                        particle_animations.push(ParticleAnimation::new_projectile(
+                            line_effect,
+                            BOLT_PARTICLE_TYPE,
+                        ));
+                    }
                 } else {
                     // Only one if zapping himself
                     let index =
@@ -95,6 +119,11 @@ impl RangedManager {
                 }
 
                 if let Some(target) = target_opt {
+                    // Hit target now hates shooter Entity
+                    if let Ok(mut target_hates) = ecs_world.get::<&mut Hates>(target) {
+                        target_hates.list.insert(shooter.id());
+                    }
+
                     //Sum damage, keeping in mind that could not have SufferingDamage component
                     if let Ok(mut target_damage) = ecs_world.get::<&mut SufferingDamage>(target) {
                         let target_stats = ecs_world
@@ -118,7 +147,8 @@ impl RangedManager {
                             target.id(),
                             &mut equipped_armors,
                         );
-                        let damage_roll = Roll::dice(1, weapon_damage.attack_dice) - target_armor;
+                        let damage_roll =
+                            max(0, Roll::dice(1, weapon_damage.attack_dice) - target_armor);
                         target_damage.damage_received += damage_roll;
 
                         if shooter.id() == player_id {
@@ -137,7 +167,9 @@ impl RangedManager {
                                 "{} shoot you for {} damage",
                                 named_attacker.name, damage_roll
                             ));
-                        } else {
+                        } else if zone.visible_tiles
+                            [Zone::get_index_from_xy(wants_to_zap.target.0, wants_to_zap.target.1)]
+                        {
                             game_log.entries.push(format!(
                                 "{} shoot the {} for {} damage",
                                 named_attacker.name, named_target.name, damage_roll

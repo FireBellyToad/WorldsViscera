@@ -449,15 +449,18 @@ impl Player {
         let mut weapon_opt: Option<Entity> = None;
         //Scope to keep borrow checker quiet
         {
-            let mut ranged_weapons_in_backpacks_query =
-                ecs_world.query::<ItemsInBackpack>().with::<&RangedWeapon>();
+            let mut ranged_weapons_in_backpacks_query = ecs_world.query::<ItemsInBackpack>();
 
             let player_ranged_weapons: Vec<(Entity, ItemsInBackpack)> =
                 ranged_weapons_in_backpacks_query
                     .iter()
-                    .filter(|(_, (_, in_backpack, _, _, _, _, _, _, equipped))| {
-                        in_backpack.owner.id() == player_entity.id() && equipped.is_some()
-                    })
+                    .filter(
+                        |(_, (_, in_backpack, _, _, _, _, _, _, equipped, ranged))| {
+                            in_backpack.owner.id() == player_entity.id()
+                                && equipped.is_some()
+                                && ranged.is_some()
+                        },
+                    )
                     .collect();
 
             let mut game_log_query = ecs_world.query::<&mut GameLog>();

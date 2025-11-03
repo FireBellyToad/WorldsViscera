@@ -104,7 +104,7 @@ impl ItemDropping {
 
             items_to_drop = items_to_drop_entity
                 .iter()
-                .filter(|(_, (_, in_backpack, _, _, _, _, _, _, _))| {
+                .filter(|(_, (_, in_backpack, _, _, _, _, _, _, _, _))| {
                     in_backpack.owner.id() == ent.id()
                 })
                 .map(|(e, _)| e)

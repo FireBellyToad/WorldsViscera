@@ -12,9 +12,10 @@ use crate::{
 
 pub struct DecayManager {}
 
+/// Handles the decay of perishable items in the game world.
 impl DecayManager {
     pub fn run(ecs_world: &mut World) {
-        let mut expired_edibles: Vec<(Entity,String)> = Vec::new();
+        let mut expired_edibles: Vec<(Entity, String)> = Vec::new();
         let mut rotten_edibles_to_despawn: Vec<Entity> = Vec::new();
         let player_id = Player::get_entity_id(ecs_world);
 
@@ -52,7 +53,7 @@ impl DecayManager {
                         Err(_) => {
                             // Rot
                             perishable.rot_counter = STARTING_ROT_COUNTER + Roll::d100();
-                            expired_edibles.push((entity,named.name.clone()));
+                            expired_edibles.push((entity, named.name.clone()));
                         }
                     }
                 }
@@ -60,7 +61,7 @@ impl DecayManager {
         }
 
         // Register that now edible is rottend
-        for (entity,name) in expired_edibles {
+        for (entity, name) in expired_edibles {
             let _ = ecs_world.insert(
                 entity,
                 (
@@ -69,7 +70,7 @@ impl DecayManager {
                     },
                     Smellable {
                         intensity: SmellIntensity::Faint,
-                        smell_log: format!("rotten {}",name),
+                        smell_log: format!("rotten {}", name),
                     },
                 ),
             );
