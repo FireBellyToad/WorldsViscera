@@ -60,14 +60,26 @@ impl RangedManager {
                         (wants_to_zap.target.0, wants_to_zap.target.1),
                     );
 
-                    // get first entity in line (Exclude shooter)
+                    // get first entity or blocked tile in line (Exclude shooter)
+                    // you cannot shoot something behind a barrier or another npc
+                    let mut must_truncate_line_at = (false, 0);
                     for (i, &(x, y)) in line_effect.iter().skip(1).enumerate() {
                         let index = Zone::get_index_from_xy(x, y);
+
                         if !zone.tile_content[index].is_empty() {
                             target_opt = Some(zone.tile_content[index][0]);
-                            // line_effect.truncate(i); TODO seems like is not working!
+                            must_truncate_line_at = (true, i + 1);
                             break;
+                        } else if zone.blocked_tiles[index] {
+                            game_log.entries.push(
+                                "The projectile stucks itself into something solid".to_string(),
+                            );
+                            must_truncate_line_at = (true, i + 1);
                         }
+                    }
+
+                    if must_truncate_line_at.0 {
+                        line_effect.truncate(must_truncate_line_at.1);
                     }
 
                     //TODO use particle type given by ranged weapon

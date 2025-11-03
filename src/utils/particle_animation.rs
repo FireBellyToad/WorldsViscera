@@ -75,7 +75,7 @@ impl ParticleAnimation {
             frames,
             particle_type,
             animation_type: ParticleAnimationType::Projectile,
-            frame_duration: 150.0,
+            frame_duration: 100.0,
         }
     }
 }
