@@ -55,16 +55,17 @@ impl RangedManager {
                     || shooter_position.y != wants_to_zap.target.1
                 {
                     //Projectile will be shot in line
-                    let line_effect = EffectManager::new_line(
+                    let mut line_effect = EffectManager::new_line(
                         (shooter_position.x, shooter_position.y),
                         (wants_to_zap.target.0, wants_to_zap.target.1),
                     );
 
                     // get first entity in line (Exclude shooter)
-                    for &(x, y) in line_effect.iter().skip(1) {
+                    for (i, &(x, y)) in line_effect.iter().skip(1).enumerate() {
                         let index = Zone::get_index_from_xy(x, y);
                         if !zone.tile_content[index].is_empty() {
                             target_opt = Some(zone.tile_content[index][0]);
+                            // line_effect.truncate(i); TODO seems like is not working!
                             break;
                         }
                     }

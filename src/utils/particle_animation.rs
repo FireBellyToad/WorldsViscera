@@ -2,15 +2,22 @@ pub struct ParticleAnimation {
     pub current_frame: usize,
     pub frames: Vec<Vec<(i32, i32)>>,
     pub particle_type: u32,
-    pub exclude_first_frame_index: bool,
+    pub animation_type: ParticleAnimationType,
     pub frame_duration: f32, //TODO this is ambiguous! Refactor ASAP!
+}
+
+#[derive(PartialEq)]
+pub enum ParticleAnimationType {
+    Frame,
+    Ray,
+    Projectile,
 }
 
 impl ParticleAnimation {
     /// Create a line effect animation.
     /// Prepare all the "frames" that will be rendered.
-    /// this means that we will create a vector of (x,y) for each frame,
-    /// to give the impression of a growing ray.
+    /// this means that we will create a vector of (x,y) subframes for each frame,
+    /// to give the illusion of a growing ray.
     /// Example: [[(x1, y1)], [(x1, y1),(x2, y2)], [(x1, y1),(x2, y2),(x3, y3)],...]
     pub fn new_line(line_effect: Vec<(i32, i32)>, particle_type: u32) -> ParticleAnimation {
         let total_frames = line_effect.len();
@@ -29,10 +36,10 @@ impl ParticleAnimation {
 
         // Return the particle line effect
         Self {
-            current_frame: 0,
+            current_frame: 1, // Skip first frame, will not show anything anyway because of rendering logics
             frames,
             particle_type,
-            exclude_first_frame_index: true,
+            animation_type: ParticleAnimationType::Ray,
             frame_duration: 150.0,
         }
     }
@@ -46,7 +53,7 @@ impl ParticleAnimation {
             current_frame: 0,
             frames: vec![vec![(x, y)]],
             particle_type,
-            exclude_first_frame_index: false,
+            animation_type: ParticleAnimationType::Frame,
             frame_duration: 300.0,
         }
     }
@@ -64,10 +71,10 @@ impl ParticleAnimation {
 
         // Return the particle line effect
         Self {
-            current_frame: 1, // Avoid overlap with the origin
+            current_frame: 1, // Skip first frame, avoid overlap with the origin
             frames,
             particle_type,
-            exclude_first_frame_index: false,
+            animation_type: ParticleAnimationType::Projectile,
             frame_duration: 150.0,
         }
     }

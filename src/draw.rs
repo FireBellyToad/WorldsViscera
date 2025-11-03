@@ -23,7 +23,11 @@ use crate::{
     inventory::Inventory,
     maps::zone::{DecalType, Zone},
     systems::{hunger_check::HungerStatus, thirst_check::ThirstStatus},
-    utils::{assets::TextureName, common::Utils, particle_animation::ParticleAnimation},
+    utils::{
+        assets::TextureName,
+        common::Utils,
+        particle_animation::{ParticleAnimation, ParticleAnimationType},
+    },
 };
 
 pub struct Draw {}
@@ -517,51 +521,37 @@ impl Draw {
             let frame_to_render = &animation.frames[animation.current_frame];
 
             //Render different directions for particles
-            let mut direction = 0.0;
+            let mut direction = LEFT_DIR;
             let (mut previous_x, mut previous_y) = (-1, -1);
 
-            if animation.current_frame > 0 {
-                let previous_frame = &animation.frames[animation.current_frame - 1];
-                previous_x = previous_frame[0].0;
-                previous_y = previous_frame[0].1;
+            match animation.animation_type {
+                ParticleAnimationType::Frame => {
+                    // If frame, usually show only the "down" sprite
+                    direction = DOWN_DIR;
+                }
+                ParticleAnimationType::Projectile => {
+                    // If projectile, get direction from the first two frames
+                    // TODO use atan and 30° degrees increments for better graphics
+                    let first_frame = &animation.frames[0];
+                    let last_frame = &animation.frames[&animation.frames.len() - 1];
+                    (previous_x, previous_y) = first_frame[0];
+                    let (x, y) = last_frame[0];
+                    direction = Draw::get_direction_from_angle(&previous_x, &previous_y, &x, &y);
+                }
+                ParticleAnimationType::Ray => {
+                    let previous_frame = &animation.frames[animation.current_frame - 1];
+                    (previous_x, previous_y) = previous_frame[0];
+                }
             }
 
-            for (index, (x, y)) in frame_to_render.iter().enumerate() {
-                // First particle must not be rendered
-                if previous_x != -1 && previous_y != 1 {
-                    if previous_y == *y {
-                        if previous_x < *x {
-                            // Right
-                            direction = 4.0;
-                        } else {
-                            //Left
-                            direction = 0.0;
-                        }
-                    } else if previous_x == *x {
-                        if previous_y < *y {
-                            //Down
-                            direction = 6.0;
-                        } else {
-                            //Up
-                            direction = 2.0;
-                        }
-                    } else if previous_y < *y {
-                        if previous_x < *x {
-                            direction = 5.0;
-                        } else {
-                            direction = 7.0;
-                        }
-                    } else if previous_y > *y {
-                        if previous_x > *x {
-                            direction = 1.0;
-                        } else {
-                            direction = 3.0;
-                        }
-                    }
+            for (subframe_idx, (x, y)) in frame_to_render.iter().enumerate() {
+                //Render different directions for particles of a single frame (rays, explosions...)
+                if animation.animation_type == ParticleAnimationType::Ray {
+                    direction = Draw::get_direction_from_two_points(&previous_x, &previous_y, x, y);
                 }
-                // If the previous position is the starting one and the animation should exclude the first frame, skip drawing
-                // This is important for the rays and projectiles animations
-                if index > 0 || !animation.exclude_first_frame_index {
+                // If the previous position is the starting one and the animation should exclude the first subframe, skip drawing
+                // This is important for the rays animations, avoiding overlap of the first subframe with the origin
+                if animation.animation_type != ParticleAnimationType::Ray || subframe_idx > 0 {
                     // Take the texture and draw only the wanted tile ( DrawTextureParams.source )
                     draw_texture_ex(
                         texture_to_render,
@@ -580,9 +570,74 @@ impl Draw {
                     );
                 }
 
+                // For everything that has a subframe, get the previous position
                 previous_x = *x;
                 previous_y = *y;
             }
         }
+    }
+
+    /// Calculate the direction from two points (used for particle animations)
+    /// Simpler and faster than get_direction_from_angle, but much less accurate
+    fn get_direction_from_two_points(ax: &i32, ay: &i32, bx: &i32, by: &i32) -> f32 {
+        let mut direction = LEFT_DIR;
+        if *ay == *by {
+            if *ax < *bx {
+                direction = RIGHT_DIR;
+            } else {
+                direction = LEFT_DIR;
+            }
+        } else if *ax == *bx {
+            if *ay < *by {
+                direction = DOWN_DIR;
+            } else {
+                direction = UP_DIR;
+            }
+        } else if *ay < *by {
+            if *ax < *bx {
+                direction = DOWN_RIGHT_DIR;
+            } else {
+                direction = DOWN_LEFT_DIR;
+            }
+        } else if *ay > *by {
+            if *ax > *bx {
+                direction = UP_LEFT_DIR;
+            } else {
+                direction = UP_RIGHT_DIR;
+            }
+        }
+
+        direction
+    }
+
+    /// Calculate the direction using the angle from two points (used for particle animations)
+    /// Uses atan2 and radians to degrees coversion, accurate but slower than get_direction_from_two_points
+    fn get_direction_from_angle(ax: &i32, ay: &i32, bx: &i32, by: &i32) -> f32 {
+        let mut direction = LEFT_DIR;
+
+        let angle_rad = f64::atan2((by - ay) as f64, (bx - ax) as f64);
+        let angle_deg = angle_rad.to_degrees() + 180.0;
+
+        if angle_deg >= 150.0 && angle_deg <= 210.0 {
+            direction = RIGHT_DIR;
+        } else if (angle_deg >= 330.0 && angle_deg <= 360.0)
+            || (angle_deg >= 0.0 && angle_deg <= 30.0)
+        {
+            direction = LEFT_DIR;
+        } else if angle_deg >= 60.0 && angle_deg <= 120.0 {
+            direction = UP_DIR;
+        } else if angle_deg >= 240.0 && angle_deg <= 300.0 {
+            direction = DOWN_DIR;
+        } else if angle_deg > 30.0 && angle_deg < 60.0 {
+            direction = UP_LEFT_DIR;
+        } else if angle_deg > 120.0 && angle_deg < 150.0 {
+            direction = UP_RIGHT_DIR;
+        } else if angle_deg > 300.0 && angle_deg < 330.0 {
+            direction = DOWN_LEFT_DIR;
+        } else if angle_deg > 210.0 && angle_deg < 240.0 {
+            direction = DOWN_RIGHT_DIR;
+        }
+
+        direction
     }
 }
