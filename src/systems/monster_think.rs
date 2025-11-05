@@ -1,11 +1,9 @@
 use crate::components::combat::WantsToShoot;
 use crate::components::items::Equippable;
 use crate::components::items::Equipped;
-use crate::utils::common::AmmunitionInBackpack;
 use crate::utils::roll::Roll;
 use std::collections::HashSet;
 
-use hecs::QueryBorrow;
 use hecs::{Entity, World};
 
 use crate::{
