@@ -145,7 +145,6 @@ async fn main() {
                 }
             }
 
-            Draw::render_game(&game_state, &assets);
             next_frame().await;
         }
     }
