@@ -1,5 +1,8 @@
+use crate::components::actions::WantsToInvoke;
 use crate::components::combat::WantsToShoot;
-use crate::components::items::{Equipped, RangedWeapon};
+use crate::components::common::Named;
+use crate::components::items::RangedWeapon;
+use crate::utils::common::AmmunitionInBackpack;
 use crate::utils::common::ItemsInBackpack;
 use hecs::{Entity, World};
 use macroquad::input::{
@@ -230,16 +233,25 @@ impl Player {
         ecs_world: &mut World,
         special_view_mode: SpecialViewMode,
     ) -> RunState {
+        let player_entity = Player::get_entity(ecs_world);
         // ESC for escaping targeting without using Invokable
         if is_key_down(KeyCode::Escape) {
+            // Remove components linked to view mode to avoid bugs
+            match special_view_mode {
+                SpecialViewMode::ZapTargeting => {
+                    let _ = ecs_world.remove_one::<WantsToInvoke>(player_entity);
+                }
+                SpecialViewMode::RangedTargeting => {
+                    let _ = ecs_world.remove_one::<WantsToShoot>(player_entity);
+                }
+                _ => {}
+            }
             return RunState::WaitingPlayerInput;
         } else if is_mouse_button_down(MouseButton::Left) {
             let (mouse_x, mouse_y) = mouse_position();
 
             let rounded_x = (((mouse_x - UI_BORDER_F32) / TILE_SIZE_F32).ceil() - 1.0) as i32;
             let rounded_y = (((mouse_y - UI_BORDER_F32) / TILE_SIZE_F32).ceil() - 1.0) as i32;
-
-            let player_entity = Player::get_entity(ecs_world);
 
             match special_view_mode {
                 SpecialViewMode::ZapTargeting | SpecialViewMode::RangedTargeting => {
@@ -479,12 +491,40 @@ impl Player {
             }
         }
 
-        // if has weapon, go to target mode
+        // if has weapon, go check ammo or go to target mode
         if let Some(weapon) = weapon_opt {
+            //Scope to keep borrow checker quiet
+            {
+                // Check if the Player has ammo available
+                let weapon_stats = ecs_world
+                    .get::<&RangedWeapon>(weapon)
+                    .expect("Entity has no RangedWeapon"); // TODO maybe refactor this with InflictsDamage component;
+
+                // If no ammo available, abort without advancing to next tick
+                if weapon_stats.ammo_count_total == 0 {
+                    let mut game_log_query = ecs_world.query::<&mut GameLog>();
+                    let (_, game_log) = game_log_query
+                        .iter()
+                        .last()
+                        .expect("Game log is not in hecs::World");
+
+                    let weapon_named = ecs_world
+                        .get::<&Named>(weapon)
+                        .expect("Entity has no Named");
+                    game_log.entries.push(format!(
+                        "You don't have any ammunition for your {}",
+                        weapon_named.name
+                    ));
+                    return RunState::WaitingPlayerInput;
+                }
+            }
+
+            // Ready to shoot
             let _ = ecs_world.insert_one(player_entity, WantsToShoot { weapon });
-            return RunState::MouseTargeting(SpecialViewMode::ZapTargeting);
+            return RunState::MouseTargeting(SpecialViewMode::RangedTargeting);
         }
 
+        // No ranged weapon equipped, abort without advancing to next tick
         RunState::WaitingPlayerInput
     }
 

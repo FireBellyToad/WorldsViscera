@@ -34,7 +34,6 @@ pub enum BodyLocation {
 #[derive(PartialEq, Debug)]
 pub enum InvokablesEnum {
     LightningWand,
-    Crossbow, // TODO temporary
 }
 
 pub struct Invokable {
@@ -86,6 +85,19 @@ pub struct MeleeWeapon {
 
 pub struct RangedWeapon {
     pub attack_dice: i32,
+    pub ammo_type: AmmoType,
+    pub ammo_count_total: u32, // this is used in readonly. Real ammo count update is done by the Ammo component
+}
+
+pub struct Ammo {
+    pub ammo_type: AmmoType,
+    pub ammo_count: u32,
+}
+
+#[derive(PartialEq, Debug)]
+pub enum AmmoType {
+    Crossbow,
+    Slingshot,
 }
 
 pub struct Armor {

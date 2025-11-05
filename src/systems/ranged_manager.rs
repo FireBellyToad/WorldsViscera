@@ -1,4 +1,5 @@
-use std::cmp::max;
+use crate::{components::items::InBackback, utils::common::AmmunitionInBackpack};
+use std::{cmp::max, panic};
 
 use hecs::{Entity, World};
 
@@ -22,16 +23,17 @@ pub struct RangedManager {}
 impl RangedManager {
     pub fn run(ecs_world: &mut World) {
         let mut wants_to_shoot_list: Vec<(Entity, i32)> = Vec::new();
-        let mut ranged_list: Vec<Entity> = Vec::new();
         let mut particle_animations: Vec<ParticleAnimation> = Vec::new();
 
         // Scope for keeping borrow checker quiet
         {
-            // List of entities that want to zap stuff
+            // List of entities that want to shoot at stuff
             let mut shooters =
                 ecs_world.query::<(&WantsToZap, &WantsToShoot, &Position, &CombatStats)>();
 
-            //Log all the zappings
+            let mut ammo_in_backpack = ecs_world.query::<AmmunitionInBackpack>();
+
+            //Log all the shootings
             let mut game_log_query = ecs_world.query::<&mut GameLog>();
             let (_, game_log) = game_log_query
                 .iter()
@@ -50,6 +52,28 @@ impl RangedManager {
 
             for (shooter, (wants_to_zap, wants_to_shoot, shooter_position, stats)) in &mut shooters
             {
+                let weapon_stats = ecs_world
+                    .get::<&RangedWeapon>(wants_to_shoot.weapon)
+                    .expect("Entity has no RangedWeapon"); // TODO maybe refactor this with InflictsDamage component;
+
+                // If the shooter has the ammo for at least one equipped ranged weapon, it can shoot!
+                let ammo: Vec<(Entity, AmmunitionInBackpack)> = ammo_in_backpack
+                    .iter()
+                    .filter(|(_, (in_backpack, ammo))| {
+                        in_backpack.owner.id() == shooter.id()
+                            && ammo.ammo_type == weapon_stats.ammo_type
+                    })
+                    .collect();
+
+                if ammo.is_empty() {
+                    panic!("No ammo for weapon, why are we trying to shoot?");
+                } else {
+                    // Decrease ammo count
+                    if let Some((_, (_, ammo_count))) = ammo.into_iter().next() {
+                        ammo_count.ammo_count -= 1;
+                    }
+                }
+
                 let mut target_opt: Option<Entity> = None;
 
                 // Do not draw if shooter is himself
@@ -129,9 +153,6 @@ impl RangedManager {
                         let target_stats = ecs_world
                             .get::<&CombatStats>(target)
                             .expect("Entity has no CombatStats");
-                        let weapon_damage = ecs_world
-                            .get::<&RangedWeapon>(wants_to_shoot.weapon)
-                            .expect("Entity has no RangedWeapon"); // TODO maybe refactor this with InflictsDamage component;
 
                         // Show appropriate log messages
                         let named_attacker = ecs_world
@@ -148,7 +169,7 @@ impl RangedManager {
                             &mut equipped_armors,
                         );
                         let damage_roll =
-                            max(0, Roll::dice(1, weapon_damage.attack_dice) - target_armor);
+                            max(0, Roll::dice(1, weapon_stats.attack_dice) - target_armor);
                         target_damage.damage_received += damage_roll;
 
                         if shooter.id() == player_id {
@@ -193,10 +214,37 @@ impl RangedManager {
         for particle in particle_animations {
             let _ = ecs_world.spawn((true, particle));
         }
+    }
 
-        // TODO Remove if no ammunitions left invokable item: is consumed!
-        // for invokable in ranged_list {
-        //     let _ = ecs_world.despawn(invokable);
-        // }
+    /// Manage ammo in backpack, despawn empty ammo entities
+    pub fn check_ammo_counts(ecs_world: &mut World) {
+        let mut empty_ammo_list: Vec<Entity> = Vec::new();
+
+        // Scope for keeping borrow checker quiet
+        {
+            let mut ammo_in_backpack = ecs_world.query::<AmmunitionInBackpack>();
+            let mut ranged_weapons = ecs_world.query::<(&InBackback, &mut RangedWeapon)>();
+
+            // set all totals to 0
+            for (_, (_, ranged_weapon)) in &mut ranged_weapons {
+                ranged_weapon.ammo_count_total = 0
+            }
+
+            // Update ammo count for each carried weapon and despawn empty ammo entities
+            for (ammo_entity, (ammo_backpack, ammo_component)) in &mut ammo_in_backpack {
+                for (_, (weapon_backpack, ranged_weapon)) in &mut ranged_weapons {
+                    if weapon_backpack.owner.id() == ammo_backpack.owner.id() {
+                        ranged_weapon.ammo_count_total += ammo_component.ammo_count;
+                    }
+                }
+                if ammo_component.ammo_count == 0 {
+                    empty_ammo_list.push(ammo_entity);
+                }
+            }
+        }
+
+        for entity in empty_ammo_list {
+            let _ = ecs_world.despawn(entity);
+        }
     }
 }

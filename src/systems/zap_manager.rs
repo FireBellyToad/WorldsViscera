@@ -176,8 +176,7 @@ impl ZapManager {
 
         // Remove owner's will to invoke and zap
         for (zapper, speed) in wants_to_zap_list {
-            let _ = ecs_world.remove_one::<WantsToInvoke>(zapper);
-            let _ = ecs_world.remove_one::<WantsToZap>(zapper);
+            let _ = ecs_world.remove::<(WantsToInvoke, WantsToZap)>(zapper);
             Utils::wait_after_action(ecs_world, zapper, speed);
         }
 

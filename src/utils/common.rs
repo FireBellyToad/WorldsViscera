@@ -1,4 +1,4 @@
-use crate::components::items::{Armor, Equippable, RangedWeapon};
+use crate::components::items::{Ammo, Armor, Equippable, RangedWeapon};
 use std::cmp::max;
 
 use hecs::{Entity, World};
@@ -25,6 +25,8 @@ pub type ItemsInBackpack<'a> = (
     Option<&'a Equipped>,
     Option<&'a RangedWeapon>,
 );
+
+pub type AmmunitionInBackpack<'a> = (&'a InBackback, &'a mut Ammo);
 
 pub struct Utils {}
 

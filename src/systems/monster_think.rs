@@ -1,9 +1,11 @@
 use crate::components::combat::WantsToShoot;
 use crate::components::items::Equippable;
 use crate::components::items::Equipped;
+use crate::utils::common::AmmunitionInBackpack;
 use crate::utils::roll::Roll;
 use std::collections::HashSet;
 
+use hecs::QueryBorrow;
 use hecs::{Entity, World};
 
 use crate::{
@@ -134,18 +136,9 @@ impl MonsterThink {
                         })
                         .collect();
 
-                    // TODO ammunitions check
-                    let equipped_ranged_weapons: Vec<&(Entity, ItemsInBackpack)> =
-                        items_in_backpacks
-                            .iter()
-                            .filter(
-                                |(_, (_, in_backpack, _, _, _, _, _, _, equipped, ranged))| {
-                                    in_backpack.owner.id() == monster.id()
-                                        && equipped.is_some()
-                                        && ranged.is_some()
-                                },
-                            )
-                            .collect();
+                    // Get all monster's equipped ranged weapons
+                    let (can_shoot, equipped_ranged_weapon) =
+                        MonsterThink::check_if_can_shoot(monster, &items_in_backpacks);
 
                     // Look around for a target and decide what to do
                     let target_picked = MonsterThink::choose_target_and_action(
@@ -160,7 +153,7 @@ impl MonsterThink {
                             is_smart: smart.is_some(),
                             is_small: small.is_some(),
                             can_invoke: !invokables.is_empty(),
-                            can_shoot: !equipped_ranged_weapons.is_empty(),
+                            can_shoot,
                             species: &species.value,
                             hates: &hates.list,
                             backpack_is_not_full: (small.is_none()
@@ -223,7 +216,8 @@ impl MonsterThink {
                             if target.is_some() {
                                 shooter_list.push((
                                     monster,
-                                    equipped_ranged_weapons[0].0,
+                                    equipped_ranged_weapon
+                                        .expect("Must have some Equipped Ranged Weapon!"),
                                     target_x,
                                     target_y,
                                 ));
@@ -471,5 +465,40 @@ impl MonsterThink {
         // TODO Order by priority
         // No valid target found
         (MonsterAction::Move, None, -1, -1)
+    }
+
+    /// Check if the monster can shoot. This is done by checking if the monster has a ranged weapon equipped and has ammo for at least one of them
+    fn check_if_can_shoot(
+        monster: Entity,
+        items_in_backpacks: &Vec<(Entity, ItemsInBackpack)>,
+    ) -> (bool, Option<Entity>) {
+        let equipped_ranged_weapons: Vec<&(Entity, ItemsInBackpack)> = items_in_backpacks
+            .iter()
+            .filter(
+                |(_, (_, in_backpack, _, _, _, _, _, _, equipped, ranged))| {
+                    in_backpack.owner.id() == monster.id() && equipped.is_some() && ranged.is_some()
+                },
+            )
+            .collect();
+
+        // Has no equipped ranged weapons, cannot shoot
+        if equipped_ranged_weapons.is_empty() {
+            return (false, None);
+        }
+
+        // Check if monster has at least one ammo for the equipped ranged weapon
+        for (weapon_entity, (_, _, _, _, _, _, _, _, _, ranged_weapon_opt)) in
+            &equipped_ranged_weapons
+        {
+            // If the monsters has the ammo for at least one equipped ranged weapon, it can shoot!
+            // Most of the time all ranged weapons occupy BothHands BodyLocation
+            if let Some(ranged_weapon) = ranged_weapon_opt {
+                if ranged_weapon.ammo_count_total > 0 {
+                    return (true, Some(*weapon_entity));
+                }
+            }
+        }
+
+        (false, None)
     }
 }

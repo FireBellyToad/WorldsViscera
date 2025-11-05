@@ -1,4 +1,4 @@
-use crate::components::items::RangedWeapon;
+use crate::components::items::{Ammo, AmmoType, RangedWeapon};
 use hecs::{Entity, World};
 use macroquad::math::Rect;
 
@@ -270,7 +270,11 @@ pub fn crowssbow(ecs_world: &mut World, x: i32, y: i32) {
         Equippable {
             body_location: BodyLocation::BothHands,
         },
-        RangedWeapon { attack_dice: 4 }, // TODO store bolts
+        RangedWeapon {
+            attack_dice: 4,
+            ammo_type: AmmoType::Crossbow,
+            ammo_count_total: 0,
+        },
     );
 
     ecs_world.spawn(crowssbow);
@@ -498,4 +502,33 @@ pub fn dvergar_chain(ecs_world: &mut World, owner: Entity) {
     );
 
     ecs_world.spawn(dvergar_chain);
+}
+
+pub fn crossbow_ammo(ecs_world: &mut World, x: i32, y: i32) {
+    let item_tile_index = (5, 0);
+    let crossbow_ammo = (
+        Position { x, y },
+        Renderable {
+            texture_name: TextureName::Items,
+            texture_region: Rect {
+                x: (item_tile_index.0 * TILE_SIZE) as f32,
+                y: (item_tile_index.1 * TILE_SIZE) as f32,
+                w: TILE_SIZE_F32,
+                h: TILE_SIZE_F32,
+            },
+            z_index: 0,
+        },
+        Named {
+            name: "bag of bolts".to_string(),
+        },
+        Item {
+            item_tile: item_tile_index,
+        },
+        Ammo {
+            ammo_type: AmmoType::Crossbow,
+            ammo_count: Roll::dice(2, 6) as u32,
+        },
+    );
+
+    ecs_world.spawn(crossbow_ammo);
 }

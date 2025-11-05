@@ -19,7 +19,7 @@ use crate::{
         common::{GameLog, Named},
         items::{
             Appliable, Edible, Equippable, Equipped, Eroded, InBackback, Invokable, Item,
-            MustBeFueled, Quaffable, Refiller,
+            MustBeFueled, Quaffable, RangedWeapon, Refiller,
         },
         player::{Player, SpecialViewMode},
     },
@@ -40,13 +40,14 @@ pub enum InventoryAction {
 }
 
 /// Inventory Item Data trasfer type: used for rendering and general inventory usage
-type InventoryItemData = Vec<(Entity, String, char, (i32, i32), bool, bool)>;
+type InventoryItemData = Vec<(Entity, String, char, (i32, i32), bool, bool, i32)>;
 type InventoryItem<'a> = (
     &'a Named,
     &'a Item,
     &'a InBackback,
     Option<&'a Equipped>,
     Option<&'a Eroded>,
+    Option<&'a RangedWeapon>,
 );
 
 pub struct Inventory {}
@@ -106,7 +107,7 @@ impl Inventory {
                     // Validating char input
                     let item_selected = inventory
                         .iter()
-                        .find(|(_, _, assigned_char, _, _q, _)| *assigned_char == letterkey);
+                        .find(|(_, _, assigned_char, _, _q, _, _)| *assigned_char == letterkey);
 
                     // Check if item exist for letter, then register it and go on
                     if let Some(item_sel_unwrap) = item_selected {
@@ -258,7 +259,7 @@ impl Inventory {
         );
 
         // ------- Item List -----------
-        for (index, (_, item_name, assigned_char, item_tile, equipped, eroded)) in
+        for (index, (_, item_name, assigned_char, item_tile, equipped, eroded, ammo)) in
             inventory.iter().enumerate()
         {
             let x = (INVENTORY_X + UI_BORDER * 2) as f32;
@@ -271,7 +272,16 @@ impl Inventory {
             } else if *eroded {
                 format!("{} : \t - rusty {}", assigned_char, item_name)
             } else if *equipped {
-                format!("{} : \t - {} - Equipped", assigned_char, item_name)
+                if *ammo >= 0 {
+                    format!(
+                        "{} : \t - {} ({})- Equipped",
+                        assigned_char, item_name, ammo
+                    )
+                } else {
+                    format!("{} : \t - {} - Equipped", assigned_char, item_name)
+                }
+            } else if *ammo >= 0 {
+                format!("{} : \t - {} ({})", assigned_char, item_name, ammo)
             } else {
                 format!("{} : \t - {}", assigned_char, item_name)
             };
@@ -319,17 +329,25 @@ impl Inventory {
         let mut inventory_query = ecs_world.query::<InventoryItem>();
         let mut inventory = inventory_query
             .iter()
-            .filter(|(_, (_, _, in_backpack, _q, _))| in_backpack.owner.id() == player_id)
-            .map(|(entity, (named, item, in_backpack, equipped, eroded))| {
-                (
-                    entity,
-                    named.name.clone(),
-                    in_backpack.assigned_char,
-                    item.item_tile,
-                    equipped.is_some(),
-                    eroded.is_some(),
-                )
-            })
+            .filter(|(_, (_, _, in_backpack, _q, _, _))| in_backpack.owner.id() == player_id)
+            .map(
+                |(entity, (named, item, in_backpack, equipped, eroded, ranged_opt))| {
+                    let mut ammo = -1;
+                    if let Some(ranged) = ranged_opt {
+                        ammo = ranged.ammo_count_total as i32;
+                    }
+
+                    (
+                        entity,
+                        named.name.clone(),
+                        in_backpack.assigned_char,
+                        item.item_tile,
+                        equipped.is_some(),
+                        eroded.is_some(),
+                        ammo,
+                    )
+                },
+            )
             .collect::<InventoryItemData>();
 
         //Sort alphabetically by assigned char
@@ -345,17 +363,25 @@ impl Inventory {
 
         let mut inventory = inventory_query
             .iter()
-            .filter(|(_, (_, _, in_backpack, _q, _))| in_backpack.owner.id() == player_id)
-            .map(|(entity, (named, item, in_backpack, equipped, eroded))| {
-                (
-                    entity,
-                    named.name.clone(),
-                    in_backpack.assigned_char,
-                    item.item_tile,
-                    equipped.is_some(),
-                    eroded.is_some(),
-                )
-            }) //
+            .filter(|(_, (_, _, in_backpack, _q, _, _))| in_backpack.owner.id() == player_id)
+            .map(
+                |(entity, (named, item, in_backpack, equipped, eroded, ranged_opt))| {
+                    let mut ammo = -1;
+                    if let Some(ranged) = ranged_opt {
+                        ammo = ranged.ammo_count_total as i32;
+                    }
+
+                    (
+                        entity,
+                        named.name.clone(),
+                        in_backpack.assigned_char,
+                        item.item_tile,
+                        equipped.is_some(),
+                        eroded.is_some(),
+                        ammo,
+                    )
+                },
+            ) //
             .collect::<InventoryItemData>();
 
         //Sort alphabetically by assigned char

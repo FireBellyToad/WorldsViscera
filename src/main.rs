@@ -146,6 +146,7 @@ async fn main() {
             }
 
             next_frame().await;
+            Draw::render_game(&game_state, &assets);
         }
     }
 }
@@ -226,6 +227,7 @@ fn change_zone(engine: &mut EngineState) {
 
 fn do_before_tick_logic(game_state: &mut EngineState) {
     TurnCheck::run(&mut game_state.ecs_world);
+    RangedManager::check_ammo_counts(&mut game_state.ecs_world);
     AutomaticHealing::run(&mut game_state.ecs_world);
     DecayManager::run(&mut game_state.ecs_world);
     HungerCheck::run(&mut game_state.ecs_world);

@@ -333,7 +333,7 @@ impl Draw {
             .last()
             .expect("Zone is not in hecs::World");
 
-        let only_on_visible_tiles = *special_view_mode == SpecialViewMode::ZapTargeting;
+        let only_on_visible_tiles = *special_view_mode != SpecialViewMode::Smell;
         Draw::special_targets(ecs_world, assets, special_view_mode, zone);
 
         let (mouse_x, mouse_y) = mouse_position();
@@ -627,15 +627,13 @@ impl Draw {
         let angle_rad = f64::atan2((by - ay) as f64, (bx - ax) as f64);
         let angle_deg = angle_rad.to_degrees() + 180.0;
 
-        if angle_deg >= 150.0 && angle_deg <= 210.0 {
+        if (150.0..=210.0).contains(&angle_deg) {
             direction = RIGHT_DIR;
-        } else if (angle_deg >= 330.0 && angle_deg <= 360.0)
-            || (angle_deg >= 0.0 && angle_deg <= 30.0)
-        {
+        } else if ((330.0..=360.0).contains(&angle_deg)) || ((0.0..=30.0).contains(&angle_deg)) {
             direction = LEFT_DIR;
-        } else if angle_deg >= 60.0 && angle_deg <= 120.0 {
+        } else if (60.0..=120.0).contains(&angle_deg) {
             direction = UP_DIR;
-        } else if angle_deg >= 240.0 && angle_deg <= 300.0 {
+        } else if (240.0..=300.0).contains(&angle_deg) {
             direction = DOWN_DIR;
         } else if angle_deg > 30.0 && angle_deg < 60.0 {
             direction = UP_LEFT_DIR;
