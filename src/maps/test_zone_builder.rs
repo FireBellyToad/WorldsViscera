@@ -20,7 +20,7 @@ impl ZoneBuilder for TestZoneBuilder {
         for x in 0..MAP_WIDTH {
             for y in 0..MAP_HEIGHT {
                 if x != 0 && y != 0 && x != MAP_WIDTH - 1 && y != MAP_HEIGHT - 1 {
-                    let index = Zone::get_index_from_xy(x, y);
+                    let index = Zone::get_index_from_xy(&x, &y);
                     zone.tiles[index] = TileType::Floor
                 }
             }
@@ -28,15 +28,15 @@ impl ZoneBuilder for TestZoneBuilder {
 
         //Straight river
         for y in 1..MAP_HEIGHT {
-            zone.tiles[Zone::get_index_from_xy(10, y)] = TileType::Water;
+            zone.tiles[Zone::get_index_from_xy(&10, &y)] = TileType::Water;
         }
         //Lake
         for x in 0..MAP_WIDTH {
             for y in 0..MAP_HEIGHT {
-                let distance = Utils::distance(10, x, MAP_HEIGHT / 2, y);
+                let distance = Utils::distance(&10, &x, &(MAP_HEIGHT / 2), &y);
 
                 if distance < 4.0 {
-                    zone.tiles[Zone::get_index_from_xy(x, y)] = TileType::Water;
+                    zone.tiles[Zone::get_index_from_xy(&x, &y)] = TileType::Water;
                 }
             }
         }
@@ -45,7 +45,7 @@ impl ZoneBuilder for TestZoneBuilder {
         zone.populate_blocked();
         zone.populate_water();
 
-        zone.player_spawn_point = Zone::get_index_from_xy(MAP_WIDTH / 2, MAP_HEIGHT / 2);
+        zone.player_spawn_point = Zone::get_index_from_xy(&(MAP_WIDTH / 2), &(MAP_HEIGHT / 2));
 
         zone.tiles[Zone::get_index_from_xy_f32(MAP_WIDTH_F32 * 0.25, MAP_HEIGHT_F32 * 0.25)] =
             TileType::Brazier;

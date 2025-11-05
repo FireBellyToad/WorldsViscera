@@ -69,7 +69,7 @@ impl HiddenManager {
                             } else {
                                 // Log if within players view
                                 if zone.visible_tiles
-                                    [Zone::get_index_from_xy(position.x, position.y)]
+                                    [Zone::get_index_from_xy(&position.x, &position.y)]
                                 {
                                     game_log
                                         .entries
@@ -90,7 +90,8 @@ impl HiddenManager {
                             hidden_entities
                                 .push((entity, (stats.current_dexterity / 3) * stats.speed));
 
-                            if zone.visible_tiles[Zone::get_index_from_xy(position.x, position.y)] {
+                            if zone.visible_tiles[Zone::get_index_from_xy(&position.x, &position.y)]
+                            {
                                 game_log
                                     .entries
                                     .push(format!("The {} suddenly disappears!", named.name));

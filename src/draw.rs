@@ -284,7 +284,7 @@ impl Draw {
                 .get(&renderable.texture_name)
                 .expect("Texture not found");
 
-            if zone.visible_tiles[Zone::get_index_from_xy(position.x, position.y)] {
+            if zone.visible_tiles[Zone::get_index_from_xy(&position.x, &position.y)] {
                 // Take the texture and draw only the wanted tile ( DrawTextureParams.source )
                 draw_texture_ex(
                     texture_to_render,
@@ -342,7 +342,7 @@ impl Draw {
         let rounded_y = (((mouse_y - UI_BORDER_F32) / TILE_SIZE_F32).ceil() - 1.0) as i32;
 
         // Draw target if tile is visible
-        let index = Zone::get_index_from_xy(rounded_x, rounded_y);
+        let index = Zone::get_index_from_xy(&rounded_x, &rounded_y);
         if !only_on_visible_tiles || zone.visible_tiles.len() > index && zone.visible_tiles[index] {
             draw_rectangle_lines(
                 (UI_BORDER + (rounded_x * TILE_SIZE)) as f32,
@@ -374,13 +374,13 @@ impl Draw {
                     //Show smellable on not visibile tiles
                     let mut smells_with_position = ecs_world.query::<(&Position, &Smellable)>();
                     for (_, (smell_position, smell)) in &mut smells_with_position {
-                        let index = Zone::get_index_from_xy(smell_position.x, smell_position.y);
+                        let index = Zone::get_index_from_xy(&smell_position.x, &smell_position.y);
 
                         let distance = Utils::distance(
-                            smell_position.x,
-                            player_position.x,
-                            smell_position.y,
-                            player_position.y,
+                            &smell_position.x,
+                            &player_position.x,
+                            &smell_position.y,
+                            &player_position.y,
                         );
 
                         let can_smell = player_smell_ability.intensity != SmellIntensity::None // the player cannot smell anything (common cold or other penalities)
@@ -430,7 +430,7 @@ impl Draw {
 
         for x in 0..MAP_WIDTH {
             for y in 0..MAP_HEIGHT {
-                let tile_to_draw = Zone::get_index_from_xy(x, y);
+                let tile_to_draw = Zone::get_index_from_xy(&x, &y);
                 let tile_index = Zone::get_tile_sprite_sheet_index(&zone.tiles[tile_to_draw]);
 
                 if zone.revealed_tiles[tile_to_draw] {
@@ -558,7 +558,7 @@ impl Draw {
                 }
                 // If the previous position is the starting one and the animation should exclude the first subframe, skip drawing
                 // This is important for the rays animations, avoiding overlap of the first subframe with the origin
-                if zone.visible_tiles[Zone::get_index_from_xy(*x, *y)]
+                if zone.visible_tiles[Zone::get_index_from_xy(x, y)]
                     && (animation.animation_type != ParticleAnimationType::Ray || subframe_idx > 0)
                 {
                     // Take the texture and draw only the wanted tile ( DrawTextureParams.source )

@@ -61,7 +61,7 @@ impl Player {
 
             for (player_entity, (position, viewshed)) in &mut players {
                 let destination_index =
-                    Zone::get_index_from_xy(position.x + delta_x, position.y + delta_y);
+                    Zone::get_index_from_xy(&(position.x + delta_x), &(position.y + delta_y));
 
                 //Search for potential targets (must have CombatStats component)
                 for &potential_target in zone.tile_content[destination_index].iter() {
@@ -76,11 +76,11 @@ impl Player {
 
                 // Move if not attacking or destination is not blocked
                 if attacker_target.is_none() && !zone.blocked_tiles[destination_index] {
-                    zone.blocked_tiles[Zone::get_index_from_xy(position.x, position.y)] = false;
+                    zone.blocked_tiles[Zone::get_index_from_xy(&position.x, &position.y)] = false;
                     position.x = (position.x + delta_x).clamp(0, MAP_WIDTH - 1);
                     position.y = (position.y + delta_y).clamp(0, MAP_HEIGHT - 1);
                     viewshed.must_recalculate = true;
-                    zone.blocked_tiles[Zone::get_index_from_xy(position.x, position.y)] = true;
+                    zone.blocked_tiles[Zone::get_index_from_xy(&position.x, &position.y)] = true;
                     return_state = RunState::DoTick;
                 }
             }
@@ -264,7 +264,7 @@ impl Player {
                             .last()
                             .expect("Zone is not in hecs::World");
                         // Make sure that we are targeting a valid tile
-                        let index = Zone::get_index_from_xy(rounded_x, rounded_y);
+                        let index = Zone::get_index_from_xy(&rounded_x, &rounded_y);
                         if index < zone.visible_tiles.len() {
                             is_valid_tile = zone.visible_tiles[index];
                         }
@@ -389,7 +389,7 @@ impl Player {
 
             // Get Water from river
             there_is_river_here =
-                zone.water_tiles[Zone::get_index_from_xy(player_position.x, player_position.y)];
+                zone.water_tiles[Zone::get_index_from_xy(&player_position.x, &player_position.y)];
         }
 
         if there_is_river_here {
@@ -432,7 +432,7 @@ impl Player {
                 .last()
                 .expect("Zone is not in hecs::World");
             standing_on_tile =
-                &zone.tiles[Zone::get_index_from_xy(player_position.x, player_position.y)];
+                &zone.tiles[Zone::get_index_from_xy(&player_position.x, &player_position.y)];
 
             let mut game_log_query = ecs_world.query::<&mut GameLog>();
             let (_, game_log) = game_log_query

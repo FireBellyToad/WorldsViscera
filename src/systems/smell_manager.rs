@@ -35,7 +35,7 @@ impl SmellManager {
 
             for (smeller, (wants_to_smell, smell_ability, smeller_position)) in &mut smellers {
                 let index =
-                    Zone::get_index_from_xy(wants_to_smell.target.0, wants_to_smell.target.1);
+                    Zone::get_index_from_xy(&wants_to_smell.target.0, &wants_to_smell.target.1);
 
                 let mut have_smelled_something = false;
 
@@ -49,16 +49,16 @@ impl SmellManager {
                         if let Ok(smells) = target_smell {
                             // Show appropriate log messages
                             let distance = Utils::distance(
-                                wants_to_smell.target.0,
-                                smeller_position.x,
-                                wants_to_smell.target.1,
-                                smeller_position.y,
+                                &wants_to_smell.target.0,
+                                &smeller_position.x,
+                                &wants_to_smell.target.1,
+                                &smeller_position.y,
                             );
 
                             let can_smell = smell_ability.intensity != SmellIntensity::None // the player cannot smell anything (common cold or other penalities)
                                                 && ((distance < smell_ability.radius / 2.0 && smells.intensity == SmellIntensity::Faint) // Faint odors can be smell from half normal distance
                                                     || (distance < smell_ability.radius
-                                                        && (smells.intensity == SmellIntensity::Strong // Strong odors can be smelled at double distance. 
+                                                        && (smells.intensity == SmellIntensity::Strong // Strong odors can be smelled at double distance.
                                                             || smell_ability.intensity == SmellIntensity::Strong))); // Player have improved smell (can smell faint odors from far away)
 
                             if can_smell {
@@ -72,7 +72,9 @@ impl SmellManager {
                 }
 
                 if !have_smelled_something {
-                    game_log.entries.push("You smell nothing strange".to_string());
+                    game_log
+                        .entries
+                        .push("You smell nothing strange".to_string());
                 }
 
                 // prepare lists for removal

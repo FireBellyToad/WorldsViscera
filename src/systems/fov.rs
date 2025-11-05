@@ -36,8 +36,8 @@ impl FieldOfView {
                 if entity.id() == player_entity_id {
                     zone.visible_tiles.fill(false);
                     for &(x, y) in viewshed.visible_tiles.iter() {
-                        let index = Zone::get_index_from_xy(x, y);
-                        let distance = Utils::distance(x, position.x, y, position.y);
+                        let index = Zone::get_index_from_xy(&x, &y);
+                        let distance = Utils::distance(&x, &position.x, &y, &position.y);
 
                         // if is lit, that we can show and reveal
                         // Adiacent tiles are always visible
@@ -54,7 +54,7 @@ impl FieldOfView {
     /// Wrapper to riutilize standard compute fov everywhere, given a viewshed
     pub fn compute(zone: &mut Zone, viewshed: &mut Viewshed, x: i32, y: i32) {
         // Utility lambda for opaque tiles
-        let is_opaque = |position: IVec2| zone.is_tile_opaque(position[0], position[1]);
+        let is_opaque = |position: IVec2| zone.is_tile_opaque(&position[0], &position[1]);
 
         // Utility lambda for setting visible tiles
         let set_to_visible = |position: IVec2| {
@@ -72,7 +72,7 @@ impl FieldOfView {
 
         // Sort visible tiles by distance from origin. Needed for better IA handling
         viewshed.visible_tiles.sort_by(|(ax, ay), (bx, by)| {
-            Utils::distance(x, *ax, y, *ay).total_cmp(&Utils::distance(x, *bx, y, *by))
+            Utils::distance(&x, ax, &y, ay).total_cmp(&Utils::distance(&x, bx, &y, by))
         });
     }
 }

@@ -42,7 +42,7 @@ impl WetManager {
             for (got_wet_entity, (position_opt, is_wet)) in &mut wettable_entities {
                 // Wet everyone walking in water
                 if let Some(position) = position_opt
-                    && zone.water_tiles[Zone::get_index_from_xy(position.x, position.y)]
+                    && zone.water_tiles[Zone::get_index_from_xy(&position.x, &position.y)]
                 {
                     WetManager::wet_backpack(
                         ecs_world,

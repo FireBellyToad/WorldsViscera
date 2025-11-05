@@ -97,7 +97,8 @@ impl ItemCollection {
                         game_log
                             .entries
                             .push(format!("You pick up the {}", named_item.name));
-                    } else if zone.visible_tiles[Zone::get_index_from_xy(position.x, position.y)] {
+                    } else if zone.visible_tiles[Zone::get_index_from_xy(&position.x, &position.y)]
+                    {
                         // Log NPC infighting only if visible
                         game_log.entries.push(format!(
                             "The {} picks up the {}",

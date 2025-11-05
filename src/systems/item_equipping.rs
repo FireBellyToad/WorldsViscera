@@ -100,7 +100,7 @@ impl ItemEquipping {
                                     .entries
                                     .push(format!("You equip the {}", named_item.name));
                             } else if zone.visible_tiles
-                                [Zone::get_index_from_xy(position.x, position.y)]
+                                [Zone::get_index_from_xy(&position.x, &position.y)]
                             {
                                 game_log.entries.push(format!(
                                     "{} equips the {}",

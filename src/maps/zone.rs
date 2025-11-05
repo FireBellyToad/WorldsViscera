@@ -70,7 +70,7 @@ impl Zone {
             for y in y_pos - 1..=y_pos + 1 {
                 //Manhattan Distance
                 if !use_manhattan_distance || (x == x_pos || y == y_pos) {
-                    let index = Self::get_index_from_xy(x, y);
+                    let index = Self::get_index_from_xy(&x, &y);
                     // Safety check is needed for zone borders
                     if self.blocked_tiles.len() > index && !self.blocked_tiles[index] {
                         // Aquatic monster can move only on water tiles
@@ -105,7 +105,7 @@ impl Zone {
     }
 
     /// Return true if cannot see through a tile
-    pub fn is_tile_opaque(&self, x: i32, y: i32) -> bool {
+    pub fn is_tile_opaque(&self, x: &i32, y: &i32) -> bool {
         let index = Self::get_index_from_xy(x, y);
         self.tiles[index] == TileType::Wall
     }
@@ -129,7 +129,7 @@ impl Zone {
     }
 
     /// trasfroms x,y position into a vector index
-    pub fn get_index_from_xy(x: i32, y: i32) -> usize {
+    pub fn get_index_from_xy(x: &i32, y: &i32) -> usize {
         ((y * MAP_WIDTH) + x) as usize
     }
 
@@ -142,6 +142,6 @@ impl Zone {
     pub fn get_xy_from_index(index: usize) -> (i32, i32) {
         let x = index as i32 % MAP_WIDTH;
         let y = index as i32 / MAP_WIDTH;
-        (x , y )
+        (x, y)
     }
 }

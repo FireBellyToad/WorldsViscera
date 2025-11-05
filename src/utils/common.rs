@@ -1,4 +1,10 @@
-use crate::components::items::{Ammo, Armor, Equippable, RangedWeapon};
+use crate::{
+    components::{
+        common::Viewshed,
+        items::{Ammo, Armor, Equippable, RangedWeapon},
+    },
+    maps::zone::Zone,
+};
 use std::cmp::max;
 
 use hecs::{Entity, World};
@@ -32,8 +38,8 @@ pub struct Utils {}
 
 impl Utils {
     /// Pythagorean distance
-    pub fn distance(x1: i32, x2: i32, y1: i32, y2: i32) -> f32 {
-        ((x1.abs_diff(x2).pow(2) + y1.abs_diff(y2).pow(2)) as f32).sqrt()
+    pub fn distance(x1: &i32, x2: &i32, y1: &i32, y2: &i32) -> f32 {
+        ((x1.abs_diff(*x2).pow(2) + y1.abs_diff(*y2).pow(2)) as f32).sqrt()
     }
 
     pub fn occupies_same_location(b1: &BodyLocation, b2: &BodyLocation) -> bool {
@@ -141,5 +147,26 @@ impl Utils {
                 SpeciesEnum::Gremlin,
             ],
         }
+    }
+
+    /// Calculate the farthest visible point from the target position within the given viewshed.
+    pub(crate) fn calculate_farthest_visible_point(
+        target_x: &i32,
+        target_y: &i32,
+        viewshed: &Viewshed,
+    ) -> (i32, i32) {
+        let (mut new_x, mut new_y) = (-1, -1);
+        let mut distance = 0.0;
+
+        for (x, y) in viewshed.visible_tiles.iter() {
+            let new_distance = Utils::distance(target_x, x, target_y, y);
+            if new_distance > distance {
+                distance = new_distance;
+                new_x = *x;
+                new_y = *y;
+            }
+        }
+
+        (new_x, new_y)
     }
 }

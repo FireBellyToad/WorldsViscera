@@ -19,13 +19,13 @@ impl ZoneBuilder for ArenaZoneBuilder {
         for x in 0..MAP_WIDTH {
             for y in 0..MAP_HEIGHT {
                 if x != 0 && y != 0 && x != MAP_WIDTH - 1 && y != MAP_HEIGHT - 1 {
-                    let index = Zone::get_index_from_xy(x, y);
+                    let index = Zone::get_index_from_xy(&x, &y);
                     zone.tiles[index] = TileType::Floor
                 }
             }
         }
 
-        zone.player_spawn_point = Zone::get_index_from_xy(MAP_WIDTH / 2, MAP_HEIGHT / 2);
+        zone.player_spawn_point = Zone::get_index_from_xy(&(MAP_WIDTH / 2), &(MAP_HEIGHT / 2));
 
         zone.tiles[Zone::get_index_from_xy_f32(MAP_WIDTH_F32 * 0.25, MAP_HEIGHT_F32 * 0.25)] =
             TileType::Brazier;
@@ -35,7 +35,7 @@ impl ZoneBuilder for ArenaZoneBuilder {
             TileType::Brazier;
         zone.tiles[Zone::get_index_from_xy_f32(MAP_WIDTH_F32 * 0.75, MAP_HEIGHT_F32 * 0.75)] =
             TileType::Brazier;
-            
+
         // Populate blocked tiles here, needed for correct spawning
         zone.populate_blocked();
 
@@ -44,8 +44,8 @@ impl ZoneBuilder for ArenaZoneBuilder {
 
         for _ in 0..items_number {
             for _ in 0..MAX_SPAWN_TENTANTIVES {
-                let x = Roll::dice(1, MAP_WIDTH  - 3) as f32 + 1.0;
-                let y = Roll::dice(1, MAP_HEIGHT  - 3) as f32 + 1.0;
+                let x = Roll::dice(1, MAP_WIDTH - 3) as f32 + 1.0;
+                let y = Roll::dice(1, MAP_HEIGHT - 3) as f32 + 1.0;
                 let index = Zone::get_index_from_xy_f32(x, y);
 
                 // avoid duplicate spawnpoints
@@ -58,7 +58,7 @@ impl ZoneBuilder for ArenaZoneBuilder {
         }
 
         // Random starting point for DownPassage
-        let passage_index = Zone::get_index_from_xy(MAP_WIDTH / 2, MAP_HEIGHT / 2);
+        let passage_index = Zone::get_index_from_xy(&(MAP_WIDTH / 2), &(MAP_HEIGHT / 2));
         zone.tiles[passage_index] = TileType::DownPassage;
 
         zone

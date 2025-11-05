@@ -116,8 +116,8 @@ impl MeleeManager {
                                 } else {
                                     // Log NPC infighting only if visible
                                     if zone.visible_tiles[Zone::get_index_from_xy(
-                                        attacker_position.x,
-                                        attacker_position.y,
+                                        &attacker_position.x,
+                                        &attacker_position.y,
                                     )] {
                                         game_log.entries.push(format!(
                                             "The {} hits the {} for {} venomous damage",
@@ -152,8 +152,8 @@ impl MeleeManager {
                                     } else {
                                         // Log NPC infighting only if visible
                                         if zone.visible_tiles[Zone::get_index_from_xy(
-                                            attacker_position.x,
-                                            attacker_position.y,
+                                            &attacker_position.x,
+                                            &attacker_position.y,
                                         )] {
                                             game_log.entries.push(format!(
                                                 "The {} sneak attacks the {} for {} damage!",
@@ -188,8 +188,8 @@ impl MeleeManager {
                                     } else {
                                         // Log NPC infighting only if visible
                                         if zone.visible_tiles[Zone::get_index_from_xy(
-                                            attacker_position.x,
-                                            attacker_position.y,
+                                            &attacker_position.x,
+                                            &attacker_position.y,
                                         )] {
                                             game_log.entries.push(format!(
                                                 "{} hits the {} for {} damage",

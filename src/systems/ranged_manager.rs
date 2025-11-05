@@ -90,7 +90,7 @@ impl RangedManager {
                     // you cannot shoot something behind a barrier or another npc
                     let mut must_truncate_line_at = (false, 0);
                     for (i, &(x, y)) in line_effect.iter().skip(1).enumerate() {
-                        let index = Zone::get_index_from_xy(x, y);
+                        let index = Zone::get_index_from_xy(&x, &y);
 
                         if !zone.tile_content[index].is_empty() {
                             //Get the first damageable entity
@@ -113,7 +113,7 @@ impl RangedManager {
                         // If no valid target is found, check for solid obstacle
                         if target_opt.is_none() && zone.blocked_tiles[index] {
                             // Log only if visible
-                            if zone.visible_tiles[Zone::get_index_from_xy(x, y)] {
+                            if zone.visible_tiles[Zone::get_index_from_xy(&x, &y)] {
                                 game_log.entries.push(
                                     "The projectile gets stuck into something solid".to_string(),
                                 );
@@ -128,7 +128,7 @@ impl RangedManager {
 
                     // TODO use particle type given by ranged weapon
                     if zone.visible_tiles
-                        [Zone::get_index_from_xy(wants_to_zap.target.0, wants_to_zap.target.1)]
+                        [Zone::get_index_from_xy(&wants_to_zap.target.0, &wants_to_zap.target.1)]
                     {
                         particle_animations.push(ParticleAnimation::new_projectile(
                             line_effect,
@@ -138,7 +138,7 @@ impl RangedManager {
                 } else {
                     // Only one if zapping himself
                     let index =
-                        Zone::get_index_from_xy(wants_to_zap.target.0, wants_to_zap.target.1);
+                        Zone::get_index_from_xy(&wants_to_zap.target.0, &wants_to_zap.target.1);
                     target_opt = Some(zone.tile_content[index][0]);
                 }
 
@@ -188,9 +188,10 @@ impl RangedManager {
                                 "{} shoot you for {} damage",
                                 named_attacker.name, damage_roll
                             ));
-                        } else if zone.visible_tiles
-                            [Zone::get_index_from_xy(wants_to_zap.target.0, wants_to_zap.target.1)]
-                        {
+                        } else if zone.visible_tiles[Zone::get_index_from_xy(
+                            &wants_to_zap.target.0,
+                            &wants_to_zap.target.1,
+                        )] {
                             game_log.entries.push(format!(
                                 "{} shoot the {} for {} damage",
                                 named_attacker.name, named_target.name, damage_roll

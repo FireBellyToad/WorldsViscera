@@ -1,6 +1,7 @@
 use crate::components::combat::WantsToShoot;
 use crate::components::items::Equippable;
 use crate::components::items::Equipped;
+use crate::components::monster::IsPrey;
 use crate::utils::roll::Roll;
 use std::collections::HashSet;
 
@@ -80,6 +81,7 @@ impl MonsterThink {
                     Option<&Smart>,
                     Option<&Aquatic>,
                     Option<&WantsToApproach>,
+                    Option<&IsPrey>,
                 )>()
                 .with::<(&Monster, &MyTurn)>();
 
@@ -104,6 +106,7 @@ impl MonsterThink {
                     smart,
                     aquatic,
                     wants_to_approach,
+                    is_prey,
                 ),
             ) in &mut named_monsters
             {
@@ -162,11 +165,16 @@ impl MonsterThink {
                     );
 
                     //If enemy can see target, do action relative to it
-                    let (action, target, target_x, target_y) = target_picked;
+                    let (action, target, mut target_x, mut target_y) = target_picked;
                     match action {
                         MonsterAction::Move => {
-                            //Target is far away, try to approach it
-                            //TODO if hostile and monster has ranged weapon, should attack
+                            //Target is far away, try to approach it. Unless it's prey, than it should escape
+                            if is_prey.is_some() {
+                                (target_x, target_y) = Utils::calculate_farthest_visible_point(
+                                    &target_x, &target_y, &viewshed,
+                                );
+                            }
+
                             let pathfinding_result = Pathfinding::dijkstra_wrapper(
                                 position.x,
                                 position.y,
@@ -379,9 +387,9 @@ impl MonsterThink {
 
         // Search in range of view possible targets
         for (x, y) in monster_dto.viewshed.visible_tiles.iter() {
-            let index = Zone::get_index_from_xy(*x, *y);
+            let index = Zone::get_index_from_xy(&x, &y);
             let distance: f32 =
-                Utils::distance(monster_dto.position.x, *x, monster_dto.position.y, *y);
+                Utils::distance(&monster_dto.position.x, x, &monster_dto.position.y, y);
             // Start by moving towards a potential target
             let mut action = MonsterAction::Move;
 

@@ -62,10 +62,10 @@ impl MonsterApproach {
                     viewshed.must_recalculate = true;
 
                     // Avoid overlap with other monsters and player
-                    zone.blocked_tiles[Zone::get_index_from_xy(position.x, position.y)] = false;
+                    zone.blocked_tiles[Zone::get_index_from_xy(&position.x, &position.y)] = false;
                     position.x = path[1].0;
                     position.y = path[1].1;
-                    zone.blocked_tiles[Zone::get_index_from_xy(position.x, position.y)] = true;
+                    zone.blocked_tiles[Zone::get_index_from_xy(&position.x, &position.y)] = true;
 
                     //Monster must wait too after an action!
                     waiter_speed_list.push((monster_entity, stats.speed));

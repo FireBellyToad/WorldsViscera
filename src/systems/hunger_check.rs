@@ -110,7 +110,7 @@ impl HungerCheck {
                                 hunger.tick_counter = MAX_HUNGER_TICK_COUNTER - Roll::dice(3, 10);
                                 hunger.current_status = HungerStatus::Normal;
                                 zone.decals_tiles.insert(
-                                    Zone::get_index_from_xy(position.x, position.y),
+                                    Zone::get_index_from_xy(&position.x, &position.y),
                                     DecalType::Vomit,
                                 );
                                 if hungry_entity.id() == player_id {

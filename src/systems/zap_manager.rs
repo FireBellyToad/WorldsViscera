@@ -80,7 +80,7 @@ impl ZapManager {
 
                     // Zap all entities in line (Excluding first)!
                     for &(x, y) in line_effect.iter().skip(1) {
-                        let index = Zone::get_index_from_xy(x, y);
+                        let index = Zone::get_index_from_xy(&x, &y);
                         target_list.push(&zone.tile_content[index]);
                     }
 
@@ -91,7 +91,7 @@ impl ZapManager {
                     ));
                 } else {
                     // Only one if zapping himself
-                    let index = Zone::get_index_from_xy(wants_zap.target.0, wants_zap.target.1);
+                    let index = Zone::get_index_from_xy(&wants_zap.target.0, &wants_zap.target.1);
                     target_list.push(&zone.tile_content[index]);
                 }
 

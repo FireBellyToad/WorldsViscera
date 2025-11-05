@@ -58,7 +58,8 @@ impl EatingEdibles {
                         game_log
                             .entries
                             .push(format!("You ate a {}", named_edible.name));
-                    } else if zone.visible_tiles[Zone::get_index_from_xy(position.x, position.y)] {
+                    } else if zone.visible_tiles[Zone::get_index_from_xy(&position.x, &position.y)]
+                    {
                         // Log NPC infighting only if visible
                         game_log
                             .entries
@@ -98,7 +99,7 @@ impl EatingEdibles {
                                 unsavoury_component.game_log
                             ));
                         } else if zone.visible_tiles
-                            [Zone::get_index_from_xy(position.x, position.y)]
+                            [Zone::get_index_from_xy(&position.x, &position.y)]
                         {
                             // Log NPC infighting only if visible
                             game_log
@@ -107,7 +108,7 @@ impl EatingEdibles {
                         }
 
                         zone.decals_tiles.insert(
-                            Zone::get_index_from_xy(position.x, position.y),
+                            Zone::get_index_from_xy(&position.x, &position.y),
                             DecalType::Vomit,
                         );
                     } else {

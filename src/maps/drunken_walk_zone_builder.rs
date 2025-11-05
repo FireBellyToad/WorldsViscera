@@ -21,7 +21,7 @@ impl ZoneBuilder for DrunkenWalkZoneBuilder {
         // Simple Drunken walk
         let mut current_position = (MAP_WIDTH / 2, MAP_HEIGHT / 2);
         for _ in 0..DRUNKEN_WALK_MAX_ITERATIONS {
-            zone.tiles[Zone::get_index_from_xy(current_position.0, current_position.1)] =
+            zone.tiles[Zone::get_index_from_xy(&current_position.0, &current_position.1)] =
                 TileType::Floor;
 
             let mut life_counter = 0;
@@ -46,12 +46,12 @@ impl ZoneBuilder for DrunkenWalkZoneBuilder {
                         current_position = (MAP_WIDTH / 2, MAP_HEIGHT / 2);
                     } else {
                         unblock_tentatives -= 1;
-                        println!{"DrunkenWalkZoneBuilder - unblock_tentatives {}",unblock_tentatives};
+                        println! {"DrunkenWalkZoneBuilder - unblock_tentatives {}",unblock_tentatives};
                     }
                     continue;
                 }
 
-                let index = Zone::get_index_from_xy(dest_x, dest_y);
+                let index = Zone::get_index_from_xy(&dest_x, &dest_y);
                 if zone.tiles[index] == TileType::Wall {
                     zone.tiles[index] = TileType::Floor;
                 }
@@ -67,7 +67,7 @@ impl ZoneBuilder for DrunkenWalkZoneBuilder {
         while zone.tiles[zone.player_spawn_point] == TileType::Wall {
             try_x = Roll::dice(1, MAP_WIDTH - 2);
             try_y = Roll::dice(1, MAP_HEIGHT - 2);
-            zone.player_spawn_point = Zone::get_index_from_xy(try_x, try_y);
+            zone.player_spawn_point = Zone::get_index_from_xy(&try_x, &try_y);
         }
 
         let river_number = max(1, Roll::dice(0, MAX_RIVERS_IN_ZONE + (depth / 3)) - 3);
@@ -122,7 +122,7 @@ impl ZoneBuilder for DrunkenWalkZoneBuilder {
             while zone.tiles[brazier_index] != TileType::Floor {
                 try_x = Roll::dice(1, MAP_WIDTH - 2);
                 try_y = Roll::dice(1, MAP_HEIGHT - 2);
-                brazier_index = Zone::get_index_from_xy(try_x, try_y);
+                brazier_index = Zone::get_index_from_xy(&try_x, &try_y);
             }
             zone.tiles[brazier_index] = TileType::Brazier;
         }
@@ -132,7 +132,7 @@ impl ZoneBuilder for DrunkenWalkZoneBuilder {
         while zone.tiles[passage_index] != TileType::Floor {
             try_x = Roll::dice(1, MAP_WIDTH - 2);
             try_y = Roll::dice(1, MAP_HEIGHT - 2);
-            passage_index = Zone::get_index_from_xy(try_x, try_y);
+            passage_index = Zone::get_index_from_xy(&try_x, &try_y);
         }
         zone.tiles[passage_index] = TileType::DownPassage;
 

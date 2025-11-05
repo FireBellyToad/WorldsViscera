@@ -102,14 +102,14 @@ impl DungeonZoneBuilder {
     fn apply_room_to_map(game_map: &mut Zone, room: &Rect) {
         for y in room.y as i32 + 1..(room.y + room.h) as i32 {
             for x in room.x as i32 + 1..(room.x + room.w) as i32 {
-                game_map.tiles[Zone::get_index_from_xy(x, y)] = TileType::Floor;
+                game_map.tiles[Zone::get_index_from_xy(&x, &y)] = TileType::Floor;
             }
         }
     }
 
     fn apply_horizontal_corridor(game_map: &mut Zone, x1: i32, x2: i32, y: i32) {
         for x in min(x1, x2)..=max(x1, x2) {
-            let idx = Zone::get_index_from_xy(x, y);
+            let idx = Zone::get_index_from_xy(&x, &y);
             if idx > 0 && idx < (MAP_WIDTH * MAP_HEIGHT) as usize {
                 game_map.tiles[idx] = TileType::Floor;
             }
@@ -118,7 +118,7 @@ impl DungeonZoneBuilder {
 
     fn apply_vertical_corridor(game_map: &mut Zone, y1: i32, y2: i32, x: i32) {
         for y in min(y1, y2)..=max(y1, y2) {
-            let idx = Zone::get_index_from_xy(x, y);
+            let idx = Zone::get_index_from_xy(&x, &y);
             if idx > 0 && idx < (MAP_WIDTH * MAP_HEIGHT) as usize {
                 game_map.tiles[idx] = TileType::Floor;
             }

@@ -50,7 +50,7 @@ impl DamageManager {
 
                 //Drench the tile with blood
                 zone.decals_tiles.insert(
-                    Zone::get_index_from_xy(position.x, position.y),
+                    Zone::get_index_from_xy(&position.x, &position.y),
                     DecalType::Blood,
                 );
             }
@@ -111,7 +111,8 @@ impl DamageManager {
                         } else if stats.current_toughness > 0 {
                             game_log.entries.push("You stagger in pain!".to_string());
                         }
-                    } else if zone.visible_tiles[Zone::get_index_from_xy(position.x, position.y)] {
+                    } else if zone.visible_tiles[Zone::get_index_from_xy(&position.x, &position.y)]
+                    {
                         // Log npc deaths only if visible by player
                         if stats.current_toughness < 1
                             || saving_throw_roll > stats.current_toughness

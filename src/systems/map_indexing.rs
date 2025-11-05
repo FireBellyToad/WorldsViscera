@@ -24,7 +24,7 @@ impl MapIndexing {
         //index all blocked tiles
         zone.populate_blocked();
         for (_, position) in &mut blockers {
-            let index = Zone::get_index_from_xy(position.x, position.y);
+            let index = Zone::get_index_from_xy(&position.x, &position.y);
             zone.blocked_tiles[index] = true;
         }
 
@@ -45,7 +45,7 @@ impl MapIndexing {
             FieldOfView::compute(zone, &mut viewshed, dto.x, dto.y);
 
             for (x, y) in viewshed.visible_tiles {
-                let index = Zone::get_index_from_xy(x, y);
+                let index = Zone::get_index_from_xy(&x, &y);
                 zone.lit_tiles[index] = true;
             }
         }
@@ -53,7 +53,7 @@ impl MapIndexing {
         zone.clear_content_index();
         //index all the things in the zone based on their position
         for (entity, position) in &mut entites {
-            let index = Zone::get_index_from_xy(position.x, position.y);
+            let index = Zone::get_index_from_xy(&position.x, &position.y);
             zone.tile_content[index].push(entity);
         }
     }
@@ -63,12 +63,14 @@ impl MapIndexing {
         // Extract all light producers that could be laying on the ground OR be in a backpack
         // They could or could NOT have Fuel management (think a an oil lanter VS a brazier)
         // Either way get them
-        let mut lighters_query = ecs_world.query::<(
-            Option<&Position>,
-            Option<&InBackback>,
-            Option<&MustBeFueled>,
-            &ProduceLight
-        )>().with::<&TurnedOn>();
+        let mut lighters_query = ecs_world
+            .query::<(
+                Option<&Position>,
+                Option<&InBackback>,
+                Option<&MustBeFueled>,
+                &ProduceLight,
+            )>()
+            .with::<&TurnedOn>();
 
         lighters_query
             .iter()
@@ -82,7 +84,9 @@ impl MapIndexing {
                         });
                     } else if let Some(back) = in_backpack {
                         // Get position of the owner so we can illuminate from there
-                        let pos = ecs_world.get::<&Position>(back.owner).expect("Entity has no Position");
+                        let pos = ecs_world
+                            .get::<&Position>(back.owner)
+                            .expect("Entity has no Position");
                         return Some(ProduceLightPositionDTO {
                             radius: produce_light.radius,
                             x: pos.x,
@@ -94,7 +98,6 @@ impl MapIndexing {
                 None
             })
             .collect()
-        
     }
 }
 

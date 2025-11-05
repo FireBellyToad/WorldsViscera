@@ -12,7 +12,7 @@ use crate::{
         },
         health::Hunger,
         items::Edible,
-        monster::{Aquatic, Monster, Small, Smart, Venomous},
+        monster::{Aquatic, IsPrey, Monster, Small, Smart, Venomous},
     },
     constants::{
         BASE_MONSTER_VIEW_RADIUS, FAST, MAX_HUNGER_TICK_COUNTER, NORMAL, SLOW, TILE_SIZE_F32,
@@ -265,4 +265,41 @@ pub fn create_monster(
     );
 
     monster_spawned
+}
+
+pub fn giant_cockroach(ecs_world: &mut World, x: i32, y: i32) {
+    let centipede = create_monster(
+        ecs_world,
+        "Giant cockroach".to_string(),
+        Species {
+            value: SpeciesEnum::Bug,
+        },
+        CombatStats {
+            current_stamina: 2,
+            max_stamina: 2,
+            base_armor: 0,
+            unarmed_attack_dice: 0,
+            current_toughness: 5,
+            max_toughness: 5,
+            current_dexterity: 10,
+            max_dexterity: 10,
+            speed: NORMAL,
+        },
+        Edible {
+            nutrition_dice_number: 3,
+            nutrition_dice_size: 6,
+        },
+        Smellable {
+            smell_log: "something off and dusty".to_string(),
+            intensity: SmellIntensity::None,
+        },
+        ProduceSound {
+            sound_log: "nervous skittering".to_string(),
+        },
+        6.0,
+        x,
+        y,
+    );
+
+    let _ = ecs_world.insert(centipede, (Small {}, IsPrey {}, CanHide { cooldown: 0 }));
 }

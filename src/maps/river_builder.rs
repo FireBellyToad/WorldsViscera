@@ -32,7 +32,7 @@ impl ZoneFeatureBuilder for RiverBuilder {
         //2 - if point is X = MAP_WIDTH-1 or Y = MAP_HEIGHT-1, stop
         while current_position.0 < MAP_WIDTH - 1 && current_position.1 < MAP_HEIGHT - 1 {
             //3 - draw a water tile there
-            zone.tiles[Zone::get_index_from_xy(current_position.0, current_position.1)] =
+            zone.tiles[Zone::get_index_from_xy(&current_position.0, &current_position.1)] =
                 TileType::Water;
 
             //4 - move to next tile down, right or left from previous tile.

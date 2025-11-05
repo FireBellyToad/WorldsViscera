@@ -112,7 +112,7 @@ impl ThirstCheck {
                                 thirst.tick_counter = MAX_THIRST_TICK_COUNTER - Roll::dice(2, 10);
                                 thirst.current_status = ThirstStatus::Normal;
                                 zone.decals_tiles.insert(
-                                    Zone::get_index_from_xy(position.x, position.y),
+                                    Zone::get_index_from_xy(&position.x, &position.y),
                                     DecalType::Vomit,
                                 );
                                 if thirsty_entity.id() == player_id {
