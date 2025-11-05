@@ -278,7 +278,7 @@ pub fn giant_cockroach(ecs_world: &mut World, x: i32, y: i32) {
             current_stamina: 2,
             max_stamina: 2,
             base_armor: 0,
-            unarmed_attack_dice: 0,
+            unarmed_attack_dice: 1,
             current_toughness: 5,
             max_toughness: 5,
             current_dexterity: 10,
@@ -301,5 +301,43 @@ pub fn giant_cockroach(ecs_world: &mut World, x: i32, y: i32) {
         y,
     );
 
-    let _ = ecs_world.insert(centipede, (Small {}, IsPrey {}, CanHide { cooldown: 0 }));
+    let _ = ecs_world.insert(centipede, (Small {}, IsPrey {}));
+}
+
+pub fn giant_slug(ecs_world: &mut World, x: i32, y: i32) {
+    let centipede = create_monster(
+        ecs_world,
+        "Giant slug".to_string(),
+        Species {
+            value: SpeciesEnum::Gastropod,
+        },
+        CombatStats {
+            current_stamina: 2,
+            max_stamina: 2,
+            base_armor: 0,
+            unarmed_attack_dice: 0,
+            current_toughness: 3,
+            max_toughness: 3,
+            current_dexterity: 3,
+            max_dexterity: 3,
+            speed: SLOW,
+        },
+        Edible {
+            nutrition_dice_number: 4,
+            nutrition_dice_size: 6,
+        },
+        Smellable {
+            smell_log: "something off and dusty".to_string(),
+            intensity: SmellIntensity::Faint,
+        },
+        ProduceSound {
+            sound_log: "slow slushing".to_string(),
+        },
+        7.0,
+        x,
+        y,
+    );
+
+    // TODO maybe drip a slime trail
+    let _ = ecs_world.insert(centipede, (Small {}, IsPrey {}));
 }

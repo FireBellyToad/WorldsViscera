@@ -1,9 +1,6 @@
-use crate::{
-    components::{
-        common::Viewshed,
-        items::{Ammo, Armor, Equippable, RangedWeapon},
-    },
-    maps::zone::Zone,
+use crate::components::{
+    common::Viewshed,
+    items::{Ammo, Armor, Equippable, RangedWeapon},
 };
 use std::cmp::max;
 

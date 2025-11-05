@@ -2,7 +2,6 @@ use crate::components::actions::WantsToInvoke;
 use crate::components::combat::WantsToShoot;
 use crate::components::common::Named;
 use crate::components::items::RangedWeapon;
-use crate::utils::common::AmmunitionInBackpack;
 use crate::utils::common::ItemsInBackpack;
 use hecs::{Entity, World};
 use macroquad::input::{

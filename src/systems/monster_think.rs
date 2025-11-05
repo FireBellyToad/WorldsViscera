@@ -1,3 +1,4 @@
+use crate::components::combat::IsHidden;
 use crate::components::combat::WantsToShoot;
 use crate::components::items::Equippable;
 use crate::components::items::Equipped;
@@ -52,6 +53,7 @@ struct MonsterThinkData<'a> {
     pub species: &'a SpeciesEnum,
     pub hates: &'a HashSet<u32>,
     pub backpack_is_not_full: bool,
+    pub is_prey: bool,
 }
 
 /// Monster Think struct
@@ -161,6 +163,7 @@ impl MonsterThink {
                                 && total_items < MAX_ITEMS_IN_BACKPACK)
                                 || (small.is_some()
                                     && total_items < MAX_ITEMS_IN_BACKPACK_FOR_SMALL),
+                            is_prey: is_prey.is_some(),
                         },
                     );
 
@@ -168,13 +171,6 @@ impl MonsterThink {
                     let (action, target, mut target_x, mut target_y) = target_picked;
                     match action {
                         MonsterAction::Move => {
-                            //Target is far away, try to approach it. Unless it's prey, than it should escape
-                            if is_prey.is_some() {
-                                (target_x, target_y) = Utils::calculate_farthest_visible_point(
-                                    &target_x, &target_y, &viewshed,
-                                );
-                            }
-
                             let pathfinding_result = Pathfinding::dijkstra_wrapper(
                                 position.x,
                                 position.y,
@@ -399,12 +395,16 @@ impl MonsterThink {
                     let is_creature = ecs_world.satisfies::<&Player>(entity).unwrap_or(false)
                         || ecs_world.satisfies::<&Monster>(entity).unwrap_or(false);
 
-                    if is_creature {
-                        if distance < NEXT_TO_DISTANCE {
+                    // If looking at a creature that is not hidden
+                    if is_creature && !ecs_world.satisfies::<&IsHidden>(entity).unwrap_or(false) {
+                        // Attack if next to it and isnot prey
+                        if distance < NEXT_TO_DISTANCE && !monster_dto.is_prey {
                             action = MonsterAction::Attack;
                         } else if monster_dto.is_smart && monster_dto.can_invoke {
+                            // Zap if far away and is smart. Prey could also zap predators
                             action = MonsterAction::Zap;
                         } else if monster_dto.is_smart && monster_dto.can_shoot {
+                            // Zap if far away and is smart. Prey could also shoot predators
                             action = MonsterAction::Shoot;
                         }
 
@@ -423,7 +423,18 @@ impl MonsterThink {
                                 || monster_dto.hates.contains(&entity.id());
 
                             if is_enemy {
-                                return (action, Some(entity), *x, *y);
+                                //Enemy target is far away, try to approach it. Unless it's prey, than it should escape
+                                if monster_dto.is_prey {
+                                    let (target_x, target_y) =
+                                        Utils::calculate_farthest_visible_point(
+                                            x,
+                                            y,
+                                            monster_dto.viewshed,
+                                        );
+                                    return (MonsterAction::Move, Some(entity), target_x, target_y);
+                                } else {
+                                    return (action, Some(entity), *x, *y);
+                                }
                             }
                         }
                     } else if ecs_world.satisfies::<&Item>(entity).unwrap_or(false) {

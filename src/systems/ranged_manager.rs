@@ -10,7 +10,6 @@ use crate::{
         items::{Armor, Equipped, Eroded, RangedWeapon},
         player::Player,
     },
-    constants::BOLT_PARTICLE_TYPE,
     maps::zone::Zone,
     utils::{
         common::Utils, effect_manager::EffectManager, particle_animation::ParticleAnimation,

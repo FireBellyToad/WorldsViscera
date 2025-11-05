@@ -132,7 +132,7 @@ impl Spawn {
 
     /// Spawn a random monster
     pub fn random_terrain_monster(ecs_world: &mut World, x: i32, y: i32) {
-        let dice_roll = Roll::dice(1, 10);
+        let dice_roll = Roll::dice(1, 14);
 
         match dice_roll {
             1 => dvergar(ecs_world, x, y),
@@ -140,7 +140,7 @@ impl Spawn {
             3 => centipede(ecs_world, x, y),
             4 | 5 | 6 => deep_one(ecs_world, x, y),
             7 | 8 | 9 | 10 => giant_cockroach(ecs_world, x, y),
-            _ => {}
+            _ => giant_slug(ecs_world, x, y),
         }
     }
 
@@ -154,12 +154,13 @@ impl Spawn {
             10 | 11 => rockpick(ecs_world, x, y),
             12 | 13 => slingshot(ecs_world, x, y),
             14 | 15 => leather_armor(ecs_world, x, y),
-            16 => flask_of_water(ecs_world, x, y),
-            17 => maul(ecs_world, x, y),
-            18 => crowssbow(ecs_world, x, y),
-            19 => crossbow_ammo(ecs_world, x, y),
-            20 => breastplate(ecs_world, x, y),
-            21 => wand(ecs_world, x, y),
+            16 | 17 => lantern(ecs_world, x, y),
+            18 => flask_of_water(ecs_world, x, y),
+            19 => maul(ecs_world, x, y),
+            20 => crowssbow(ecs_world, x, y),
+            21 => crossbow_ammo(ecs_world, x, y),
+            22 => breastplate(ecs_world, x, y),
+            23 => wand(ecs_world, x, y),
             _ => mushroom(ecs_world, x, y),
         };
     }
