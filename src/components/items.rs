@@ -1,5 +1,7 @@
 use hecs::Entity;
 
+use crate::constants::{BOLT_PARTICLE_TYPE, STONE_PARTICLE_TYPE};
+
 pub struct Item {
     pub item_tile: (i32, i32),
 }
@@ -98,6 +100,15 @@ pub struct Ammo {
 pub enum AmmoType {
     Crossbow,
     Slingshot,
+}
+
+impl AmmoType {
+    pub fn particle(&self) -> u32 {
+        match *self {
+            AmmoType::Crossbow => BOLT_PARTICLE_TYPE,
+            AmmoType::Slingshot => STONE_PARTICLE_TYPE,
+        }
+    }
 }
 
 pub struct Armor {

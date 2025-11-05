@@ -143,8 +143,6 @@ pub fn mushroom(ecs_world: &mut World, x: i32, y: i32) {
     }
 }
 
-// TODO unused... keep in mind
-#[allow(dead_code)]
 pub fn flask_of_water(ecs_world: &mut World, x: i32, y: i32) {
     let item_tile_index = (2, 0);
     let flask_of_water = (
@@ -271,13 +269,46 @@ pub fn crowssbow(ecs_world: &mut World, x: i32, y: i32) {
             body_location: BodyLocation::BothHands,
         },
         RangedWeapon {
-            attack_dice: 4,
+            attack_dice: 6,
             ammo_type: AmmoType::Crossbow,
             ammo_count_total: 0,
         },
     );
 
     ecs_world.spawn(crowssbow);
+}
+
+pub fn slingshot(ecs_world: &mut World, x: i32, y: i32) {
+    let item_tile_index = (4, 2);
+    let slingshot = (
+        Position { x, y },
+        Renderable {
+            texture_name: TextureName::Items,
+            texture_region: Rect {
+                x: (item_tile_index.0 * TILE_SIZE) as f32,
+                y: (item_tile_index.1 * TILE_SIZE) as f32,
+                w: TILE_SIZE_F32,
+                h: TILE_SIZE_F32,
+            },
+            z_index: 0,
+        },
+        Named {
+            name: "slingshot".to_string(),
+        },
+        Item {
+            item_tile: item_tile_index,
+        },
+        Equippable {
+            body_location: BodyLocation::BothHands,
+        },
+        RangedWeapon {
+            attack_dice: 3,
+            ammo_type: AmmoType::Slingshot,
+            ammo_count_total: 0,
+        },
+    );
+
+    ecs_world.spawn(slingshot);
 }
 
 pub fn flask_of_oil(ecs_world: &mut World, x: i32, y: i32) {
@@ -531,4 +562,33 @@ pub fn crossbow_ammo(ecs_world: &mut World, x: i32, y: i32) {
     );
 
     ecs_world.spawn(crossbow_ammo);
+}
+
+pub fn slingshot_ammo(ecs_world: &mut World, x: i32, y: i32) {
+    let item_tile_index = (6, 0);
+    let slingshot_ammo = (
+        Position { x, y },
+        Renderable {
+            texture_name: TextureName::Items,
+            texture_region: Rect {
+                x: (item_tile_index.0 * TILE_SIZE) as f32,
+                y: (item_tile_index.1 * TILE_SIZE) as f32,
+                w: TILE_SIZE_F32,
+                h: TILE_SIZE_F32,
+            },
+            z_index: 0,
+        },
+        Named {
+            name: "pile of stones".to_string(),
+        },
+        Item {
+            item_tile: item_tile_index,
+        },
+        Ammo {
+            ammo_type: AmmoType::Slingshot,
+            ammo_count: Roll::dice(2, 8) as u32,
+        },
+    );
+
+    ecs_world.spawn(slingshot_ammo);
 }

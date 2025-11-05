@@ -132,7 +132,7 @@ impl RangedManager {
                     {
                         particle_animations.push(ParticleAnimation::new_projectile(
                             line_effect,
-                            BOLT_PARTICLE_TYPE,
+                            weapon_stats.ammo_type.particle(),
                         ));
                     }
                 } else {
@@ -233,7 +233,9 @@ impl RangedManager {
             // Update ammo count for each carried weapon and despawn empty ammo entities
             for (ammo_entity, (ammo_backpack, ammo_component)) in &mut ammo_in_backpack {
                 for (_, (weapon_backpack, ranged_weapon)) in &mut ranged_weapons {
-                    if weapon_backpack.owner.id() == ammo_backpack.owner.id() {
+                    if weapon_backpack.owner.id() == ammo_backpack.owner.id()
+                        && ranged_weapon.ammo_type == ammo_component.ammo_type
+                    {
                         ranged_weapon.ammo_count_total += ammo_component.ammo_count;
                     }
                 }

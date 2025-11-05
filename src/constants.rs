@@ -129,6 +129,7 @@ pub const LIGHTING_PARTICLE_TYPE: u32 = 0;
 pub const FLAME_PARTICLE_TYPE: u32 = 1;
 pub const SMELL_PARTICLE_TYPE: u32 = 2;
 pub const BOLT_PARTICLE_TYPE: u32 = 3;
+pub const STONE_PARTICLE_TYPE: u32 = 4;
 
 pub const LEFT_DIR: f32 = 0.0;
 pub const RIGHT_DIR: f32 = 4.0;
