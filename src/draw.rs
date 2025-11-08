@@ -463,8 +463,8 @@ impl Draw {
                         && zone.decals_tiles.contains_key(&tile_to_draw)
                     {
                         Draw::draw_decals(
-                            x,
-                            y,
+                            &x,
+                            &y,
                             zone.decals_tiles
                                 .get(&tile_to_draw)
                                 .expect("decals_tiles not available"),
@@ -476,10 +476,11 @@ impl Draw {
     }
 
     /// Utility for drawing blood blots
-    pub fn draw_decals(x: i32, y: i32, particle_type: &DecalType) {
+    pub fn draw_decals(x: &i32, y: &i32, particle_type: &DecalType) {
         let color = match particle_type {
             DecalType::Blood => RED,
             DecalType::Vomit => ORANGE,
+            DecalType::Slime => WHITE,
         };
 
         draw_circle(

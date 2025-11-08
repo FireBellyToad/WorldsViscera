@@ -13,9 +13,11 @@ pub enum TileType {
     Brazier,
     Water,
 }
+#[derive(Clone, Debug, PartialEq)]
 pub enum DecalType {
     Blood,
     Vomit,
+    Slime,
 }
 
 /// Zone Struct

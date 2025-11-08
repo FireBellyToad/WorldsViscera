@@ -168,7 +168,7 @@ impl MonsterThink {
                     );
 
                     //If enemy can see target, do action relative to it
-                    let (action, target, mut target_x, mut target_y) = target_picked;
+                    let (action, target, target_x, target_y) = target_picked;
                     match action {
                         MonsterAction::Move => {
                             let pathfinding_result = Pathfinding::dijkstra_wrapper(
@@ -397,7 +397,7 @@ impl MonsterThink {
 
                     // If looking at a creature that is not hidden
                     if is_creature && !ecs_world.satisfies::<&IsHidden>(entity).unwrap_or(false) {
-                        // Attack if next to it and isnot prey
+                        // Attack if next to it and is not prey
                         if distance < NEXT_TO_DISTANCE && !monster_dto.is_prey {
                             action = MonsterAction::Attack;
                         } else if monster_dto.is_smart && monster_dto.can_invoke {

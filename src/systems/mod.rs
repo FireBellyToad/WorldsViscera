@@ -11,6 +11,7 @@ pub mod hunger_check;
 pub mod item_collection;
 pub mod item_dropping;
 pub mod item_equipping;
+pub mod leave_trail_system;
 pub mod map_indexing;
 pub mod melee_manager;
 pub mod monster_approach;

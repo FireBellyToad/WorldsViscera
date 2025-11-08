@@ -12,11 +12,13 @@ use crate::{
         },
         health::Hunger,
         items::Edible,
-        monster::{Aquatic, IsPrey, Monster, Small, Smart, Venomous},
+        monster::{Aquatic, IsPrey, LeaveTrail, Monster, Small, Smart, Venomous},
     },
     constants::{
-        BASE_MONSTER_VIEW_RADIUS, FAST, MAX_HUNGER_TICK_COUNTER, NORMAL, SLOW, TILE_SIZE_F32,
+        BASE_MONSTER_VIEW_RADIUS, FAST, MAX_HUNGER_TICK_COUNTER, NORMAL, SLOW, SLUG_TRAIL_LIFETIME,
+        TILE_SIZE_F32,
     },
+    maps::zone::DecalType,
     spawning::items::dvergar_chain,
     systems::hunger_check::HungerStatus,
     utils::assets::TextureName,
@@ -305,7 +307,7 @@ pub fn giant_cockroach(ecs_world: &mut World, x: i32, y: i32) {
 }
 
 pub fn giant_slug(ecs_world: &mut World, x: i32, y: i32) {
-    let centipede = create_monster(
+    let slug = create_monster(
         ecs_world,
         "Giant slug".to_string(),
         Species {
@@ -338,6 +340,16 @@ pub fn giant_slug(ecs_world: &mut World, x: i32, y: i32) {
         y,
     );
 
-    // TODO maybe drip a slime trail
-    let _ = ecs_world.insert(centipede, (Small {}, IsPrey {}));
+    // Drip a slime trail
+    let _ = ecs_world.insert(
+        slug,
+        (
+            Small {},
+            IsPrey {},
+            LeaveTrail {
+                of: DecalType::Slime,
+                trail_lifetime: SLUG_TRAIL_LIFETIME,
+            },
+        ),
+    );
 }

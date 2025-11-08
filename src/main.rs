@@ -1,4 +1,7 @@
-use crate::{maps::arena_zone_builder::ArenaZoneBuilder, systems::ranged_manager::RangedManager};
+use crate::{
+    maps::arena_zone_builder::ArenaZoneBuilder,
+    systems::{leave_trail_system::LeaveTrailSystem, ranged_manager::RangedManager},
+};
 use components::{common::GameLog, player::Player};
 use constants::*;
 use draw::Draw;
@@ -236,6 +239,7 @@ fn do_before_tick_logic(game_state: &mut EngineState) {
     WetManager::run(&mut game_state.ecs_world);
     HiddenManager::run(&mut game_state.ecs_world);
     MonsterThink::run(&mut game_state.ecs_world);
+    LeaveTrailSystem::handle_spawned_trail(&mut game_state.ecs_world);
 }
 
 fn do_in_tick_game_logic(game_engine: &mut GameEngine, game_state: &mut EngineState) {
@@ -259,6 +263,7 @@ fn do_in_tick_game_logic(game_engine: &mut GameEngine, game_state: &mut EngineSt
             EatingEdibles::run(&mut game_state.ecs_world);
             DrinkingQuaffables::run(&mut game_state.ecs_world);
             SoundSystem::run(&mut game_state.ecs_world);
+            LeaveTrailSystem::run(&mut game_state.ecs_world);
             MonsterApproach::run(&mut game_state.ecs_world);
             // These Systems must always be run last
             MapIndexing::run(&game_state.ecs_world);

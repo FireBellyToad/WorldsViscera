@@ -1,8 +1,9 @@
-use crate::components::actions::WantsToInvoke;
 use crate::components::combat::WantsToShoot;
 use crate::components::common::Named;
 use crate::components::items::RangedWeapon;
 use crate::utils::common::ItemsInBackpack;
+use crate::utils::roll::Roll;
+use crate::{components::actions::WantsToInvoke, maps::zone::DecalType};
 use hecs::{Entity, World};
 use macroquad::input::{
     KeyCode, MouseButton, clear_input_queue, get_char_pressed, get_key_pressed, is_key_down,
@@ -49,7 +50,7 @@ impl Player {
         // Scope for keeping borrow checker quiet
         {
             let mut players = ecs_world
-                .query::<(&mut Position, &mut Viewshed)>()
+                .query::<(&mut Position, &mut Viewshed, &CombatStats)>()
                 .with::<&Player>();
 
             let mut zone_query = ecs_world.query::<&mut Zone>();
@@ -58,7 +59,32 @@ impl Player {
                 .last()
                 .expect("Zone is not in hecs::World");
 
-            for (player_entity, (position, viewshed)) in &mut players {
+            for (player_entity, (position, viewshed, stats)) in &mut players {
+                // Check if player is on slime
+                if let Some(special_tile) = zone
+                    .decals_tiles
+                    .get(&Zone::get_index_from_xy(&position.x, &position.y))
+                {
+                    let mut game_log_query = ecs_world.query::<&mut GameLog>();
+                    let (_, game_log) = game_log_query
+                        .iter()
+                        .last()
+                        .expect("Game log is not in hecs::World");
+
+                    match special_tile {
+                        DecalType::Slime => {
+                            // Do DEX saving or slip on slime!
+                            if stats.current_dexterity < Roll::d20() {
+                                game_log.entries.push("You slip on the slime!".to_string());
+
+                                return_state = RunState::DoTick;
+                                break;
+                            }
+                        }
+                        _ => {}
+                    }
+                }
+
                 let destination_index =
                     Zone::get_index_from_xy(&(position.x + delta_x), &(position.y + delta_y));
 

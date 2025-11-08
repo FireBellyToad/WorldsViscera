@@ -4,10 +4,10 @@ use crate::{
     components::{
         combat::CombatStats,
         common::*,
-        monster::{Aquatic, Monster, WantsToApproach},
+        monster::{Aquatic, LeaveTrail, Monster, WantsToApproach},
     },
-    maps::zone::Zone,
-    utils::{common::Utils, pathfinding::Pathfinding},
+    maps::zone::{DecalType, Zone},
+    utils::{common::Utils, pathfinding::Pathfinding, roll::Roll},
 };
 
 /// Monster AI struct
@@ -25,11 +25,20 @@ impl MonsterApproach {
                 .query::<(
                     &mut Viewshed,
                     &mut Position,
+                    &Named,
                     &CombatStats,
                     Option<&Aquatic>,
                     &mut WantsToApproach,
+                    Option<&LeaveTrail>,
                 )>()
                 .with::<(&Monster, &MyTurn)>();
+
+            //Log all actions
+            let mut game_log_query = ecs_world.query::<&mut GameLog>();
+            let (_, game_log) = game_log_query
+                .iter()
+                .last()
+                .expect("Game log is not in hecs::World");
 
             let mut zone_query = ecs_world.query::<&mut Zone>();
             let (_, zone) = zone_query
@@ -38,9 +47,35 @@ impl MonsterApproach {
                 .expect("Zone is not in hecs::World");
 
             // For each viewshed position monster component join
-            for (monster_entity, (viewshed, position, stats, aquatic, wants_to_approach)) in
-                &mut named_monsters
+            for (
+                monster_entity,
+                (viewshed, position, named, stats, aquatic, wants_to_approach, leave_trail),
+            ) in &mut named_monsters
             {
+                let current_pos_index = Zone::get_index_from_xy(&position.x, &position.y);
+                if leave_trail.is_none()
+                    && let Some(special_tile) = zone.decals_tiles.get(&current_pos_index)
+                {
+                    match special_tile {
+                        DecalType::Slime => {
+                            // Do DEX saving or slip on slime!
+                            if stats.current_dexterity < Roll::d20() {
+                                waiter_speed_list.push((monster_entity, stats.speed));
+                                if zone.visible_tiles
+                                    [Zone::get_index_from_xy(&position.x, &position.y)]
+                                {
+                                    // Log NPC infighting only if visible
+                                    game_log
+                                        .entries
+                                        .push(format!("The {} slips on the slime!", named.name));
+                                }
+                                continue;
+                            }
+                        }
+                        _ => {}
+                    }
+                }
+
                 let (move_to_x, move_to_y) =
                     (wants_to_approach.target_x, wants_to_approach.target_y);
 

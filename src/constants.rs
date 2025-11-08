@@ -67,6 +67,7 @@ pub const MAX_SPAWN_TENTANTIVES: i32 = 10;
 /// Player related constants
 pub const BASE_VIEW_RADIUS: i32 = 8;
 pub const MAX_STAMINA_HEAL_TICK_COUNTER: i32 = 4;
+pub const MAX_STATS_HEAL_TICK_COUNTER: i32 = 16;
 pub const MAX_HUNGER_TICK_COUNTER: i32 = 151;
 pub const MAX_THIRST_TICK_COUNTER: i32 = 151;
 pub const PLAYER_SMELL_RADIUS: f32 = 16.0;
@@ -114,6 +115,7 @@ pub const RUST_CHANCE: i32 = 3;
 /// Monsters related constats
 pub const BASE_MONSTER_VIEW_RADIUS: i32 = 8;
 pub const MAX_HIDDEN_TURNS: i32 = 9;
+pub const SLUG_TRAIL_LIFETIME: u32 = 50;
 
 /// Saving Throw related constants
 pub const AUTOFAIL_SAVING_THROW: i32 = 999;
