@@ -2,8 +2,8 @@ use std::collections::HashMap;
 
 use crate::components::combat::{CombatStats, SufferingDamage};
 use crate::components::common::{
-    CanListen, CanSmell, MyTurn, Named, Position, ProduceSound, Renderable, SmellIntensity,
-    Smellable, Species, SpeciesEnum, Viewshed,
+    CanListen, CanSmell, Experience, Level, MyTurn, Named, Position, ProduceSound, Renderable,
+    SmellIntensity, Smellable, Species, SpeciesEnum, Viewshed,
 };
 use crate::components::health::{CanAutomaticallyHeal, Hunger, Thirst};
 use crate::components::items::{
@@ -35,7 +35,7 @@ impl Spawn {
 
         let (spawn_x, spawn_y) = Zone::get_xy_from_index(zone.player_spawn_point);
 
-        let player_entity = (
+        let player_components = (
             Player {},
             Position {
                 x: spawn_x,
@@ -102,7 +102,9 @@ impl Spawn {
             },
         );
 
-        ecs_world.spawn(player_entity);
+        let player_entity = ecs_world.spawn(player_components);
+
+        let _ = ecs_world.insert(player_entity, (Level { value: 1 }, Experience { value: 0 }));
     }
 
     /// Spawn entities inside a room

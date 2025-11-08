@@ -13,7 +13,9 @@ use macroquad::{
 use crate::{
     components::{
         combat::{CombatStats, IsHidden},
-        common::{CanSmell, GameLog, Position, Renderable, SmellIntensity, Smellable},
+        common::{
+            CanSmell, Experience, GameLog, Level, Position, Renderable, SmellIntensity, Smellable,
+        },
         health::{Hunger, Thirst},
         player::{Player, SpecialViewMode},
     },
@@ -125,12 +127,18 @@ impl Draw {
         let (_, zone) = zones.iter().last().expect("Zone is not in hecs::World");
 
         let mut player_query = ecs_world
-            .query::<(&CombatStats, &Hunger, &Thirst)>()
+            .query::<(&Level, &Experience, &CombatStats, &Hunger, &Thirst)>()
             .with::<&Player>();
-        let (_, (player_stats, hunger, thirst)) = player_query
+        let (_, (level, experience, player_stats, hunger, thirst)) = player_query
             .iter()
             .last()
             .expect("Player is not in hecs::World");
+
+        let level_text = format!("LVL: {}", level.value);
+        let level_text_len = level_text.len();
+
+        let exp_text = format!("EXP: {}", experience.value);
+        let exp_text_len = exp_text.len();
 
         let sta_text = format!(
             "STA: {}/{}",
@@ -163,7 +171,9 @@ impl Draw {
         draw_rectangle(
             (HEADER_LEFT_SPAN + HUD_BORDER) as f32,
             (MAP_HEIGHT * TILE_SIZE) as f32 + UI_BORDER as f32,
-            6.0 * LETTER_SIZE - HUD_BORDER as f32 * 3.0
+            8.0 * LETTER_SIZE - HUD_BORDER as f32 * 3.0
+                + (level_text_len as f32 * LETTER_SIZE)
+                + (exp_text_len as f32 * LETTER_SIZE)
                 + (sta_text_len as f32 * LETTER_SIZE)
                 + (tou_text_len as f32 * LETTER_SIZE)
                 + (dex_text_len as f32 * LETTER_SIZE)
@@ -176,6 +186,16 @@ impl Draw {
 
         let mut text_color = WHITE;
 
+        // Draw Level (LVL)
+        Draw::stat_text(level_text, 0.0, text_color);
+
+        // Draw Experience (EXP)
+        Draw::stat_text(
+            exp_text,
+            LETTER_SIZE + (level_text_len as f32 * LETTER_SIZE),
+            text_color,
+        );
+
         // Draw Stamina (STA)
         if player_stats.current_stamina == 0 {
             text_color = RED;
@@ -183,7 +203,13 @@ impl Draw {
             text_color = YELLOW;
         }
 
-        Draw::stat_text(sta_text, 0.0, text_color);
+        Draw::stat_text(
+            sta_text,
+            2.0 * LETTER_SIZE
+                + (level_text_len as f32 * LETTER_SIZE)
+                + (exp_text_len as f32 * LETTER_SIZE),
+            text_color,
+        );
 
         // Draw Toughness (TOU)
         text_color = WHITE;
@@ -194,7 +220,10 @@ impl Draw {
 
         Draw::stat_text(
             tou_text,
-            LETTER_SIZE + (sta_text_len as f32 * LETTER_SIZE),
+            3.0 * LETTER_SIZE
+                + (level_text_len as f32 * LETTER_SIZE)
+                + (exp_text_len as f32 * LETTER_SIZE)
+                + (sta_text_len as f32 * LETTER_SIZE),
             text_color,
         );
 
@@ -207,7 +236,9 @@ impl Draw {
 
         Draw::stat_text(
             dex_text,
-            2.0 * LETTER_SIZE
+            4.0 * LETTER_SIZE
+                + (level_text_len as f32 * LETTER_SIZE)
+                + (exp_text_len as f32 * LETTER_SIZE)
                 + (sta_text_len as f32 * LETTER_SIZE)
                 + (tou_text_len as f32 * LETTER_SIZE),
             text_color,
@@ -221,7 +252,9 @@ impl Draw {
         }
         Draw::stat_text(
             hunger_text,
-            3.0 * LETTER_SIZE
+            5.0 * LETTER_SIZE
+                + (level_text_len as f32 * LETTER_SIZE)
+                + (exp_text_len as f32 * LETTER_SIZE)
                 + (sta_text_len as f32 * LETTER_SIZE)
                 + (tou_text_len as f32 * LETTER_SIZE)
                 + (dex_text_len as f32 * LETTER_SIZE),
@@ -236,7 +269,9 @@ impl Draw {
         }
         Draw::stat_text(
             thirst_text,
-            4.0 * LETTER_SIZE
+            6.0 * LETTER_SIZE
+                + (level_text_len as f32 * LETTER_SIZE)
+                + (exp_text_len as f32 * LETTER_SIZE)
                 + (sta_text_len as f32 * LETTER_SIZE)
                 + (tou_text_len as f32 * LETTER_SIZE)
                 + (dex_text_len as f32 * LETTER_SIZE)
@@ -248,7 +283,9 @@ impl Draw {
         // TODO improve
         Draw::stat_text(
             depth_text,
-            5.0 * LETTER_SIZE
+            7.0 * LETTER_SIZE
+                + (level_text_len as f32 * LETTER_SIZE)
+                + (exp_text_len as f32 * LETTER_SIZE)
                 + (sta_text_len as f32 * LETTER_SIZE)
                 + (tou_text_len as f32 * LETTER_SIZE)
                 + (dex_text_len as f32 * LETTER_SIZE)

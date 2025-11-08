@@ -73,6 +73,14 @@ pub struct Hates {
     pub list: HashSet<u32>,
 }
 
+pub struct Level {
+    pub value: u32,
+}
+
+pub struct Experience {
+    pub value: u32,
+}
+
 #[derive(PartialEq, Debug)]
 pub enum SpeciesEnum {
     Human,
@@ -84,5 +92,5 @@ pub enum SpeciesEnum {
     Bug,
     Gremlin,
     DeepSpawn,
-    Undead
+    Undead,
 }
