@@ -177,7 +177,7 @@ fn populate_world(ecs_world: &mut World) {
         },
     ));
 
-    let zone = TestZoneBuilder::build(1);
+    let zone = ArenaZoneBuilder::build(1);
 
     Spawn::player(ecs_world, &zone);
     Spawn::everyhing_in_map(ecs_world, &zone);
@@ -225,6 +225,7 @@ fn change_zone(engine: &mut EngineState) {
 
             player_viewshed.must_recalculate = true;
 
+            // Award experience based on depth reached
             player_experience.value += (zone.depth as u32).pow(2);
             player_experience.auto_advance_counter = AUTO_ADVANCE_EXP_COUNTER_START;
         }

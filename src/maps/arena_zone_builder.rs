@@ -49,7 +49,7 @@ impl ZoneBuilder for ArenaZoneBuilder {
                 let index = Zone::get_index_from_xy_f32(x, y);
 
                 // avoid duplicate spawnpoints
-                if zone.tiles[Zone::get_index_from_xy_f32(x, y)] == TileType::Floor {
+                if zone.tiles[Zone::get_index_from_xy_f32(x, y)] != TileType::Floor {
                     continue;
                 } else if zone.item_spawn_points.insert(index) {
                     break;

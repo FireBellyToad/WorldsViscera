@@ -62,7 +62,7 @@ impl Spawn {
             CombatStats {
                 current_stamina: rolled_stamina,
                 max_stamina: rolled_stamina,
-                base_armor: 10,
+                base_armor: 0,
                 unarmed_attack_dice: 2,
                 current_toughness: rolled_toughness,
                 max_toughness: rolled_toughness,

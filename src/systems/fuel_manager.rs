@@ -1,5 +1,6 @@
 use crate::{
-    components::common::Position, constants::FLAME_PARTICLE_TYPE,
+    components::{common::Position, items::TurnedOff},
+    constants::FLAME_PARTICLE_TYPE,
     utils::particle_animation::ParticleAnimation,
 };
 use hecs::{Entity, World};
@@ -28,48 +29,59 @@ pub struct FuelManager {}
 
 impl FuelManager {
     pub fn check_fuel(ecs_world: &mut World) {
-        // List of light producers that use fuel
-        let mut turned_on_lighters = ecs_world
-            .query::<(&mut MustBeFueled, &Named, Option<&InBackback>)>()
-            .with::<&TurnedOn>()
-            .without::<&Refiller>();
+        let mut entities_to_turn_off: Vec<Entity> = Vec::new();
 
-        let player_entity = Player::get_entity(ecs_world);
+        // Scope for keeping borrow checker quiet
+        {
+            // List of light producers that use fuel
+            let mut turned_on_lighters = ecs_world
+                .query::<(&mut MustBeFueled, &Named, Option<&InBackback>)>()
+                .with::<&TurnedOn>()
+                .without::<&Refiller>();
 
-        let mut game_log_query = ecs_world.query::<&mut GameLog>();
-        let (_, game_log) = game_log_query
-            .iter()
-            .last()
-            .expect("Game log is not in hecs::World");
+            let player_entity = Player::get_entity(ecs_world);
 
-        for (_, (fuel, named, entity_in_backpack)) in &mut turned_on_lighters {
-            // Log fuel change for lantern used by player
-            if let Some(in_backback) = entity_in_backpack {
-                // Log messages for fuel status
-                if player_entity.id() == in_backback.owner.id() {
-                    match fuel.fuel_counter {
-                        30 => {
-                            game_log
-                                .entries
-                                .push(format!("Your {} is flickering", named.name));
+            let mut game_log_query = ecs_world.query::<&mut GameLog>();
+            let (_, game_log) = game_log_query
+                .iter()
+                .last()
+                .expect("Game log is not in hecs::World");
+
+            for (lighter, (fuel, named, entity_in_backpack)) in &mut turned_on_lighters {
+                // Log fuel change for lantern used by player
+                if let Some(in_backback) = entity_in_backpack {
+                    // Log messages for fuel status
+                    if player_entity.id() == in_backback.owner.id() {
+                        match fuel.fuel_counter {
+                            30 => {
+                                game_log
+                                    .entries
+                                    .push(format!("Your {} is flickering", named.name));
+                            }
+                            1 => {
+                                game_log
+                                    .entries
+                                    .push(format!("Your {} goes out", named.name));
+                                entities_to_turn_off.push(lighter);
+                            }
+                            _ => {}
                         }
-                        1 => {
-                            game_log
-                                .entries
-                                .push(format!("Your {} goes out", named.name));
-                        }
-                        _ => {}
+
+                        //show immediately new vision
+                        Player::force_view_recalculation(ecs_world);
                     }
+                }
 
-                    //show immediately new vision
-                    Player::force_view_recalculation(ecs_world);
+                //If fuel is less then 1, the lighter will not produce light
+                if fuel.fuel_counter > 0 {
+                    fuel.fuel_counter -= 1;
                 }
             }
+        }
 
-            //If fuel is less then 1, the lighter will not produce light
-            if fuel.fuel_counter > 0 {
-                fuel.fuel_counter -= 1;
-            }
+        for entity in entities_to_turn_off {
+            let _ = ecs_world.exchange_one::<TurnedOn, TurnedOff>(entity, TurnedOff {});
+            Player::force_view_recalculation(ecs_world);
         }
     }
 
