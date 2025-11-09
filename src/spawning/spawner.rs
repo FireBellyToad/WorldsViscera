@@ -1,3 +1,4 @@
+use std::cmp::max;
 use std::collections::HashMap;
 
 use crate::components::combat::{CombatStats, SufferingDamage};
@@ -126,7 +127,7 @@ impl Spawn {
             if zone.water_tiles[index] {
                 freshwater_viperfish(ecs_world, x, y)
             } else {
-                Spawn::random_terrain_monster(ecs_world, x, y);
+                Spawn::random_terrain_monster(ecs_world, x, y, zone.depth);
             }
         }
         // Actually spawn the potions
@@ -143,16 +144,18 @@ impl Spawn {
     }
 
     /// Spawn a random monster
-    pub fn random_terrain_monster(ecs_world: &mut World, x: i32, y: i32) {
-        let dice_roll = Roll::dice(1, 14);
+    pub fn random_terrain_monster(ecs_world: &mut World, x: i32, y: i32, depth: u32) {
+        let dice_roll = max(1, Roll::dice(1, 10) + depth as i32);
 
+        // Depth based spawn table, recursive if roll is too high
         match dice_roll {
-            1 => moleman(ecs_world, x, y),
-            2 => gremlin(ecs_world, x, y),
-            3 => centipede(ecs_world, x, y),
-            4 | 5 | 6 => deep_one(ecs_world, x, y),
-            7 | 8 | 9 | 10 => giant_cockroach(ecs_world, x, y),
-            _ => giant_slug(ecs_world, x, y),
+            (1..=5) => giant_slug(ecs_world, x, y),
+            (6..=9) => giant_cockroach(ecs_world, x, y),
+            (10..=12) => deep_one(ecs_world, x, y),
+            13 => centipede(ecs_world, x, y),
+            14 => gremlin(ecs_world, x, y),
+            15 => moleman(ecs_world, x, y),
+            _ => Spawn::random_terrain_monster(ecs_world, x, y, depth - 1),
         }
     }
 

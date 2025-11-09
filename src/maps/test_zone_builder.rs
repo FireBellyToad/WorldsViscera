@@ -13,7 +13,7 @@ pub struct TestZoneBuilder {}
 
 impl ZoneBuilder for TestZoneBuilder {
     /// Create new dungeon zone (needed?)
-    fn build(depth: i32) -> Zone {
+    fn build(depth: u32) -> Zone {
         let mut zone = Zone::new(depth);
 
         // Create boundaries
@@ -83,7 +83,7 @@ impl ZoneBuilder for TestZoneBuilder {
                 let index = Zone::get_index_from_xy_f32(x, y);
 
                 // avoid duplicate spawnpoints
-                if zone.blocked_tiles[index] {
+                if zone.tiles[index] != TileType::Floor {
                     continue;
                 } else if zone.item_spawn_points.insert(index) {
                     break;

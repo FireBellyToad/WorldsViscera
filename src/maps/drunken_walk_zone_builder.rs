@@ -15,7 +15,7 @@ pub struct DrunkenWalkZoneBuilder {}
 
 impl ZoneBuilder for DrunkenWalkZoneBuilder {
     /// Create new dungeon zone (needed?)
-    fn build(depth: i32) -> Zone {
+    fn build(depth: u32) -> Zone {
         let mut zone = Zone::new(depth);
 
         // Simple Drunken walk
@@ -70,7 +70,10 @@ impl ZoneBuilder for DrunkenWalkZoneBuilder {
             zone.player_spawn_point = Zone::get_index_from_xy(&try_x, &try_y);
         }
 
-        let river_number = max(1, Roll::dice(0, MAX_RIVERS_IN_ZONE + (depth / 3)) - 3);
+        let river_number = max(
+            1,
+            Roll::dice(0, MAX_RIVERS_IN_ZONE + (depth as i32 / 3)) - 3,
+        );
         for _ in 0..river_number {
             RiverBuilder::build(&mut zone);
         }
@@ -79,7 +82,7 @@ impl ZoneBuilder for DrunkenWalkZoneBuilder {
         zone.populate_water();
 
         // Generate monster and items spawn points within each room
-        let monster_number = Roll::dice(1, MAX_MONSTERS_IN_ZONE) + depth + 1;
+        let monster_number = Roll::dice(1, MAX_MONSTERS_IN_ZONE) + depth as i32 + 1;
         let items_number = Roll::dice(1, MAX_ITEMS_IN_ZONE) + 3;
         let braziers_number = Roll::dice(1, MAX_BRAZIER_IN_ZONE);
 

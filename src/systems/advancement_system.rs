@@ -1,5 +1,4 @@
 use hecs::World;
-use pathfinding::num_traits::PrimInt;
 
 use crate::{
     components::{

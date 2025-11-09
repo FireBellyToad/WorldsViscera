@@ -12,7 +12,7 @@ pub struct ArenaZoneBuilder {}
 
 impl ZoneBuilder for ArenaZoneBuilder {
     /// Create new dungeon zone (needed?)
-    fn build(depth: i32) -> Zone {
+    fn build(depth: u32) -> Zone {
         let mut zone = Zone::new(depth);
 
         // Create boundaries

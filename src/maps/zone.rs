@@ -30,7 +30,7 @@ pub struct Zone {
     pub blocked_tiles: Vec<bool>,
     pub tile_content: Vec<Vec<Entity>>,
     pub decals_tiles: HashMap<usize, DecalType>,
-    pub depth: i32,
+    pub depth: u32,
     pub player_spawn_point: usize,
     pub monster_spawn_points: HashSet<usize>,
     pub item_spawn_points: HashSet<usize>,
@@ -40,7 +40,7 @@ pub struct Zone {
 /// Zone Simplementations
 impl Zone {
     /// Create new empty zone
-    pub fn new(depth: i32) -> Zone {
+    pub fn new(depth: u32) -> Zone {
         Zone {
             tiles: vec![TileType::Wall; (MAP_WIDTH * MAP_HEIGHT) as usize],
             rooms: Vec::new(),
