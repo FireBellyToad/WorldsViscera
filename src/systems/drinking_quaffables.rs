@@ -37,17 +37,23 @@ impl DrinkingQuaffables {
                 //Drink!
                 drunk_list.push(wants_to_drink.item);
 
-                let quaffable_thirst = ecs_world.get::<&Quaffable>(wants_to_drink.item).expect("Entity is not Quaffable");
+                let quaffable_thirst = ecs_world
+                    .get::<&Quaffable>(wants_to_drink.item)
+                    .expect("Entity is not Quaffable");
 
                 // Show appropriate log messages
-                let named_quaffable = ecs_world.get::<&Named>(wants_to_drink.item).expect("Entity is not Named");
+                let named_quaffable = ecs_world
+                    .get::<&Named>(wants_to_drink.item)
+                    .expect("Entity is not Named");
 
                 if drinker.id() == player_id {
                     game_log
                         .entries
                         .push(format!("You drank the {}", named_quaffable.name));
                 } else {
-                    let named_drinker = ecs_world.get::<&Named>(drinker).expect("Entity is not Named");
+                    let named_drinker = ecs_world
+                        .get::<&Named>(drinker)
+                        .expect("Entity is not Named");
                     game_log.entries.push(format!(
                         "{} drank the {}",
                         named_drinker.name, named_quaffable.name
@@ -61,7 +67,7 @@ impl DrinkingQuaffables {
                 thirst.tick_counter += Roll::dice(
                     quaffable_thirst.thirst_dice_number,
                     quaffable_thirst.thirst_dice_size,
-                );
+                ) * 2;
             }
         }
 
@@ -73,7 +79,7 @@ impl DrinkingQuaffables {
         for drinker in drinker_list {
             // Remove owner's will to drink
             let _ = ecs_world.remove_one::<WantsToDrink>(drinker);
-            
+
             if player_id == drinker.id() {
                 Player::wait_after_action(ecs_world);
             }

@@ -112,16 +112,10 @@ impl EatingEdibles {
                             DecalType::Vomit,
                         );
                     } else {
-                        println!(
-                            "nutrition_dice_number: {}, nutrition_dice_size {}",
-                            edible_nutrition.nutrition_dice_number,
-                            edible_nutrition.nutrition_dice_size
-                        );
                         hunger.tick_counter += Roll::dice(
                             edible_nutrition.nutrition_dice_number,
                             edible_nutrition.nutrition_dice_size,
-                        );
-                        println!("hunger.tick_counter {}", hunger.tick_counter);
+                        ) * 2;
                     }
                 } else {
                     if eater.id() == player_id {
