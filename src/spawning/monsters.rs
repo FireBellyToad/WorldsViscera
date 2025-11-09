@@ -7,8 +7,8 @@ use crate::{
     components::{
         combat::{CanHide, CombatStats, SufferingDamage},
         common::{
-            BlocksTile, Hates, MyTurn, Named, Position, ProduceCorpse, ProduceSound, Renderable,
-            SmellIntensity, Smellable, Species, SpeciesEnum, Viewshed,
+            BlocksTile, Hates, Level, MyTurn, Named, Position, ProduceCorpse, ProduceSound,
+            Renderable, SmellIntensity, Smellable, Species, SpeciesEnum, Viewshed,
         },
         health::Hunger,
         items::Edible,
@@ -53,6 +53,7 @@ pub fn deep_one(ecs_world: &mut World, x: i32, y: i32) {
         ProduceSound {
             sound_log: "someone weezing".to_string(),
         },
+        2,
         1.0,
         x,
         y,
@@ -88,6 +89,7 @@ pub fn freshwater_viperfish(ecs_world: &mut World, x: i32, y: i32) {
         ProduceSound {
             sound_log: "a splash in the water".to_string(),
         },
+        4,
         4.0,
         x,
         y,
@@ -125,6 +127,7 @@ pub fn gremlin(ecs_world: &mut World, x: i32, y: i32) {
         ProduceSound {
             sound_log: "someone cackling".to_string(),
         },
+        5,
         3.0,
         x,
         y,
@@ -162,6 +165,7 @@ pub fn centipede(ecs_world: &mut World, x: i32, y: i32) {
         ProduceSound {
             sound_log: "skittering of many legs".to_string(),
         },
+        4,
         5.0,
         x,
         y,
@@ -199,6 +203,7 @@ pub fn dvergar(ecs_world: &mut World, x: i32, y: i32) {
         ProduceSound {
             sound_log: "someone mumbling".to_string(),
         },
+        5,
         2.0,
         x,
         y,
@@ -216,6 +221,7 @@ pub fn create_monster(
     edible: Edible,
     smells: Smellable,
     sounds: ProduceSound,
+    level: u32,
     tile_index: f32,
     x: i32,
     y: i32,
@@ -245,12 +251,13 @@ pub fn create_monster(
         SufferingDamage {
             damage_received: 0,
             toughness_damage_received: 0,
+            damager: None,
         },
-        ProduceCorpse {},
         Hunger {
             tick_counter: MAX_HUNGER_TICK_COUNTER,
             current_status: HungerStatus::Normal,
         },
+        Level { value: level },
         MyTurn {},
         smells,
         sounds,
@@ -259,11 +266,14 @@ pub fn create_monster(
 
     let monster_spawned = ecs_world.spawn(monster_entity);
 
-    let _ = ecs_world.insert_one(
+    let _ = ecs_world.insert(
         monster_spawned,
-        Hates {
-            list: HashSet::new(),
-        },
+        (
+            ProduceCorpse {},
+            Hates {
+                list: HashSet::new(),
+            },
+        ),
     );
 
     monster_spawned
@@ -298,6 +308,7 @@ pub fn giant_cockroach(ecs_world: &mut World, x: i32, y: i32) {
         ProduceSound {
             sound_log: "nervous skittering".to_string(),
         },
+        1,
         6.0,
         x,
         y,
@@ -335,6 +346,7 @@ pub fn giant_slug(ecs_world: &mut World, x: i32, y: i32) {
         ProduceSound {
             sound_log: "slow slushing".to_string(),
         },
+        1,
         7.0,
         x,
         y,

@@ -72,11 +72,6 @@ impl MeleeManager {
                         .get::<&CombatStats>(wants_melee.target)
                         .expect("Entity does not have CombatStats");
 
-                    // From now on, attacked entity will be hostile
-                    if let Ok(mut target_hates) = ecs_world.get::<&mut Hates>(wants_melee.target) {
-                        target_hates.list.insert(attacker.id());
-                    }
-
                     // Show appropriate log messages
                     let named_target = ecs_world
                         .get::<&Named>(wants_melee.target)
@@ -200,6 +195,7 @@ impl MeleeManager {
                                 }
                             }
                             target_damage.damage_received += damage_roll;
+                            target_damage.damager = Some(attacker);
                         }
                     }
 

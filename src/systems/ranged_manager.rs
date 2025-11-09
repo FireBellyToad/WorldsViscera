@@ -170,6 +170,7 @@ impl RangedManager {
                         let damage_roll =
                             max(0, Roll::dice(1, weapon_stats.attack_dice) - target_armor);
                         target_damage.damage_received += damage_roll;
+                        target_damage.damager = Some(shooter);
 
                         if shooter.id() == player_id {
                             if target.id() == player_id {
@@ -201,7 +202,6 @@ impl RangedManager {
 
                 // prepare lists for removal
                 wants_to_shoot_list.push((shooter, stats.speed));
-                // ranged_list.push(wants_to_shoot.weapon); // TODO ammunitions count
             }
         }
 

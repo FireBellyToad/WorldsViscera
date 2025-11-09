@@ -1,3 +1,4 @@
+pub mod advancement_system;
 pub mod apply_system;
 pub mod automatic_healing;
 pub mod damage_manager;

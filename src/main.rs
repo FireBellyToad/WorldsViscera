@@ -1,6 +1,10 @@
 use crate::{
+    components::common::Experience,
     maps::arena_zone_builder::ArenaZoneBuilder,
-    systems::{leave_trail_system::LeaveTrailSystem, ranged_manager::RangedManager},
+    systems::{
+        advancement_system::AdvancementSystem, leave_trail_system::LeaveTrailSystem,
+        ranged_manager::RangedManager,
+    },
 };
 use components::{common::GameLog, player::Player};
 use constants::*;
@@ -207,18 +211,22 @@ fn change_zone(engine: &mut EngineState) {
 
     // Scope for keeping borrow checker quiet
     {
-        //Set player position in new zone and force a FOV recalculation
+        //Set player position in new zone and force a FOV recalculation. Also, award experience
         let mut player_query_viewshed = engine
             .ecs_world
-            .query::<(&mut Position, &mut Viewshed)>()
+            .query::<(&mut Position, &mut Viewshed, &mut Experience)>()
             .with::<&Player>();
 
-        for (_, (player_position, player_viewshed)) in &mut player_query_viewshed {
+        for (_, (player_position, player_viewshed, player_experience)) in &mut player_query_viewshed
+        {
             let (x, y) = Zone::get_xy_from_index(zone.player_spawn_point);
             player_position.x = x;
             player_position.y = y;
 
             player_viewshed.must_recalculate = true;
+
+            player_experience.value += (zone.depth as u32).pow(2);
+            player_experience.auto_advance_counter = AUTO_ADVANCE_EXP_COUNTER_START;
         }
     }
 
@@ -240,6 +248,7 @@ fn do_before_tick_logic(game_state: &mut EngineState) {
     HiddenManager::run(&mut game_state.ecs_world);
     MonsterThink::run(&mut game_state.ecs_world);
     LeaveTrailSystem::handle_spawned_trail(&mut game_state.ecs_world);
+    AdvancementSystem::run(&mut game_state.ecs_world);
 }
 
 fn do_in_tick_game_logic(game_engine: &mut GameEngine, game_state: &mut EngineState) {

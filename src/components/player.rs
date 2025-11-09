@@ -587,7 +587,6 @@ impl Player {
     }
 
     /// Wait some ticks after action is taken
-    // TODO this is only for player, but must be made common to all entities or else turn system does not work!
     pub fn wait_after_action(ecs_world: &mut World) {
         let player = Player::get_entity(ecs_world);
         let speed;

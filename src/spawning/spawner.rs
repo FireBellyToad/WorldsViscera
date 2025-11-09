@@ -73,6 +73,7 @@ impl Spawn {
             SufferingDamage {
                 damage_received: 0,
                 toughness_damage_received: 0,
+                damager: None,
             },
             CanAutomaticallyHeal { tick_counter: 0 },
             Hunger {
@@ -104,7 +105,16 @@ impl Spawn {
 
         let player_entity = ecs_world.spawn(player_components);
 
-        let _ = ecs_world.insert(player_entity, (Level { value: 1 }, Experience { value: 0 }));
+        let _ = ecs_world.insert(
+            player_entity,
+            (
+                Level { value: 1 },
+                Experience {
+                    value: 0,
+                    auto_advance_counter: 0,
+                },
+            ),
+        );
     }
 
     /// Spawn entities inside a room

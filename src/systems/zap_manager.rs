@@ -140,6 +140,7 @@ impl ZapManager {
                                     ));
                                 }
                             }
+                            target_damage.damager = Some(zapper);
 
                             if zapper.id() == player_id {
                                 if target.id() == player_id {

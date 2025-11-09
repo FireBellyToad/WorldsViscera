@@ -5,13 +5,13 @@ use hecs::{Entity, World};
 use crate::{
     components::{
         combat::{CombatStats, SufferingDamage},
-        common::{GameLog, Named, Position},
+        common::{Experience, GameLog, Hates, Level, Named, Position},
         health::CanAutomaticallyHeal,
         items::Edible,
         monster::Venomous,
         player::Player,
     },
-    constants::MAX_STAMINA_HEAL_TICK_COUNTER,
+    constants::{AUTO_ADVANCE_EXP_COUNTER_START, MAX_STAMINA_HEAL_TICK_COUNTER},
     engine::state::{EngineState, RunState},
     maps::zone::{DecalType, Zone},
     spawning::spawner::Spawn,
@@ -72,7 +72,7 @@ impl DamageManager {
     /// Check which entities are dead and removes them. Returns true if Player is dead
     pub fn remove_dead_and_check_gameover(game_state: &mut EngineState) -> bool {
         let ecs_world = &mut game_state.ecs_world;
-        let mut dead_entities: Vec<(Entity, String, (i32, i32))> = Vec::new();
+        let mut dead_entities: Vec<(Entity, String, (i32, i32), Option<Entity>)> = Vec::new();
         let player_entity_id = Player::get_entity_id(ecs_world);
 
         // Scope for keeping borrow checker quiet
@@ -97,6 +97,13 @@ impl DamageManager {
                 if stats.current_stamina == 0
                     && (damageable.damage_received > 0 || damageable.toughness_damage_received > 0)
                 {
+                    // From now on, damaged entity will be hostile to its damager
+                    if let Some(damager) = damageable.damager
+                        && let Ok(mut target_hates) = ecs_world.get::<&mut Hates>(damager)
+                    {
+                        target_hates.list.insert(damager.id());
+                    }
+
                     let saving_throw_roll = Roll::d20();
                     if entity.id() == player_entity_id {
                         if stats.current_toughness < 1
@@ -106,6 +113,7 @@ impl DamageManager {
                                 entity,
                                 named.name.clone(),
                                 (position.x, position.y),
+                                damageable.damager,
                             ));
                             game_log.entries.push("You die!".to_string());
                         } else if stats.current_toughness > 0 {
@@ -121,6 +129,7 @@ impl DamageManager {
                                 entity,
                                 named.name.clone(),
                                 (position.x, position.y),
+                                damageable.damager,
                             ));
                             game_log.entries.push(format!("{} dies!", named.name));
                         } else if stats.current_toughness > 0 {
@@ -130,21 +139,38 @@ impl DamageManager {
                         }
                     }
                 }
-                // Reset damage_received
+                // Reset SufferingDamage component
                 damageable.damage_received = 0;
                 damageable.toughness_damage_received = 0;
+                damageable.damager = None;
             }
         }
 
         //Remove all dead entities, stop game if player is dead
-        for (ent, name, (x, y)) in dead_entities {
-            if ent.id() == player_entity_id {
+        for (killed_entity, name, (x, y), damager_opt) in dead_entities {
+            if killed_entity.id() == player_entity_id {
                 //Game over!
                 game_state.run_state = RunState::GameOver;
                 break;
             }
 
-            ItemDropping::drop_all_of(ent, ecs_world, x, y);
+            // Award experience points to player if the victim was killed by him
+            if let Some(damager) = damager_opt
+                && damager.id() == player_entity_id
+            {
+                let mut experience = ecs_world
+                    .get::<&mut Experience>(damager)
+                    .expect("Player must have Experience component");
+
+                let victim_level = ecs_world
+                    .get::<&Level>(killed_entity)
+                    .expect("Killed entity must have Level component");
+
+                experience.value += victim_level.value.pow(2);
+                experience.auto_advance_counter += AUTO_ADVANCE_EXP_COUNTER_START;
+            }
+
+            ItemDropping::drop_all_of(killed_entity, ecs_world, x, y);
 
             // Create corpse
             // Change nutrition based on monster
@@ -154,16 +180,18 @@ impl DamageManager {
             let edible;
             // Scope for keeping borrow checker quiet
             {
-                let edible_ref = ecs_world.get::<&Edible>(ent).expect("");
+                let edible_ref = ecs_world.get::<&Edible>(killed_entity).expect("");
                 edible = Edible {
                     nutrition_dice_number: edible_ref.nutrition_dice_number,
                     nutrition_dice_size: edible_ref.nutrition_dice_size,
                 }
             }
 
-            let is_venomous = ecs_world.get::<&Venomous>(ent).is_ok();
+            let is_venomous = ecs_world.get::<&Venomous>(killed_entity).is_ok();
             Spawn::corpse(ecs_world, x, y, name, edible, is_venomous);
-            ecs_world.despawn(ent).expect("Cannot despawn entity");
+            ecs_world
+                .despawn(killed_entity)
+                .expect("Cannot despawn entity");
         }
 
         false

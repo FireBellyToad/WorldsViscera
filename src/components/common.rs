@@ -79,6 +79,7 @@ pub struct Level {
 
 pub struct Experience {
     pub value: u32,
+    pub auto_advance_counter: u32,
 }
 
 #[derive(PartialEq, Debug)]
