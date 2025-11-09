@@ -111,7 +111,7 @@ pub const MUSHROOM_SPAWN_MAP: [i32; 15] = [
 ];
 
 pub const RUST_MAX_VALUE: u32 = 3;
-pub const RUST_CHANCE: i32 = 3;
+pub const RUST_CHANCE: i32 = 1;
 
 /// Monsters related constats
 pub const BASE_MONSTER_VIEW_RADIUS: i32 = 8;

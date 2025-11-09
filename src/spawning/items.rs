@@ -64,7 +64,7 @@ pub fn mushroom(ecs_world: &mut World, x: i32, y: i32) {
                 mushroom_entity,
                 (
                     Edible {
-                        nutrition_dice_number: 3,
+                        nutrition_dice_number: 4,
                         nutrition_dice_size: 6,
                     },
                     Named {
@@ -110,7 +110,7 @@ pub fn mushroom(ecs_world: &mut World, x: i32, y: i32) {
                 mushroom_entity,
                 (
                     Edible {
-                        nutrition_dice_number: 1,
+                        nutrition_dice_number: 2,
                         nutrition_dice_size: 20,
                     },
                     ProduceLight {
@@ -128,7 +128,7 @@ pub fn mushroom(ecs_world: &mut World, x: i32, y: i32) {
                 mushroom_entity,
                 (
                     Edible {
-                        nutrition_dice_number: 2,
+                        nutrition_dice_number: 3,
                         nutrition_dice_size: 10,
                     },
                     Named {
@@ -273,6 +273,7 @@ pub fn crowssbow(ecs_world: &mut World, x: i32, y: i32) {
             ammo_type: AmmoType::Crossbow,
             ammo_count_total: 0,
         },
+        Metallic {},
     );
 
     ecs_world.spawn(crowssbow);
@@ -497,7 +498,7 @@ pub fn breastplate(ecs_world: &mut World, x: i32, y: i32) {
     ecs_world.spawn(flask_of_oil);
 }
 
-pub fn dvergar_chain(ecs_world: &mut World, owner: Entity) {
+pub fn moleman_chain(ecs_world: &mut World, owner: Entity) {
     let item_tile_index = (2, 3);
     let dvergar_chain = (
         InBackback {
@@ -515,7 +516,7 @@ pub fn dvergar_chain(ecs_world: &mut World, owner: Entity) {
             z_index: 0,
         },
         Named {
-            name: "dvergar chainmail".to_string(),
+            name: "Mole-man chainmail".to_string(),
         },
         Item {
             item_tile: item_tile_index,

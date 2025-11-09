@@ -85,7 +85,7 @@ pub struct Experience {
 #[derive(PartialEq, Debug)]
 pub enum SpeciesEnum {
     Human,
-    Dvergar,
+    Undergrounder,
     Fish,
     Slime,
     Gastropod,

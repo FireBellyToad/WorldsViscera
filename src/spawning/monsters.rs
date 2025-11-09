@@ -19,7 +19,7 @@ use crate::{
         TILE_SIZE_F32,
     },
     maps::zone::DecalType,
-    spawning::items::dvergar_chain,
+    spawning::items::moleman_chain,
     systems::hunger_check::HungerStatus,
     utils::assets::TextureName,
 };
@@ -43,7 +43,7 @@ pub fn deep_one(ecs_world: &mut World, x: i32, y: i32) {
             speed: NORMAL,
         },
         Edible {
-            nutrition_dice_number: 3,
+            nutrition_dice_number: 5,
             nutrition_dice_size: 6,
         },
         Smellable {
@@ -80,7 +80,7 @@ pub fn freshwater_viperfish(ecs_world: &mut World, x: i32, y: i32) {
         },
         Edible {
             nutrition_dice_number: 3,
-            nutrition_dice_size: 4,
+            nutrition_dice_size: 6,
         },
         Smellable {
             smell_log: "fish".to_string(),
@@ -118,7 +118,7 @@ pub fn gremlin(ecs_world: &mut World, x: i32, y: i32) {
         },
         Edible {
             nutrition_dice_number: 3,
-            nutrition_dice_size: 4,
+            nutrition_dice_size: 6,
         },
         Smellable {
             smell_log: "cheap leather".to_string(),
@@ -174,12 +174,12 @@ pub fn centipede(ecs_world: &mut World, x: i32, y: i32) {
     let _ = ecs_world.insert(centipede, (Venomous {}, Small {}));
 }
 
-pub fn dvergar(ecs_world: &mut World, x: i32, y: i32) {
-    let dvergar = create_monster(
+pub fn moleman(ecs_world: &mut World, x: i32, y: i32) {
+    let moleman = create_monster(
         ecs_world,
-        "Dvergar".to_string(),
+        "Mole-man".to_string(),
         Species {
-            value: SpeciesEnum::Dvergar,
+            value: SpeciesEnum::Undergrounder,
         },
         CombatStats {
             current_stamina: 4,
@@ -209,7 +209,7 @@ pub fn dvergar(ecs_world: &mut World, x: i32, y: i32) {
         y,
     );
 
-    dvergar_chain(ecs_world, dvergar);
+    moleman_chain(ecs_world, moleman);
 }
 
 /// Generic monster creation
@@ -298,7 +298,7 @@ pub fn giant_cockroach(ecs_world: &mut World, x: i32, y: i32) {
             speed: NORMAL,
         },
         Edible {
-            nutrition_dice_number: 3,
+            nutrition_dice_number: 4,
             nutrition_dice_size: 6,
         },
         Smellable {
@@ -336,11 +336,11 @@ pub fn giant_slug(ecs_world: &mut World, x: i32, y: i32) {
             speed: SLOW,
         },
         Edible {
-            nutrition_dice_number: 4,
+            nutrition_dice_number: 6,
             nutrition_dice_size: 6,
         },
         Smellable {
-            smell_log: "something off and dusty".to_string(),
+            smell_log: "foul saliva".to_string(),
             intensity: SmellIntensity::Faint,
         },
         ProduceSound {

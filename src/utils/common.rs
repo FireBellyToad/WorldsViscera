@@ -96,7 +96,7 @@ impl Utils {
                 SpeciesEnum::Gremlin,
                 SpeciesEnum::Undead,
             ],
-            SpeciesEnum::Dvergar => vec![
+            SpeciesEnum::Undergrounder => vec![
                 SpeciesEnum::Bug,
                 SpeciesEnum::Gremlin,
                 SpeciesEnum::DeepSpawn,
@@ -105,7 +105,7 @@ impl Utils {
             SpeciesEnum::Fish => vec![SpeciesEnum::Human, SpeciesEnum::Bug, SpeciesEnum::Gastropod],
             SpeciesEnum::Slime => vec![
                 SpeciesEnum::Human,
-                SpeciesEnum::Dvergar,
+                SpeciesEnum::Undergrounder,
                 SpeciesEnum::DeepSpawn,
             ],
             SpeciesEnum::Gastropod => vec![
@@ -127,19 +127,19 @@ impl Utils {
             ],
             SpeciesEnum::Gremlin => vec![
                 SpeciesEnum::Human,
-                SpeciesEnum::Dvergar,
+                SpeciesEnum::Undergrounder,
                 SpeciesEnum::DeepSpawn,
                 SpeciesEnum::Undead,
             ],
             SpeciesEnum::DeepSpawn => vec![
                 SpeciesEnum::Human,
                 SpeciesEnum::Fish,
-                SpeciesEnum::Dvergar,
+                SpeciesEnum::Undergrounder,
                 SpeciesEnum::Undead,
             ],
             SpeciesEnum::Undead => vec![
                 SpeciesEnum::Human,
-                SpeciesEnum::Dvergar,
+                SpeciesEnum::Undergrounder,
                 SpeciesEnum::DeepSpawn,
                 SpeciesEnum::Gremlin,
             ],

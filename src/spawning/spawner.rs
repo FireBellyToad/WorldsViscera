@@ -147,7 +147,7 @@ impl Spawn {
         let dice_roll = Roll::dice(1, 14);
 
         match dice_roll {
-            1 => dvergar(ecs_world, x, y),
+            1 => moleman(ecs_world, x, y),
             2 => gremlin(ecs_world, x, y),
             3 => centipede(ecs_world, x, y),
             4 | 5 | 6 => deep_one(ecs_world, x, y),

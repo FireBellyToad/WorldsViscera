@@ -89,6 +89,7 @@ impl WetManager {
             );
         }
 
+        // Rust metallic objects
         for (entity, value) in entities_in_backpack_to_rust {
             let _ = ecs_world.insert_one(entity, Eroded { value });
         }
@@ -135,7 +136,7 @@ impl WetManager {
                     ));
                 }
             } else if metallic.is_some() && Roll::d100() <= RUST_CHANCE {
-                // Rust metallic object 3% of the time (if not rusted enough)
+                // Rust metallic object 1% of the time (if not rusted enough)
                 if let Some(rust) = eroded {
                     if rust.value < RUST_MAX_VALUE {
                         if *player_id == got_wet_entity.id() {
