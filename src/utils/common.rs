@@ -39,6 +39,7 @@ impl Utils {
         ((x1.abs_diff(*x2).pow(2) + y1.abs_diff(*y2).pow(2)) as f32).sqrt()
     }
 
+    /// Utility function to check if two Equippable occupy the same body location
     pub fn occupies_same_location(b1: &BodyLocation, b2: &BodyLocation) -> bool {
         if b1 == b2 {
             return true;
@@ -57,6 +58,7 @@ impl Utils {
         false
     }
 
+    /// Utility function to make an entity wait after an action
     pub fn wait_after_action(ecs_world: &mut World, waiter: Entity, speed: i32) {
         let count = max(1, MAX_ACTION_SPEED / speed);
         println!("Entity id {} must wait {} ticks", waiter.id(), count);
@@ -88,6 +90,8 @@ impl Utils {
         base_armor
     }
 
+    /// Hate table by species
+    //TODO change to static const!
     pub fn what_hates(hater: &SpeciesEnum) -> Vec<SpeciesEnum> {
         match hater {
             SpeciesEnum::Human => vec![

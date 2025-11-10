@@ -89,6 +89,9 @@ impl MonsterApproach {
                     aquatic.is_some(),
                 );
 
+                //Monster must wait too after an action, even if this turn will not move!
+                waiter_speed_list.push((monster_entity, stats.speed));
+
                 //If can actually reach the new position, do it or else stay still
                 if let Some((path, _)) = pathfinding_result
                     && path.len() > 1
@@ -101,9 +104,6 @@ impl MonsterApproach {
                     position.x = path[1].0;
                     position.y = path[1].1;
                     zone.blocked_tiles[Zone::get_index_from_xy(&position.x, &position.y)] = true;
-
-                    //Monster must wait too after an action!
-                    waiter_speed_list.push((monster_entity, stats.speed));
 
                     if wants_to_approach.counter == 0 {
                         // Approached point, stop moving
