@@ -1,6 +1,5 @@
 use crate::{
     components::common::Experience,
-    maps::arena_zone_builder::ArenaZoneBuilder,
     systems::{
         advancement_system::AdvancementSystem, leave_trail_system::LeaveTrailSystem,
         ranged_manager::RangedManager,
@@ -55,11 +54,13 @@ mod utils;
 
 //Game configuration
 fn get_game_configuration() -> Conf {
+    // Since when I switched to linux mint 22.22 with Nvidia gtx 4070 driver 580,
+    // I had to duplicate the windows size to fit the game content... why?
     Conf {
         window_title: "World's Viscera".to_string(),
         fullscreen: false,
-        window_height: WINDOW_HEIGHT,
-        window_width: WINDOW_WIDTH,
+        window_height: WINDOW_HEIGHT * 2,
+        window_width: WINDOW_WIDTH * 2,
         //use the default options:
         ..Default::default()
     }
@@ -74,7 +75,7 @@ async fn main() {
     let mut game_engine = GameEngine::new();
     let mut game_state = EngineState {
         ecs_world: create_ecs_world(),
-        run_state: RunState::BeforeTick,
+        run_state: RunState::TitleScreen,
     };
 
     let mut tick = 0;
@@ -90,6 +91,18 @@ async fn main() {
             // Make the whole game turn based
 
             match game_state.run_state {
+                RunState::TitleScreen => {
+                    // Quit game on Q
+                    if is_key_pressed(KeyCode::Q) {
+                        break;
+                    } else if get_last_key_pressed().is_some() {
+                        game_state.ecs_world.clear();
+                        populate_world(&mut game_state.ecs_world);
+                        clear_input_queue();
+                        game_state.run_state = RunState::BeforeTick;
+                        tick = 0;
+                    }
+                }
                 RunState::BeforeTick => {
                     tick += 1;
                     println!("BeforeTick ---------------------------- tick {}", tick);

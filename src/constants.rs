@@ -1,3 +1,11 @@
+/// UI related constants
+pub const UI_BORDER: i32 = 8;
+pub const UI_BORDER_F32: f32 = UI_BORDER as f32;
+pub const WINDOW_WIDTH: i32 = (UI_BORDER * 2) + (MAP_WIDTH * TILE_SIZE);
+pub const WINDOW_HEIGHT: i32 = (UI_BORDER * 2) + (MAP_HEIGHT * TILE_SIZE) + HUD_HEIGHT;
+pub const FONT_SIZE: f32 = 32.0;
+pub const LETTER_SIZE: f32 = 15.0;
+
 /// Zone related constats
 pub const MAP_WIDTH: i32 = 56;
 pub const MAP_HEIGHT: i32 = 32;
@@ -43,14 +51,6 @@ pub const DIALOG_SIZE: i32 = 640;
 pub const DIALOG_FOOTER_WIDTH: i32 = 186;
 pub const DIALOG_LEFT_SPAN: i32 = DIALOG_FOOTER_WIDTH / 4;
 pub const DIALOG_TOP_SPAN: i32 = DIALOG_SIZE / 6;
-
-/// UI related constants
-pub const UI_BORDER: i32 = 8;
-pub const UI_BORDER_F32: f32 = UI_BORDER as f32;
-pub const WINDOW_WIDTH: i32 = (UI_BORDER * 2) + (MAP_WIDTH * TILE_SIZE);
-pub const WINDOW_HEIGHT: i32 = (UI_BORDER * 2) + (MAP_HEIGHT * TILE_SIZE) + HUD_HEIGHT;
-pub const FONT_SIZE: f32 = 32.0;
-pub const LETTER_SIZE: f32 = 15.0;
 
 /// Timing related constants
 pub const MILLISECONDS_TO_WAIT: f32 = 5.1;

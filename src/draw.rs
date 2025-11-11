@@ -39,6 +39,7 @@ impl Draw {
         let mut zones = game_state.ecs_world.query::<&Zone>();
         match game_state.run_state {
             RunState::GameOver => Draw::game_over(),
+            RunState::TitleScreen => Draw::title_screen(),
             _ => {
                 // Zone and renderables
                 for (_, zone) in &mut zones {
@@ -335,6 +336,27 @@ impl Draw {
                 );
             }
         }
+    }
+
+    /// Draw title game screen
+    fn title_screen() {
+        let title = "WORLD'S VISCERA";
+        let command = "Press any key to start, Q to exit";
+        draw_rectangle(0.0, 0.0, 64.0, 32.0, BLACK);
+        draw_text(
+            title,
+            (WINDOW_WIDTH / 2) as f32 - ((title.len() as f32 / 2.0) * FONT_SIZE),
+            64.0,
+            FONT_SIZE * 2.0,
+            WHITE,
+        );
+        draw_text(
+            command,
+            (WINDOW_WIDTH / 2) as f32 - ((command.len() as f32 / 2.0) * FONT_SIZE / 2.0),
+            96.0,
+            FONT_SIZE,
+            WHITE,
+        );
     }
 
     /// Draw game over screen
