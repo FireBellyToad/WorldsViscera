@@ -123,7 +123,7 @@ impl Spawn {
         // Actually spawn the monsters
         for &index in zone.monster_spawn_points.iter() {
             let (x, y) = Zone::get_xy_from_index(index);
-            //TODO improve with spawn table
+
             if zone.water_tiles[index] {
                 Spawn::random_water_monster(ecs_world, x, y, zone.depth);
             } else {
