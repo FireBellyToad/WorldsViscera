@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use hecs::World;
 use macroquad::{
-    color::{BLACK, Color, DARKGRAY, ORANGE, RED, WHITE, YELLOW},
+    color::{BLACK, Color, DARKGRAY, GREEN, ORANGE, RED, WHITE, YELLOW},
     input::mouse_position,
     math::Rect,
     shapes::{draw_circle, draw_rectangle, draw_rectangle_lines},
@@ -540,6 +540,7 @@ impl Draw {
             DecalType::Blood => RED,
             DecalType::Vomit => ORANGE,
             DecalType::Slime => WHITE,
+            DecalType::Acid => GREEN,
         };
 
         draw_circle(

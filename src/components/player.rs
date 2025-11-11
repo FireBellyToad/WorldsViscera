@@ -1,4 +1,4 @@
-use crate::components::combat::WantsToShoot;
+use crate::components::combat::{SufferingDamage, WantsToShoot};
 use crate::components::common::Named;
 use crate::components::items::RangedWeapon;
 use crate::utils::common::ItemsInBackpack;
@@ -50,7 +50,12 @@ impl Player {
         // Scope for keeping borrow checker quiet
         {
             let mut players = ecs_world
-                .query::<(&mut Position, &mut Viewshed, &CombatStats)>()
+                .query::<(
+                    &mut Position,
+                    &mut Viewshed,
+                    &CombatStats,
+                    &mut SufferingDamage,
+                )>()
                 .with::<&Player>();
 
             let mut zone_query = ecs_world.query::<&mut Zone>();
@@ -59,7 +64,7 @@ impl Player {
                 .last()
                 .expect("Zone is not in hecs::World");
 
-            for (player_entity, (position, viewshed, stats)) in &mut players {
+            for (player_entity, (position, viewshed, stats, suffering_damage)) in &mut players {
                 // Check if player is on slime
                 if let Some(special_tile) = zone
                     .decals_tiles
@@ -79,6 +84,15 @@ impl Player {
 
                                 return_state = RunState::DoTick;
                                 break;
+                            }
+                        }
+                        DecalType::Acid => {
+                            // Do DEX saving or be damaged!
+                            if stats.current_dexterity < Roll::d20() {
+                                game_log
+                                    .entries
+                                    .push("You burn yourself on the acid!".to_string());
+                                suffering_damage.damage_received += Roll::dice(1, 3);
                             }
                         }
                         _ => {}

@@ -7,7 +7,7 @@ use crate::{
         combat::{CombatStats, SufferingDamage},
         common::{Experience, GameLog, Hates, Level, Named, Position},
         health::CanAutomaticallyHeal,
-        items::Edible,
+        items::{Deadly, Edible},
         monster::Venomous,
         player::Player,
     },
@@ -188,7 +188,8 @@ impl DamageManager {
             }
 
             let is_venomous = ecs_world.get::<&Venomous>(killed_entity).is_ok();
-            Spawn::corpse(ecs_world, x, y, name, edible, is_venomous);
+            let deadly = ecs_world.get::<&Deadly>(killed_entity).is_ok();
+            Spawn::corpse(ecs_world, x, y, name, edible, is_venomous, deadly);
             ecs_world
                 .despawn(killed_entity)
                 .expect("Cannot despawn entity");

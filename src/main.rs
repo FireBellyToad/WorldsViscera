@@ -251,23 +251,18 @@ fn change_zone(engine: &mut EngineState) {
 }
 
 fn do_before_tick_logic(game_state: &mut EngineState) {
-    DamageManager::run(&game_state.ecs_world);
-    DamageManager::remove_dead_and_check_gameover(game_state);
-    //Proceed on game logic if is not Game Over
-    if game_state.run_state != RunState::GameOver {
-        TurnCheck::run(&mut game_state.ecs_world);
-        RangedManager::check_ammo_counts(&mut game_state.ecs_world);
-        AutomaticHealing::run(&mut game_state.ecs_world);
-        DecayManager::run(&mut game_state.ecs_world);
-        HungerCheck::run(&mut game_state.ecs_world);
-        ThirstCheck::run(&mut game_state.ecs_world);
-        FuelManager::check_fuel(&mut game_state.ecs_world);
-        WetManager::run(&mut game_state.ecs_world);
-        HiddenManager::run(&mut game_state.ecs_world);
-        MonsterThink::run(&mut game_state.ecs_world);
-        LeaveTrailSystem::handle_spawned_trail(&mut game_state.ecs_world);
-        AdvancementSystem::run(&mut game_state.ecs_world);
-    }
+    TurnCheck::run(&mut game_state.ecs_world);
+    RangedManager::check_ammo_counts(&mut game_state.ecs_world);
+    AutomaticHealing::run(&mut game_state.ecs_world);
+    DecayManager::run(&mut game_state.ecs_world);
+    HungerCheck::run(&mut game_state.ecs_world);
+    ThirstCheck::run(&mut game_state.ecs_world);
+    FuelManager::check_fuel(&mut game_state.ecs_world);
+    WetManager::run(&mut game_state.ecs_world);
+    HiddenManager::run(&mut game_state.ecs_world);
+    MonsterThink::run(&mut game_state.ecs_world);
+    LeaveTrailSystem::handle_spawned_trail(&mut game_state.ecs_world);
+    AdvancementSystem::run(&mut game_state.ecs_world);
 }
 
 fn do_in_tick_game_logic(game_engine: &mut GameEngine, game_state: &mut EngineState) {

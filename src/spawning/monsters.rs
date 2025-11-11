@@ -11,7 +11,7 @@ use crate::{
             Renderable, SmellIntensity, Smellable, Species, SpeciesEnum, Viewshed,
         },
         health::Hunger,
-        items::Edible,
+        items::{Deadly, Edible},
         monster::{Aquatic, IsPrey, LeaveTrail, Monster, Small, Smart, Venomous},
     },
     constants::{
@@ -55,6 +55,7 @@ pub fn deep_one(ecs_world: &mut World, x: i32, y: i32) {
         },
         2,
         1.0,
+        0.0,
         x,
         y,
     );
@@ -91,11 +92,51 @@ pub fn freshwater_viperfish(ecs_world: &mut World, x: i32, y: i32) {
         },
         4,
         4.0,
+        0.0,
         x,
         y,
     );
 
     let _ = ecs_world.insert(freshwater_viperfish, (Aquatic {}, CanHide { cooldown: 0 }));
+}
+
+pub fn water_worm(ecs_world: &mut World, x: i32, y: i32) {
+    let water_worm = create_monster(
+        ecs_world,
+        "Water worm".to_string(),
+        Species {
+            value: SpeciesEnum::Gastropod,
+        },
+        CombatStats {
+            current_stamina: 1,
+            max_stamina: 1,
+            base_armor: 0,
+            unarmed_attack_dice: 1,
+            current_toughness: 2,
+            max_toughness: 2,
+            current_dexterity: 4,
+            max_dexterity: 4,
+            speed: SLOW,
+        },
+        Edible {
+            nutrition_dice_number: 2,
+            nutrition_dice_size: 6,
+        },
+        Smellable {
+            smell_log: "humid algae".to_string(),
+            intensity: SmellIntensity::None,
+        },
+        ProduceSound {
+            sound_log: "a drop of water".to_string(),
+        },
+        1,
+        8.0,
+        0.0,
+        x,
+        y,
+    );
+
+    let _ = ecs_world.insert(water_worm, (IsPrey {}, Aquatic {}, CanHide { cooldown: 0 }));
 }
 
 pub fn gremlin(ecs_world: &mut World, x: i32, y: i32) {
@@ -129,6 +170,7 @@ pub fn gremlin(ecs_world: &mut World, x: i32, y: i32) {
         },
         5,
         3.0,
+        0.0,
         x,
         y,
     );
@@ -167,6 +209,7 @@ pub fn centipede(ecs_world: &mut World, x: i32, y: i32) {
         },
         4,
         5.0,
+        0.0,
         x,
         y,
     );
@@ -205,6 +248,7 @@ pub fn moleman(ecs_world: &mut World, x: i32, y: i32) {
         },
         5,
         2.0,
+        0.0,
         x,
         y,
     );
@@ -222,7 +266,8 @@ pub fn create_monster(
     smells: Smellable,
     sounds: ProduceSound,
     level: u32,
-    tile_index: f32,
+    tile_x: f32,
+    tile_y: f32,
     x: i32,
     y: i32,
 ) -> Entity {
@@ -233,8 +278,8 @@ pub fn create_monster(
         Renderable {
             texture_name: TextureName::Creatures,
             texture_region: Rect {
-                x: tile_index * TILE_SIZE_F32,
-                y: 0.0,
+                x: tile_x * TILE_SIZE_F32,
+                y: tile_y * TILE_SIZE_F32,
                 w: TILE_SIZE_F32,
                 h: TILE_SIZE_F32,
             },
@@ -310,6 +355,7 @@ pub fn giant_cockroach(ecs_world: &mut World, x: i32, y: i32) {
         },
         1,
         6.0,
+        0.0,
         x,
         y,
     );
@@ -348,6 +394,7 @@ pub fn giant_slug(ecs_world: &mut World, x: i32, y: i32) {
         },
         1,
         7.0,
+        0.0,
         x,
         y,
     );
@@ -360,6 +407,57 @@ pub fn giant_slug(ecs_world: &mut World, x: i32, y: i32) {
             IsPrey {},
             LeaveTrail {
                 of: DecalType::Slime,
+                trail_lifetime: SLUG_TRAIL_LIFETIME,
+            },
+        ),
+    );
+}
+
+pub fn sulfuric_slug(ecs_world: &mut World, x: i32, y: i32) {
+    let slug = create_monster(
+        ecs_world,
+        "Sulfuric slug".to_string(),
+        Species {
+            value: SpeciesEnum::Gastropod,
+        },
+        CombatStats {
+            current_stamina: 5,
+            max_stamina: 5,
+            base_armor: 0,
+            unarmed_attack_dice: 0,
+            current_toughness: 3,
+            max_toughness: 3,
+            current_dexterity: 3,
+            max_dexterity: 3,
+            speed: SLOW,
+        },
+        Edible {
+            nutrition_dice_number: 6,
+            nutrition_dice_size: 6,
+        },
+        Smellable {
+            smell_log: "nasty sulphuric fumes".to_string(),
+            intensity: SmellIntensity::Strong,
+        },
+        ProduceSound {
+            sound_log: "something sizzling".to_string(),
+        },
+        1,
+        7.0,
+        1.0,
+        x,
+        y,
+    );
+
+    // Drip a slime trail
+    let _ = ecs_world.insert(
+        slug,
+        (
+            Small {},
+            IsPrey {},
+            Deadly {},
+            LeaveTrail {
+                of: DecalType::Acid,
                 trail_lifetime: SLUG_TRAIL_LIFETIME,
             },
         ),

@@ -8,7 +8,7 @@ use crate::components::common::{
 };
 use crate::components::health::{CanAutomaticallyHeal, Hunger, Thirst};
 use crate::components::items::{
-    Edible, Item, Perishable, ProduceLight, Quaffable, TurnedOn, Unsavoury,
+    Deadly, Edible, Item, Perishable, ProduceLight, Quaffable, TurnedOn, Unsavoury,
 };
 use crate::components::player::Player;
 use crate::constants::*;
@@ -125,7 +125,7 @@ impl Spawn {
             let (x, y) = Zone::get_xy_from_index(index);
             //TODO improve with spawn table
             if zone.water_tiles[index] {
-                freshwater_viperfish(ecs_world, x, y)
+                Spawn::random_water_monster(ecs_world, x, y, zone.depth);
             } else {
                 Spawn::random_terrain_monster(ecs_world, x, y, zone.depth);
             }
@@ -143,7 +143,7 @@ impl Spawn {
         }
     }
 
-    /// Spawn a random monster
+    /// Spawn a random terrainmonster
     pub fn random_terrain_monster(ecs_world: &mut World, x: i32, y: i32, depth: u32) {
         let dice_roll = max(1, Roll::dice(1, 10) + depth as i32);
 
@@ -155,7 +155,20 @@ impl Spawn {
             13 => centipede(ecs_world, x, y),
             14 => gremlin(ecs_world, x, y),
             15 => moleman(ecs_world, x, y),
+            16 => sulfuric_slug(ecs_world, x, y),
             _ => Spawn::random_terrain_monster(ecs_world, x, y, depth - 1),
+        }
+    }
+
+    /// Spawn a random water monster
+    pub fn random_water_monster(ecs_world: &mut World, x: i32, y: i32, depth: u32) {
+        let dice_roll = max(1, Roll::dice(1, 6) + depth as i32);
+
+        // Depth based spawn table, recursive if roll is too high
+        match dice_roll {
+            (1..=4) => water_worm(ecs_world, x, y),
+            (5..=9) => freshwater_viperfish(ecs_world, x, y),
+            _ => Spawn::random_water_monster(ecs_world, x, y, depth - 1),
         }
     }
 
@@ -188,6 +201,7 @@ impl Spawn {
         name: String,
         edible: Edible,
         is_venomous: bool,
+        deadly: bool,
     ) {
         let item_tile_index = (0, 0);
         let corpse = (
@@ -223,6 +237,8 @@ impl Spawn {
                     game_log: "poisoned".to_string(),
                 },
             );
+        } else if deadly {
+            let _ = ecs_world.insert_one(corpse_spawned, Deadly {});
         }
     }
 

@@ -18,6 +18,7 @@ pub enum DecalType {
     Blood,
     Vomit,
     Slime,
+    Acid,
 }
 
 /// Zone Struct
