@@ -149,6 +149,7 @@ impl WetManager {
 
         // Rust metallic objects
         for (entity, value) in entities_in_backpack_to_rust {
+            println!("Entity: {:?}, Eroded Value: {}", entity, value);
             let _ = ecs_world.insert_one(entity, Eroded { value });
         }
 
@@ -210,7 +211,7 @@ impl WetManager {
                             .entries
                             .push(format!("Your {} gets wet and rusts!", named.name));
                     }
-                    entities_in_backpack_to_rust.push((item, 0));
+                    entities_in_backpack_to_rust.push((item, 1));
                 }
             }
         }

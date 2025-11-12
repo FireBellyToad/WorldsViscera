@@ -269,9 +269,12 @@ pub fn crowssbow(ecs_world: &mut World, x: i32, y: i32) {
             body_location: BodyLocation::BothHands,
         },
         RangedWeapon {
-            attack_dice: 6,
             ammo_type: AmmoType::Crossbow,
             ammo_count_total: 0,
+        },
+        InflictsDamage {
+            number_of_dices: 1,
+            dice_size: 6,
         },
         Metallic {},
     );
@@ -303,9 +306,12 @@ pub fn slingshot(ecs_world: &mut World, x: i32, y: i32) {
             body_location: BodyLocation::BothHands,
         },
         RangedWeapon {
-            attack_dice: 3,
             ammo_type: AmmoType::Slingshot,
             ammo_count_total: 0,
+        },
+        InflictsDamage {
+            number_of_dices: 1,
+            dice_size: 3,
         },
     );
 
@@ -368,7 +374,11 @@ pub fn shiv(ecs_world: &mut World, x: i32, y: i32) {
         Equippable {
             body_location: BodyLocation::RightHand,
         },
-        MeleeWeapon { attack_dice: 4 },
+        MeleeWeapon {},
+        InflictsDamage {
+            number_of_dices: 1,
+            dice_size: 4,
+        },
     );
 
     ecs_world.spawn(flask_of_oil);
@@ -397,7 +407,11 @@ pub fn rockpick(ecs_world: &mut World, x: i32, y: i32) {
         Equippable {
             body_location: BodyLocation::RightHand,
         },
-        MeleeWeapon { attack_dice: 6 },
+        MeleeWeapon {},
+        InflictsDamage {
+            number_of_dices: 1,
+            dice_size: 6,
+        },
         Metallic {},
     );
 
@@ -429,7 +443,11 @@ pub fn maul(ecs_world: &mut World, x: i32, y: i32) {
         Equippable {
             body_location: BodyLocation::BothHands,
         },
-        MeleeWeapon { attack_dice: 8 },
+        MeleeWeapon {},
+        InflictsDamage {
+            number_of_dices: 1,
+            dice_size: 8,
+        },
         Appliable {}, // TODO not used right now
         Bulky {},
         Metallic {},

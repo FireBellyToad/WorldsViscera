@@ -1,4 +1,7 @@
-use crate::{components::items::InBackback, utils::common::AmmunitionInBackpack};
+use crate::{
+    components::{combat::InflictsDamage, items::InBackback},
+    utils::common::AmmunitionInBackpack,
+};
 use std::{cmp::max, panic};
 
 use hecs::{Entity, World};
@@ -51,9 +54,14 @@ impl RangedManager {
 
             for (shooter, (wants_to_zap, wants_to_shoot, shooter_position, stats)) in &mut shooters
             {
-                let weapon_stats = ecs_world
-                    .get::<&RangedWeapon>(wants_to_shoot.weapon)
-                    .expect("Entity has no RangedWeapon"); // TODO maybe refactor this with InflictsDamage component;
+                let mut weapon_stats_query = ecs_world
+                    .query_one::<(&RangedWeapon, &InflictsDamage, Option<&Eroded>)>(
+                        wants_to_shoot.weapon,
+                    )
+                    .expect("Entity must be RangedWeapon and could InflictDamage");
+                let (weapon_stats, inflicts_damage, eroded_opt) = weapon_stats_query
+                    .get()
+                    .expect("weapon_stats_query should have result"); // TODO maybe refactor this with InflictsDamage component;
 
                 // If the shooter has the ammo for at least one equipped ranged weapon, it can shoot!
                 let ammo: Vec<(Entity, AmmunitionInBackpack)> = ammo_in_backpack
@@ -125,7 +133,7 @@ impl RangedManager {
                         line_effect.truncate(must_truncate_line_at.1);
                     }
 
-                    // TODO use particle type given by ranged weapon
+                    // Use particle type given by ranged weapon
                     if zone.visible_tiles
                         [Zone::get_index_from_xy(&wants_to_zap.target.0, &wants_to_zap.target.1)]
                     {
@@ -135,7 +143,7 @@ impl RangedManager {
                         ));
                     }
                 } else {
-                    // Only one if zapping himself
+                    // Only one if shooting himself
                     let index =
                         Zone::get_index_from_xy(&wants_to_zap.target.0, &wants_to_zap.target.1);
                     target_opt = Some(zone.tile_content[index][0]);
@@ -167,8 +175,17 @@ impl RangedManager {
                             target.id(),
                             &mut equipped_armors,
                         );
-                        let damage_roll =
-                            max(0, Roll::dice(1, weapon_stats.attack_dice) - target_armor);
+
+                        let mut erosion_malus = 0;
+                        if let Some(eroded) = eroded_opt {
+                            erosion_malus = eroded.value as i32;
+                        }
+                        let damage_roll = max(
+                            0,
+                            Roll::dice(inflicts_damage.number_of_dices, inflicts_damage.dice_size)
+                                - target_armor
+                                - erosion_malus,
+                        );
                         target_damage.damage_received += damage_roll;
                         target_damage.damager = Some(shooter);
 

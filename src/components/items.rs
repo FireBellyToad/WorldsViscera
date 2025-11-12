@@ -81,12 +81,9 @@ pub struct Equipped {
     pub body_location: BodyLocation,
 }
 
-pub struct MeleeWeapon {
-    pub attack_dice: i32,
-}
+pub struct MeleeWeapon {}
 
 pub struct RangedWeapon {
-    pub attack_dice: i32,
     pub ammo_type: AmmoType,
     pub ammo_count_total: u32, // this is used in readonly. Real ammo count update is done by the Ammo component
 }

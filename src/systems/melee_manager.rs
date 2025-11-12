@@ -1,4 +1,4 @@
-use crate::utils::common::Utils;
+use crate::{components::combat::InflictsDamage, utils::common::Utils};
 use std::cmp::max;
 
 use hecs::{Entity, World};
@@ -39,7 +39,7 @@ impl MeleeManager {
                 .with::<&MyTurn>();
 
             let mut equipped_weapons =
-                ecs_world.query::<(&MeleeWeapon, &Equipped, Option<&Eroded>)>();
+                ecs_world.query::<(&MeleeWeapon, &InflictsDamage, &Equipped, Option<&Eroded>)>();
             let mut equipped_armors = ecs_world.query::<(&Armor, &Equipped, Option<&Eroded>)>();
 
             //Log all the fights
@@ -76,10 +76,15 @@ impl MeleeManager {
                     let named_target = ecs_world
                         .get::<&Named>(wants_melee.target)
                         .expect("Entity is not Named");
-                    let attacker_dice = MeleeManager::get_damage_dice(
-                        attacker_stats.unarmed_attack_dice,
-                        attacker.id(),
-                        &mut equipped_weapons,
+                    let (attacker_dice_number, attacker_dice, erosion) =
+                        MeleeManager::get_damage_dices(
+                            attacker_stats.unarmed_attack_dice,
+                            attacker.id(),
+                            &mut equipped_weapons,
+                        );
+                    println!(
+                        "attacker_dice_number {}, attacker_dice: {:?}, erosion: {:?}",
+                        attacker_dice_number, attacker_dice, erosion
                     );
 
                     let damage_roll: i32;
@@ -95,7 +100,10 @@ impl MeleeManager {
                             // TODO what about venom immunity?
                             let saving_throw_roll = Roll::d20();
                             if saving_throw_roll > attacker_stats.current_toughness {
-                                damage_roll = max(0, Roll::dice(1, attacker_dice));
+                                damage_roll = max(
+                                    0,
+                                    Roll::dice(attacker_dice_number, attacker_dice) - erosion,
+                                );
                                 target_damage.toughness_damage_received += damage_roll;
 
                                 if attacker_is_player {
@@ -131,8 +139,12 @@ impl MeleeManager {
                             // Sneak attack doubles damage
                             match hidden {
                                 Some(_) => {
-                                    damage_roll =
-                                        max(0, Roll::dice(2, attacker_dice) - target_armor);
+                                    damage_roll = max(
+                                        0,
+                                        Roll::dice(attacker_dice_number * 2, attacker_dice)
+                                            - target_armor
+                                            - erosion,
+                                    );
 
                                     if attacker_is_player {
                                         game_log.entries.push(format!(
@@ -168,8 +180,10 @@ impl MeleeManager {
                                 }
                                 None => {
                                     // Standard attack
-                                    damage_roll =
-                                        max(0, Roll::dice(1, attacker_dice) - target_armor);
+                                    damage_roll = max(
+                                        0,
+                                        Roll::dice(1, attacker_dice) - target_armor - erosion,
+                                    );
                                     if attacker_is_player {
                                         game_log.entries.push(format!(
                                             "You hit the {} for {} damage",
@@ -217,21 +231,32 @@ impl MeleeManager {
     }
 
     // Gets attack dice
-    fn get_damage_dice(
+    fn get_damage_dices(
         unarmed_attack_dice: i32,
         attacker_id: u32,
-        equipped_weapons: &mut hecs::QueryBorrow<'_, (&MeleeWeapon, &Equipped, Option<&Eroded>)>,
-    ) -> i32 {
+        equipped_weapons: &mut hecs::QueryBorrow<
+            '_,
+            (&MeleeWeapon, &InflictsDamage, &Equipped, Option<&Eroded>),
+        >,
+    ) -> (i32, i32, i32) {
         // Use weapon dice when equipped (reduced by erosion)
-        for (_, (attacker_weapon, equipped_to, eroded)) in equipped_weapons.iter() {
+        for (_, (_, inflicts_damage, equipped_to, eroded_opt)) in equipped_weapons.iter() {
             if equipped_to.owner.id() == attacker_id {
-                if let Some(erosion) = eroded {
-                    return max(1, attacker_weapon.attack_dice - erosion.value as i32);
+                if let Some(erosion) = eroded_opt {
+                    return (
+                        inflicts_damage.number_of_dices,
+                        inflicts_damage.dice_size,
+                        erosion.value as i32,
+                    );
                 } else {
-                    return attacker_weapon.attack_dice;
+                    return (
+                        inflicts_damage.number_of_dices,
+                        inflicts_damage.dice_size,
+                        0,
+                    );
                 }
             }
         }
-        unarmed_attack_dice
+        (1, unarmed_attack_dice, 0)
     }
 }
