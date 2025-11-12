@@ -166,7 +166,7 @@ impl Spawn {
 
         // Depth based spawn table, recursive if roll is too high
         match dice_roll {
-            (1..=4) => water_worm(ecs_world, x, y),
+            (1..=4) => cave_shrimp(ecs_world, x, y),
             (5..=9) => freshwater_viperfish(ecs_world, x, y),
             _ => Spawn::random_water_monster(ecs_world, x, y, depth - 1),
         }

@@ -100,17 +100,17 @@ pub fn freshwater_viperfish(ecs_world: &mut World, x: i32, y: i32) {
     let _ = ecs_world.insert(freshwater_viperfish, (Aquatic {}, CanHide { cooldown: 0 }));
 }
 
-pub fn water_worm(ecs_world: &mut World, x: i32, y: i32) {
+pub fn cave_shrimp(ecs_world: &mut World, x: i32, y: i32) {
     let water_worm = create_monster(
         ecs_world,
-        "Water worm".to_string(),
+        "Cave shrimp".to_string(),
         Species {
-            value: SpeciesEnum::Gastropod,
+            value: SpeciesEnum::Fish,
         },
         CombatStats {
-            current_stamina: 1,
-            max_stamina: 1,
-            base_armor: 0,
+            current_stamina: 2,
+            max_stamina: 2,
+            base_armor: 1,
             unarmed_attack_dice: 1,
             current_toughness: 2,
             max_toughness: 2,
