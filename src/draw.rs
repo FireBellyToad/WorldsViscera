@@ -54,7 +54,7 @@ impl Draw {
                     }
                     RunState::ShowDialog(mode) => Dialog::draw(assets, &game_state.ecs_world, mode),
                     RunState::MouseTargeting(special_view_mode) => {
-                        Draw::targeting(&game_state.ecs_world, assets, special_view_mode);
+                        Draw::targeting(&game_state.ecs_world, special_view_mode);
                     }
                     RunState::DrawParticles => {
                         let mut animations = game_state.ecs_world.query::<&mut ParticleAnimation>();
@@ -307,9 +307,9 @@ impl Draw {
     }
 
     /// Draw all Renderable entities in World
-    fn renderables(world: &World, assets: &HashMap<TextureName, Texture2D>, zone: &Zone) {
+    fn renderables(ecs_world: &World, assets: &HashMap<TextureName, Texture2D>, zone: &Zone) {
         //Get all entities in readonly
-        let mut renderables_with_position = world
+        let mut renderables_with_position = ecs_world
             .query::<(&Renderable, &Position)>()
             .without::<&IsHidden>();
 
@@ -336,6 +336,8 @@ impl Draw {
                 );
             }
         }
+
+        Draw::smells(ecs_world, assets, zone);
     }
 
     /// Draw title game screen
@@ -373,11 +375,7 @@ impl Draw {
     }
 
     /// Draw target on tile where mouse is poiting
-    fn targeting(
-        ecs_world: &World,
-        assets: &HashMap<TextureName, Texture2D>,
-        special_view_mode: &SpecialViewMode,
-    ) {
+    fn targeting(ecs_world: &World, special_view_mode: &SpecialViewMode) {
         draw_text(
             "Use mouse to select, ESC to cancel",
             24.0,
@@ -392,9 +390,6 @@ impl Draw {
             .last()
             .expect("Zone is not in hecs::World");
 
-        let only_on_visible_tiles = *special_view_mode != SpecialViewMode::Smell;
-        Draw::special_targets(ecs_world, assets, special_view_mode, zone);
-
         let (mouse_x, mouse_y) = mouse_position();
 
         let rounded_x = (((mouse_x - UI_BORDER_F32) / TILE_SIZE_F32).ceil() - 1.0) as i32;
@@ -402,7 +397,9 @@ impl Draw {
 
         // Draw target if tile is visible
         let index = Zone::get_index_from_xy(&rounded_x, &rounded_y);
-        if !only_on_visible_tiles || zone.visible_tiles.len() > index && zone.visible_tiles[index] {
+        if special_view_mode == &SpecialViewMode::Smell
+            || (zone.visible_tiles.len() > index && zone.visible_tiles[index])
+        {
             draw_rectangle_lines(
                 (UI_BORDER + (rounded_x * TILE_SIZE)) as f32,
                 (UI_BORDER + (rounded_y * TILE_SIZE)) as f32,
@@ -414,71 +411,59 @@ impl Draw {
         }
     }
 
-    /// Draws special targets when in targeting mode
-    #[allow(clippy::single_match)]
-    fn special_targets(
-        ecs_world: &World,
-        assets: &HashMap<TextureName, Texture2D>,
-        special_view_mode: &SpecialViewMode,
-        zone: &Zone,
-    ) {
+    /// Draws smells
+    fn smells(ecs_world: &World, assets: &HashMap<TextureName, Texture2D>, zone: &Zone) {
         let mut player_query_smell = ecs_world
             .query::<(&Position, &CanSmell)>()
             .with::<&Player>();
 
         for (_, (player_position, player_smell_ability)) in &mut player_query_smell {
-            // Draw targets if special
-            match special_view_mode {
-                SpecialViewMode::Smell => {
-                    //Show smellable on not visibile tiles
-                    let mut smells_with_position = ecs_world.query::<(&Position, &Smellable)>();
-                    for (_, (smell_position, smell)) in &mut smells_with_position {
-                        let index = Zone::get_index_from_xy(&smell_position.x, &smell_position.y);
+            //Show smellable on not visibile tiles
+            let mut smells_with_position = ecs_world.query::<(&Position, &Smellable)>();
+            for (_, (smell_position, smell)) in &mut smells_with_position {
+                let index = Zone::get_index_from_xy(&smell_position.x, &smell_position.y);
 
-                        let distance = Utils::distance(
-                            &smell_position.x,
-                            &player_position.x,
-                            &smell_position.y,
-                            &player_position.y,
-                        );
+                let distance = Utils::distance(
+                    &smell_position.x,
+                    &player_position.x,
+                    &smell_position.y,
+                    &player_position.y,
+                );
 
-                        let can_smell = player_smell_ability.intensity != SmellIntensity::None // the player cannot smell anything (common cold or other penalities)
+                let can_smell = player_smell_ability.intensity != SmellIntensity::None // the player cannot smell anything (common cold or other penalities)
                         && !zone.visible_tiles[index]
                         && ((distance < player_smell_ability.radius / 2.0 && smell.intensity == SmellIntensity::Faint) // Faint odors can be smell from half normal distance
                             || (distance < player_smell_ability.radius
                                 && (smell.intensity == SmellIntensity::Strong // Strong odors can be smelled at double distance.
                                     || player_smell_ability.intensity == SmellIntensity::Strong))); // Player have improved smell (can smell faint odors from far away)
 
-                        //draw not visible smellables within smell radius
-                        if can_smell {
-                            let texture_to_render = assets
-                                .get(&TextureName::Particles)
-                                .expect("Texture not found");
+                //draw not visible smellables within smell radius
+                if can_smell {
+                    let texture_to_render = assets
+                        .get(&TextureName::Particles)
+                        .expect("Texture not found");
 
-                            let mut index = 0.0;
-                            if smell.intensity == SmellIntensity::Strong {
-                                index += 1.0;
-                            }
-
-                            draw_texture_ex(
-                                texture_to_render,
-                                (UI_BORDER + (smell_position.x * TILE_SIZE)) as f32,
-                                (UI_BORDER + (smell_position.y * TILE_SIZE)) as f32,
-                                WHITE, // Seems like White color is needed to normal render
-                                DrawTextureParams {
-                                    source: Some(Rect {
-                                        x: (index) * TILE_SIZE_F32,
-                                        y: SMELL_PARTICLE_TYPE as f32 * TILE_SIZE_F32,
-                                        w: TILE_SIZE_F32,
-                                        h: TILE_SIZE_F32,
-                                    }),
-                                    ..Default::default()
-                                },
-                            );
-                        }
+                    let mut index = 0.0;
+                    if smell.intensity == SmellIntensity::Strong {
+                        index += 1.0;
                     }
+
+                    draw_texture_ex(
+                        texture_to_render,
+                        (UI_BORDER + (smell_position.x * TILE_SIZE)) as f32,
+                        (UI_BORDER + (smell_position.y * TILE_SIZE)) as f32,
+                        WHITE, // Seems like White color is needed to normal render
+                        DrawTextureParams {
+                            source: Some(Rect {
+                                x: (index) * TILE_SIZE_F32,
+                                y: SMELL_PARTICLE_TYPE as f32 * TILE_SIZE_F32,
+                                w: TILE_SIZE_F32,
+                                h: TILE_SIZE_F32,
+                            }),
+                            ..Default::default()
+                        },
+                    );
                 }
-                _ => {}
             }
         }
     }
