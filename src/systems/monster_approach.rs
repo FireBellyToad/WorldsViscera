@@ -2,7 +2,7 @@ use hecs::{Entity, World};
 
 use crate::{
     components::{
-        combat::CombatStats,
+        combat::{CombatStats, SufferingDamage},
         common::*,
         monster::{Aquatic, LeaveTrail, Monster, WantsToApproach},
     },
@@ -27,6 +27,7 @@ impl MonsterApproach {
                     &mut Position,
                     &Named,
                     &CombatStats,
+                    &mut SufferingDamage,
                     Option<&Aquatic>,
                     &mut WantsToApproach,
                     Option<&LeaveTrail>,
@@ -49,7 +50,16 @@ impl MonsterApproach {
             // For each viewshed position monster component join
             for (
                 monster_entity,
-                (viewshed, position, named, stats, aquatic, wants_to_approach, leave_trail),
+                (
+                    viewshed,
+                    position,
+                    named,
+                    stats,
+                    suffering_damage,
+                    aquatic,
+                    wants_to_approach,
+                    leave_trail,
+                ),
             ) in &mut named_monsters
             {
                 let current_pos_index = Zone::get_index_from_xy(&position.x, &position.y);
@@ -68,6 +78,22 @@ impl MonsterApproach {
                                     game_log
                                         .entries
                                         .push(format!("The {} slips on the slime!", named.name));
+                                }
+                                continue;
+                            }
+                        }
+                        DecalType::Acid => {
+                            // Do DEX saving or slip on slime!
+                            if stats.current_dexterity < Roll::d20() {
+                                suffering_damage.damage_received += Roll::dice(1, 3);
+                                if zone.visible_tiles
+                                    [Zone::get_index_from_xy(&position.x, &position.y)]
+                                {
+                                    // Log only if visible
+                                    game_log.entries.push(format!(
+                                        "The {} burn itself on the acid!",
+                                        named.name
+                                    ));
                                 }
                                 continue;
                             }

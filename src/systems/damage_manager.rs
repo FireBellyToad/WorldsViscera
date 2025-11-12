@@ -19,6 +19,8 @@ use crate::{
     utils::roll::Roll,
 };
 
+type DeadEntityData = (Entity, String, (i32, i32), Option<Entity>);
+
 pub struct DamageManager {}
 
 /// Damage manager system
@@ -72,7 +74,7 @@ impl DamageManager {
     /// Check which entities are dead and removes them. Returns true if Player is dead
     pub fn remove_dead_and_check_gameover(game_state: &mut EngineState) -> bool {
         let ecs_world = &mut game_state.ecs_world;
-        let mut dead_entities: Vec<(Entity, String, (i32, i32), Option<Entity>)> = Vec::new();
+        let mut dead_entities: Vec<DeadEntityData> = Vec::new();
         let player_entity_id = Player::get_entity_id(ecs_world);
 
         // Scope for keeping borrow checker quiet

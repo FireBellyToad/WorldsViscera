@@ -240,7 +240,7 @@ fn change_zone(engine: &mut EngineState) {
             player_viewshed.must_recalculate = true;
 
             // Award experience based on depth reached
-            player_experience.value += (zone.depth as u32).pow(2);
+            player_experience.value += zone.depth.pow(2);
             player_experience.auto_advance_counter = AUTO_ADVANCE_EXP_COUNTER_START;
         }
     }

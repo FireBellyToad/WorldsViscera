@@ -181,9 +181,9 @@ impl Spawn {
     pub fn random_item(ecs_world: &mut World, x: i32, y: i32) {
         let dice_roll = Roll::dice(1, 23);
         match dice_roll {
-            1 | 2 | 3 => shiv(ecs_world, x, y),
-            4 | 5 | 6 => flask_of_oil(ecs_world, x, y),
-            7 | 8 | 9 => slingshot_ammo(ecs_world, x, y),
+            (1..=3) => shiv(ecs_world, x, y),
+            (4..=6) => flask_of_oil(ecs_world, x, y),
+            (7..=9) => slingshot_ammo(ecs_world, x, y),
             10 | 11 => rockpick(ecs_world, x, y),
             12 | 13 => slingshot(ecs_world, x, y),
             14 | 15 => leather_armor(ecs_world, x, y),

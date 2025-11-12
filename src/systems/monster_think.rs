@@ -383,7 +383,7 @@ impl MonsterThink {
 
         // Search in range of view possible targets
         for (x, y) in monster_dto.viewshed.visible_tiles.iter() {
-            let index = Zone::get_index_from_xy(&x, &y);
+            let index = Zone::get_index_from_xy(x, y);
             let distance: f32 =
                 Utils::distance(&monster_dto.position.x, x, &monster_dto.position.y, y);
             // Start by moving towards a potential target
@@ -509,10 +509,10 @@ impl MonsterThink {
         {
             // If the monsters has the ammo for at least one equipped ranged weapon, it can shoot!
             // Most of the time all ranged weapons occupy BothHands BodyLocation
-            if let Some(ranged_weapon) = ranged_weapon_opt {
-                if ranged_weapon.ammo_count_total > 0 {
-                    return (true, Some(*weapon_entity));
-                }
+            if let Some(ranged_weapon) = ranged_weapon_opt
+                && ranged_weapon.ammo_count_total > 0
+            {
+                return (true, Some(*weapon_entity));
             }
         }
 
