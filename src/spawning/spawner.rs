@@ -130,10 +130,15 @@ impl Spawn {
                 Spawn::random_terrain_monster(ecs_world, x, y, zone.depth);
             }
         }
-        // Actually spawn the potions
+        // Actually spawn the items
         for &index in zone.item_spawn_points.iter() {
             let (x, y) = Zone::get_xy_from_index(index);
             Spawn::random_item(ecs_world, x, y);
+        }
+        // Actually spawn the fauna
+        for &index in zone.fauna_spawn_points.iter() {
+            let (x, y) = Zone::get_xy_from_index(index);
+            Spawn::random_fauna(ecs_world, x, y);
         }
 
         // Spawn special entities
@@ -174,7 +179,7 @@ impl Spawn {
 
     /// Spawn a random monster
     pub fn random_item(ecs_world: &mut World, x: i32, y: i32) {
-        let dice_roll = Roll::dice(1, 36);
+        let dice_roll = Roll::dice(1, 23);
         match dice_roll {
             1 | 2 | 3 => shiv(ecs_world, x, y),
             4 | 5 | 6 => flask_of_oil(ecs_world, x, y),
@@ -189,8 +194,14 @@ impl Spawn {
             21 => crossbow_ammo(ecs_world, x, y),
             22 => breastplate(ecs_world, x, y),
             23 => wand(ecs_world, x, y),
-            _ => mushroom(ecs_world, x, y),
+            _ => {}
         };
+    }
+
+    /// Spawn random fauna
+    pub fn random_fauna(ecs_world: &mut World, x: i32, y: i32) {
+        // TODO Expand this function to spawn more types of fauna
+        mushroom(ecs_world, x, y);
     }
 
     /// Spawn a corpse

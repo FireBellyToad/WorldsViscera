@@ -35,6 +35,7 @@ pub struct Zone {
     pub player_spawn_point: usize,
     pub monster_spawn_points: HashSet<usize>,
     pub item_spawn_points: HashSet<usize>,
+    pub fauna_spawn_points: HashSet<usize>,
     pub water_tiles: Vec<bool>,
 }
 
@@ -55,6 +56,7 @@ impl Zone {
             decals_tiles: HashMap::new(),
             monster_spawn_points: HashSet::new(),
             item_spawn_points: HashSet::new(),
+            fauna_spawn_points: HashSet::new(),
             water_tiles: vec![false; (MAP_WIDTH * MAP_HEIGHT) as usize],
         }
     }

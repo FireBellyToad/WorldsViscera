@@ -84,6 +84,7 @@ impl ZoneBuilder for DrunkenWalkZoneBuilder {
         // Generate monster and items spawn points within each room
         let monster_number = Roll::dice(1, MAX_MONSTERS_IN_ZONE) + depth as i32 + 1;
         let items_number = max(0, Roll::dice(1, MAX_ITEMS_IN_ZONE) + 3 - depth as i32);
+        let fauna_number = max(0, Roll::dice(1, MAX_ITEMS_IN_ZONE) + 3);
         let braziers_number = max(0, Roll::dice(2, MAX_BRAZIER_IN_ZONE) - depth as i32);
 
         for _ in 0..monster_number {
@@ -112,6 +113,22 @@ impl ZoneBuilder for DrunkenWalkZoneBuilder {
                 if index != zone.player_spawn_point
                     && zone.tiles[Zone::get_index_from_xy_f32(x, y)] == TileType::Floor
                     && zone.item_spawn_points.insert(index)
+                {
+                    break;
+                }
+            }
+        }
+
+        for _ in 0..fauna_number {
+            for _ in 0..MAX_SPAWN_TENTANTIVES {
+                let x = Roll::dice(1, MAP_WIDTH - 2) as f32;
+                let y = Roll::dice(1, MAP_HEIGHT - 2) as f32;
+                let index = Zone::get_index_from_xy_f32(x, y);
+
+                // avoid walls, player and duplicate spawnpoints
+                if index != zone.player_spawn_point
+                    && zone.tiles[Zone::get_index_from_xy_f32(x, y)] == TileType::Floor
+                    && zone.fauna_spawn_points.insert(index)
                 {
                     break;
                 }
