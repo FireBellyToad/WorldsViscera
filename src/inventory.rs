@@ -233,7 +233,13 @@ impl Inventory {
         }
 
         // ------- Background Rectangle -----------
-        draw_rectangle(INVENTORY_X as f32, INVENTORY_Y as f32, 512.0, 512.0, WHITE);
+        draw_rectangle(
+            INVENTORY_X as f32,
+            INVENTORY_Y as f32,
+            INVENTORY_SIZE as f32,
+            INVENTORY_SIZE as f32,
+            WHITE,
+        );
         draw_rectangle(
             (INVENTORY_X + HUD_BORDER) as f32,
             (INVENTORY_Y + HUD_BORDER) as f32,
