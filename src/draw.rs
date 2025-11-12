@@ -45,6 +45,7 @@ impl Draw {
                 for (_, zone) in &mut zones {
                     Draw::zone(zone, assets);
                     Draw::renderables(&game_state.ecs_world, assets, zone);
+                    Draw::smells(&game_state.ecs_world, assets, zone);
                 }
 
                 //Overlay
@@ -336,8 +337,6 @@ impl Draw {
                 );
             }
         }
-
-        Draw::smells(ecs_world, assets, zone);
     }
 
     /// Draw title game screen
