@@ -83,8 +83,8 @@ impl ZoneBuilder for DrunkenWalkZoneBuilder {
 
         // Generate monster and items spawn points within each room
         let monster_number = Roll::dice(1, MAX_MONSTERS_IN_ZONE) + depth as i32 + 1;
-        let items_number = Roll::dice(1, MAX_ITEMS_IN_ZONE) + 3;
-        let braziers_number = Roll::dice(1, MAX_BRAZIER_IN_ZONE);
+        let items_number = max(0, Roll::dice(1, MAX_ITEMS_IN_ZONE) + 3 - depth as i32);
+        let braziers_number = max(0, Roll::dice(2, MAX_BRAZIER_IN_ZONE) - depth as i32);
 
         for _ in 0..monster_number {
             for _ in 0..MAX_SPAWN_TENTANTIVES {
@@ -119,7 +119,6 @@ impl ZoneBuilder for DrunkenWalkZoneBuilder {
         }
 
         // Random braziers
-        // FIXME not sure if its a good idea... for now, leave them
         for _ in 0..braziers_number {
             let mut brazier_index = zone.tiles.len() / 2;
             while zone.tiles[brazier_index] != TileType::Floor {

@@ -16,7 +16,7 @@ use crate::{
             WantsToApply, WantsToDrink, WantsToDrop, WantsToEat, WantsToEquip, WantsToFuel,
             WantsToInvoke,
         },
-        common::{GameLog, Named},
+        common::{GameLog, Named, Wet},
         items::{
             Appliable, Edible, Equippable, Equipped, Eroded, InBackback, Invokable, Item,
             MustBeFueled, Quaffable, RangedWeapon, Refiller,
@@ -40,7 +40,7 @@ pub enum InventoryAction {
 }
 
 /// Inventory Item Data trasfer type: used for rendering and general inventory usage
-type InventoryItemData = Vec<(Entity, String, char, (i32, i32), bool, bool, i32)>;
+type InventoryItemData = Vec<(Entity, String, char, (i32, i32), bool, bool, i32, bool)>;
 type InventoryItem<'a> = (
     &'a Named,
     &'a Item,
@@ -48,6 +48,7 @@ type InventoryItem<'a> = (
     Option<&'a Equipped>,
     Option<&'a Eroded>,
     Option<&'a RangedWeapon>,
+    Option<&'a Wet>,
 );
 
 pub struct Inventory {}
@@ -107,7 +108,7 @@ impl Inventory {
                     // Validating char input
                     let item_selected = inventory
                         .iter()
-                        .find(|(_, _, assigned_char, _, _q, _, _)| *assigned_char == letterkey);
+                        .find(|(_, _, assigned_char, _, _q, _, _, _)| *assigned_char == letterkey);
 
                     // Check if item exist for letter, then register it and go on
                     if let Some(item_sel_unwrap) = item_selected {
@@ -259,7 +260,7 @@ impl Inventory {
         );
 
         // ------- Item List -----------
-        for (index, (_, item_name, assigned_char, item_tile, equipped, eroded, ammo)) in
+        for (index, (_, item_name, assigned_char, item_tile, equipped, eroded, ammo, wet)) in
             inventory.iter().enumerate()
         {
             let x = (INVENTORY_X + UI_BORDER * 2) as f32;
@@ -267,24 +268,8 @@ impl Inventory {
                 + ((FONT_SIZE + LETTER_SIZE) * index as f32);
 
             // TODO show body location
-            let text: String = if *equipped && *eroded {
-                format!("{} : \t - rusty {} - Equipped", assigned_char, item_name)
-            } else if *eroded {
-                format!("{} : \t - rusty {}", assigned_char, item_name)
-            } else if *equipped {
-                if *ammo >= 0 {
-                    format!(
-                        "{} : \t - {} ({})- Equipped",
-                        assigned_char, item_name, ammo
-                    )
-                } else {
-                    format!("{} : \t - {} - Equipped", assigned_char, item_name)
-                }
-            } else if *ammo >= 0 {
-                format!("{} : \t - {} ({})", assigned_char, item_name, ammo)
-            } else {
-                format!("{} : \t - {}", assigned_char, item_name)
-            };
+            let text: String =
+                build_item_string(item_name, assigned_char, equipped, eroded, ammo, wet);
 
             draw_text(text, x, y, FONT_SIZE, WHITE);
 
@@ -329,9 +314,9 @@ impl Inventory {
         let mut inventory_query = ecs_world.query::<InventoryItem>();
         let mut inventory = inventory_query
             .iter()
-            .filter(|(_, (_, _, in_backpack, _q, _, _))| in_backpack.owner.id() == player_id)
+            .filter(|(_, (_, _, in_backpack, _q, _, _, _))| in_backpack.owner.id() == player_id)
             .map(
-                |(entity, (named, item, in_backpack, equipped, eroded, ranged_opt))| {
+                |(entity, (named, item, in_backpack, equipped, eroded, ranged_opt, wet_opt))| {
                     let mut ammo = -1;
                     if let Some(ranged) = ranged_opt {
                         ammo = ranged.ammo_count_total as i32;
@@ -345,6 +330,7 @@ impl Inventory {
                         equipped.is_some(),
                         eroded.is_some(),
                         ammo,
+                        wet_opt.is_some(),
                     )
                 },
             )
@@ -363,9 +349,9 @@ impl Inventory {
 
         let mut inventory = inventory_query
             .iter()
-            .filter(|(_, (_, _, in_backpack, _q, _, _))| in_backpack.owner.id() == player_id)
+            .filter(|(_, (_, _, in_backpack, _q, _, _, _))| in_backpack.owner.id() == player_id)
             .map(
-                |(entity, (named, item, in_backpack, equipped, eroded, ranged_opt))| {
+                |(entity, (named, item, in_backpack, equipped, eroded, ranged_opt, wet_opt))| {
                     let mut ammo = -1;
                     if let Some(ranged) = ranged_opt {
                         ammo = ranged.ammo_count_total as i32;
@@ -379,6 +365,7 @@ impl Inventory {
                         equipped.is_some(),
                         eroded.is_some(),
                         ammo,
+                        wet_opt.is_some(),
                     )
                 },
             ) //
@@ -388,4 +375,37 @@ impl Inventory {
         inventory.sort_by_key(|k| k.2);
         inventory
     }
+}
+
+/// Builds a string representation of an item based on its properties.
+fn build_item_string(
+    item_name: &String,
+    assigned_char: &char,
+    equipped: &bool,
+    eroded: &bool,
+    ammo: &i32,
+    wet: &bool,
+) -> String {
+    // \t is need to place item icon within its space
+    let mut item_string = format!("{} : \t - ", assigned_char).to_owned();
+
+    if *eroded {
+        item_string.push_str("rusty ");
+    }
+
+    if *wet {
+        item_string.push_str("wet ");
+    }
+
+    item_string.push_str(&format!("{} ", item_name));
+
+    if *ammo >= 0 {
+        item_string.push_str(&format!("({}) ", ammo));
+    }
+
+    if *equipped {
+        item_string.push_str("- Equipped ");
+    }
+
+    item_string
 }

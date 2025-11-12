@@ -347,8 +347,8 @@ pub fn giant_cockroach(ecs_world: &mut World, x: i32, y: i32) {
             nutrition_dice_size: 6,
         },
         Smellable {
-            smell_log: "something off and dusty".to_string(),
-            intensity: SmellIntensity::None,
+            smell_log: "cupboard dust".to_string(),
+            intensity: SmellIntensity::Faint,
         },
         ProduceSound {
             sound_log: "nervous skittering".to_string(),

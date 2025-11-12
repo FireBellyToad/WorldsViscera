@@ -6,9 +6,12 @@ use crate::{
         items::{Eroded, TurnedOff, TurnedOn},
         player::Player,
     },
-    constants::{RUST_CHANCE, RUST_MAX_VALUE, STARTING_WET_COUNTER},
-    maps::zone::Zone,
-    utils::{common::ItemsInBackpack, roll::Roll},
+    constants::{BRAZIER_RADIUS, RUST_CHANCE, RUST_MAX_VALUE, STARTING_WET_COUNTER},
+    maps::zone::{TileType, Zone},
+    utils::{
+        common::{ItemsInBackpack, Utils},
+        roll::Roll,
+    },
 };
 
 pub struct WetManager {}
@@ -19,6 +22,7 @@ impl WetManager {
         let mut entities_in_backpack_to_turn_off: Vec<Entity> = Vec::new();
         let mut entities_in_backpack_to_rust: Vec<(Entity, u32)> = Vec::new();
         let mut entities_that_dryed: Vec<Entity> = Vec::new();
+        let mut entities_that_must_dry_faster: Vec<Entity> = Vec::new();
 
         let player_id = Player::get_entity_id(ecs_world);
 
@@ -68,6 +72,48 @@ impl WetManager {
                 } else if let Some(is_wet_component) = is_wet {
                     // Water dries out in time
                     is_wet_component.tick_countdown -= 1;
+
+                    // If near a brazier, dry out faster.
+                    // If more than one brazier is nearby, dry out much faster.
+                    // This will not make items in backpack dry faster, it makes sense to me!
+                    // Could be fun to see if player wants to put out all the items it wants to dry out faster.
+                    // Equipped items, however, DO dry out faster because they are not really in the backpack.
+                    if let Some(position) = position_opt {
+                        for (index, tile) in zone.tiles.iter().enumerate() {
+                            let (tile_x, tile_y) = Zone::get_xy_from_index(index);
+                            if tile == &TileType::Brazier
+                                && Utils::distance(&position.x, &tile_x, &position.y, &tile_y)
+                                    < (BRAZIER_RADIUS / 2) as f32
+                            {
+                                is_wet_component.tick_countdown -= 1;
+                                println!(
+                                    "Entity {:?} is {:?} wet",
+                                    got_wet_entity, is_wet_component.tick_countdown
+                                );
+
+                                let mut items_of_wet_entity = ecs_world.query::<ItemsInBackpack>();
+                                let equipped_items: Vec<(Entity, ItemsInBackpack)> =
+                                    items_of_wet_entity
+                                        .iter()
+                                        .filter(
+                                            |(
+                                                _,
+                                                (_, in_backpack, _, _, _, _, _, _, equipped_opt, _),
+                                            )| {
+                                                in_backpack.owner.id() == got_wet_entity.id()
+                                                    && equipped_opt.is_some()
+                                            },
+                                        )
+                                        .collect();
+
+                                for (item_entity, _) in equipped_items {
+                                    entities_that_must_dry_faster.push(item_entity);
+                                    println!("Entity {:?} will dry faster - 1", item_entity);
+                                }
+                            }
+                        }
+                    }
+
                     if is_wet_component.tick_countdown <= 0 {
                         entities_that_dryed.push(got_wet_entity);
 
@@ -75,6 +121,18 @@ impl WetManager {
                             game_log.entries.push("You are no longer wet".to_string());
                         }
                     }
+                }
+            }
+        }
+
+        // Dry out faster equipped items near a brazier
+        // Multiple braziers will dry out items faster (multiple item references inside the array)
+        for entity in entities_that_must_dry_faster {
+            // This is not very optimized...
+            if let Ok(mut wet) = ecs_world.get::<&mut Wet>(entity) {
+                wet.tick_countdown -= 1;
+                if wet.tick_countdown <= 0 {
+                    entities_that_dryed.push(entity);
                 }
             }
         }

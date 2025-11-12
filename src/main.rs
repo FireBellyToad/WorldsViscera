@@ -1,5 +1,6 @@
 use crate::{
     components::common::Experience,
+    maps::arena_zone_builder::ArenaZoneBuilder,
     systems::{
         advancement_system::AdvancementSystem, leave_trail_system::LeaveTrailSystem,
         ranged_manager::RangedManager,
