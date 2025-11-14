@@ -42,3 +42,8 @@ pub struct IsHidden {
 pub struct WantsToShoot {
     pub weapon: Entity,
 }
+
+pub struct WantsToDig {
+    pub target: Entity,
+    pub tool: Entity,
+}

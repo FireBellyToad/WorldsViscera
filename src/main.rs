@@ -2,8 +2,8 @@ use crate::{
     components::common::Experience,
     maps::arena_zone_builder::ArenaZoneBuilder,
     systems::{
-        advancement_system::AdvancementSystem, leave_trail_system::LeaveTrailSystem,
-        ranged_manager::RangedManager,
+        advancement_system::AdvancementSystem, dig_manager::DigManager,
+        leave_trail_system::LeaveTrailSystem, ranged_manager::RangedManager,
     },
 };
 use components::{common::GameLog, player::Player};
@@ -286,6 +286,7 @@ fn do_in_tick_game_logic(game_engine: &mut GameEngine, game_state: &mut EngineSt
             ItemEquipping::run(&mut game_state.ecs_world);
             ItemDropping::run(&mut game_state.ecs_world);
             EatingEdibles::run(&mut game_state.ecs_world);
+            DigManager::run(&mut game_state.ecs_world);
             DrinkingQuaffables::run(&mut game_state.ecs_world);
             SoundSystem::run(&mut game_state.ecs_world);
             LeaveTrailSystem::run(&mut game_state.ecs_world);

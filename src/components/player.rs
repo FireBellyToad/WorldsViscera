@@ -1,6 +1,6 @@
-use crate::components::combat::{SufferingDamage, WantsToShoot};
-use crate::components::common::Named;
-use crate::components::items::RangedWeapon;
+use crate::components::combat::{SufferingDamage, WantsToDig, WantsToShoot};
+use crate::components::common::{Diggable, Named};
+use crate::components::items::{DiggingTool, RangedWeapon};
 use crate::utils::common::ItemsInBackpack;
 use crate::utils::roll::Roll;
 use crate::{components::actions::WantsToInvoke, maps::zone::DecalType};
@@ -46,6 +46,7 @@ impl Player {
     fn try_move(delta_x: i32, delta_y: i32, ecs_world: &mut World) -> RunState {
         let mut return_state = RunState::WaitingPlayerInput;
         let mut attacker_target: Option<(Entity, Entity)> = None;
+        let mut digger_target: Option<(Entity, Entity, Entity)> = None;
 
         // Scope for keeping borrow checker quiet
         {
@@ -64,18 +65,18 @@ impl Player {
                 .last()
                 .expect("Zone is not in hecs::World");
 
+            let mut game_log_query = ecs_world.query::<&mut GameLog>();
+            let (_, game_log) = game_log_query
+                .iter()
+                .last()
+                .expect("Game log is not in hecs::World");
+
             for (player_entity, (position, viewshed, stats, suffering_damage)) in &mut players {
                 // Check if player is on slime
                 if let Some(special_tile) = zone
                     .decals_tiles
                     .get(&Zone::get_index_from_xy(&position.x, &position.y))
                 {
-                    let mut game_log_query = ecs_world.query::<&mut GameLog>();
-                    let (_, game_log) = game_log_query
-                        .iter()
-                        .last()
-                        .expect("Game log is not in hecs::World");
-
                     match special_tile {
                         DecalType::Slime => {
                             // Do DEX saving or slip on slime!
@@ -102,19 +103,47 @@ impl Player {
                 let destination_index =
                     Zone::get_index_from_xy(&(position.x + delta_x), &(position.y + delta_y));
 
+                let mut digging_tools_in_backpack =
+                    ecs_world.query::<ItemsInBackpack>().with::<&DiggingTool>();
+
+                let player_dig_tool = digging_tools_in_backpack.iter().find_map(
+                    |(item, (_, in_backpack, _, _, _, _, _, _, equipped, _))| {
+                        if in_backpack.owner.id() == player_entity.id() && equipped.is_some() {
+                            Some(item)
+                        } else {
+                            None
+                        }
+                    },
+                );
+
                 //Search for potential targets (must have CombatStats component)
                 for &potential_target in zone.tile_content[destination_index].iter() {
                     let has_combat_stats = ecs_world
                         .satisfies::<&CombatStats>(potential_target)
-                        .expect("Entity has no CombatStats");
+                        .unwrap_or(false);
 
                     if has_combat_stats {
                         attacker_target = Some((player_entity, potential_target));
                     }
+                    let is_diggable = ecs_world
+                        .satisfies::<&Diggable>(potential_target)
+                        .unwrap_or(false);
+
+                    if is_diggable && let Some(dig_tool) = player_dig_tool {
+                        digger_target = Some((player_entity, dig_tool, potential_target));
+                    } else if is_diggable {
+                        game_log.entries.push(
+                            "The crack is too tight, it must be digged with a proper tool"
+                                .to_string(),
+                        );
+                    }
                 }
 
                 // Move if not attacking or destination is not blocked
-                if attacker_target.is_none() && !zone.blocked_tiles[destination_index] {
+                if attacker_target.is_none()
+                    && digger_target.is_none()
+                    && !zone.blocked_tiles[destination_index]
+                {
                     zone.blocked_tiles[Zone::get_index_from_xy(&position.x, &position.y)] = false;
                     position.x = (position.x + delta_x).clamp(0, MAP_WIDTH - 1);
                     position.y = (position.y + delta_y).clamp(0, MAP_HEIGHT - 1);
@@ -128,6 +157,12 @@ impl Player {
         // Attack if needed
         if let Some((attacker, target)) = attacker_target {
             let _ = ecs_world.insert_one(attacker, WantsToMelee { target });
+
+            return_state = RunState::DoTick;
+        }
+        // Dig if needed
+        if let Some((digger, tool, target)) = digger_target {
+            let _ = ecs_world.insert_one(digger, WantsToDig { target, tool });
 
             return_state = RunState::DoTick;
         }

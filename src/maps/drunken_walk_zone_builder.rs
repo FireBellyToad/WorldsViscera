@@ -152,6 +152,7 @@ impl ZoneBuilder for DrunkenWalkZoneBuilder {
             zone.tiles[brazier_index] = TileType::Brazier;
         }
 
+        // TODO BUGGED
         // Random point for DownPassage, taken from the craked wall. This ensures that the passage is somehow reachable.
         let passage_index =
             Roll::dice(1, cracked_tiles.len() as i32 / 2) - 1 + cracked_tiles.len() as i32 / 2;

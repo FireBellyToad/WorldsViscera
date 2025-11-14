@@ -3,8 +3,8 @@ use std::collections::HashMap;
 
 use crate::components::combat::{CombatStats, SufferingDamage};
 use crate::components::common::{
-    CanListen, CanSmell, Experience, Level, MyTurn, Named, Position, ProduceSound, Renderable,
-    SmellIntensity, Smellable, Species, SpeciesEnum, Viewshed,
+    CanListen, CanSmell, Diggable, Experience, Level, MyTurn, Named, Position, ProduceSound,
+    Renderable, SmellIntensity, Smellable, Species, SpeciesEnum, Viewshed,
 };
 use crate::components::health::{CanAutomaticallyHeal, Hunger, Thirst};
 use crate::components::items::{
@@ -189,7 +189,7 @@ impl Spawn {
             14 | 15 => leather_armor(ecs_world, x, y),
             16 | 17 => lantern(ecs_world, x, y),
             18 => flask_of_water(ecs_world, x, y),
-            19 => maul(ecs_world, x, y),
+            19 => pickaxe(ecs_world, x, y),
             20 => crowssbow(ecs_world, x, y),
             21 => crossbow_ammo(ecs_world, x, y),
             22 => breastplate(ecs_world, x, y),
@@ -280,6 +280,15 @@ impl Spawn {
                     Position { x, y },
                     ProduceSound {
                         sound_log: "breeze from below".to_string(),
+                    },
+                ));
+            }
+            TileType::CrackedWall => {
+                ecs_world.spawn((
+                    true,
+                    Position { x, y },
+                    Diggable {
+                        dig_points: Roll::dice(4, 10),
                     },
                 ));
             }

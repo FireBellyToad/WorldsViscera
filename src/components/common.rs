@@ -95,3 +95,7 @@ pub enum SpeciesEnum {
     DeepSpawn,
     Undead,
 }
+
+pub struct Diggable {
+    pub dig_points: i32,
+}

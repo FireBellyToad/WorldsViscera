@@ -119,3 +119,5 @@ pub struct Metallic {}
 pub struct Eroded {
     pub value: u32,
 }
+
+pub struct DiggingTool {}

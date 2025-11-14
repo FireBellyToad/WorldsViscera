@@ -1,4 +1,4 @@
-use crate::components::items::{Ammo, AmmoType, RangedWeapon};
+use crate::components::items::{Ammo, AmmoType, DiggingTool, RangedWeapon};
 use hecs::{Entity, World};
 use macroquad::math::Rect;
 
@@ -413,6 +413,7 @@ pub fn rockpick(ecs_world: &mut World, x: i32, y: i32) {
             dice_size: 6,
         },
         Metallic {},
+        DiggingTool {},
     );
 
     //TODO Bonus to climb while wielded
@@ -420,9 +421,9 @@ pub fn rockpick(ecs_world: &mut World, x: i32, y: i32) {
     ecs_world.spawn(flask_of_oil);
 }
 
-pub fn maul(ecs_world: &mut World, x: i32, y: i32) {
+pub fn pickaxe(ecs_world: &mut World, x: i32, y: i32) {
     let item_tile_index = (2, 2);
-    let flask_of_oil = (
+    let pickaxe = (
         Position { x, y },
         Renderable {
             texture_name: TextureName::Items,
@@ -435,7 +436,7 @@ pub fn maul(ecs_world: &mut World, x: i32, y: i32) {
             z_index: 0,
         },
         Named {
-            name: "maul".to_string(),
+            name: "pickaxe".to_string(),
         },
         Item {
             item_tile: item_tile_index,
@@ -446,14 +447,15 @@ pub fn maul(ecs_world: &mut World, x: i32, y: i32) {
         MeleeWeapon {},
         InflictsDamage {
             number_of_dices: 1,
-            dice_size: 8,
+            dice_size: 10,
         },
         Appliable {}, // TODO not used right now
         Bulky {},
         Metallic {},
+        DiggingTool {},
     );
 
-    ecs_world.spawn(flask_of_oil);
+    ecs_world.spawn(pickaxe);
 }
 
 pub fn leather_armor(ecs_world: &mut World, x: i32, y: i32) {

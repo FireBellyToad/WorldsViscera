@@ -3,18 +3,19 @@ use hecs::{Entity, World};
 use crate::{
     components::{
         actions::WantsToDrop,
-        common::{GameLog, Named, Position},
+        combat::CombatStats,
+        common::{GameLog, MyTurn, Named, Position},
         items::{Equipped, InBackback},
         player::Player,
     },
-    utils::common::ItemsInBackpack,
+    utils::common::{ItemsInBackpack, Utils},
 };
 
 pub struct ItemDropping {}
 
 impl ItemDropping {
     pub fn run(ecs_world: &mut World) {
-        let mut item_drop_position_list: Vec<(Entity, Entity, (i32, i32))> = Vec::new();
+        let mut item_drop_position_list: Vec<(Entity, Entity, (i32, i32), i32)> = Vec::new();
         let mut item_drop_nothing: Vec<Entity> = Vec::new();
 
         let player_id = Player::get_entity_id(ecs_world);
@@ -22,7 +23,9 @@ impl ItemDropping {
         // Scope for keeping borrow checker quiet
         {
             // List of entities that want to drop items
-            let mut items_to_drop = ecs_world.query::<&WantsToDrop>();
+            let mut items_to_drop = ecs_world
+                .query::<(&WantsToDrop, &CombatStats)>()
+                .with::<&MyTurn>();
 
             //Log all the drop downs
             let mut game_log_query = ecs_world.query::<&mut GameLog>();
@@ -31,7 +34,7 @@ impl ItemDropping {
                 .last()
                 .expect("Game log is not in hecs::World");
 
-            for (dropper, wants_item) in &mut items_to_drop {
+            for (dropper, (wants_item, stats)) in &mut items_to_drop {
                 let is_equipped = ecs_world.get::<&Equipped>(wants_item.item).is_ok();
 
                 if is_equipped {
@@ -51,7 +54,12 @@ impl ItemDropping {
                         .expect("Entity has no Position");
 
                     // Drop item and keep track of the drop Position
-                    item_drop_position_list.push((wants_item.item, dropper, (drop.x, drop.y)));
+                    item_drop_position_list.push((
+                        wants_item.item,
+                        dropper,
+                        (drop.x, drop.y),
+                        stats.speed,
+                    ));
 
                     if player_id == dropper.id() {
                         game_log
@@ -75,7 +83,7 @@ impl ItemDropping {
             let _ = ecs_world.remove_one::<WantsToDrop>(dropper);
         }
 
-        for (item, dropper, (drop_x, drop_y)) in item_drop_position_list {
+        for (item, dropper, (drop_x, drop_y), speed) in item_drop_position_list {
             // Remove owner's will to pick up
             let _ = ecs_world.remove_one::<WantsToDrop>(dropper);
 
@@ -88,9 +96,7 @@ impl ItemDropping {
                 },
             );
 
-            if player_id == dropper.id() {
-                Player::wait_after_action(ecs_world);
-            }
+            Utils::wait_after_action(ecs_world, dropper, speed);
         }
     }
 

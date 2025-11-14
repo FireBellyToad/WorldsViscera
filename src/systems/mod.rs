@@ -3,6 +3,7 @@ pub mod apply_system;
 pub mod automatic_healing;
 pub mod damage_manager;
 pub mod decay_manager;
+pub mod dig_manager;
 pub mod drinking_quaffables;
 pub mod eating_edibles;
 pub mod fov;

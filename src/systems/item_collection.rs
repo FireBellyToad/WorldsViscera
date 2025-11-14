@@ -4,7 +4,7 @@ use crate::{
     components::{
         actions::WantsItem,
         combat::CombatStats,
-        common::{GameLog, Named, Position},
+        common::{GameLog, MyTurn, Named, Position},
         items::{InBackback, Item, Perishable, ToBeHarvested},
         monster::Small,
         player::Player,
@@ -29,13 +29,15 @@ impl ItemCollection {
         // Scope for keeping borrow checker quiet
         {
             // List of entities that want to collect items
-            let mut collectors = ecs_world.query::<(
-                &WantsItem,
-                &CombatStats,
-                &Position,
-                Option<&Small>,
-                Option<&ToBeHarvested>,
-            )>();
+            let mut collectors = ecs_world
+                .query::<(
+                    &WantsItem,
+                    &CombatStats,
+                    &Position,
+                    Option<&Small>,
+                    Option<&ToBeHarvested>,
+                )>()
+                .with::<&MyTurn>();
 
             //Items in all backpacks
             let mut items_in_backpacks = ecs_world.query::<(&Item, &InBackback)>();
