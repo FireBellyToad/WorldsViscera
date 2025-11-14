@@ -12,6 +12,7 @@ pub enum TileType {
     DownPassage,
     Brazier,
     Water,
+    CrackedWall,
 }
 #[derive(Clone, Debug, PartialEq)]
 pub enum DecalType {
@@ -112,7 +113,7 @@ impl Zone {
     /// Return true if cannot see through a tile
     pub fn is_tile_opaque(&self, x: &i32, y: &i32) -> bool {
         let index = Self::get_index_from_xy(x, y);
-        self.tiles[index] == TileType::Wall
+        self.tiles[index] == TileType::Wall || self.tiles[index] == TileType::CrackedWall
     }
 
     /// Clears content index for this zone
@@ -130,6 +131,7 @@ impl Zone {
             TileType::DownPassage => (2.0, 0.0),
             TileType::Brazier => (4.0, 0.0),
             TileType::Water => (0.0, 1.0),
+            TileType::CrackedWall => (1.0, 1.0),
         }
     }
 

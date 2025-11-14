@@ -11,6 +11,7 @@ impl Roll {
         for _ in 0..number {
             result += gen_range(1, size + 1);
         }
+        println!("Rolled {}d{}: {}", number, size, result);
 
         result
     }

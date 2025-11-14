@@ -1,6 +1,7 @@
 use crate::maps::zone::Zone;
 
 pub mod arena_zone_builder;
+pub mod cracks_builder;
 pub mod drunken_walk_zone_builder;
 pub mod dungeon_zone_builder;
 pub mod river_builder;
@@ -14,5 +15,10 @@ pub trait ZoneBuilder {
 
 /// Trait for Zone Feature Builders
 pub trait ZoneFeatureBuilder {
-    fn build(zone: &mut Zone);
+    fn build(zone: &mut Zone) -> Vec<usize>;
+}
+
+enum ZoneFeatureBuilderOrigin {
+    Top,
+    Left,
 }
