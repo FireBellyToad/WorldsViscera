@@ -274,6 +274,15 @@ impl Spawn {
                     TurnedOn {},
                 ));
             }
+            TileType::DownPassage => {
+                ecs_world.spawn((
+                    true,
+                    Position { x, y },
+                    ProduceSound {
+                        sound_log: "breeze from below".to_string(),
+                    },
+                ));
+            }
             _ => {}
         }
     }
