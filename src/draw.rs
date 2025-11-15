@@ -47,21 +47,7 @@ impl Draw {
                     Draw::renderables(&game_state.ecs_world, assets, zone);
                     Draw::smells(&game_state.ecs_world, assets, zone);
 
-                    let start_index = zone
-                        .tiles
-                        .iter()
-                        .position(|tile| tile == &TileType::DownPassage)
-                        .expect("STUFF");
-
-                    let (rounded_x, rounded_y) = Zone::get_xy_from_index(start_index);
-
-                    draw_rectangle(
-                        (UI_BORDER + (rounded_x * TILE_SIZE)) as f32,
-                        (UI_BORDER + (rounded_y * TILE_SIZE)) as f32,
-                        TILE_SIZE_F32,
-                        TILE_SIZE_F32,
-                        RED,
-                    );
+                    // Draw::debug_exit(zone);
                 }
 
                 //Overlay
@@ -707,5 +693,24 @@ impl Draw {
         }
 
         direction
+    }
+
+    #[allow(dead_code)]
+    fn debug_exit(zone: &Zone) {
+        let start_index = zone
+            .tiles
+            .iter()
+            .position(|tile| tile == &TileType::DownPassage)
+            .expect("STUFF");
+
+        let (rounded_x, rounded_y) = Zone::get_xy_from_index(start_index);
+
+        draw_rectangle(
+            (UI_BORDER + (rounded_x * TILE_SIZE)) as f32,
+            (UI_BORDER + (rounded_y * TILE_SIZE)) as f32,
+            TILE_SIZE_F32,
+            TILE_SIZE_F32,
+            RED,
+        );
     }
 }
