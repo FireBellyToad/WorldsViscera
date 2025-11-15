@@ -1,2 +1,1 @@
-- Sometimes the zone have unconnected rooms
 - sometimes the npcs moves in the player's square

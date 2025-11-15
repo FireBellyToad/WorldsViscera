@@ -167,8 +167,9 @@ async fn main() {
                 }
             }
 
-            next_frame().await;
+            // Keep this here, is needed to render correctly the particles!
             Draw::render_game(&game_state, &assets);
+            next_frame().await;
         }
     }
 }
