@@ -62,7 +62,26 @@ impl ZoneBuilder for DrunkenWalkZoneBuilder {
             current_position = (Roll::dice(1, MAP_WIDTH - 2), Roll::dice(1, MAP_HEIGHT - 2));
         }
 
-        // Random starting point for player
+        // Less river the more deep we are
+        let river_number = max(
+            0,
+            Roll::dice(1, MAX_RIVERS_IN_ZONE) + 1 - (depth as i32 / 3),
+        );
+        for _ in 0..river_number {
+            RiverBuilder::build(&mut zone);
+        }
+
+        // First crack generation, used for player spawn point and down passage to ensure we have a path to the exit
+        let first_crack_tiles = CracksBuilder::build(&mut zone);
+
+        // Random starting point for player, taken from first crack
+        for &index in first_crack_tiles.iter().skip(2) {
+            if zone.tiles[index] != TileType::Wall {
+                zone.player_spawn_point = index;
+                break;
+            }
+        }
+
         let (mut try_x, mut try_y);
         zone.player_spawn_point = zone.tiles.len() / 2;
         while zone.tiles[zone.player_spawn_point] == TileType::Wall {
@@ -70,18 +89,6 @@ impl ZoneBuilder for DrunkenWalkZoneBuilder {
             try_y = Roll::dice(1, MAP_HEIGHT - 2);
             zone.player_spawn_point = Zone::get_index_from_xy(&try_x, &try_y);
         }
-
-        // TODO less river the more deep we are
-        let river_number = max(
-            1,
-            Roll::dice(0, MAX_RIVERS_IN_ZONE + (depth as i32 / 3)) - 3,
-        );
-        for _ in 0..river_number {
-            RiverBuilder::build(&mut zone);
-        }
-
-        // First cracks generation
-        let cracked_tiles = CracksBuilder::build(&mut zone);
 
         // Populate water and blocked tiles here, needed for correct spawning
         zone.populate_blocked();
@@ -152,17 +159,19 @@ impl ZoneBuilder for DrunkenWalkZoneBuilder {
             zone.tiles[brazier_index] = TileType::Brazier;
         }
 
-        // TODO BUGGED
         // Random point for DownPassage, taken from the craked wall. This ensures that the passage is somehow reachable.
-        let passage_index =
-            Roll::dice(1, cracked_tiles.len() as i32 / 2) - 1 + cracked_tiles.len() as i32 / 2;
+        for &index in first_crack_tiles.iter().skip(first_crack_tiles.len() / 2) {
+            if zone.tiles[index] != TileType::Wall {
+                zone.tiles[index] = TileType::DownPassage;
+                break;
+            }
+        }
 
-        println!(
-            "cracked tiles lenght {}, passage_index {}",
-            cracked_tiles.len(),
-            passage_index
-        );
-        zone.tiles[passage_index as usize] = TileType::DownPassage;
+        // Add random cracks
+        let cracks_number = Roll::dice(1, MAX_CRACKS_IN_ZONE) + (depth as i32 / 3);
+        for _ in 0..cracks_number {
+            CracksBuilder::build(&mut zone);
+        }
 
         zone
     }

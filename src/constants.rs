@@ -15,7 +15,8 @@ pub const TILE_SIZE: i32 = 24;
 pub const TILE_SIZE_F32: f32 = TILE_SIZE as f32;
 pub const BRAZIER_RADIUS: i32 = 20;
 pub const MAX_BRAZIER_IN_ZONE: i32 = 6;
-pub const MAX_RIVERS_IN_ZONE: i32 = 6;
+pub const MAX_RIVERS_IN_ZONE: i32 = 8;
+pub const MAX_CRACKS_IN_ZONE: i32 = 4;
 
 /// Hud related constants
 pub const HUD_WIDTH: i32 = MAP_WIDTH * TILE_SIZE;

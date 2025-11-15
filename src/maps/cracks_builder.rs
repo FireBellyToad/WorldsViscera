@@ -12,21 +12,11 @@ pub struct CracksBuilder {}
 
 impl ZoneFeatureBuilder for CracksBuilder {
     fn build(zone: &mut Zone) -> Vec<usize> {
-        //1 - Start from the down passage
+        let mut cracked_tiles = Vec::new();
         let origin: ZoneFeatureBuilderOrigin;
-        let mut touched_tiles = Vec::new();
-        let start_index = zone
-            .tiles
-            .iter()
-            .position(|tile| tile == &TileType::DownPassage);
 
-        // If no down passage is available, start from player spawn point
-        let mut current_position = if let Some(idx) = start_index {
-            Zone::get_xy_from_index(idx)
-        } else {
-            Zone::get_xy_from_index(zone.player_spawn_point)
-        };
-
+        //1 - select a start point with X or Y = 1
+        let mut current_position = (1, 1);
         if Roll::d100() <= 50 {
             current_position.1 = Roll::dice(1, MAP_HEIGHT - 1) + 1;
             origin = ZoneFeatureBuilderOrigin::Left;
@@ -34,14 +24,16 @@ impl ZoneFeatureBuilder for CracksBuilder {
             current_position.0 = Roll::dice(1, MAP_WIDTH - 1) + 1;
             origin = ZoneFeatureBuilderOrigin::Top;
         }
+
         //2 - if point is X = MAP_WIDTH-1 or Y = MAP_HEIGHT-1, stop
         while current_position.0 < MAP_WIDTH - 1 && current_position.1 < MAP_HEIGHT - 1 {
-            //3 - draw a crack tile there if there is a wall tile
-            let current_index = Zone::get_index_from_xy(&current_position.0, &current_position.1);
-            touched_tiles.push(current_index);
-            if zone.tiles[current_index] == TileType::Wall {
-                zone.tiles[current_index] = TileType::CrackedWall;
+            //3 - draw a cracked tile there if there is a wall tile
+            let index = Zone::get_index_from_xy(&current_position.0, &current_position.1);
+            if zone.tiles[index] == TileType::Wall {
+                zone.tiles[index] = TileType::CrackedWall;
             }
+            // Still, add any tile to the whole vector
+            cracked_tiles.push(index);
 
             //4 - move to next tile down, right or left from previous tile.
             let new_direction_roll = Roll::dice(1, 3);
@@ -73,6 +65,7 @@ impl ZoneFeatureBuilder for CracksBuilder {
             //5 - go to step 2
         }
 
-        touched_tiles
+        //6 - return the river tiles
+        cracked_tiles
     }
 }
