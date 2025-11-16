@@ -40,7 +40,7 @@ impl ParticleAnimation {
             frames,
             particle_type,
             animation_type: ParticleAnimationType::Ray,
-            frame_duration: 4000.0,
+            frame_duration: 3000.0,
         }
     }
 
@@ -75,7 +75,7 @@ impl ParticleAnimation {
             frames,
             particle_type,
             animation_type: ParticleAnimationType::Projectile,
-            frame_duration: 4000.0,
+            frame_duration: 2000.0,
         }
     }
 }
