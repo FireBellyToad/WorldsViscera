@@ -384,7 +384,7 @@ pub fn shiv(ecs_world: &mut World, x: i32, y: i32) {
     ecs_world.spawn(flask_of_oil);
 }
 
-pub fn rockpick(ecs_world: &mut World, x: i32, y: i32) {
+pub fn rockpick(ecs_world: &mut World, x: i32, y: i32) -> Entity {
     let item_tile_index = (1, 2);
     let flask_of_oil = (
         Position { x, y },
@@ -418,10 +418,10 @@ pub fn rockpick(ecs_world: &mut World, x: i32, y: i32) {
 
     //TODO Bonus to climb while wielded
 
-    ecs_world.spawn(flask_of_oil);
+    ecs_world.spawn(flask_of_oil)
 }
 
-pub fn pickaxe(ecs_world: &mut World, x: i32, y: i32) {
+pub fn pickaxe(ecs_world: &mut World, x: i32, y: i32) -> Entity {
     let item_tile_index = (2, 2);
     let pickaxe = (
         Position { x, y },
@@ -449,13 +449,12 @@ pub fn pickaxe(ecs_world: &mut World, x: i32, y: i32) {
             number_of_dices: 1,
             dice_size: 10,
         },
-        Appliable {}, // TODO not used right now
         Bulky {},
         Metallic {},
         DiggingTool {},
     );
 
-    ecs_world.spawn(pickaxe);
+    ecs_world.spawn(pickaxe)
 }
 
 pub fn leather_armor(ecs_world: &mut World, x: i32, y: i32) {
@@ -612,4 +611,63 @@ pub fn slingshot_ammo(ecs_world: &mut World, x: i32, y: i32) {
     );
 
     ecs_world.spawn(slingshot_ammo);
+}
+
+pub fn leather_cap(ecs_world: &mut World, x: i32, y: i32) {
+    let item_tile_index = (0, 4);
+    let leather_cap = (
+        Position { x, y },
+        Renderable {
+            texture_name: TextureName::Items,
+            texture_region: Rect {
+                x: (item_tile_index.0 * TILE_SIZE) as f32,
+                y: (item_tile_index.1 * TILE_SIZE) as f32,
+                w: TILE_SIZE_F32,
+                h: TILE_SIZE_F32,
+            },
+            z_index: 0,
+        },
+        Named {
+            name: "leather cap".to_string(),
+        },
+        Item {
+            item_tile: item_tile_index,
+        },
+        Equippable {
+            body_location: BodyLocation::Head,
+        },
+        Armor { value: 1 },
+    );
+
+    ecs_world.spawn(leather_cap);
+}
+
+pub fn helmet(ecs_world: &mut World, x: i32, y: i32) {
+    let item_tile_index = (1, 4);
+    let helmet = (
+        Position { x, y },
+        Renderable {
+            texture_name: TextureName::Items,
+            texture_region: Rect {
+                x: (item_tile_index.0 * TILE_SIZE) as f32,
+                y: (item_tile_index.1 * TILE_SIZE) as f32,
+                w: TILE_SIZE_F32,
+                h: TILE_SIZE_F32,
+            },
+            z_index: 0,
+        },
+        Named {
+            name: "helmet".to_string(),
+        },
+        Item {
+            item_tile: item_tile_index,
+        },
+        Equippable {
+            body_location: BodyLocation::Head,
+        },
+        Armor { value: 2 },
+        Metallic {},
+    );
+
+    ecs_world.spawn(helmet);
 }

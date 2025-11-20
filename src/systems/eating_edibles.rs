@@ -115,7 +115,7 @@ impl EatingEdibles {
                         hunger.tick_counter += Roll::dice(
                             edible_nutrition.nutrition_dice_number,
                             edible_nutrition.nutrition_dice_size,
-                        ) * 2;
+                        ) * 3;
                     }
                 } else {
                     if eater.id() == player_id {

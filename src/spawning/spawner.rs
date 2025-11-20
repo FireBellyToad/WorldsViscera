@@ -179,21 +179,27 @@ impl Spawn {
 
     /// Spawn a random monster
     pub fn random_item(ecs_world: &mut World, x: i32, y: i32) {
-        let dice_roll = Roll::dice(1, 23);
+        let dice_roll = Roll::dice(1, 26);
         match dice_roll {
             (1..=3) => shiv(ecs_world, x, y),
             (4..=6) => flask_of_oil(ecs_world, x, y),
             (7..=9) => slingshot_ammo(ecs_world, x, y),
-            10 | 11 => rockpick(ecs_world, x, y),
+            10 | 11 => {
+                let _ = rockpick(ecs_world, x, y);
+            }
             12 | 13 => slingshot(ecs_world, x, y),
             14 | 15 => leather_armor(ecs_world, x, y),
             16 | 17 => lantern(ecs_world, x, y),
-            18 => flask_of_water(ecs_world, x, y),
-            19 => pickaxe(ecs_world, x, y),
-            20 => crowssbow(ecs_world, x, y),
-            21 => crossbow_ammo(ecs_world, x, y),
-            22 => breastplate(ecs_world, x, y),
-            23 => wand(ecs_world, x, y),
+            18 | 19 => leather_cap(ecs_world, x, y),
+            20 => flask_of_water(ecs_world, x, y),
+            21 => {
+                let _ = pickaxe(ecs_world, x, y);
+            }
+            22 => crowssbow(ecs_world, x, y),
+            23 => crossbow_ammo(ecs_world, x, y),
+            24 => breastplate(ecs_world, x, y),
+            25 => wand(ecs_world, x, y),
+            26 => helmet(ecs_world, x, y),
             _ => {}
         };
     }

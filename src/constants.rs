@@ -15,7 +15,7 @@ pub const TILE_SIZE: i32 = 24;
 pub const TILE_SIZE_F32: f32 = TILE_SIZE as f32;
 pub const BRAZIER_RADIUS: i32 = 20;
 pub const MAX_BRAZIER_IN_ZONE: i32 = 6;
-pub const MAX_RIVERS_IN_ZONE: i32 = 6;
+pub const MAX_RIVERS_IN_ZONE: i32 = 4;
 pub const MAX_CRACKS_IN_ZONE: i32 = 4;
 
 /// Hud related constants
@@ -43,7 +43,7 @@ pub const OPTION_TO_CHAR_MAP: [char; 52] = [
 pub const ITEM_INVENTORY_LEFT_SPAN: i32 = 12;
 pub const ITEM_INVENTORY_TOP_SPAN: i32 = 10;
 pub const MAX_ITEMS_IN_BACKPACK: usize = 10;
-pub const MAX_ITEMS_IN_BACKPACK_FOR_SMALL: usize = 3;
+pub const MAX_ITEMS_IN_BACKPACK_FOR_SMALL: usize = MAX_ITEMS_IN_BACKPACK / 2;
 
 /// Dialog related constants
 pub const DIALOG_X: i32 = (WINDOW_WIDTH / 2) - DIALOG_SIZE / 2;
@@ -95,7 +95,7 @@ pub const MUSHROOM_LIGHT_RADIUS: i32 = 2;
 
 pub const MUSHROOM_SPAWN_MAP: [i32; 15] = [
     MUSHROOM_EXCELLENT,
-    MUSHROOM_MEDIOCRE,
+    MUSHROOM_EXCELLENT,
     MUSHROOM_MEDIOCRE,
     MUSHROOM_MEDIOCRE,
     MUSHROOM_MEDIOCRE,
@@ -143,3 +143,15 @@ pub const UP_RIGHT_DIR: f32 = 3.0;
 pub const DOWN_RIGHT_DIR: f32 = 5.0;
 pub const UP_LEFT_DIR: f32 = 1.0;
 pub const DOWN_LEFT_DIR: f32 = 7.0;
+
+pub const SIMPLE_PARTICLE_DURATION: f32 = 4000.0;
+#[cfg(target_arch = "wasm32")]
+pub const SIMPLE_PARTICLE_DURATION: f32 = 15000.0;
+
+pub const PROJECTILE_PARTICLE_DURATION: f32 = 4000.0;
+#[cfg(target_arch = "wasm32")]
+pub const PROJECTILE_PARTICLE_DURATION: f32 = 2000.0;
+
+pub const RAY_PARTICLE_DURATION: f32 = 4000.0;
+#[cfg(target_arch = "wasm32")]
+pub const RAY_PARTICLE_DURATION: f32 = 3000.0;

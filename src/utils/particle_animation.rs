@@ -1,3 +1,7 @@
+use crate::constants::{
+    PROJECTILE_PARTICLE_DURATION, RAY_PARTICLE_DURATION, SIMPLE_PARTICLE_DURATION,
+};
+
 pub struct ParticleAnimation {
     pub current_frame: usize,
     pub frames: Vec<Vec<(i32, i32)>>,
@@ -40,7 +44,7 @@ impl ParticleAnimation {
             frames,
             particle_type,
             animation_type: ParticleAnimationType::Ray,
-            frame_duration: 3000.0,
+            frame_duration: RAY_PARTICLE_DURATION,
         }
     }
 
@@ -54,7 +58,7 @@ impl ParticleAnimation {
             frames: vec![vec![(x, y)]],
             particle_type,
             animation_type: ParticleAnimationType::Frame,
-            frame_duration: 15000.0,
+            frame_duration: SIMPLE_PARTICLE_DURATION,
         }
     }
 
@@ -75,7 +79,7 @@ impl ParticleAnimation {
             frames,
             particle_type,
             animation_type: ParticleAnimationType::Projectile,
-            frame_duration: 2000.0,
+            frame_duration: PROJECTILE_PARTICLE_DURATION,
         }
     }
 }

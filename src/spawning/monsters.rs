@@ -11,7 +11,7 @@ use crate::{
             Renderable, SmellIntensity, Smellable, Species, SpeciesEnum, Viewshed,
         },
         health::Hunger,
-        items::{Deadly, Edible},
+        items::{BodyLocation, Deadly, Edible, Equippable, Equipped, InBackback},
         monster::{Aquatic, IsPrey, LeaveTrail, Monster, Small, Smart, Venomous},
     },
     constants::{
@@ -19,9 +19,9 @@ use crate::{
         TILE_SIZE_F32,
     },
     maps::zone::DecalType,
-    spawning::items::moleman_chain,
+    spawning::items::{moleman_chain, pickaxe, rockpick},
     systems::hunger_check::HungerStatus,
-    utils::assets::TextureName,
+    utils::{assets::TextureName, roll::Roll},
 };
 
 pub fn deep_one(ecs_world: &mut World, x: i32, y: i32) {
@@ -228,7 +228,7 @@ pub fn moleman(ecs_world: &mut World, x: i32, y: i32) {
             current_stamina: 4,
             max_stamina: 4,
             base_armor: 0,
-            unarmed_attack_dice: 6,
+            unarmed_attack_dice: 3,
             current_toughness: 10,
             max_toughness: 10,
             current_dexterity: 8,
@@ -253,7 +253,44 @@ pub fn moleman(ecs_world: &mut World, x: i32, y: i32) {
         y,
     );
 
-    moleman_chain(ecs_world, moleman);
+    if Roll::d6() > 3 {
+        moleman_chain(ecs_world, moleman);
+    }
+
+    let weapon_roll = Roll::d6();
+    if weapon_roll > 5 {
+        let pickaxe = pickaxe(ecs_world, x, y);
+        ecs_world.remove_one::<Position>(pickaxe);
+        ecs_world.insert(
+            pickaxe,
+            (
+                InBackback {
+                    owner: moleman,
+                    assigned_char: 'b',
+                },
+                Equipped {
+                    owner: moleman,
+                    body_location: BodyLocation::RightHand,
+                },
+            ),
+        );
+    } else if weapon_roll > 2 {
+        let rockpick = rockpick(ecs_world, x, y);
+        ecs_world.remove_one::<Position>(rockpick);
+        ecs_world.insert(
+            rockpick,
+            (
+                InBackback {
+                    owner: moleman,
+                    assigned_char: 'b',
+                },
+                Equipped {
+                    owner: moleman,
+                    body_location: BodyLocation::RightHand,
+                },
+            ),
+        );
+    }
 }
 
 /// Generic monster creation
