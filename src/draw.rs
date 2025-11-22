@@ -13,9 +13,7 @@ use macroquad::{
 use crate::{
     components::{
         combat::{CombatStats, IsHidden},
-        common::{
-            CanSmell, Experience, GameLog, Level, Position, Renderable, SmellIntensity, Smellable,
-        },
+        common::{CanSmell, Experience, GameLog, Position, Renderable, SmellIntensity, Smellable},
         health::{Hunger, Thirst},
         player::{Player, SpecialViewMode},
     },
@@ -131,14 +129,14 @@ impl Draw {
         let (_, zone) = zones.iter().last().expect("Zone is not in hecs::World");
 
         let mut player_query = ecs_world
-            .query::<(&Level, &Experience, &CombatStats, &Hunger, &Thirst)>()
+            .query::<(&Experience, &CombatStats, &Hunger, &Thirst)>()
             .with::<&Player>();
-        let (_, (level, experience, player_stats, hunger, thirst)) = player_query
+        let (_, (experience, player_stats, hunger, thirst)) = player_query
             .iter()
             .last()
             .expect("Player is not in hecs::World");
 
-        let level_text = format!("LVL: {}", level.value);
+        let level_text = format!("LVL: {}", player_stats.level);
         let level_text_len = level_text.len();
 
         let exp_text = format!("EXP: {}", experience.value);
@@ -161,11 +159,11 @@ impl Draw {
             player_stats.current_dexterity, player_stats.max_dexterity
         );
         let hunger_status = &hunger.current_status;
-        let hunger_text = format!("Hunger:{:?}", hunger_status);
+        let hunger_text = format!("HUN:{}", hunger_status.to_string());
         let hunger_text_len = hunger_text.len();
 
         let thirst_status = &thirst.current_status;
-        let thirst_text = format!("Thirst:{:?}", thirst_status);
+        let thirst_text = format!("THI:{}", thirst_status.to_string());
         let thirst_text_len = thirst_text.len();
 
         let dex_text_len = dex_text.len();
@@ -250,6 +248,7 @@ impl Draw {
 
         // TODO improve
         match hunger_status {
+            HungerStatus::Satiated => text_color = GREEN,
             HungerStatus::Hungry => text_color = YELLOW,
             HungerStatus::Starved => text_color = RED,
             _ => text_color = WHITE,
@@ -267,6 +266,7 @@ impl Draw {
 
         // TODO improve
         match thirst_status {
+            ThirstStatus::Quenched => text_color = GREEN,
             ThirstStatus::Thirsty => text_color = YELLOW,
             ThirstStatus::Dehydrated => text_color = RED,
             _ => text_color = WHITE,

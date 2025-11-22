@@ -132,10 +132,9 @@ impl Player {
                     if is_diggable && let Some(dig_tool) = player_dig_tool {
                         digger_target = Some((player_entity, dig_tool, potential_target));
                     } else if is_diggable {
-                        game_log.entries.push(
-                            "The crack is too tight to pass through, it must be widened with a proper tool"
-                                .to_string(),
-                        );
+                        game_log
+                            .entries
+                            .push("The crack is too tight to pass through".to_string());
                     }
                 }
 

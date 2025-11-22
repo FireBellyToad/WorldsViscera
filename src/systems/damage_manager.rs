@@ -5,7 +5,7 @@ use hecs::{Entity, World};
 use crate::{
     components::{
         combat::{CombatStats, SufferingDamage},
-        common::{Experience, GameLog, Hates, Level, Named, Position},
+        common::{Experience, GameLog, Hates, Named, Position},
         health::CanAutomaticallyHeal,
         items::{Deadly, Edible},
         monster::Venomous,
@@ -19,7 +19,7 @@ use crate::{
     utils::roll::Roll,
 };
 
-type DeadEntityData = (Entity, String, (i32, i32), Option<Entity>);
+type DeadEntityData = (Entity, String, (i32, i32), Option<Entity>, u32);
 
 pub struct DamageManager {}
 
@@ -116,6 +116,7 @@ impl DamageManager {
                                 named.name.clone(),
                                 (position.x, position.y),
                                 damageable.damager,
+                                stats.level,
                             ));
                             game_log.entries.push("You die!".to_string());
                         } else if stats.current_toughness > 0 {
@@ -132,6 +133,7 @@ impl DamageManager {
                                 named.name.clone(),
                                 (position.x, position.y),
                                 damageable.damager,
+                                stats.level,
                             ));
                             game_log.entries.push(format!("{} dies!", named.name));
                         } else if stats.current_toughness > 0 {
@@ -149,7 +151,7 @@ impl DamageManager {
         }
 
         //Remove all dead entities, stop game if player is dead
-        for (killed_entity, name, (x, y), damager_opt) in dead_entities {
+        for (killed_entity, name, (x, y), damager_opt, victim_level) in dead_entities {
             if killed_entity.id() == player_entity_id {
                 //Game over!
                 game_state.run_state = RunState::GameOver;
@@ -164,11 +166,7 @@ impl DamageManager {
                     .get::<&mut Experience>(damager)
                     .expect("Player must have Experience component");
 
-                let victim_level = ecs_world
-                    .get::<&Level>(killed_entity)
-                    .expect("Killed entity must have Level component");
-
-                experience.value += victim_level.value.pow(2);
+                experience.value += victim_level.pow(2);
                 experience.auto_advance_counter += AUTO_ADVANCE_EXP_COUNTER_START;
             }
 

@@ -3,7 +3,7 @@ use hecs::World;
 use crate::{
     components::{
         combat::CombatStats,
-        common::{Experience, GameLog, Level},
+        common::{Experience, GameLog},
         player::Player,
     },
     constants::AUTO_ADVANCE_EXP_COUNTER_START,
@@ -18,8 +18,7 @@ impl AdvancementSystem {
         // Scope for keeping borrow checker quiet
         {
             // List of entities that has stats
-            let mut experienced_entities =
-                ecs_world.query::<(&mut Level, &mut Experience, &mut CombatStats)>();
+            let mut experienced_entities = ecs_world.query::<(&mut Experience, &mut CombatStats)>();
 
             let player_id = Player::get_entity_id(ecs_world);
 
@@ -30,16 +29,16 @@ impl AdvancementSystem {
                 .last()
                 .expect("Game log is not in hecs::World");
 
-            for (exp_entity, (level, experience, stats)) in &mut experienced_entities {
+            for (exp_entity, (experience, stats)) in &mut experienced_entities {
                 // Level advancement
-                if experience.value >= ((level.value + 2).pow(3)) {
-                    level.value += 1;
+                if experience.value >= ((stats.level + 2).pow(3)) {
+                    stats.level += 1;
                     experience.value = 0;
                     experience.auto_advance_counter = AUTO_ADVANCE_EXP_COUNTER_START;
                     if exp_entity.id() == player_id {
                         game_log
                             .entries
-                            .push(format!("You have reached level {}", level.value));
+                            .push(format!("You have reached level {}", stats.level));
                     }
 
                     // Increase stats and Stamina

@@ -23,6 +23,17 @@ pub enum ThirstStatus {
     Dehydrated,
 }
 
+impl ThirstStatus {
+    pub fn to_string(&self) -> &'static str {
+        match *self {
+            ThirstStatus::Quenched => "3/3",
+            ThirstStatus::Normal => "2/3",
+            ThirstStatus::Thirsty => "1/3",
+            ThirstStatus::Dehydrated => "0/3",
+        }
+    }
+}
+
 pub struct ThirstCheck {}
 
 /// Checking thirst status

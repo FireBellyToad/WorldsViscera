@@ -23,6 +23,17 @@ pub enum HungerStatus {
     Starved,
 }
 
+impl HungerStatus {
+    pub fn to_string(&self) -> &'static str {
+        match *self {
+            HungerStatus::Satiated => "3/3",
+            HungerStatus::Normal => "2/3",
+            HungerStatus::Hungry => "1/3",
+            HungerStatus::Starved => "0/3",
+        }
+    }
+}
+
 pub struct HungerCheck {}
 
 /// Checking hunger status

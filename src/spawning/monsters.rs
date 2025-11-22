@@ -7,11 +7,11 @@ use crate::{
     components::{
         combat::{CanHide, CombatStats, SufferingDamage},
         common::{
-            BlocksTile, Hates, Level, MyTurn, Named, Position, ProduceCorpse, ProduceSound,
-            Renderable, SmellIntensity, Smellable, Species, SpeciesEnum, Viewshed,
+            BlocksTile, Hates, MyTurn, Named, Position, ProduceCorpse, ProduceSound, Renderable,
+            SmellIntensity, Smellable, Species, SpeciesEnum, Viewshed,
         },
         health::Hunger,
-        items::{BodyLocation, Deadly, Edible, Equippable, Equipped, InBackback},
+        items::{BodyLocation, Deadly, Edible, Equipped, InBackback},
         monster::{Aquatic, IsPrey, LeaveTrail, Monster, Small, Smart, Venomous},
     },
     constants::{
@@ -32,6 +32,7 @@ pub fn deep_one(ecs_world: &mut World, x: i32, y: i32) {
             value: SpeciesEnum::DeepSpawn,
         },
         CombatStats {
+            level: 2,
             current_stamina: 3,
             max_stamina: 3,
             base_armor: 0,
@@ -53,7 +54,6 @@ pub fn deep_one(ecs_world: &mut World, x: i32, y: i32) {
         ProduceSound {
             sound_log: "someone weezing".to_string(),
         },
-        2,
         1.0,
         0.0,
         x,
@@ -69,6 +69,7 @@ pub fn freshwater_viperfish(ecs_world: &mut World, x: i32, y: i32) {
             value: SpeciesEnum::Fish,
         },
         CombatStats {
+            level: 4,
             current_stamina: 4,
             max_stamina: 4,
             base_armor: 0,
@@ -90,7 +91,6 @@ pub fn freshwater_viperfish(ecs_world: &mut World, x: i32, y: i32) {
         ProduceSound {
             sound_log: "a splash in the water".to_string(),
         },
-        4,
         4.0,
         0.0,
         x,
@@ -108,6 +108,7 @@ pub fn cave_shrimp(ecs_world: &mut World, x: i32, y: i32) {
             value: SpeciesEnum::Fish,
         },
         CombatStats {
+            level: 1,
             current_stamina: 2,
             max_stamina: 2,
             base_armor: 1,
@@ -129,7 +130,6 @@ pub fn cave_shrimp(ecs_world: &mut World, x: i32, y: i32) {
         ProduceSound {
             sound_log: "a drop of water".to_string(),
         },
-        1,
         8.0,
         0.0,
         x,
@@ -147,8 +147,9 @@ pub fn gremlin(ecs_world: &mut World, x: i32, y: i32) {
             value: SpeciesEnum::Gremlin,
         },
         CombatStats {
-            current_stamina: 2,
-            max_stamina: 2,
+            level: 5,
+            current_stamina: 3,
+            max_stamina: 3,
             base_armor: 0,
             unarmed_attack_dice: 2,
             current_toughness: 7,
@@ -168,7 +169,6 @@ pub fn gremlin(ecs_world: &mut World, x: i32, y: i32) {
         ProduceSound {
             sound_log: "someone cackling".to_string(),
         },
-        5,
         3.0,
         0.0,
         x,
@@ -186,6 +186,7 @@ pub fn centipede(ecs_world: &mut World, x: i32, y: i32) {
             value: SpeciesEnum::Bug,
         },
         CombatStats {
+            level: 4,
             current_stamina: 3,
             max_stamina: 3,
             base_armor: 1,
@@ -207,7 +208,6 @@ pub fn centipede(ecs_world: &mut World, x: i32, y: i32) {
         ProduceSound {
             sound_log: "skittering of many legs".to_string(),
         },
-        4,
         5.0,
         0.0,
         x,
@@ -225,6 +225,7 @@ pub fn moleman(ecs_world: &mut World, x: i32, y: i32) {
             value: SpeciesEnum::Undergrounder,
         },
         CombatStats {
+            level: 5,
             current_stamina: 4,
             max_stamina: 4,
             base_armor: 0,
@@ -246,7 +247,6 @@ pub fn moleman(ecs_world: &mut World, x: i32, y: i32) {
         ProduceSound {
             sound_log: "someone mumbling".to_string(),
         },
-        5,
         2.0,
         0.0,
         x,
@@ -260,8 +260,8 @@ pub fn moleman(ecs_world: &mut World, x: i32, y: i32) {
     let weapon_roll = Roll::d6();
     if weapon_roll > 5 {
         let pickaxe = pickaxe(ecs_world, x, y);
-        ecs_world.remove_one::<Position>(pickaxe);
-        ecs_world.insert(
+        let _ = ecs_world.remove_one::<Position>(pickaxe);
+        let _ = ecs_world.insert(
             pickaxe,
             (
                 InBackback {
@@ -276,8 +276,8 @@ pub fn moleman(ecs_world: &mut World, x: i32, y: i32) {
         );
     } else if weapon_roll > 2 {
         let rockpick = rockpick(ecs_world, x, y);
-        ecs_world.remove_one::<Position>(rockpick);
-        ecs_world.insert(
+        let _ = ecs_world.remove_one::<Position>(rockpick);
+        let _ = ecs_world.insert(
             rockpick,
             (
                 InBackback {
@@ -302,7 +302,6 @@ pub fn create_monster(
     edible: Edible,
     smells: Smellable,
     sounds: ProduceSound,
-    level: u32,
     tile_x: f32,
     tile_y: f32,
     x: i32,
@@ -339,7 +338,6 @@ pub fn create_monster(
             tick_counter: MAX_HUNGER_TICK_COUNTER,
             current_status: HungerStatus::Normal,
         },
-        Level { value: level },
         MyTurn {},
         smells,
         sounds,
@@ -369,6 +367,7 @@ pub fn giant_cockroach(ecs_world: &mut World, x: i32, y: i32) {
             value: SpeciesEnum::Bug,
         },
         CombatStats {
+            level: 1,
             current_stamina: 2,
             max_stamina: 2,
             base_armor: 0,
@@ -390,7 +389,6 @@ pub fn giant_cockroach(ecs_world: &mut World, x: i32, y: i32) {
         ProduceSound {
             sound_log: "nervous skittering".to_string(),
         },
-        1,
         6.0,
         0.0,
         x,
@@ -408,6 +406,7 @@ pub fn giant_slug(ecs_world: &mut World, x: i32, y: i32) {
             value: SpeciesEnum::Gastropod,
         },
         CombatStats {
+            level: 1,
             current_stamina: 2,
             max_stamina: 2,
             base_armor: 0,
@@ -429,7 +428,6 @@ pub fn giant_slug(ecs_world: &mut World, x: i32, y: i32) {
         ProduceSound {
             sound_log: "slow slushing".to_string(),
         },
-        1,
         7.0,
         0.0,
         x,
@@ -458,6 +456,7 @@ pub fn sulfuric_slug(ecs_world: &mut World, x: i32, y: i32) {
             value: SpeciesEnum::Gastropod,
         },
         CombatStats {
+            level: 7,
             current_stamina: 5,
             max_stamina: 5,
             base_armor: 0,
@@ -479,7 +478,6 @@ pub fn sulfuric_slug(ecs_world: &mut World, x: i32, y: i32) {
         ProduceSound {
             sound_log: "something sizzling".to_string(),
         },
-        1,
         7.0,
         1.0,
         x,

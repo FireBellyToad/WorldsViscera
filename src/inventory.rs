@@ -236,15 +236,15 @@ impl Inventory {
         draw_rectangle(
             INVENTORY_X as f32,
             INVENTORY_Y as f32,
-            INVENTORY_SIZE as f32,
-            INVENTORY_SIZE as f32,
+            INVENTORY_WIDTH as f32,
+            INVENTORY_HEIGHT as f32,
             WHITE,
         );
         draw_rectangle(
             (INVENTORY_X + HUD_BORDER) as f32,
             (INVENTORY_Y + HUD_BORDER) as f32,
-            (INVENTORY_SIZE - UI_BORDER) as f32,
-            (INVENTORY_SIZE - UI_BORDER) as f32,
+            (INVENTORY_WIDTH - UI_BORDER) as f32,
+            (INVENTORY_HEIGHT - UI_BORDER) as f32,
             BLACK,
         );
 
@@ -300,7 +300,7 @@ impl Inventory {
         // ------- Footer -----------
         draw_rectangle(
             (INVENTORY_X + INVENTORY_LEFT_SPAN) as f32,
-            (INVENTORY_Y + INVENTORY_SIZE - UI_BORDER) as f32,
+            (INVENTORY_Y + INVENTORY_HEIGHT - UI_BORDER) as f32,
             INVENTORY_FOOTER_WIDTH as f32,
             HEADER_HEIGHT as f32,
             BLACK,
@@ -308,7 +308,7 @@ impl Inventory {
         draw_text(
             "ESC to cancel",
             (INVENTORY_X + INVENTORY_LEFT_SPAN + HUD_BORDER) as f32,
-            (INVENTORY_Y + INVENTORY_SIZE + HUD_BORDER) as f32,
+            (INVENTORY_Y + INVENTORY_HEIGHT + HUD_BORDER) as f32,
             FONT_SIZE,
             WHITE,
         );

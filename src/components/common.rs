@@ -73,10 +73,6 @@ pub struct Hates {
     pub list: HashSet<u32>,
 }
 
-pub struct Level {
-    pub value: u32,
-}
-
 pub struct Experience {
     pub value: u32,
     pub auto_advance_counter: u32,

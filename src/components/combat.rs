@@ -1,6 +1,7 @@
 use hecs::Entity;
 
 pub struct CombatStats {
+    pub level: u32,
     pub current_stamina: i32,
     pub max_stamina: i32,
     pub current_toughness: i32,

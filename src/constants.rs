@@ -7,8 +7,8 @@ pub const FONT_SIZE: f32 = 32.0;
 pub const LETTER_SIZE: f32 = 15.0;
 
 /// Zone related constats
-pub const MAP_WIDTH: i32 = 56;
-pub const MAP_HEIGHT: i32 = 32;
+pub const MAP_WIDTH: i32 = 45;
+pub const MAP_HEIGHT: i32 = 24;
 pub const MAP_WIDTH_F32: f32 = MAP_WIDTH as f32;
 pub const MAP_HEIGHT_F32: f32 = MAP_HEIGHT as f32;
 pub const TILE_SIZE: i32 = 24;
@@ -24,14 +24,15 @@ pub const HUD_HEIGHT: i32 = 192 + UI_BORDER;
 pub const HUD_BORDER: i32 = 4;
 
 pub const HEADER_HEIGHT: i32 = 24;
-pub const HEADER_LEFT_SPAN: i32 = 64;
+pub const HEADER_LEFT_SPAN: i32 = 24;
 
 pub const MAX_MESSAGES_IN_LOG: usize = 4;
 
 /// Inventory related constants
-pub const INVENTORY_X: i32 = (WINDOW_WIDTH / 2) - INVENTORY_SIZE / 2;
-pub const INVENTORY_Y: i32 = (WINDOW_HEIGHT / 3) - INVENTORY_SIZE / 2;
-pub const INVENTORY_SIZE: i32 = 600;
+pub const INVENTORY_X: i32 = (WINDOW_WIDTH / 2) - INVENTORY_WIDTH / 2;
+pub const INVENTORY_Y: i32 = (WINDOW_HEIGHT as f32 / 2.75) as i32 - INVENTORY_HEIGHT / 2;
+pub const INVENTORY_WIDTH: i32 = 600;
+pub const INVENTORY_HEIGHT: i32 = 500;
 pub const INVENTORY_FOOTER_WIDTH: i32 = 186;
 pub const INVENTORY_LEFT_SPAN: i32 = 20;
 pub const INVENTORY_TOP_SPAN: i32 = 48;
@@ -47,8 +48,8 @@ pub const MAX_ITEMS_IN_BACKPACK_FOR_SMALL: usize = MAX_ITEMS_IN_BACKPACK / 2;
 
 /// Dialog related constants
 pub const DIALOG_X: i32 = (WINDOW_WIDTH / 2) - DIALOG_SIZE / 2;
-pub const DIALOG_Y: i32 = (WINDOW_HEIGHT / 3) - DIALOG_SIZE / 2;
-pub const DIALOG_SIZE: i32 = 640;
+pub const DIALOG_Y: i32 = (WINDOW_HEIGHT as f32 / 2.75) as i32 - DIALOG_SIZE / 2;
+pub const DIALOG_SIZE: i32 = 500;
 pub const DIALOG_FOOTER_WIDTH: i32 = 186;
 pub const DIALOG_LEFT_SPAN: i32 = DIALOG_FOOTER_WIDTH / 4;
 pub const DIALOG_TOP_SPAN: i32 = DIALOG_SIZE / 6;
@@ -66,7 +67,7 @@ pub const MAX_ITEMS_IN_ZONE: i32 = 10;
 pub const MAX_SPAWN_TENTANTIVES: i32 = 20;
 
 /// Player related constants
-pub const BASE_VIEW_RADIUS: i32 = 8;
+pub const BASE_VIEW_RADIUS: i32 = 6;
 pub const MAX_STAMINA_HEAL_TICK_COUNTER: i32 = 4;
 pub const MAX_STATS_HEAL_TICK_COUNTER: i32 = 16;
 pub const MAX_HUNGER_TICK_COUNTER: i32 = 151;
@@ -78,6 +79,7 @@ pub const AUTO_ADVANCE_EXP_COUNTER_START: u32 = 500;
 /// Drunken Walk related constants
 pub const DRUNKEN_WALK_LIFE_MAX: i32 = 50;
 pub const DRUNKEN_WALK_MAX_ITERATIONS: i32 = 50;
+pub const DRUNKEN_WALK_MIN_ITERATIONS: i32 = 10;
 
 /// Item related constants
 pub const STARTING_ROT_COUNTER: i32 = 100;

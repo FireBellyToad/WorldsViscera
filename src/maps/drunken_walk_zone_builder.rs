@@ -21,7 +21,13 @@ impl ZoneBuilder for DrunkenWalkZoneBuilder {
 
         // Simple Drunken walk
         let mut current_position = (MAP_WIDTH / 2, MAP_HEIGHT / 2);
-        for _ in 0..DRUNKEN_WALK_MAX_ITERATIONS {
+        let max_iterations = max(
+            DRUNKEN_WALK_MIN_ITERATIONS,
+            DRUNKEN_WALK_MAX_ITERATIONS - depth as i32,
+        );
+
+        // the more deep we are, the less free space we have
+        for _ in 0..max_iterations {
             zone.tiles[Zone::get_index_from_xy(&current_position.0, &current_position.1)] =
                 TileType::Floor;
 
