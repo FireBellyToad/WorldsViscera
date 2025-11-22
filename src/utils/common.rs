@@ -77,17 +77,19 @@ impl Utils {
         target_id: u32,
         equipped_armors: &mut hecs::QueryBorrow<'_, (&Armor, &Equipped, Option<&Eroded>)>,
     ) -> i32 {
+        let mut total_armor = 0;
         // Use weapon dice when equipped
         for (_, (attacker_armor, equipped_to, eroded)) in equipped_armors.iter() {
             if equipped_to.owner.id() == target_id {
                 if let Some(erosion) = eroded {
-                    return max(0, attacker_armor.value - erosion.value as i32);
+                    total_armor += max(0, attacker_armor.value - erosion.value as i32);
                 } else {
-                    return attacker_armor.value;
+                    total_armor += attacker_armor.value;
                 }
             }
         }
-        base_armor
+        println!("base_armor: {}, total_armor {}", base_armor, total_armor);
+        max(base_armor, total_armor)
     }
 
     /// Hate table by species
