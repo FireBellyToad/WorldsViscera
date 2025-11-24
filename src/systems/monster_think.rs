@@ -196,14 +196,10 @@ impl MonsterThink {
                                 //  No target in sight, wander around for a while (if not already doing so)
                                 // clamped inside map
                                 //TODO what about immovable monsters?
-                                let random_dest_x = max(
-                                    1,
-                                    min(MAP_WIDTH - 1, Roll::d6() - Roll::d6() + position.x),
-                                );
-                                let random_dest_y = max(
-                                    1,
-                                    min(MAP_HEIGHT - 1, Roll::d6() - Roll::d6() + position.y),
-                                );
+                                let random_dest_x =
+                                    (Roll::d6() - Roll::d6() + position.x).clamp(1, MAP_WIDTH - 1);
+                                let random_dest_y =
+                                    (Roll::d6() - Roll::d6() + position.y).clamp(1, MAP_HEIGHT - 1);
                                 approacher_list.push((monster, random_dest_x, random_dest_y, 3));
                             }
                         }

@@ -1,4 +1,4 @@
-use hecs::{Entity, World};
+use hecs::World;
 
 use crate::{
     components::{
