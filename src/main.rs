@@ -301,6 +301,7 @@ fn do_in_tick_game_logic(game_engine: &mut GameEngine, game_state: &mut EngineSt
 
 fn do_tickless_logic(game_state: &mut EngineState) {
     SmellManager::run(&mut game_state.ecs_world);
+    DamageManager::remove_dead_and_check_gameover(game_state);
 
     #[cfg(not(target_arch = "wasm32"))]
     Debugger::run(&mut game_state.ecs_world);

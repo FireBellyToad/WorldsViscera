@@ -6,8 +6,6 @@ use crate::components::monster::IsPrey;
 use crate::constants::MAP_HEIGHT;
 use crate::constants::MAP_WIDTH;
 use crate::utils::roll::Roll;
-use std::cmp::max;
-use std::cmp::min;
 use std::collections::HashSet;
 
 use hecs::{Entity, World};
