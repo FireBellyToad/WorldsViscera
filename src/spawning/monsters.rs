@@ -291,6 +291,8 @@ pub fn moleman(ecs_world: &mut World, x: i32, y: i32) {
             ),
         );
     }
+
+    let _ = ecs_world.insert(moleman, (Smart {},));
 }
 
 /// Generic monster creation

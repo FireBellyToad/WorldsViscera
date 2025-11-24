@@ -2,7 +2,7 @@ use crate::{
     components::common::Experience,
     maps::arena_zone_builder::ArenaZoneBuilder,
     systems::{
-        advancement_system::AdvancementSystem, dig_manager::DigManager,
+        advancement_system::AdvancementSystem, debugger::Debugger, dig_manager::DigManager,
         leave_trail_system::LeaveTrailSystem, ranged_manager::RangedManager,
     },
 };
@@ -301,4 +301,7 @@ fn do_in_tick_game_logic(game_engine: &mut GameEngine, game_state: &mut EngineSt
 
 fn do_tickless_logic(game_state: &mut EngineState) {
     SmellManager::run(&mut game_state.ecs_world);
+
+    #[cfg(not(target_arch = "wasm32"))]
+    Debugger::run(&mut game_state.ecs_world);
 }

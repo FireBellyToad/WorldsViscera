@@ -48,14 +48,16 @@ impl EngineState {
             if entity.id() == player_id
                 || self
                     .ecs_world
-                    .satisfies::<&InBackback>(entity)
-                    .expect("cannot extract satisfies value")
-                || self
-                    .ecs_world
                     .satisfies::<&GameLog>(entity)
                     .expect("cannot extract satisfies value")
             {
-                must_delete = false;
+                // Do not despawn objects in player's backpack
+                if let Ok(in_backpack) = self.ecs_world.get::<&InBackback>(entity) {
+                    if in_backpack.owner.id() == player_id {
+                        must_delete = false;
+                    }
+                }
+
                 // Clear listen cache
                 if let Ok(mut can_listen) = self.ecs_world.get::<&mut CanListen>(entity) {
                     can_listen.listen_cache.clear();

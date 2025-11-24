@@ -61,7 +61,7 @@ impl ZoneBuilder for TestZoneBuilder {
         let monster_number = Roll::dice(1, MAX_MONSTERS_IN_ZONE) + 3;
 
         for _ in 0..monster_number {
-            for _ in 0..MAX_SPAWN_TENTANTIVES {
+            for _ in 0..MAX_SPAWN_TENTATIVES {
                 let x = Roll::dice(1, MAP_WIDTH - 2) as f32;
                 let y = Roll::dice(1, MAP_HEIGHT - 2) as f32;
                 let index = Zone::get_index_from_xy_f32(x, y);
@@ -77,7 +77,7 @@ impl ZoneBuilder for TestZoneBuilder {
         }
 
         for _ in 0..items_number {
-            for _ in 0..MAX_SPAWN_TENTANTIVES {
+            for _ in 0..MAX_SPAWN_TENTATIVES {
                 let x = Roll::dice(1, MAP_WIDTH - 3) as f32 + 1.0;
                 let y = Roll::dice(1, MAP_HEIGHT - 3) as f32 + 1.0;
                 let index = Zone::get_index_from_xy_f32(x, y);

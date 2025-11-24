@@ -102,8 +102,16 @@ impl MonsterApproach {
                     }
                 }
 
+                //Monster must wait too after an action, even if this turn will not move!
+                waiter_speed_list.push((monster_entity, stats.speed));
+
                 let (move_to_x, move_to_y) =
                     (wants_to_approach.target_x, wants_to_approach.target_y);
+
+                if zone.blocked_tiles[Zone::get_index_from_xy(&move_to_x, &move_to_y)] {
+                    // If destination is somehow now blocked, monster cannot move
+                    continue;
+                }
 
                 let pathfinding_result = Pathfinding::dijkstra_wrapper(
                     position.x,
@@ -114,9 +122,6 @@ impl MonsterApproach {
                     true,
                     aquatic.is_some(),
                 );
-
-                //Monster must wait too after an action, even if this turn will not move!
-                waiter_speed_list.push((monster_entity, stats.speed));
 
                 //If can actually reach the new position, do it or else stay still
                 if let Some((path, _)) = pathfinding_result

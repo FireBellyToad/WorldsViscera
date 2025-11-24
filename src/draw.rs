@@ -45,7 +45,8 @@ impl Draw {
                     Draw::renderables(&game_state.ecs_world, assets, zone);
                     Draw::smells(&game_state.ecs_world, assets, zone);
 
-                    // Draw::debug_exit(zone);
+                    #[cfg(not(target_arch = "wasm32"))]
+                    Draw::debug_exit(zone);
                 }
 
                 //Overlay
@@ -695,7 +696,7 @@ impl Draw {
         direction
     }
 
-    #[allow(dead_code)]
+    #[cfg(not(target_arch = "wasm32"))]
     fn debug_exit(zone: &Zone) {
         let start_index = zone
             .tiles

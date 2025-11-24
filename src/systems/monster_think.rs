@@ -3,7 +3,11 @@ use crate::components::combat::WantsToShoot;
 use crate::components::items::Equippable;
 use crate::components::items::Equipped;
 use crate::components::monster::IsPrey;
+use crate::constants::MAP_HEIGHT;
+use crate::constants::MAP_WIDTH;
 use crate::utils::roll::Roll;
+use std::cmp::max;
+use std::cmp::min;
 use std::collections::HashSet;
 
 use hecs::{Entity, World};
@@ -189,14 +193,18 @@ impl MonsterThink {
                                 // Approach something of its interest. x,y are passed to avoid unique borrow issues later on
                                 approacher_list.push((monster, target_x, target_y, 0));
                             } else if wants_to_approach.is_none() {
-                                //No target in sight, wander around for a while (if not already doing so)
+                                //  No target in sight, wander around for a while (if not already doing so)
+                                // clamped inside map
                                 //TODO what about immovable monsters?
-                                approacher_list.push((
-                                    monster,
-                                    Roll::d6() - Roll::d6() + position.x,
-                                    Roll::d6() - Roll::d6() + position.y,
-                                    3,
-                                ));
+                                let random_dest_x = max(
+                                    1,
+                                    min(MAP_WIDTH - 1, Roll::d6() - Roll::d6() + position.x),
+                                );
+                                let random_dest_y = max(
+                                    1,
+                                    min(MAP_HEIGHT - 1, Roll::d6() - Roll::d6() + position.y),
+                                );
+                                approacher_list.push((monster, random_dest_x, random_dest_y, 3));
                             }
                         }
                         MonsterAction::Eat => {

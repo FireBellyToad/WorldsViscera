@@ -66,7 +66,7 @@ impl ZoneBuilder for DungeonZoneBuilder {
             let items_number = Roll::dice(1, MAX_ITEMS_IN_ZONE) - 1;
 
             for _ in 0..monster_number {
-                for _ in 0..MAX_SPAWN_TENTANTIVES {
+                for _ in 0..MAX_SPAWN_TENTATIVES {
                     let x = room.x + Roll::dice(1, room.w as i32 - 1) as f32;
                     let y = room.y + Roll::dice(1, room.h as i32 - 1) as f32;
                     let index = Zone::get_index_from_xy_f32(x, y);
@@ -79,7 +79,7 @@ impl ZoneBuilder for DungeonZoneBuilder {
             }
 
             for _ in 0..items_number {
-                for _ in 0..MAX_SPAWN_TENTANTIVES {
+                for _ in 0..MAX_SPAWN_TENTATIVES {
                     let x = room.x + Roll::dice(1, room.w as i32 - 1) as f32;
                     let y = room.y + Roll::dice(1, room.h as i32 - 1) as f32;
                     let index = Zone::get_index_from_xy_f32(x, y);

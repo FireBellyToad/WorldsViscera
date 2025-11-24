@@ -77,25 +77,6 @@ impl ZoneBuilder for DrunkenWalkZoneBuilder {
             RiverBuilder::build(&mut zone);
         }
 
-        // First crack generation, used for player spawn point and down passage to ensure we have a path to the exit
-        let first_crack_tiles = CracksBuilder::build(&mut zone);
-
-        // Random starting point for player, taken from first crack
-        for &index in first_crack_tiles.iter().skip(2) {
-            if zone.tiles[index] != TileType::Wall {
-                zone.player_spawn_point = index;
-                break;
-            }
-        }
-
-        let (mut try_x, mut try_y);
-        zone.player_spawn_point = zone.tiles.len() / 2;
-        while zone.tiles[zone.player_spawn_point] == TileType::Wall {
-            try_x = Roll::dice(1, MAP_WIDTH - 2);
-            try_y = Roll::dice(1, MAP_HEIGHT - 2);
-            zone.player_spawn_point = Zone::get_index_from_xy(&try_x, &try_y);
-        }
-
         // Populate water and blocked tiles here, needed for correct spawning
         zone.populate_blocked();
         zone.populate_water();
@@ -105,25 +86,39 @@ impl ZoneBuilder for DrunkenWalkZoneBuilder {
         let items_number = max(0, Roll::dice(1, MAX_ITEMS_IN_ZONE) + 3 - depth as i32);
         let fauna_number = max(0, Roll::d20() + 3);
         let braziers_number = max(0, Roll::dice(2, MAX_BRAZIER_IN_ZONE) - depth as i32);
+        let (mut try_x, mut try_y);
+
+        // Random braziers
+        for _ in 0..braziers_number {
+            let mut brazier_index = zone.tiles.len() / 2;
+            while zone.tiles[brazier_index] != TileType::Floor {
+                try_x = Roll::dice(1, MAP_WIDTH - 2);
+                try_y = Roll::dice(1, MAP_HEIGHT - 2);
+                brazier_index = Zone::get_index_from_xy(&try_x, &try_y);
+            }
+            zone.tiles[brazier_index] = TileType::Brazier;
+        }
 
         for _ in 0..monster_number {
-            for _ in 0..MAX_SPAWN_TENTANTIVES {
+            for _ in 0..MAX_SPAWN_TENTATIVES {
                 let x = Roll::dice(1, MAP_WIDTH - 2) as f32;
                 let y = Roll::dice(1, MAP_HEIGHT - 2) as f32;
                 let index = Zone::get_index_from_xy_f32(x, y);
 
                 // avoid walls, player and duplicate spawnpoints
                 if index != zone.player_spawn_point
-                    && zone.tiles[Zone::get_index_from_xy_f32(x, y)] != TileType::Wall
-                    && zone.monster_spawn_points.insert(index)
+                    && (zone.tiles[Zone::get_index_from_xy_f32(x, y)] == TileType::Floor
+                        || zone.tiles[Zone::get_index_from_xy_f32(x, y)] == TileType::Water)
+                    && !zone.monster_spawn_points.contains(&index)
                 {
+                    zone.monster_spawn_points.insert(index);
                     break;
                 }
             }
         }
 
         for _ in 0..items_number {
-            for _ in 0..MAX_SPAWN_TENTANTIVES {
+            for _ in 0..MAX_SPAWN_TENTATIVES {
                 let x = Roll::dice(1, MAP_WIDTH - 2) as f32;
                 let y = Roll::dice(1, MAP_HEIGHT - 2) as f32;
                 let index = Zone::get_index_from_xy_f32(x, y);
@@ -139,7 +134,7 @@ impl ZoneBuilder for DrunkenWalkZoneBuilder {
         }
 
         for _ in 0..fauna_number {
-            for _ in 0..MAX_SPAWN_TENTANTIVES {
+            for _ in 0..MAX_SPAWN_TENTATIVES {
                 let x = Roll::dice(1, MAP_WIDTH - 2) as f32;
                 let y = Roll::dice(1, MAP_HEIGHT - 2) as f32;
                 let index = Zone::get_index_from_xy_f32(x, y);
@@ -154,24 +149,31 @@ impl ZoneBuilder for DrunkenWalkZoneBuilder {
             }
         }
 
-        // Random braziers
-        for _ in 0..braziers_number {
-            let mut brazier_index = zone.tiles.len() / 2;
-            while zone.tiles[brazier_index] != TileType::Floor {
-                try_x = Roll::dice(1, MAP_WIDTH - 2);
-                try_y = Roll::dice(1, MAP_HEIGHT - 2);
-                brazier_index = Zone::get_index_from_xy(&try_x, &try_y);
-            }
-            zone.tiles[brazier_index] = TileType::Brazier;
+        // First crack generation, used for player spawn point and down passage to ensure we have a path to the exit
+        let mut first_crack_tiles = CracksBuilder::build(&mut zone);
+        while first_crack_tiles.is_empty() {
+            first_crack_tiles = CracksBuilder::build(&mut zone);
         }
 
-        // Random point for DownPassage, taken from the craked wall. This ensures that the passage is somehow reachable.
-        for &index in first_crack_tiles.iter().skip(first_crack_tiles.len() / 2) {
-            if zone.tiles[index] != TileType::Wall {
-                zone.tiles[index] = TileType::DownPassage;
+        // Random starting point for player, taken from first crack
+        for &index in first_crack_tiles.iter().skip(2) {
+            if zone.tiles[index] == TileType::Floor {
+                zone.player_spawn_point = index;
                 break;
             }
         }
+
+        zone.player_spawn_point = zone.tiles.len() / 2;
+        while zone.tiles[zone.player_spawn_point] == TileType::Wall {
+            try_x = Roll::dice(1, MAP_WIDTH - 2);
+            try_y = Roll::dice(1, MAP_HEIGHT - 2);
+            zone.player_spawn_point = Zone::get_index_from_xy(&try_x, &try_y);
+        }
+
+        // Random point for DownPassage, taken from the craked wall. This ensures that the passage is somehow reachable.
+        let down_passage_roll = Roll::dice(1, first_crack_tiles.len() as i32) as usize - 1;
+        let down_passage_index = first_crack_tiles[down_passage_roll];
+        zone.tiles[down_passage_index] = TileType::DownPassage;
 
         // Add random cracks
         let cracks_number = Roll::dice(1, MAX_CRACKS_IN_ZONE) + (depth as i32 / 3);
