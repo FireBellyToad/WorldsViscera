@@ -60,11 +60,11 @@ impl DamageManager {
             // Venomous hits
             if damageable.toughness_damage_received > 0 {
                 stats.current_toughness = max(
-                    1,
+                    0,
                     stats.current_toughness - damageable.toughness_damage_received,
                 );
 
-                if stats.current_toughness == 1 {
+                if stats.current_toughness < 1 {
                     stats.current_stamina = 0;
                 }
             }
