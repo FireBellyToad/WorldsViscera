@@ -109,11 +109,6 @@ async fn main() {
                     tick += 1;
                     println!("BeforeTick ---------------------------- tick {}", tick);
                     do_before_tick_logic(&mut game_state);
-                    game_state.run_state = RunState::DoTick;
-                }
-                RunState::DoTick => {
-                    println!("DoTick ---------------------------- tick {}", tick);
-                    do_in_tick_game_logic(&mut game_engine, &mut game_state);
 
                     if game_state.run_state != RunState::GameOver
                         && game_state.run_state != RunState::DrawParticles
@@ -122,13 +117,23 @@ async fn main() {
                             println!("Player's turn");
                             game_state.run_state = RunState::WaitingPlayerInput;
                         } else {
-                            game_state.run_state = RunState::BeforeTick;
+                            game_state.run_state = RunState::DoTick;
                         }
                     }
                 }
                 RunState::WaitingPlayerInput => {
                     do_tickless_logic(&mut game_state);
                     game_state.run_state = Player::checks_keyboard_input(&mut game_state.ecs_world);
+                }
+                RunState::DoTick => {
+                    println!("DoTick ---------------------------- tick {}", tick);
+                    do_in_tick_game_logic(&mut game_engine, &mut game_state);
+
+                    if game_state.run_state != RunState::GameOver
+                        && game_state.run_state != RunState::DrawParticles
+                    {
+                        game_state.run_state = RunState::BeforeTick;
+                    }
                 }
                 RunState::GameOver => {
                     // Quit game on Q
@@ -266,6 +271,9 @@ fn do_before_tick_logic(game_state: &mut EngineState) {
     MonsterThink::run(&mut game_state.ecs_world);
     LeaveTrailSystem::handle_spawned_trail(&mut game_state.ecs_world);
     AdvancementSystem::run(&mut game_state.ecs_world);
+    // These Systems must always be run last
+    MapIndexing::run(&game_state.ecs_world);
+    FieldOfView::calculate(&game_state.ecs_world);
 }
 
 fn do_in_tick_game_logic(game_engine: &mut GameEngine, game_state: &mut EngineState) {

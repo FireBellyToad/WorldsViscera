@@ -153,16 +153,20 @@ impl Player {
             }
         }
 
+        // if return_state == RunState::DoTick here, than is moving, needs to wait!
+        if return_state == RunState::DoTick {
+            Player::wait_after_action(ecs_world);
+        }
+
         // Attack if needed
         if let Some((attacker, target)) = attacker_target {
             let _ = ecs_world.insert_one(attacker, WantsToMelee { target });
-
             return_state = RunState::DoTick;
         }
+
         // Dig if needed
         if let Some((digger, tool, target)) = digger_target {
             let _ = ecs_world.insert_one(digger, WantsToDig { target, tool });
-
             return_state = RunState::DoTick;
         }
 
@@ -289,13 +293,9 @@ impl Player {
             }
         }
 
-        // Wait if any real action is taken
-        if run_state == RunState::DoTick {
-            // Reset heal counter if the player did not wait through space or . key
-            if !is_actively_waiting {
-                Player::reset_heal_counter(ecs_world);
-            }
-            Player::wait_after_action(ecs_world);
+        // Reset heal counter if the player did not wait through space or . key
+        if run_state == RunState::DoTick && !is_actively_waiting {
+            Player::reset_heal_counter(ecs_world);
         }
 
         run_state
@@ -379,7 +379,6 @@ impl Player {
             None => {}
             Some(item) => {
                 picked_something = true;
-                println!("pick_up {:?}", item);
                 let _ = ecs_world.insert_one(player_entity, WantsItem { item });
             }
         }
