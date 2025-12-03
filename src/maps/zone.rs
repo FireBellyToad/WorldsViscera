@@ -13,6 +13,8 @@ pub enum TileType {
     Brazier,
     Water,
     CrackedWall,
+    MushroomField,
+    FieldFence,
 }
 #[derive(Clone, Debug, PartialEq)]
 pub enum DecalType {
@@ -95,9 +97,10 @@ impl Zone {
     pub fn populate_blocked(&mut self) {
         for (index, tile) in self.tiles.iter_mut().enumerate() {
             match tile {
-                TileType::DownPassage | TileType::Floor | TileType::Water => {
-                    self.blocked_tiles[index] = false
-                }
+                TileType::DownPassage
+                | TileType::Floor
+                | TileType::Water
+                | TileType::MushroomField => self.blocked_tiles[index] = false,
                 _ => self.blocked_tiles[index] = true,
             }
         }
@@ -132,6 +135,8 @@ impl Zone {
             TileType::Brazier => (4.0, 0.0),
             TileType::Water => (0.0, 1.0),
             TileType::CrackedWall => (1.0, 1.0),
+            TileType::MushroomField => (2.0, 1.0),
+            TileType::FieldFence => (3.0, 1.0),
         }
     }
 

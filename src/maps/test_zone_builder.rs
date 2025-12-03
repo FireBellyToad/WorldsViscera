@@ -1,7 +1,8 @@
 use crate::{
     constants::*,
     maps::{
-        ZoneBuilder,
+        ZoneBuilder, ZoneFeatureBuilder,
+        mushroom_field_builder::MushroomFieldBuilder,
         zone::{TileType, Zone},
     },
     utils::{common::Utils, roll::Roll},
@@ -40,6 +41,9 @@ impl ZoneBuilder for TestZoneBuilder {
                 }
             }
         }
+
+        //Mushroom Field
+        MushroomFieldBuilder::build(&mut zone);
 
         // Populate water and blocked tiles here, needed for correct spawning
         zone.populate_blocked();

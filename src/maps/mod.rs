@@ -4,6 +4,7 @@ pub mod arena_zone_builder;
 pub mod cracks_builder;
 pub mod drunken_walk_zone_builder;
 pub mod dungeon_zone_builder;
+pub mod mushroom_field_builder;
 pub mod river_builder;
 pub mod test_zone_builder;
 pub mod zone;
