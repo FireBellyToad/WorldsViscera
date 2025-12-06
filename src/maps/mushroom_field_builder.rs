@@ -9,52 +9,24 @@ use crate::{
     utils::roll::Roll,
 };
 
+const SIZE_DICE: i32 = 3;
+const SIZE_MODIFIER: i32 = 4;
+
 pub struct MushroomFieldBuilder {}
 
 /// Builds a shop in the given zone.
 impl ZoneFeatureBuilder for MushroomFieldBuilder {
-    /**
-    * Rendering minimo spazio libero 3 x 3
-
-    ▫️▫️▫️▫️
-    ▫️🟫🟫▫️
-    ▫️🟫🟫▫️
-    ▫️▫️▫️▫️
-
-    Rendering massimo spazio libero 6 x 6
-
-    ▫️▫️▫️▫️▫️▫️▫️
-    ▫️🟫🟫🟫🟫🟫▫️
-    ▫️🟫🟫🟫🟫🟫▫️
-    ▫️🟫🟫🟫🟫🟫▫️
-    ▫️🟫🟫🟫🟫🟫▫️
-    ▫️🟫🟫🟫🟫🟫▫️
-    ▫️▫️▫️▫️▫️▫️▫️
-
-
-       1.a. Capire quanto si può espandere mantenendo una forma quadrata con un massimo di 6x6
-    3. scegli un 🟫 casuale e impianta 1 🟢,🔴 o 🍄, 🍄‍🟫
-    4. Fino a che tutti gli 🟫 sono stati esplorati, ripeti:
-       3.a. Prendi uno 🟫 in ordine da top left
-       3.b. Se libero, Con 1 su d4 impianta 1 🟢,🔴 o 🍄, 🍄‍🟫
-    5. Piazza il coltivatore in uno degli ▫️ liberi
-    6. riempi gli altri ▫️ con 🌑
-
-    *
-    */
     fn build(zone: &mut Zone) -> Vec<usize> {
-        //1. Decidere se è un campo di 🟢,🔴 o 🍄, 🍄‍🟫
-
-        // 2. search for free spaces to build the field in
+        // 1. search for free spaces to build the field in
         let mut field_tiles: Vec<usize> = Vec::new();
-        //2.1 Create a potential fertilized space from 4x4 to 7x7
-        let mut size = Roll::dice(1, 3) + 3;
+        //2 Create a potential fertilized space from 4x4 to 7x7
+        let mut size = Roll::dice(1, SIZE_DICE) + SIZE_MODIFIER;
         let mut x = Roll::dice(1, MAP_WIDTH - size - 1);
         let mut y = Roll::dice(1, MAP_HEIGHT - size - 1);
         let mut field_rect = Rect::new_from_i32(x, y, size, size);
 
         for _ in 0..150 {
-            // 2.2 check if the space is free
+            // 2.1 check if the space is free
             let mut is_free = true;
             for y in field_rect.y as i32..(field_rect.y + field_rect.h) as i32 {
                 for x in field_rect.x as i32..(field_rect.x + field_rect.w) as i32 {
@@ -76,7 +48,7 @@ impl ZoneFeatureBuilder for MushroomFieldBuilder {
                 break;
             }
 
-            // 2.3 get new size and rect for next iteration
+            // 2.2 get new size and rect for next iteration
             size = Roll::dice(1, 3) + 3;
             x = Roll::dice(1, MAP_WIDTH - size - 1);
             y = Roll::dice(1, MAP_HEIGHT - size - 1);
@@ -109,7 +81,12 @@ impl ZoneFeatureBuilder for MushroomFieldBuilder {
                     zone.tiles[Zone::get_index_from_xy(&x, &y)] = TileType::FieldFence;
                 }
             } else {
-                zone.tiles[Zone::get_index_from_xy(&x, &y)] = TileType::MushroomField;
+                let index = Zone::get_index_from_xy(&x, &y);
+                zone.tiles[index] = TileType::MushroomField;
+                // Put mushrooms!
+                if Roll::dice(1, 4) == 1 {
+                    zone.fauna_spawn_points.insert(index);
+                }
             }
         }
 

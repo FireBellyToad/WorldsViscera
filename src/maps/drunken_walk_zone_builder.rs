@@ -5,6 +5,7 @@ use crate::{
     maps::{
         ZoneBuilder, ZoneFeatureBuilder,
         cracks_builder::CracksBuilder,
+        mushroom_field_builder::MushroomFieldBuilder,
         river_builder::RiverBuilder,
         zone::{TileType, Zone},
     },
@@ -75,6 +76,11 @@ impl ZoneBuilder for DrunkenWalkZoneBuilder {
         );
         for _ in 0..river_number {
             RiverBuilder::build(&mut zone);
+        }
+
+        //Mushroom Field
+        if depth % MUSHROOM_FIELD_LEVEL == 0 {
+            MushroomFieldBuilder::build(&mut zone);
         }
 
         // Populate water and blocked tiles here, needed for correct spawning
