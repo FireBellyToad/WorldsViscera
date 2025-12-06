@@ -42,9 +42,6 @@ impl ZoneBuilder for TestZoneBuilder {
             }
         }
 
-        //Mushroom Field
-        MushroomFieldBuilder::build(&mut zone);
-
         // Populate water and blocked tiles here, needed for correct spawning
         zone.populate_blocked();
         zone.populate_water();
@@ -59,6 +56,9 @@ impl ZoneBuilder for TestZoneBuilder {
             TileType::Brazier;
         zone.tiles[Zone::get_index_from_xy_f32(MAP_WIDTH_F32 * 0.75, MAP_HEIGHT_F32 * 0.75)] =
             TileType::Brazier;
+
+        //Mushroom Field
+        MushroomFieldBuilder::build(&mut zone);
 
         // Generate items spawn points within each room
         let items_number = Roll::dice(1, MAX_ITEMS_IN_ZONE) + 15;
