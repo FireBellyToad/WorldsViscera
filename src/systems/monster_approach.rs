@@ -109,8 +109,22 @@ impl MonsterApproach {
                     (wants_to_approach.target_x, wants_to_approach.target_y);
 
                 if zone.blocked_tiles[Zone::get_index_from_xy(&move_to_x, &move_to_y)] {
-                    // If destination is somehow now blocked, monster cannot move
-                    continue;
+                    // If destination is somehow now blocked, monster move to first empty space from top left.
+                    let mut can_move = false;
+                    for y in position.y - 1..position.y + 1 {
+                        for x in position.x - 1..position.x + 1 {
+                            if !zone.blocked_tiles[Zone::get_index_from_xy(&x, &y)] {
+                                wants_to_approach.target_x = x;
+                                wants_to_approach.target_y = y;
+                                can_move = true;
+                                break;
+                            }
+                        }
+                    }
+                    //If none found, just stops
+                    if !can_move {
+                        continue;
+                    }
                 }
 
                 let pathfinding_result = Pathfinding::dijkstra_wrapper(
