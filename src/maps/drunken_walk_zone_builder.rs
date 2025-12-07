@@ -1,5 +1,7 @@
 use std::cmp::max;
 
+use hecs::World;
+
 use crate::{
     constants::*,
     maps::{
@@ -17,7 +19,7 @@ pub struct DrunkenWalkZoneBuilder {}
 
 impl ZoneBuilder for DrunkenWalkZoneBuilder {
     /// Create new dungeon zone (needed?)
-    fn build(depth: u32) -> Zone {
+    fn build(depth: u32, ecs_world: &mut World) -> Zone {
         let mut zone = Zone::new(depth);
 
         // Simple Drunken walk
@@ -75,12 +77,12 @@ impl ZoneBuilder for DrunkenWalkZoneBuilder {
             Roll::dice(1, MAX_RIVERS_IN_ZONE) + 1 - (depth as i32 / 3),
         );
         for _ in 0..river_number {
-            RiverBuilder::build(&mut zone);
+            RiverBuilder::build(&mut zone, ecs_world);
         }
 
         //Mushroom Field
-        if depth % MUSHROOM_FIELD_LEVEL == 0 {
-            MushroomFieldBuilder::build(&mut zone);
+        if depth.is_multiple_of(MUSHROOM_FIELD_LEVEL) {
+            MushroomFieldBuilder::build(&mut zone, ecs_world);
         }
 
         // Populate water and blocked tiles here, needed for correct spawning
@@ -156,9 +158,9 @@ impl ZoneBuilder for DrunkenWalkZoneBuilder {
         }
 
         // First crack generation, used for player spawn point and down passage to ensure we have a path to the exit
-        let mut first_crack_tiles = CracksBuilder::build(&mut zone);
+        let mut first_crack_tiles = CracksBuilder::build(&mut zone, ecs_world);
         while first_crack_tiles.is_empty() {
-            first_crack_tiles = CracksBuilder::build(&mut zone);
+            first_crack_tiles = CracksBuilder::build(&mut zone, ecs_world);
         }
 
         // Random starting point for player, taken from first crack
@@ -184,7 +186,7 @@ impl ZoneBuilder for DrunkenWalkZoneBuilder {
         // Add random cracks
         let cracks_number = Roll::dice(1, MAX_CRACKS_IN_ZONE) + (depth as i32 / 3);
         for _ in 0..cracks_number {
-            CracksBuilder::build(&mut zone);
+            CracksBuilder::build(&mut zone, ecs_world);
         }
 
         zone

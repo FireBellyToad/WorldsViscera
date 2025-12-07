@@ -1,3 +1,5 @@
+use hecs::World;
+
 use crate::{
     constants::*,
     maps::{
@@ -12,7 +14,7 @@ pub struct ArenaZoneBuilder {}
 
 impl ZoneBuilder for ArenaZoneBuilder {
     /// Create new dungeon zone (needed?)
-    fn build(depth: u32) -> Zone {
+    fn build(depth: u32, _: &mut World) -> Zone {
         let mut zone = Zone::new(depth);
 
         // Create boundaries

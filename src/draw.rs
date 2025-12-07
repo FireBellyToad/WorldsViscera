@@ -45,8 +45,8 @@ impl Draw {
                     Draw::renderables(&game_state.ecs_world, assets, zone);
                     Draw::smells(&game_state.ecs_world, assets, zone);
 
-                    // #[cfg(not(target_arch = "wasm32"))]
-                    // Draw::debug_exit(zone);
+                    #[cfg(not(target_arch = "wasm32"))]
+                    Draw::debug_exit(zone);
                 }
 
                 //Overlay

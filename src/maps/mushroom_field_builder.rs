@@ -1,11 +1,13 @@
+use hecs::World;
 use macroquad::math::Rect;
 
 use crate::{
-    constants::{MAP_HEIGHT, MAP_WIDTH},
+    constants::{MAP_HEIGHT, MAP_WIDTH, MUSHROOM_EXCELLENT},
     maps::{
         ZoneFeatureBuilder,
         zone::{TileType, Zone},
     },
+    spawning::spawner::Spawn,
     utils::roll::Roll,
 };
 
@@ -16,7 +18,7 @@ pub struct MushroomFieldBuilder {}
 
 /// Builds a shop in the given zone.
 impl ZoneFeatureBuilder for MushroomFieldBuilder {
-    fn build(zone: &mut Zone) -> Vec<usize> {
+    fn build(zone: &mut Zone, ecs_world: &mut World) -> Vec<usize> {
         // 1. search for free spaces to build the field in
         let mut field_tiles: Vec<usize> = Vec::new();
         //2 Create a potential fertilized space from 4x4 to 7x7
@@ -85,7 +87,7 @@ impl ZoneFeatureBuilder for MushroomFieldBuilder {
                 zone.tiles[index] = TileType::MushroomField;
                 // Put mushrooms!
                 if Roll::dice(1, 4) == 1 {
-                    zone.fauna_spawn_points.insert(index);
+                    Spawn::mushroom(ecs_world, x, y, MUSHROOM_EXCELLENT);
                 }
             }
         }

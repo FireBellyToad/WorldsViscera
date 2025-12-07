@@ -1,5 +1,6 @@
 use std::cmp::{max, min};
 
+use hecs::World;
 use macroquad::prelude::*;
 
 use crate::{
@@ -17,7 +18,7 @@ pub struct DungeonZoneBuilder {}
 
 impl ZoneBuilder for DungeonZoneBuilder {
     /// Create new dungeon zone (needed?)
-    fn build(depth: u32) -> Zone {
+    fn build(depth: u32, _: &mut World) -> Zone {
         let mut zone = Zone::new(depth);
 
         const MAX_ROOMS: i32 = 30;

@@ -1,3 +1,5 @@
+use hecs::World;
+
 use crate::maps::zone::Zone;
 
 pub mod arena_zone_builder;
@@ -11,12 +13,12 @@ pub mod zone;
 
 /// Trait for Zone Builders
 pub trait ZoneBuilder {
-    fn build(depth: u32) -> Zone;
+    fn build(depth: u32, ecs_world: &mut World) -> Zone;
 }
 
 /// Trait for Zone Feature Builders
 pub trait ZoneFeatureBuilder {
-    fn build(zone: &mut Zone) -> Vec<usize>;
+    fn build(zone: &mut Zone, ecs_world: &mut World) -> Vec<usize>;
 }
 
 enum ZoneFeatureBuilderOrigin {

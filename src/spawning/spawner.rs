@@ -13,8 +13,6 @@ use crate::components::items::{
 use crate::components::player::Player;
 use crate::constants::*;
 use crate::maps::zone::{TileType, Zone};
-use crate::spawning::items::*;
-use crate::spawning::monsters::*;
 use crate::systems::hunger_check::HungerStatus;
 use crate::systems::thirst_check::ThirstStatus;
 use crate::utils::assets::TextureName;
@@ -152,13 +150,13 @@ impl Spawn {
 
         // Depth based spawn table, recursive if roll is too high
         match dice_roll {
-            (1..=5) => giant_slug(ecs_world, x, y),
-            (6..=9) => giant_cockroach(ecs_world, x, y),
-            (10..=12) => deep_one(ecs_world, x, y),
-            13 => centipede(ecs_world, x, y),
-            14 => gremlin(ecs_world, x, y),
-            15 => moleman(ecs_world, x, y),
-            16 => sulfuric_slug(ecs_world, x, y),
+            (1..=5) => Spawn::giant_slug(ecs_world, x, y),
+            (6..=9) => Spawn::giant_cockroach(ecs_world, x, y),
+            (10..=12) => Spawn::deep_one(ecs_world, x, y),
+            13 => Spawn::centipede(ecs_world, x, y),
+            14 => Spawn::gremlin(ecs_world, x, y),
+            15 => Spawn::moleman(ecs_world, x, y),
+            16 => Spawn::sulfuric_slug(ecs_world, x, y),
             _ => Spawn::random_terrain_monster(ecs_world, x, y, depth - 1),
         }
     }
@@ -169,8 +167,8 @@ impl Spawn {
 
         // Depth based spawn table, recursive if roll is too high
         match dice_roll {
-            (1..=4) => cave_shrimp(ecs_world, x, y),
-            (5..=9) => freshwater_viperfish(ecs_world, x, y),
+            (1..=4) => Spawn::cave_shrimp(ecs_world, x, y),
+            (5..=9) => Spawn::freshwater_viperfish(ecs_world, x, y),
             _ => Spawn::random_water_monster(ecs_world, x, y, depth - 1),
         }
     }
@@ -179,25 +177,25 @@ impl Spawn {
     pub fn random_item(ecs_world: &mut World, x: i32, y: i32) {
         let dice_roll = Roll::dice(1, 26);
         match dice_roll {
-            (1..=3) => shiv(ecs_world, x, y),
-            (4..=6) => flask_of_oil(ecs_world, x, y),
-            (7..=9) => slingshot_ammo(ecs_world, x, y),
+            (1..=3) => Spawn::shiv(ecs_world, x, y),
+            (4..=6) => Spawn::flask_of_oil(ecs_world, x, y),
+            (7..=9) => Spawn::slingshot_ammo(ecs_world, x, y),
             10 | 11 => {
-                let _ = rockpick(ecs_world, x, y);
+                let _ = Spawn::rockpick(ecs_world, x, y);
             }
-            12 | 13 => slingshot(ecs_world, x, y),
-            14 | 15 => leather_armor(ecs_world, x, y),
-            16 | 17 => lantern(ecs_world, x, y),
-            18 | 19 => leather_cap(ecs_world, x, y),
-            20 => flask_of_water(ecs_world, x, y),
+            12 | 13 => Spawn::slingshot(ecs_world, x, y),
+            14 | 15 => Spawn::leather_armor(ecs_world, x, y),
+            16 | 17 => Spawn::lantern(ecs_world, x, y),
+            18 | 19 => Spawn::leather_cap(ecs_world, x, y),
+            20 => Spawn::flask_of_water(ecs_world, x, y),
             21 => {
-                let _ = pickaxe(ecs_world, x, y);
+                let _ = Spawn::pickaxe(ecs_world, x, y);
             }
-            22 => crowssbow(ecs_world, x, y),
-            23 => crossbow_ammo(ecs_world, x, y),
-            24 => breastplate(ecs_world, x, y),
-            25 => wand(ecs_world, x, y),
-            26 => helmet(ecs_world, x, y),
+            22 => Spawn::crowssbow(ecs_world, x, y),
+            23 => Spawn::crossbow_ammo(ecs_world, x, y),
+            24 => Spawn::breastplate(ecs_world, x, y),
+            25 => Spawn::wand(ecs_world, x, y),
+            26 => Spawn::helmet(ecs_world, x, y),
             _ => {}
         };
     }
@@ -205,7 +203,7 @@ impl Spawn {
     /// Spawn random fauna
     pub fn random_fauna(ecs_world: &mut World, x: i32, y: i32) {
         // TODO Expand this function to spawn more types of fauna
-        mushroom(ecs_world, x, y);
+        Spawn::random_mushroom(ecs_world, x, y);
     }
 
     /// Spawn a corpse

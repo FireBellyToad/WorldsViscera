@@ -198,7 +198,7 @@ fn populate_world(ecs_world: &mut World) {
         },
     ));
 
-    let zone = ArenaZoneBuilder::build(1);
+    let zone = ArenaZoneBuilder::build(1, ecs_world);
 
     Spawn::player(ecs_world, &zone);
     Spawn::everyhing_in_map(ecs_world, &zone);
@@ -228,7 +228,7 @@ fn change_zone(engine: &mut EngineState) {
         let _ = engine.ecs_world.despawn(e);
     }
 
-    let zone = DrunkenWalkZoneBuilder::build(current_depth + 1);
+    let zone = DrunkenWalkZoneBuilder::build(current_depth + 1, &mut engine.ecs_world);
 
     // Scope for keeping borrow checker quiet
     {

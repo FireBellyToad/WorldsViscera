@@ -1,3 +1,5 @@
+use hecs::World;
+
 use crate::{
     constants::*,
     maps::{
@@ -14,7 +16,7 @@ pub struct TestZoneBuilder {}
 
 impl ZoneBuilder for TestZoneBuilder {
     /// Create new dungeon zone (needed?)
-    fn build(depth: u32) -> Zone {
+    fn build(depth: u32, ecs_world: &mut World) -> Zone {
         let mut zone = Zone::new(depth);
 
         // Create boundaries
@@ -58,7 +60,7 @@ impl ZoneBuilder for TestZoneBuilder {
             TileType::Brazier;
 
         //Mushroom Field
-        MushroomFieldBuilder::build(&mut zone);
+        MushroomFieldBuilder::build(&mut zone, ecs_world);
 
         // Generate items spawn points within each room
         let items_number = Roll::dice(1, MAX_ITEMS_IN_ZONE) + 15;

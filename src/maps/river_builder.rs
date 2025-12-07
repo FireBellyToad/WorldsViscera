@@ -1,3 +1,5 @@
+use hecs::World;
+
 use crate::{
     constants::{MAP_HEIGHT, MAP_WIDTH},
     maps::{
@@ -11,7 +13,7 @@ use crate::{
 pub struct RiverBuilder {}
 
 impl ZoneFeatureBuilder for RiverBuilder {
-    fn build(zone: &mut Zone) -> Vec<usize> {
+    fn build(zone: &mut Zone, _: &mut World) -> Vec<usize> {
         let mut river_tiles = Vec::new();
         let origin: ZoneFeatureBuilderOrigin;
 
