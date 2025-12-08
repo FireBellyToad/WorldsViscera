@@ -1,6 +1,9 @@
-use crate::components::{
-    common::Viewshed,
-    items::{Ammo, Armor, Equippable, RangedWeapon},
+use crate::{
+    components::{
+        common::Viewshed,
+        items::{Ammo, Armor, Equippable, RangedWeapon},
+    },
+    maps::zone::Zone,
 };
 use std::cmp::max;
 
@@ -161,12 +164,13 @@ impl Utils {
         let (mut new_x, mut new_y) = (-1, -1);
         let mut distance = 0.0;
 
-        for (x, y) in viewshed.visible_tiles.iter() {
-            let new_distance = Utils::distance(target_x, x, target_y, y);
+        for &index in viewshed.visible_tiles.iter() {
+            let (x, y) = Zone::get_xy_from_index(index);
+            let new_distance = Utils::distance(target_x, &x, target_y, &y);
             if new_distance > distance {
                 distance = new_distance;
-                new_x = *x;
-                new_y = *y;
+                new_x = x;
+                new_y = y;
             }
         }
 

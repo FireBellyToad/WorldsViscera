@@ -35,8 +35,8 @@ impl FieldOfView {
                 //recalculate rendered view if entity is Player
                 if entity.id() == player_entity_id {
                     zone.visible_tiles.fill(false);
-                    for &(x, y) in viewshed.visible_tiles.iter() {
-                        let index = Zone::get_index_from_xy(&x, &y);
+                    for &index in viewshed.visible_tiles.iter() {
+                        let (x, y) = Zone::get_xy_from_index(index);
                         let distance = Utils::distance(&x, &position.x, &y, &position.y);
 
                         // if is lit, that we can show and reveal
@@ -58,7 +58,9 @@ impl FieldOfView {
 
         // Utility lambda for setting visible tiles
         let set_to_visible = |position: IVec2| {
-            viewshed.visible_tiles.push((position[0], position[1]));
+            viewshed
+                .visible_tiles
+                .push(Zone::get_index_from_xy(&position[0], &position[1]));
         };
 
         // Calculate Fov
@@ -71,8 +73,10 @@ impl FieldOfView {
         );
 
         // Sort visible tiles by distance from origin. Needed for better IA handling
-        viewshed.visible_tiles.sort_by(|(ax, ay), (bx, by)| {
-            Utils::distance(&x, ax, &y, ay).total_cmp(&Utils::distance(&x, bx, &y, by))
+        viewshed.visible_tiles.sort_by(|&a_index, &b_index| {
+            let (ax, ay) = Zone::get_xy_from_index(a_index);
+            let (bx, by) = Zone::get_xy_from_index(b_index);
+            Utils::distance(&x, &ax, &y, &ay).total_cmp(&Utils::distance(&x, &bx, &y, &by))
         });
     }
 }

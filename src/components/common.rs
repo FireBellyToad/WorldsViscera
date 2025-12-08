@@ -15,7 +15,7 @@ pub struct Renderable {
     pub z_index: i32,
 }
 pub struct Viewshed {
-    pub visible_tiles: Vec<(i32, i32)>,
+    pub visible_tiles: Vec<usize>,
     pub range: i32,
     pub must_recalculate: bool,
 }
@@ -77,6 +77,8 @@ pub struct Experience {
     pub value: u32,
     pub auto_advance_counter: u32,
 }
+
+pub struct Immobile {}
 
 #[derive(PartialEq, Debug)]
 pub enum SpeciesEnum {

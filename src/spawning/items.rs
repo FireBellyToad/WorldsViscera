@@ -253,7 +253,7 @@ impl Spawn {
         ecs_world.spawn(wand);
     }
 
-    pub fn crowssbow(ecs_world: &mut World, x: i32, y: i32) {
+    pub fn crowssbow(ecs_world: &mut World, x: i32, y: i32) -> Entity {
         let item_tile_index = (3, 2);
         let crowssbow = (
             Position { x, y },
@@ -287,7 +287,7 @@ impl Spawn {
             Metallic {},
         );
 
-        ecs_world.spawn(crowssbow);
+        ecs_world.spawn(crowssbow)
     }
 
     pub fn slingshot(ecs_world: &mut World, x: i32, y: i32) {
@@ -563,7 +563,7 @@ impl Spawn {
         ecs_world.spawn(dvergar_chain);
     }
 
-    pub fn crossbow_ammo(ecs_world: &mut World, x: i32, y: i32) {
+    pub fn crossbow_ammo(ecs_world: &mut World, x: i32, y: i32) -> Entity {
         let item_tile_index = (5, 0);
         let crossbow_ammo = (
             Position { x, y },
@@ -589,7 +589,7 @@ impl Spawn {
             },
         );
 
-        ecs_world.spawn(crossbow_ammo);
+        ecs_world.spawn(crossbow_ammo)
     }
 
     pub fn slingshot_ammo(ecs_world: &mut World, x: i32, y: i32) {

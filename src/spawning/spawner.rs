@@ -1,5 +1,5 @@
 use std::cmp::max;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use crate::components::combat::{CombatStats, SufferingDamage};
 use crate::components::common::{
@@ -191,8 +191,12 @@ impl Spawn {
             21 => {
                 let _ = Spawn::pickaxe(ecs_world, x, y);
             }
-            22 => Spawn::crowssbow(ecs_world, x, y),
-            23 => Spawn::crossbow_ammo(ecs_world, x, y),
+            22 => {
+                let _ = Spawn::crowssbow(ecs_world, x, y);
+            }
+            23 => {
+                let _ = Spawn::crossbow_ammo(ecs_world, x, y);
+            }
             24 => Spawn::breastplate(ecs_world, x, y),
             25 => Spawn::wand(ecs_world, x, y),
             26 => Spawn::helmet(ecs_world, x, y),

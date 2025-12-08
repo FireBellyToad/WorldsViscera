@@ -37,6 +37,13 @@ impl DamageManager {
 
         for (damaged_entity, (damageable, stats, position)) in &mut damageables {
             if damageable.damage_received > 0 {
+                // From now on, damaged entity will be hostile to its damager
+                if let Some(damager) = damageable.damager
+                    && let Ok(mut target_hates) = ecs_world.get::<&mut Hates>(damaged_entity)
+                {
+                    target_hates.list.insert(damager.id());
+                }
+
                 stats.current_stamina -= damageable.damage_received;
                 //Decrease stamina. If less then 0, delta is subtracted from toughness
                 if stats.current_stamina < 0 {
@@ -99,13 +106,6 @@ impl DamageManager {
                 if stats.current_stamina == 0
                     && (damageable.damage_received > 0 || damageable.toughness_damage_received > 0)
                 {
-                    // From now on, damaged entity will be hostile to its damager
-                    if let Some(damager) = damageable.damager
-                        && let Ok(mut target_hates) = ecs_world.get::<&mut Hates>(damager)
-                    {
-                        target_hates.list.insert(damager.id());
-                    }
-
                     let saving_throw_roll = Roll::d20();
                     if entity.id() == player_entity_id {
                         if stats.current_toughness < 1

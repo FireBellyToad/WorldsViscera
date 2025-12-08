@@ -1,4 +1,5 @@
 use hecs::World;
+use std::collections::HashSet;
 
 use crate::{
     components::{
@@ -44,8 +45,7 @@ impl MapIndexing {
 
             FieldOfView::compute(zone, &mut viewshed, dto.x, dto.y);
 
-            for (x, y) in viewshed.visible_tiles {
-                let index = Zone::get_index_from_xy(&x, &y);
+            for index in viewshed.visible_tiles {
                 zone.lit_tiles[index] = true;
             }
         }
@@ -53,8 +53,7 @@ impl MapIndexing {
         zone.clear_content_index();
         //index all the things in the zone based on their position
         for (entity, position) in &mut entites {
-            let index = Zone::get_index_from_xy(&position.x, &position.y);
-            zone.tile_content[index].push(entity);
+            zone.tile_content[Zone::get_index_from_xy(&position.x, &position.y)].push(entity);
         }
     }
 

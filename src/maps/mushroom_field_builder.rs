@@ -79,6 +79,7 @@ impl ZoneFeatureBuilder for MushroomFieldBuilder {
                 } else if !has_opening && (counter >= (size * 3) || Roll::dice(1, 4) == 1) {
                     // Guarantee an open space in the fence
                     has_opening = true;
+                    Spawn::moleman_farmer(ecs_world, x, y);
                 } else {
                     zone.tiles[Zone::get_index_from_xy(&x, &y)] = TileType::FieldFence;
                 }

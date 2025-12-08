@@ -7,8 +7,8 @@ use crate::{
     components::{
         combat::{CanHide, CombatStats, SufferingDamage},
         common::{
-            BlocksTile, Hates, MyTurn, Named, Position, ProduceCorpse, ProduceSound, Renderable,
-            SmellIntensity, Smellable, Species, SpeciesEnum, Viewshed,
+            BlocksTile, Hates, Immobile, MyTurn, Named, Position, ProduceCorpse, ProduceSound,
+            Renderable, SmellIntensity, Smellable, Species, SpeciesEnum, Viewshed,
         },
         health::Hunger,
         items::{BodyLocation, Deadly, Edible, Equipped, InBackback},
@@ -294,6 +294,76 @@ impl Spawn {
         }
 
         let _ = ecs_world.insert(moleman, (Smart {},));
+    }
+
+    pub fn moleman_farmer(ecs_world: &mut World, x: i32, y: i32) {
+        let moleman_farmer = Spawn::create_monster(
+            ecs_world,
+            "Mole-man farmer".to_string(),
+            Species {
+                value: SpeciesEnum::Undergrounder,
+            },
+            CombatStats {
+                level: 6,
+                current_stamina: 6,
+                max_stamina: 6,
+                base_armor: 0,
+                unarmed_attack_dice: 3,
+                current_toughness: 12,
+                max_toughness: 12,
+                current_dexterity: 8,
+                max_dexterity: 8,
+                speed: SLOW,
+            },
+            Edible {
+                nutrition_dice_number: 4,
+                nutrition_dice_size: 6,
+            },
+            Smellable {
+                smell_log: "coal drenched in vinegar".to_string(),
+                intensity: SmellIntensity::Faint,
+            },
+            ProduceSound {
+                sound_log: "someone mumbling".to_string(),
+            },
+            2.0,
+            0.0,
+            x,
+            y,
+        );
+
+        Spawn::moleman_chain(ecs_world, moleman_farmer);
+        let crosswbow = Spawn::crowssbow(ecs_world, x, y);
+        let _ = ecs_world.remove_one::<Position>(crosswbow);
+        let _ = ecs_world.insert(
+            crosswbow,
+            (
+                InBackback {
+                    owner: moleman_farmer,
+                    assigned_char: 'b',
+                },
+                Equipped {
+                    owner: moleman_farmer,
+                    body_location: BodyLocation::BothHands,
+                },
+            ),
+        );
+
+        // Give the farmer some ammo
+        for _ in 0..3 {
+            let crosswbow_ammo = Spawn::crossbow_ammo(ecs_world, x, y);
+            let _ = ecs_world.remove_one::<Position>(crosswbow_ammo);
+            let _ = ecs_world.insert(
+                crosswbow_ammo,
+                (InBackback {
+                    owner: moleman_farmer,
+                    assigned_char: 'c',
+                },),
+            );
+        }
+        // TODO Farmer cannot be hungry
+        // let _ = ecs_world.remove_one::<Hunger>(moleman_farmer);
+        let _ = ecs_world.insert(moleman_farmer, (Smart {}, Immobile {}));
     }
 
     /// Generic monster creation

@@ -31,6 +31,7 @@ impl MonsterApproach {
                     Option<&Aquatic>,
                     &mut WantsToApproach,
                     Option<&LeaveTrail>,
+                    Option<&Immobile>,
                 )>()
                 .with::<(&Monster, &MyTurn)>();
 
@@ -59,6 +60,7 @@ impl MonsterApproach {
                     aquatic,
                     wants_to_approach,
                     leave_trail,
+                    immobile,
                 ),
             ) in &mut named_monsters
             {
@@ -95,7 +97,6 @@ impl MonsterApproach {
                                         named.name
                                     ));
                                 }
-                                continue;
                             }
                         }
                         _ => {}
@@ -104,6 +105,11 @@ impl MonsterApproach {
 
                 //Monster must wait too after an action, even if this turn will not move!
                 waiter_speed_list.push((monster_entity, stats.speed));
+
+                if immobile.is_some() {
+                    approacher_list.push(monster_entity);
+                    continue;
+                }
 
                 let (move_to_x, move_to_y) =
                     (wants_to_approach.target_x, wants_to_approach.target_y);
@@ -123,6 +129,7 @@ impl MonsterApproach {
                     }
                     //If none found, just stops
                     if !can_move {
+                        approacher_list.push(monster_entity);
                         continue;
                     }
                 }

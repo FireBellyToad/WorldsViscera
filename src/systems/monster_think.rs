@@ -5,10 +5,14 @@ use crate::components::items::Equipped;
 use crate::components::monster::IsPrey;
 use crate::constants::MAP_HEIGHT;
 use crate::constants::MAP_WIDTH;
+use crate::constants::TILE_SIZE;
+use crate::constants::UI_BORDER;
 use crate::utils::roll::Roll;
 use std::collections::HashSet;
 
 use hecs::{Entity, World};
+use macroquad::color::YELLOW;
+use macroquad::shapes::draw_circle;
 
 use crate::{
     components::{
@@ -76,8 +80,8 @@ impl MonsterThink {
         {
             let mut named_monsters = ecs_world
                 .query::<(
-                    &mut Viewshed,
-                    &mut Position,
+                    &Viewshed,
+                    &Position,
                     &Species,
                     &Hates,
                     &Hunger,
@@ -382,20 +386,39 @@ impl MonsterThink {
         3. Si muove casualmente nella zona
 
         */
+        println!("Monster {} is thinking", monster_dto.self_id);
+        println!(
+            "Monster {} viewshed visible_tiles {}",
+            monster_dto.self_id,
+            monster_dto.viewshed.visible_tiles.len()
+        );
 
         // Search in range of view possible targets
-        for (x, y) in monster_dto.viewshed.visible_tiles.iter() {
-            let index = Zone::get_index_from_xy(x, y);
+        for &index in monster_dto.viewshed.visible_tiles.iter() {
+            let (x, y) = Zone::get_xy_from_index(index);
+            draw_circle(
+                (UI_BORDER + (x * TILE_SIZE) + TILE_SIZE / 2) as f32 - 3.0,
+                (UI_BORDER + (y * TILE_SIZE) + TILE_SIZE / 2) as f32 - 3.0,
+                6.0,
+                YELLOW,
+            );
+
             let distance: f32 =
-                Utils::distance(&monster_dto.position.x, x, &monster_dto.position.y, y);
+                Utils::distance(&monster_dto.position.x, &x, &monster_dto.position.y, &y);
             // Start by moving towards a potential target
             let mut action = MonsterAction::Move;
-
+            println!("looking at x {} y {}", x, y);
             for &entity in &monster_dto.zone.tile_content[index] {
                 // If looking at someone else
                 if *monster_dto.self_id != entity.id() {
-                    let is_creature = ecs_world.satisfies::<&Player>(entity).unwrap_or(false)
-                        || ecs_world.satisfies::<&Monster>(entity).unwrap_or(false);
+                    println!("looking at entity {}", entity.id());
+                    let is_player = ecs_world.satisfies::<&Player>(entity).unwrap_or(false);
+
+                    if is_player {
+                        println!("Player found");
+                    }
+                    let is_creature =
+                        is_player || ecs_world.satisfies::<&Monster>(entity).unwrap_or(false);
 
                     // If looking at a creature that is not hidden
                     if is_creature && !ecs_world.satisfies::<&IsHidden>(entity).unwrap_or(false) {
@@ -414,7 +437,7 @@ impl MonsterThink {
                         // Should be a cannibal in this state
                         // TODO do not make it suicidial, do level check on target
                         if monster_dto.hunger.current_status == HungerStatus::Starved {
-                            return (action, Some(entity), *x, *y);
+                            return (action, Some(entity), x, y);
                         } else {
                             let target_species = ecs_world
                                 .get::<&Species>(entity)
@@ -429,13 +452,13 @@ impl MonsterThink {
                                 if monster_dto.is_prey {
                                     let (target_x, target_y) =
                                         Utils::calculate_farthest_visible_point(
-                                            x,
-                                            y,
+                                            &x,
+                                            &y,
                                             monster_dto.viewshed,
                                         );
                                     return (MonsterAction::Move, Some(entity), target_x, target_y);
                                 } else {
-                                    return (action, Some(entity), *x, *y);
+                                    return (action, Some(entity), x, y);
                                 }
                             }
                         }
@@ -455,7 +478,7 @@ impl MonsterThink {
                                 HungerStatus::Starved => {
                                     // If starved and not smart, do stupid stuff like eating deadly food
                                     if !monster_dto.is_smart || !is_deadly {
-                                        return (action, Some(entity), *x, *y);
+                                        return (action, Some(entity), x, y);
                                     }
                                 }
                                 HungerStatus::Satiated => {
@@ -463,7 +486,7 @@ impl MonsterThink {
                                     //TODO maybe pick it up for later?
                                 }
                                 _ => {
-                                    return (action, Some(entity), *x, *y);
+                                    return (action, Some(entity), x, y);
                                 }
                             }
                         } else if monster_dto.is_smart && monster_dto.backpack_is_not_full {
@@ -473,7 +496,7 @@ impl MonsterThink {
                                 if distance == ON_TOP_DISTANCE {
                                     action = MonsterAction::PickUp;
                                 }
-                                return (action, Some(entity), *x, *y);
+                                return (action, Some(entity), x, y);
                             }
                         }
                     }

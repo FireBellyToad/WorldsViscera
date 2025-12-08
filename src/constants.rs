@@ -148,16 +148,16 @@ pub const UP_LEFT_DIR: f32 = 1.0;
 pub const DOWN_LEFT_DIR: f32 = 7.0;
 
 #[cfg(not(target_arch = "wasm32"))]
-pub const SIMPLE_PARTICLE_DURATION: f32 = 4000.0;
+pub const SIMPLE_PARTICLE_DURATION: f32 = 400.0;
 #[cfg(target_arch = "wasm32")]
 pub const SIMPLE_PARTICLE_DURATION: f32 = 15000.0;
 
 #[cfg(not(target_arch = "wasm32"))]
-pub const PROJECTILE_PARTICLE_DURATION: f32 = 4000.0;
+pub const PROJECTILE_PARTICLE_DURATION: f32 = 400.0;
 #[cfg(target_arch = "wasm32")]
 pub const PROJECTILE_PARTICLE_DURATION: f32 = 2000.0;
 
 #[cfg(not(target_arch = "wasm32"))]
-pub const RAY_PARTICLE_DURATION: f32 = 4000.0;
+pub const RAY_PARTICLE_DURATION: f32 = 400.0;
 #[cfg(target_arch = "wasm32")]
 pub const RAY_PARTICLE_DURATION: f32 = 3000.0;

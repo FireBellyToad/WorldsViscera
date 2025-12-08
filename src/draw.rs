@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use hecs::World;
 use macroquad::{
-    color::{BLACK, Color, DARKGRAY, GREEN, ORANGE, RED, WHITE, YELLOW},
+    color::{BLACK, BLUE, Color, DARKGRAY, GREEN, ORANGE, RED, WHITE, YELLOW},
     input::mouse_position,
     math::Rect,
     shapes::{draw_circle, draw_rectangle, draw_rectangle_lines},
@@ -13,7 +13,10 @@ use macroquad::{
 use crate::{
     components::{
         combat::{CombatStats, IsHidden},
-        common::{CanSmell, Experience, GameLog, Position, Renderable, SmellIntensity, Smellable},
+        common::{
+            CanSmell, Experience, GameLog, Position, Renderable, SmellIntensity, Smellable,
+            Viewshed,
+        },
         health::{Hunger, Thirst},
         player::{Player, SpecialViewMode},
     },
@@ -22,7 +25,7 @@ use crate::{
     engine::state::{EngineState, RunState},
     inventory::Inventory,
     maps::zone::{DecalType, TileType, Zone},
-    systems::{hunger_check::HungerStatus, thirst_check::ThirstStatus},
+    systems::{fov::FieldOfView, hunger_check::HungerStatus, thirst_check::ThirstStatus},
     utils::{
         assets::TextureName,
         common::Utils,
@@ -45,8 +48,8 @@ impl Draw {
                     Draw::renderables(&game_state.ecs_world, assets, zone);
                     Draw::smells(&game_state.ecs_world, assets, zone);
 
-                    #[cfg(not(target_arch = "wasm32"))]
-                    Draw::debug_exit(zone);
+                    // #[cfg(not(target_arch = "wasm32"))]
+                    // Draw::debug_exit(zone);
                 }
 
                 //Overlay
