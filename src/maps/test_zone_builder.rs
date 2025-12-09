@@ -66,21 +66,21 @@ impl ZoneBuilder for TestZoneBuilder {
         let items_number = Roll::dice(1, MAX_ITEMS_IN_ZONE) + 15;
         let monster_number = Roll::dice(1, MAX_MONSTERS_IN_ZONE) + 3;
 
-        for _ in 0..monster_number {
-            for _ in 0..MAX_SPAWN_TENTATIVES {
-                let x = Roll::dice(1, MAP_WIDTH - 2) as f32;
-                let y = Roll::dice(1, MAP_HEIGHT - 2) as f32;
-                let index = Zone::get_index_from_xy_f32(x, y);
+        // for _ in 0..monster_number {
+        //     for _ in 0..MAX_SPAWN_TENTATIVES {
+        //         let x = Roll::dice(1, MAP_WIDTH - 2) as f32;
+        //         let y = Roll::dice(1, MAP_HEIGHT - 2) as f32;
+        //         let index = Zone::get_index_from_xy_f32(x, y);
 
-                // avoid walls, player and duplicate spawnpoints
-                if index != zone.player_spawn_point
-                    && zone.tiles[Zone::get_index_from_xy_f32(x, y)] != TileType::Wall
-                    && zone.monster_spawn_points.insert(index)
-                {
-                    break;
-                }
-            }
-        }
+        //         // avoid walls, player and duplicate spawnpoints
+        //         if index != zone.player_spawn_point
+        //             && zone.tiles[Zone::get_index_from_xy_f32(x, y)] != TileType::Wall
+        //             && zone.monster_spawn_points.insert(index)
+        //         {
+        //             break;
+        //         }
+        //     }
+        // }
 
         for _ in 0..items_number {
             for _ in 0..MAX_SPAWN_TENTATIVES {
