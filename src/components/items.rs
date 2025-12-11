@@ -121,3 +121,7 @@ pub struct Eroded {
 }
 
 pub struct DiggingTool {}
+
+pub struct ShopOwner {
+    pub shop_tiles: Vec<usize>,
+}

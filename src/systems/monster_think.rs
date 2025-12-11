@@ -6,14 +6,10 @@ use crate::components::monster::IsPrey;
 use crate::constants::MAP_HEIGHT;
 use crate::constants::MAP_WIDTH;
 use crate::constants::MAX_PRIORITIES_NUMBER;
-use crate::constants::TILE_SIZE;
-use crate::constants::UI_BORDER;
 use crate::utils::roll::Roll;
 use std::collections::HashSet;
 
 use hecs::{Entity, World};
-use macroquad::color::YELLOW;
-use macroquad::shapes::draw_circle;
 
 use crate::{
     components::{

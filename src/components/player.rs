@@ -1,6 +1,6 @@
 use crate::components::combat::{SufferingDamage, WantsToDig, WantsToShoot};
 use crate::components::common::{Diggable, Named};
-use crate::components::items::{DiggingTool, RangedWeapon};
+use crate::components::items::{DiggingTool, RangedWeapon, ShopOwner};
 use crate::utils::common::ItemsInBackpack;
 use crate::utils::roll::Roll;
 use crate::{components::actions::WantsToInvoke, maps::zone::DecalType};
@@ -287,6 +287,11 @@ impl Player {
                             run_state = Player::try_shoot(ecs_world, player_entity);
                         }
 
+                        //Offer item to shop owner
+                        'o' => {
+                            run_state = Player::try_offer(ecs_world, player_entity);
+                        }
+
                         _ => {}
                     }
                 }
@@ -412,12 +417,11 @@ impl Player {
             .iter()
             .last()
             .expect("Player is not in hecs::World");
-        let player_position = position;
 
         let mut items = ecs_world.query::<(&Item, &Position)>();
         // Get item
         for (item_entity, (_tem, item_position)) in &mut items {
-            if player_position.x == item_position.x && player_position.y == item_position.y {
+            if position.x == item_position.x && position.y == item_position.y {
                 target_item = Some(item_entity);
             }
         }
@@ -486,7 +490,6 @@ impl Player {
     }
 
     fn try_next_level(ecs_world: &mut World) -> RunState {
-        let player_position;
         let standing_on_tile;
 
         //Scope to keep borrow checker quiet
@@ -496,15 +499,13 @@ impl Player {
                 .iter()
                 .last()
                 .expect("Player is not in hecs::World");
-            player_position = position;
 
             let mut zone_query = ecs_world.query::<&Zone>();
             let (_, zone) = zone_query
                 .iter()
                 .last()
                 .expect("Zone is not in hecs::World");
-            standing_on_tile =
-                &zone.tiles[Zone::get_index_from_xy(&player_position.x, &player_position.y)];
+            standing_on_tile = &zone.tiles[Zone::get_index_from_xy(&position.x, &position.y)];
 
             let mut game_log_query = ecs_world.query::<&mut GameLog>();
             let (_, game_log) = game_log_query
@@ -655,5 +656,43 @@ impl Player {
             .get::<&mut Viewshed>(Player::get_entity(ecs_world))
             .expect("Player entity does not have a Viewshed");
         player_viewshed.must_recalculate = true;
+    }
+
+    pub fn try_offer(ecs_world: &mut World, _player: Entity) -> RunState {
+        // Scope for keeping borrow checker quiet
+        {
+            let mut zone_query = ecs_world.query::<&Zone>();
+            let (_, zone) = zone_query
+                .iter()
+                .last()
+                .expect("Zone is not in hecs::World");
+
+            let mut player_query = ecs_world.query::<&Viewshed>().with::<&Player>();
+            let (_, viewshed) = player_query
+                .iter()
+                .last()
+                .expect("Player is not in hecs::World");
+
+            for &index in &viewshed.visible_tiles {
+                for &entity in &zone.tile_content[index] {
+                    if ecs_world.satisfies::<&ShopOwner>(entity).unwrap_or(false) {
+                        println!("Will offer something");
+                        return RunState::DoTick;
+                    }
+                }
+            }
+        }
+
+        let mut game_log_query = ecs_world.query::<&mut GameLog>();
+        let (_, game_log) = game_log_query
+            .iter()
+            .last()
+            .expect("Game log is not in hecs::World");
+
+        game_log
+            .entries
+            .push("You can't see anyone willing to trade.".to_string());
+
+        RunState::WaitingPlayerInput
     }
 }

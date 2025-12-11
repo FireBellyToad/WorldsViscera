@@ -1,7 +1,8 @@
-use hecs::World;
+use hecs::{Entity, World};
 use macroquad::math::Rect;
 
 use crate::{
+    components::items::ShopOwner,
     constants::{MAP_HEIGHT, MAP_WIDTH, MUSHROOM_EXCELLENT},
     maps::{
         ZoneFeatureBuilder,
@@ -20,7 +21,7 @@ pub struct MushroomFieldBuilder {}
 impl ZoneFeatureBuilder for MushroomFieldBuilder {
     fn build(zone: &mut Zone, ecs_world: &mut World) -> Vec<usize> {
         // 1. search for free spaces to build the field in
-        let mut field_tiles: Vec<usize> = Vec::new();
+        let mut tiles: Vec<usize> = Vec::new();
         //2 Create a potential fertilized space from 4x4 to 7x7
         let mut size = Roll::dice(1, SIZE_DICE) + SIZE_MODIFIER;
         let mut x = Roll::dice(1, MAP_WIDTH - size - 1);
@@ -34,10 +35,10 @@ impl ZoneFeatureBuilder for MushroomFieldBuilder {
                 for x in field_rect.x as i32..(field_rect.x + field_rect.w) as i32 {
                     if zone.tiles[Zone::get_index_from_xy(&x, &y)] != TileType::Floor {
                         is_free = false;
-                        field_tiles.clear();
+                        tiles.clear();
                         break;
                     } else {
-                        field_tiles.push(Zone::get_index_from_xy(&x, &y));
+                        tiles.push(Zone::get_index_from_xy(&x, &y));
                     }
                 }
 
@@ -60,7 +61,8 @@ impl ZoneFeatureBuilder for MushroomFieldBuilder {
         //3 Create a border of fences and fill the rest with the actual field
         let mut has_opening = false;
         let mut counter = 0;
-        for index in field_tiles {
+        let mut owner_opt: Option<Entity> = None;
+        for &index in &tiles {
             let (x, y) = Zone::get_xy_from_index(index);
 
             // Check if the tile is on the border, must be a fence
@@ -79,7 +81,7 @@ impl ZoneFeatureBuilder for MushroomFieldBuilder {
                 } else if !has_opening && (counter >= (size * 3) || Roll::dice(1, 4) == 1) {
                     // Guarantee an open space in the fence
                     has_opening = true;
-                    Spawn::moleman_farmer(ecs_world, x, y);
+                    owner_opt = Some(Spawn::moleman_farmer(ecs_world, x, y));
                 } else {
                     zone.tiles[Zone::get_index_from_xy(&x, &y)] = TileType::FieldFence;
                 }
@@ -93,6 +95,18 @@ impl ZoneFeatureBuilder for MushroomFieldBuilder {
             }
         }
 
-        Vec::new()
+        // Insert Mushroom field into ECS to be used as shop
+        if let Some(owner) = owner_opt {
+            let _ = ecs_world.insert_one(
+                owner,
+                ShopOwner {
+                    shop_tiles: tiles.clone(),
+                },
+            );
+        } else {
+            panic!("Cannot create Mushroom Field without owner!");
+        }
+
+        tiles
     }
 }

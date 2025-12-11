@@ -198,7 +198,7 @@ fn populate_world(ecs_world: &mut World) {
         },
     ));
 
-    let zone = TestZoneBuilder::build(1, ecs_world);
+    let zone = ArenaZoneBuilder::build(1, ecs_world);
 
     Spawn::player(ecs_world, &zone);
     Spawn::everyhing_in_map(ecs_world, &zone);
@@ -259,9 +259,6 @@ fn change_zone(engine: &mut EngineState) {
 }
 
 fn do_before_tick_logic(game_state: &mut EngineState) {
-    // These Systems must always be run last
-    MapIndexing::run(&game_state.ecs_world);
-    FieldOfView::calculate(&game_state.ecs_world);
     TurnCheck::run(&mut game_state.ecs_world);
     RangedManager::check_ammo_counts(&mut game_state.ecs_world);
     AutomaticHealing::run(&mut game_state.ecs_world);
@@ -274,6 +271,9 @@ fn do_before_tick_logic(game_state: &mut EngineState) {
     MonsterThink::run(&mut game_state.ecs_world);
     LeaveTrailSystem::handle_spawned_trail(&mut game_state.ecs_world);
     AdvancementSystem::run(&mut game_state.ecs_world);
+    // These Systems must always be run last
+    MapIndexing::run(&game_state.ecs_world);
+    FieldOfView::calculate(&game_state.ecs_world);
 }
 
 fn do_in_tick_game_logic(game_engine: &mut GameEngine, game_state: &mut EngineState) {

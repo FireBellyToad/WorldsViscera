@@ -296,7 +296,7 @@ impl Spawn {
         let _ = ecs_world.insert(moleman, (Smart {},));
     }
 
-    pub fn moleman_farmer(ecs_world: &mut World, x: i32, y: i32) {
+    pub fn moleman_farmer(ecs_world: &mut World, x: i32, y: i32) -> Entity {
         let moleman_farmer = Spawn::create_monster(
             ecs_world,
             "Mole-man farmer".to_string(),
@@ -364,6 +364,7 @@ impl Spawn {
         // TODO Farmer cannot be hungry
         // let _ = ecs_world.remove_one::<Hunger>(moleman_farmer);
         let _ = ecs_world.insert(moleman_farmer, (Smart {}, Immobile {}));
+        moleman_farmer
     }
 
     /// Generic monster creation
