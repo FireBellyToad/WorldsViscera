@@ -4,6 +4,7 @@ use crate::{
     systems::{
         advancement_system::AdvancementSystem, debugger::Debugger, dig_manager::DigManager,
         leave_trail_system::LeaveTrailSystem, ranged_manager::RangedManager,
+        trade_system::TradeSystem,
     },
 };
 use components::{common::GameLog, player::Player};
@@ -198,7 +199,7 @@ fn populate_world(ecs_world: &mut World) {
         },
     ));
 
-    let zone = ArenaZoneBuilder::build(1, ecs_world);
+    let zone = TestZoneBuilder::build(1, ecs_world);
 
     Spawn::player(ecs_world, &zone);
     Spawn::everyhing_in_map(ecs_world, &zone);
@@ -300,6 +301,7 @@ fn do_in_tick_game_logic(game_engine: &mut GameEngine, game_state: &mut EngineSt
             SoundSystem::run(&mut game_state.ecs_world);
             LeaveTrailSystem::run(&mut game_state.ecs_world);
             MonsterApproach::run(&mut game_state.ecs_world);
+            TradeSystem::run(&mut game_state.ecs_world);
             // These Systems must always be run last
             MapIndexing::run(&game_state.ecs_world);
             FieldOfView::calculate(&game_state.ecs_world);

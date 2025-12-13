@@ -39,3 +39,8 @@ pub struct WantsToFuel {
 pub struct WantsToSmell {
     pub target: (i32, i32),
 }
+
+pub struct WantsToTrade {
+    pub target: Entity,
+    pub item: Option<Entity>,
+}

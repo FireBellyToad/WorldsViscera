@@ -14,7 +14,7 @@ use crate::{
     components::{
         actions::{
             WantsToApply, WantsToDrink, WantsToDrop, WantsToEat, WantsToEquip, WantsToFuel,
-            WantsToInvoke,
+            WantsToInvoke, WantsToTrade,
         },
         common::{GameLog, Named, Wet},
         items::{
@@ -37,6 +37,7 @@ pub enum InventoryAction {
     RefillWhat,
     Equip,
     Apply,
+    Trade,
 }
 
 /// Inventory Item Data trasfer type: used for rendering and general inventory usage
@@ -102,7 +103,9 @@ impl Inventory {
                         InventoryAction::Apply => {
                             Inventory::get_all_in_backpack_filtered_by::<Appliable>(ecs_world)
                         }
-                        InventoryAction::Drop => Inventory::get_all_in_backpack(ecs_world),
+                        InventoryAction::Trade | InventoryAction::Drop => {
+                            Inventory::get_all_in_backpack(ecs_world)
+                        }
                     };
 
                     // Validating char input
@@ -143,7 +146,12 @@ impl Inventory {
                     InventoryAction::RefillWhat => {
                         // Select what to refill, then which item you are going to refill with
                         let wants_to_fuel = ecs_world.get::<&mut WantsToFuel>(user);
-                        wants_to_fuel.expect("Must have Fuel!").item = Some(item);
+                        wants_to_fuel.expect("Must have WantsToFuel!").item = Some(item);
+                    }
+                    InventoryAction::Trade => {
+                        // Select what to offer, then which item you are going to offer
+                        let wants_to_fuel = ecs_world.get::<&mut WantsToTrade>(user);
+                        wants_to_fuel.expect("Must have WantsToTrade!").item = Some(item);
                     }
                     InventoryAction::Equip => {
                         let body_location;
@@ -221,6 +229,10 @@ impl Inventory {
             InventoryAction::Equip => {
                 header_text = "Equip what?";
                 inventory = Inventory::get_all_in_backpack_filtered_by::<Equippable>(ecs_world);
+            }
+            InventoryAction::Trade => {
+                header_text = "Trade what?";
+                inventory = Inventory::get_all_in_backpack(ecs_world);
             }
             InventoryAction::Drop => {
                 header_text = "Drop what?";

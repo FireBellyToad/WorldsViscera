@@ -1,6 +1,8 @@
+use crate::components::actions::WantsToTrade;
 use crate::components::combat::{SufferingDamage, WantsToDig, WantsToShoot};
 use crate::components::common::{Diggable, Named};
 use crate::components::items::{DiggingTool, RangedWeapon, ShopOwner};
+use crate::components::player;
 use crate::utils::common::ItemsInBackpack;
 use crate::utils::roll::Roll;
 use crate::{components::actions::WantsToInvoke, maps::zone::DecalType};
@@ -287,9 +289,9 @@ impl Player {
                             run_state = Player::try_shoot(ecs_world, player_entity);
                         }
 
-                        //Offer item to shop owner
-                        'o' => {
-                            run_state = Player::try_offer(ecs_world, player_entity);
+                        //Trade item to shop owner
+                        't' => {
+                            run_state = Player::try_trade(ecs_world, player_entity);
                         }
 
                         _ => {}
@@ -658,7 +660,9 @@ impl Player {
         player_viewshed.must_recalculate = true;
     }
 
-    pub fn try_offer(ecs_world: &mut World, _player: Entity) -> RunState {
+    /// Try to trade an item to a potetial shop owner
+    pub fn try_trade(ecs_world: &mut World, _player: Entity) -> RunState {
+        let mut owner_entity: Option<Entity> = None;
         // Scope for keeping borrow checker quiet
         {
             let mut zone_query = ecs_world.query::<&Zone>();
@@ -667,32 +671,58 @@ impl Player {
                 .last()
                 .expect("Zone is not in hecs::World");
 
-            let mut player_query = ecs_world.query::<&Viewshed>().with::<&Player>();
-            let (_, viewshed) = player_query
+            let mut player_query = ecs_world
+                .query::<(&Viewshed, &Position)>()
+                .with::<&Player>();
+            let (_, (viewshed, player_pos)) = player_query
                 .iter()
                 .last()
                 .expect("Player is not in hecs::World");
 
+            let mut game_log_query = ecs_world.query::<&mut GameLog>();
+            let (_, game_log) = game_log_query
+                .iter()
+                .last()
+                .expect("Game log is not in hecs::World");
+
             for &index in &viewshed.visible_tiles {
                 for &entity in &zone.tile_content[index] {
                     if ecs_world.satisfies::<&ShopOwner>(entity).unwrap_or(false) {
-                        println!("Will offer something");
-                        return RunState::DoTick;
+                        let pos = ecs_world
+                            .get::<&Position>(entity)
+                            .expect("Entity does not have a Position");
+
+                        if Utils::distance(&player_pos.x, &pos.x, &player_pos.y, &pos.y) <= 1.5 {
+                            owner_entity = Some(entity);
+                            break;
+                        } else {
+                            game_log.entries.push(
+                                "You see someone who may trade, but it's too far away".to_string(),
+                            );
+                            //We must guarantee only one shop owner per zone
+                            return RunState::WaitingPlayerInput;
+                        }
                     }
                 }
+
+                // Avoid unnecessary iterations
+                if owner_entity.is_some() {
+                    break;
+                }
             }
+
+            game_log
+                .entries
+                .push("You can't see anyone willing to trade".to_string());
         }
 
-        let mut game_log_query = ecs_world.query::<&mut GameLog>();
-        let (_, game_log) = game_log_query
-            .iter()
-            .last()
-            .expect("Game log is not in hecs::World");
+        // If we found a shop owner, offer them an item
+        if let Some(target) = owner_entity {
+            let player_entity = Player::get_entity(ecs_world);
+            let _ = ecs_world.insert_one(player_entity, WantsToTrade { target, item: None });
+            return RunState::ShowInventory(InventoryAction::Trade);
+        }
 
-        game_log
-            .entries
-            .push("You can't see anyone willing to trade.".to_string());
-
-        RunState::WaitingPlayerInput
+        return RunState::WaitingPlayerInput;
     }
 }

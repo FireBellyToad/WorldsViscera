@@ -24,6 +24,7 @@ pub mod ranged_manager;
 pub mod smell_manager;
 pub mod sound_system;
 pub mod thirst_check;
+pub mod trade_system;
 pub mod turn_checker;
 pub mod wet_manager;
 pub mod zap_manager;

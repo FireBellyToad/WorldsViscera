@@ -702,16 +702,19 @@ impl Draw {
             .tiles
             .iter()
             .position(|tile| tile == &TileType::DownPassage)
-            .expect("STUFF");
+            .or(None);
 
-        let (rounded_x, rounded_y) = Zone::get_xy_from_index(start_index);
+        // Draw a red rectangle on the DownPassage tile index, if present
+        if let Some(start_index) = start_index {
+            let (rounded_x, rounded_y) = Zone::get_xy_from_index(start_index);
 
-        draw_rectangle(
-            (UI_BORDER + (rounded_x * TILE_SIZE)) as f32,
-            (UI_BORDER + (rounded_y * TILE_SIZE)) as f32,
-            TILE_SIZE_F32,
-            TILE_SIZE_F32,
-            RED,
-        );
+            draw_rectangle(
+                (UI_BORDER + (rounded_x * TILE_SIZE)) as f32,
+                (UI_BORDER + (rounded_y * TILE_SIZE)) as f32,
+                TILE_SIZE_F32,
+                TILE_SIZE_F32,
+                RED,
+            );
+        }
     }
 }
