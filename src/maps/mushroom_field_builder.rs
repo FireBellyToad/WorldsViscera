@@ -2,7 +2,7 @@ use hecs::{Entity, World};
 use macroquad::math::Rect;
 
 use crate::{
-    components::items::ShopOwner,
+    components::items::{Corpse, Quaffable, ShopOwner, Tradable, Unsavoury},
     constants::{MAP_HEIGHT, MAP_WIDTH, MUSHROOM_EXCELLENT},
     maps::{
         ZoneFeatureBuilder,
@@ -101,6 +101,7 @@ impl ZoneFeatureBuilder for MushroomFieldBuilder {
                 owner,
                 ShopOwner {
                     shop_tiles: tiles.clone(),
+                    wanted_items: vec![Tradable::Corpse, Tradable::Quaffable],
                 },
             );
         } else {

@@ -124,4 +124,12 @@ pub struct DiggingTool {}
 
 pub struct ShopOwner {
     pub shop_tiles: Vec<usize>,
+    pub wanted_items: Vec<Tradable>,
+}
+
+pub struct Corpse {}
+
+pub enum Tradable {
+    Corpse,
+    Quaffable,
 }

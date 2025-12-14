@@ -8,7 +8,7 @@ use crate::components::common::{
 };
 use crate::components::health::{CanAutomaticallyHeal, Hunger, Thirst};
 use crate::components::items::{
-    Deadly, Edible, Item, Perishable, ProduceLight, Quaffable, TurnedOn, Unsavoury,
+    Corpse, Deadly, Edible, Item, Perishable, ProduceLight, Quaffable, TurnedOn, Unsavoury,
 };
 use crate::components::player::Player;
 use crate::constants::*;
@@ -240,6 +240,7 @@ impl Spawn {
                 item_tile: item_tile_index,
             },
             edible,
+            Corpse {},
             Perishable {
                 rot_counter: STARTING_ROT_COUNTER + Roll::d20(),
             },

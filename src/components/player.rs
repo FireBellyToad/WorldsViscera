@@ -2,7 +2,6 @@ use crate::components::actions::WantsToTrade;
 use crate::components::combat::{SufferingDamage, WantsToDig, WantsToShoot};
 use crate::components::common::{Diggable, Named};
 use crate::components::items::{DiggingTool, RangedWeapon, ShopOwner};
-use crate::components::player;
 use crate::utils::common::ItemsInBackpack;
 use crate::utils::roll::Roll;
 use crate::{components::actions::WantsToInvoke, maps::zone::DecalType};
