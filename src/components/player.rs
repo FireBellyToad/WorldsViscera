@@ -30,7 +30,7 @@ use crate::{
     utils::common::Utils,
 };
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone)]
 pub enum SpecialViewMode {
     ZapTargeting,
     RangedTargeting,
@@ -722,6 +722,6 @@ impl Player {
             return RunState::ShowInventory(InventoryAction::Trade);
         }
 
-        return RunState::WaitingPlayerInput;
+        RunState::WaitingPlayerInput
     }
 }

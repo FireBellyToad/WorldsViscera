@@ -28,7 +28,7 @@ use crate::{
     utils::assets::TextureName,
 };
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone)]
 pub enum InventoryAction {
     Eat,
     Drop,

@@ -494,10 +494,9 @@ impl MonsterThink {
         }
 
         // return the first valid target by priority
-        for monster_action_opt in targets_vec {
-            if let Some(action) = monster_action_opt {
-                return action;
-            }
+        // .flatten() gets all the Some(_) values, .next() gets the first element
+        if let Some(monster_action) = targets_vec.into_iter().flatten().next() {
+            return monster_action;
         }
 
         // No valid target found

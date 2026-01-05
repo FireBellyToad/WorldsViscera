@@ -148,7 +148,7 @@ impl Spawn {
         let index = Roll::dice(1, MUSHROOM_SPAWN_MAP.len() as i32) - 1;
         let mushroom_type = MUSHROOM_SPAWN_MAP[index as usize];
 
-        let _ = Spawn::mushroom(ecs_world, x, y, mushroom_type);
+        Spawn::mushroom(ecs_world, x, y, mushroom_type);
     }
 
     pub fn flask_of_water(ecs_world: &mut World, x: i32, y: i32) {

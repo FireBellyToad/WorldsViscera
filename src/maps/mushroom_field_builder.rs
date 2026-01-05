@@ -2,7 +2,7 @@ use hecs::{Entity, World};
 use macroquad::math::Rect;
 
 use crate::{
-    components::items::{Corpse, Quaffable, ShopOwner, Tradable, Unsavoury},
+    components::items::{ShopOwner, Tradable},
     constants::{MAP_HEIGHT, MAP_WIDTH, MUSHROOM_EXCELLENT},
     maps::{
         ZoneFeatureBuilder,

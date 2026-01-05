@@ -130,10 +130,11 @@ async fn main() {
                     println!("DoTick ---------------------------- tick {}", tick);
                     do_in_tick_game_logic(&mut game_engine, &mut game_state);
 
-                    if game_state.run_state != RunState::GameOver
-                        && game_state.run_state != RunState::DrawParticles
-                    {
-                        game_state.run_state = RunState::BeforeTick;
+                    match game_state.run_state {
+                        RunState::GameOver | RunState::ShowDialog(_) | RunState::DrawParticles => {}
+                        _ => {
+                            game_state.run_state = RunState::BeforeTick;
+                        }
                     }
                 }
                 RunState::GameOver => {
@@ -301,7 +302,8 @@ fn do_in_tick_game_logic(game_engine: &mut GameEngine, game_state: &mut EngineSt
             SoundSystem::run(&mut game_state.ecs_world);
             LeaveTrailSystem::run(&mut game_state.ecs_world);
             MonsterApproach::run(&mut game_state.ecs_world);
-            TradeSystem::run(&mut game_state.ecs_world);
+            game_state.run_state =
+                TradeSystem::run(&mut game_state.ecs_world, game_state.run_state.clone());
             // These Systems must always be run last
             MapIndexing::run(&game_state.ecs_world);
             FieldOfView::calculate(&game_state.ecs_world);

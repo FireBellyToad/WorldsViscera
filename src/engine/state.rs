@@ -10,7 +10,7 @@ use crate::{
     inventory::InventoryAction,
 };
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone)]
 pub enum RunState {
     TitleScreen,
     BeforeTick,

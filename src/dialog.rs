@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, slice::Iter};
 
 use hecs::{Entity, World};
 use macroquad::{
@@ -18,13 +18,15 @@ use crate::{
     constants::*,
     engine::state::RunState,
     inventory::InventoryAction,
+    systems::trade_system::{TradeDtt, TradeSystem},
     utils::assets::TextureName,
 };
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone)]
 pub enum DialogAction {
     Eat(Entity),
     Quaff(Entity),
+    Trade(TradeDtt),
 }
 
 pub struct Dialog {}
@@ -40,13 +42,16 @@ impl Dialog {
                     clear_input_queue();
 
                     // show equivalent inventory action on exit
+                    // Usually is used when we do an action while there is an appropriate object on the ground
+                    // so that the player can choose if use that item or one that is already in inventory
                     match action {
                         DialogAction::Eat(_) => RunState::ShowInventory(InventoryAction::Eat),
                         DialogAction::Quaff(_) => RunState::ShowInventory(InventoryAction::Quaff),
+                        _ => RunState::WaitingPlayerInput,
                     }
                 }
                 'y' => {
-                    // Confirm action
+                    // Confirm action and execute its game logic
                     let player_entity: Entity;
                     {
                         let mut player_query = ecs_world.query::<&Player>();
@@ -63,6 +68,9 @@ impl Dialog {
                         DialogAction::Quaff(item) => {
                             let _ = ecs_world.insert_one(player_entity, WantsToDrink { item });
                         }
+                        DialogAction::Trade(trade_info) => {
+                            TradeSystem::end_trade(ecs_world, trade_info);
+                        }
                     }
 
                     //Avoid strange behaviors
@@ -76,6 +84,9 @@ impl Dialog {
     }
 
     pub fn draw(_: &HashMap<TextureName, Texture2D>, ecs_world: &World, action: &DialogAction) {
+        // Build the body text based on the dialog action
+        // The body text is a vector of strings that will be displayed in the dialog box
+        // each string will be displayed on a new line
         let body_text = match action {
             DialogAction::Eat(item) => {
                 let named = ecs_world.get::<&Named>(*item).expect("Item is not named");
@@ -94,6 +105,24 @@ impl Dialog {
                     "on the ground.".to_string(),
                     "Drink it?".to_string(),
                 ]
+            }
+            DialogAction::Trade(trade_info) => {
+                let (_, traded_item, shop_owner, items_to_be_received) = trade_info;
+                let traded_named = ecs_world
+                    .get::<&Named>(*traded_item)
+                    .expect("traded_item is not named");
+                let shop_owner_named = ecs_world
+                    .get::<&Named>(*shop_owner)
+                    .expect("shop_owner is not named");
+                // Build items string with "and" and "carriage return"
+                let mut offer_string =
+                    Dialog::build_offer_string(items_to_be_received.iter(), ecs_world);
+                let mut final_string_vec =
+                    vec![shop_owner_named.name.clone(), "offers you".to_string()];
+                final_string_vec.append(&mut offer_string);
+                final_string_vec
+                    .append(&mut vec!["for your".to_string(), traded_named.name.clone()]);
+                final_string_vec
             }
         };
 
@@ -141,5 +170,28 @@ impl Dialog {
             FONT_SIZE,
             WHITE,
         );
+    }
+
+    /// Builds a string representation of the items to be received in a shop offer.
+    fn build_offer_string(items: Iter<'_, Entity>, ecs_world: &World) -> Vec<String> {
+        let mut offer_string_arr: Vec<String> = Vec::new();
+        let items_length = items.len();
+        for (index, item) in items.enumerate() {
+            let mut offer_string = String::new();
+            let named = ecs_world
+                .get::<&Named>(*item)
+                .expect("offered item is not named");
+            offer_string.push_str("a ");
+            offer_string.push_str(&named.name);
+            if items_length >= 2 {
+                if index < items_length - 2 {
+                    offer_string.push_str(", ");
+                } else if index == items_length - 2 {
+                    offer_string.push_str(" and ");
+                }
+            }
+            offer_string_arr.push(offer_string);
+        }
+        offer_string_arr
     }
 }
