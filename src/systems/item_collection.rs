@@ -58,63 +58,66 @@ impl ItemCollection {
             for (collector, (wants_item, stats, position, small, to_be_harvested)) in
                 &mut collectors
             {
-                let mut char_to_assign = OPTION_TO_CHAR_MAP[0];
+                for item in &wants_item.items {
+                    let mut char_to_assign = OPTION_TO_CHAR_MAP[0];
 
-                // All the currently assigned chars of the item carried by the owner
-                let all_currently_assigned_chars: Vec<char> = items_in_backpacks
-                    .iter()
-                    .filter(|(_, (_, b))| b.owner.id() == collector.id())
-                    .map(|(_, (_, b))| b.assigned_char)
-                    .collect();
+                    // All the currently assigned chars of the item carried by the owner
+                    let all_currently_assigned_chars: Vec<char> = items_in_backpacks
+                        .iter()
+                        .filter(|(_, (_, b))| b.owner.id() == collector.id())
+                        .map(|(_, (_, b))| b.assigned_char)
+                        .collect();
 
-                let named_owner = ecs_world
-                    .get::<&Named>(collector)
-                    .expect("Entity is not Named");
-
-                // Small monster can only pick up 3 items
-                if all_currently_assigned_chars.len() == MAX_ITEMS_IN_BACKPACK
-                    || (small.is_some()
-                        && all_currently_assigned_chars.len() == MAX_ITEMS_IN_BACKPACK_FOR_SMALL)
-                {
-                    if player_id == collector.id() {
-                        game_log
-                            .entries
-                            .push("You cannot carry anymore!".to_string());
-                        failed_pick_upper.push(collector);
-                    }
-                } else {
-                    // Assign the first "available" char to picked up item
-                    let mut index = 0;
-                    while all_currently_assigned_chars.contains(&char_to_assign) {
-                        char_to_assign = OPTION_TO_CHAR_MAP[index];
-                        index += 1;
-                    }
-
-                    // Show appropriate log messages
-                    let named_item = ecs_world
-                        .get::<&Named>(wants_item.item)
+                    let named_owner = ecs_world
+                        .get::<&Named>(collector)
                         .expect("Entity is not Named");
 
-                    if player_id == collector.id() {
-                        game_log
-                            .entries
-                            .push(format!("You pick up the {}", named_item.name));
-                    } else if zone.visible_tiles[Zone::get_index_from_xy(&position.x, &position.y)]
+                    // Small monster can only pick up 3 items
+                    if all_currently_assigned_chars.len() == MAX_ITEMS_IN_BACKPACK
+                        || (small.is_some()
+                            && all_currently_assigned_chars.len()
+                                == MAX_ITEMS_IN_BACKPACK_FOR_SMALL)
                     {
-                        // Log NPC infighting only if visible
-                        game_log.entries.push(format!(
-                            "The {} picks up the {}",
-                            named_owner.name, named_item.name
-                        ));
-                    }
+                        if player_id == collector.id() {
+                            game_log
+                                .entries
+                                .push("You cannot carry anymore!".to_string());
+                            failed_pick_upper.push(collector);
+                        }
+                    } else {
+                        // Assign the first "available" char to picked up item
+                        let mut index = 0;
+                        while all_currently_assigned_chars.contains(&char_to_assign) {
+                            char_to_assign = OPTION_TO_CHAR_MAP[index];
+                            index += 1;
+                        }
 
-                    // If needs to be on ground but not starting to rot (usually plants or mushroom)
-                    if to_be_harvested.is_some() {
-                        harvested_list.push(wants_item.item);
-                    }
+                        // Show appropriate log messages
+                        let named_item =
+                            ecs_world.get::<&Named>(*item).expect("Entity is not Named");
 
-                    // Pick up and keep track of the owner
-                    item_owner_list.push((wants_item.item, collector, char_to_assign, stats.speed));
+                        if player_id == collector.id() {
+                            game_log
+                                .entries
+                                .push(format!("You pick up the {}", named_item.name));
+                        } else if zone.visible_tiles
+                            [Zone::get_index_from_xy(&position.x, &position.y)]
+                        {
+                            // Log NPC infighting only if visible
+                            game_log.entries.push(format!(
+                                "The {} picks up the {}",
+                                named_owner.name, named_item.name
+                            ));
+                        }
+
+                        // If needs to be on ground but not starting to rot (usually plants or mushroom)
+                        if to_be_harvested.is_some() {
+                            harvested_list.push(*item);
+                        }
+
+                        // Pick up and keep track of the owner
+                        item_owner_list.push((*item, collector, char_to_assign, stats.speed));
+                    }
                 }
             }
         }

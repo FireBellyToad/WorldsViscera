@@ -385,7 +385,7 @@ impl Player {
             None => {}
             Some(item) => {
                 picked_something = true;
-                let _ = ecs_world.insert_one(player_entity, WantsItem { item });
+                let _ = ecs_world.insert_one(player_entity, WantsItem { items: vec![item] });
             }
         }
 

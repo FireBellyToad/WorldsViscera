@@ -3,7 +3,7 @@ use hecs::Entity;
 use crate::components::items::BodyLocation;
 
 pub struct WantsItem {
-    pub item: Entity,
+    pub items: Vec<Entity>,
 }
 
 pub struct WantsToEquip {
