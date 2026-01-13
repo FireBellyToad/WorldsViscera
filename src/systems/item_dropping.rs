@@ -24,7 +24,7 @@ impl ItemDropping {
         {
             // List of entities that want to drop items
             let mut items_to_drop = ecs_world
-                .query::<(&WantsToDrop, &CombatStats)>()
+                .query::<(&WantsToDrop, &CombatStats, &Position)>()
                 .with::<&MyTurn>();
 
             //Log all the drop downs
@@ -34,7 +34,7 @@ impl ItemDropping {
                 .last()
                 .expect("Game log is not in hecs::World");
 
-            for (dropper, (wants_item, stats)) in &mut items_to_drop {
+            for (dropper, (wants_item, stats, drop_position)) in &mut items_to_drop {
                 let is_equipped = ecs_world.get::<&Equipped>(wants_item.item).is_ok();
 
                 if is_equipped {
@@ -49,15 +49,12 @@ impl ItemDropping {
                     let named_item = ecs_world
                         .get::<&Named>(wants_item.item)
                         .expect("Entity is not Named");
-                    let drop = ecs_world
-                        .get::<&Position>(dropper)
-                        .expect("Entity has no Position");
 
                     // Drop item and keep track of the drop Position
                     item_drop_position_list.push((
                         wants_item.item,
                         dropper,
-                        (drop.x, drop.y),
+                        (drop_position.x, drop_position.y),
                         stats.speed,
                     ));
 

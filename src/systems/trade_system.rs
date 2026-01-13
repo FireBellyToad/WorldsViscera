@@ -2,7 +2,7 @@ use hecs::{Entity, World};
 
 use crate::{
     components::{
-        actions::WantsToTrade,
+        actions::{WantsItem, WantsToDrop, WantsToTrade},
         common::{GameLog, Named},
         items::{Corpse, Item, Quaffable, ShopOwner, Tradable},
     },
@@ -123,8 +123,18 @@ impl TradeSystem {
         }
     }
 
-    pub fn end_trade(_ecs_world: &mut World, _trade_info: TradeDtt) {
-        // Place trade_info.1 into backpack
-        todo!()
+    /// End a trade between a trader and a shop owner
+    pub fn end_trade(ecs_world: &mut World, trade_info: TradeDtt) {
+        let (trader, traded_item, _, items_to_be_received) = trade_info;
+        // "picks up" all the items received
+        let _ = ecs_world.insert_one(
+            trader,
+            WantsItem {
+                items: items_to_be_received,
+            },
+        );
+
+        // TODO improve: must be placed in shop owner's inventory
+        let _ = ecs_world.despawn(traded_item);
     }
 }
