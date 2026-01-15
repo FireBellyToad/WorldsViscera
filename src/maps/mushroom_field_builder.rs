@@ -101,7 +101,7 @@ impl ZoneFeatureBuilder for MushroomFieldBuilder {
                 owner,
                 ShopOwner {
                     shop_tiles: tiles.clone(),
-                    wanted_items: vec![Tradable::Corpse, Tradable::Quaffable],
+                    wanted_items: vec![Tradable::Corpse, Tradable::Rotten],
                 },
             );
         } else {

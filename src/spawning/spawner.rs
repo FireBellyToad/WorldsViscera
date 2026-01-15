@@ -8,7 +8,7 @@ use crate::components::common::{
 };
 use crate::components::health::{CanAutomaticallyHeal, Hunger, Thirst};
 use crate::components::items::{
-    Corpse, Deadly, Edible, Item, Perishable, ProduceLight, Quaffable, TurnedOn, Unsavoury,
+    Corpse, Deadly, Edible, Item, Perishable, Poisonous, ProduceLight, Quaffable, TurnedOn,
 };
 use crate::components::player::Player;
 use crate::constants::*;
@@ -249,12 +249,7 @@ impl Spawn {
         let corpse_spawned = ecs_world.spawn(corpse);
 
         if is_venomous {
-            let _ = ecs_world.insert_one(
-                corpse_spawned,
-                Unsavoury {
-                    game_log: "poisoned".to_string(),
-                },
-            );
+            let _ = ecs_world.insert_one(corpse_spawned, Poisonous {});
         } else if deadly {
             let _ = ecs_world.insert_one(corpse_spawned, Deadly {});
         }

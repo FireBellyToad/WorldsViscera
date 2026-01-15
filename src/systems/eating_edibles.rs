@@ -6,7 +6,7 @@ use crate::{
         combat::{CombatStats, SufferingDamage},
         common::{GameLog, Named, Position},
         health::Hunger,
-        items::{Deadly, Edible, Unsavoury},
+        items::{Deadly, Edible, Poisonous, Rotten},
         player::Player,
     },
     maps::zone::{DecalType, Zone},
@@ -77,8 +77,14 @@ impl EatingEdibles {
                     }
 
                     // Is it unsavoury? Then vomit badly
-                    if let Ok(unsavoury_component) = ecs_world.get::<&Unsavoury>(wants_to_eat.item)
-                    {
+                    let is_poisonous = ecs_world
+                        .satisfies::<&Poisonous>(wants_to_eat.item)
+                        .unwrap_or(false);
+                    let is_rotten = ecs_world
+                        .satisfies::<&Rotten>(wants_to_eat.item)
+                        .unwrap_or(false);
+                    let is_unsavoury = is_poisonous || is_rotten;
+                    if is_unsavoury {
                         hunger.tick_counter -= Roll::dice(3, 10);
                         match hunger.current_status {
                             HungerStatus::Satiated => {
@@ -94,10 +100,15 @@ impl EatingEdibles {
                         }
 
                         if eater.id() == player_id {
-                            game_log.entries.push(format!(
-                                "You ate {} food! You vomit!",
-                                unsavoury_component.game_log
-                            ));
+                            if is_rotten {
+                                game_log
+                                    .entries
+                                    .push("You ate rotten food! You vomit!".to_string());
+                            } else if is_poisonous {
+                                game_log
+                                    .entries
+                                    .push("You ate poisonous food! You vomit!".to_string());
+                            }
                         } else if zone.visible_tiles
                             [Zone::get_index_from_xy(&position.x, &position.y)]
                         {

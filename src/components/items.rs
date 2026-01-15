@@ -48,9 +48,9 @@ pub struct Perishable {
 
 pub struct ToBeHarvested {}
 
-pub struct Unsavoury {
-    pub game_log: String,
-}
+pub struct Poisonous {}
+
+pub struct Rotten {}
 
 pub struct Deadly {}
 
@@ -131,5 +131,5 @@ pub struct Corpse {}
 
 pub enum Tradable {
     Corpse,
-    Quaffable,
+    Rotten,
 }

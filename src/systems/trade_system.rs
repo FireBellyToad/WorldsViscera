@@ -4,7 +4,7 @@ use crate::{
     components::{
         actions::{WantsItem, WantsToDrop, WantsToTrade},
         common::{GameLog, Named},
-        items::{Corpse, Item, Quaffable, ShopOwner, Tradable},
+        items::{Corpse, Item, Quaffable, Rotten, ShopOwner, Tradable},
     },
     dialog::DialogAction,
     engine::state::RunState,
@@ -51,11 +51,8 @@ impl TradeSystem {
                                     item_selling_cost += 1;
                                 }
                             }
-                            Tradable::Quaffable => {
-                                if ecs_world
-                                    .satisfies::<&Quaffable>(traded_item)
-                                    .unwrap_or(false)
-                                {
+                            Tradable::Rotten => {
+                                if ecs_world.satisfies::<&Rotten>(traded_item).unwrap_or(false) {
                                     item_selling_cost += 1;
                                 }
                             }

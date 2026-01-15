@@ -12,7 +12,7 @@ use crate::{
         items::{
             Appliable, Armor, BodyLocation, Bulky, Deadly, Edible, Equippable, Equipped,
             InBackback, Invokable, InvokablesEnum, Item, MeleeWeapon, Metallic, MustBeFueled,
-            ProduceLight, Quaffable, Refiller, ToBeHarvested, TurnedOff, TurnedOn, Unsavoury,
+            Poisonous, ProduceLight, Quaffable, Refiller, ToBeHarvested, TurnedOff, TurnedOn,
         },
     },
     constants::*,
@@ -82,9 +82,7 @@ impl Spawn {
                             nutrition_dice_number: 1,
                             nutrition_dice_size: 1,
                         },
-                        Unsavoury {
-                            game_log: "poisonous".to_string(),
-                        },
+                        Poisonous {},
                         Named {
                             name: "white-spotted red mushroom".to_string(),
                         },

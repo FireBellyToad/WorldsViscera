@@ -3,7 +3,7 @@ use hecs::{Entity, World};
 use crate::{
     components::{
         common::{GameLog, Named, SmellIntensity, Smellable},
-        items::{InBackback, Perishable, Unsavoury},
+        items::{InBackback, Perishable, Poisonous, Rotten},
         player::Player,
     },
     constants::STARTING_ROT_COUNTER,
@@ -37,7 +37,7 @@ impl DecayManager {
 
                 if perishable.rot_counter <= 0 {
                     // Check if something is already rotten (is Unsavoury)
-                    match ecs_world.get::<&Unsavoury>(entity) {
+                    match ecs_world.get::<&Poisonous>(entity) {
                         Ok(_) => {
                             // despawn if rot while already rotten
                             rotten_edibles_to_despawn.push(entity);
@@ -65,9 +65,7 @@ impl DecayManager {
             let _ = ecs_world.insert(
                 entity,
                 (
-                    Unsavoury {
-                        game_log: "rotten".to_string(),
-                    },
+                    Rotten {},
                     Smellable {
                         intensity: SmellIntensity::Faint,
                         smell_log: format!("rotten {}", name),
