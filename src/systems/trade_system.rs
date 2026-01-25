@@ -2,9 +2,9 @@ use hecs::{Entity, World};
 
 use crate::{
     components::{
-        actions::{WantsItem, WantsToDrop, WantsToTrade},
+        actions::{WantsItem, WantsToTrade},
         common::{GameLog, Named},
-        items::{Corpse, Item, Quaffable, Rotten, ShopOwner, Tradable},
+        items::{Corpse, Item, Rotten, ShopOwner, Tradable},
     },
     dialog::DialogAction,
     engine::state::RunState,

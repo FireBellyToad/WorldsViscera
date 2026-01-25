@@ -3,8 +3,8 @@ pub const UI_BORDER: i32 = 8;
 pub const UI_BORDER_F32: f32 = UI_BORDER as f32;
 pub const WINDOW_WIDTH: i32 = (UI_BORDER * 2) + (MAP_WIDTH * TILE_SIZE);
 pub const WINDOW_HEIGHT: i32 = (UI_BORDER * 2) + (MAP_HEIGHT * TILE_SIZE) + HUD_HEIGHT;
-pub const FONT_SIZE: f32 = 32.0;
-pub const LETTER_SIZE: f32 = 15.0;
+pub const FONT_SIZE: f32 = 30.0;
+pub const LETTER_SIZE: f32 = 14.0;
 
 /// Zone related constats
 pub const MAP_WIDTH: i32 = 45;

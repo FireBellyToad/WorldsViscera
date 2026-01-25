@@ -106,8 +106,9 @@ impl Draw {
 
         // Going backwards to get last message on top
         for (index, message) in game_log.entries.iter().rev().enumerate() {
+            let draw_index = game_log.entries.len() - index;
             draw_text(
-                format!("- {message}"),
+                format!("{draw_index} - {message}"),
                 (HUD_BORDER + (UI_BORDER * 2)) as f32,
                 (HUD_BORDER
                     + 32

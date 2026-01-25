@@ -27,10 +27,7 @@ use systems::{
 use crate::{
     components::common::{Position, Viewshed},
     dialog::Dialog,
-    maps::{
-        ZoneBuilder, drunken_walk_zone_builder::DrunkenWalkZoneBuilder,
-        test_zone_builder::TestZoneBuilder, zone::Zone,
-    },
+    maps::{ZoneBuilder, drunken_walk_zone_builder::DrunkenWalkZoneBuilder, zone::Zone},
     systems::{
         apply_system::ApplySystem, automatic_healing::AutomaticHealing,
         decay_manager::DecayManager, drinking_quaffables::DrinkingQuaffables,
@@ -56,13 +53,11 @@ mod utils;
 
 //Game configuration
 fn get_game_configuration() -> Conf {
-    // Since when I switched to linux mint 22.22 with Nvidia gtx 4070 driver 580,
-    // I had to duplicate the windows size to fit the game content... why?
     Conf {
         window_title: "World's Viscera".to_string(),
         fullscreen: false,
-        window_height: WINDOW_HEIGHT * 2,
-        window_width: WINDOW_WIDTH * 2,
+        window_height: WINDOW_HEIGHT,
+        window_width: WINDOW_WIDTH,
         window_resizable: false,
         //use the default options:
         ..Default::default()
