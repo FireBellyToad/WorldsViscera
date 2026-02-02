@@ -12,8 +12,8 @@ use crate::{
     utils::roll::Roll,
 };
 
-const SIZE_DICE: i32 = 3;
-const SIZE_MODIFIER: i32 = 4;
+const SIZE_DICE: i32 = 2;
+const SIZE_MODIFIER: i32 = 3;
 
 pub struct MushroomFieldBuilder {}
 
@@ -22,7 +22,7 @@ impl ZoneFeatureBuilder for MushroomFieldBuilder {
     fn build(zone: &mut Zone, ecs_world: &mut World) -> Vec<usize> {
         // 1. search for free spaces to build the field in
         let mut tiles: Vec<usize> = Vec::new();
-        //2 Create a potential fertilized space from 4x4 to 7x7
+        //2 Create a potential fertilized space from 3x3 to 6x6
         let mut size = Roll::dice(1, SIZE_DICE) + SIZE_MODIFIER;
         let mut x = Roll::dice(1, MAP_WIDTH - size) - 1;
         let mut y = Roll::dice(1, MAP_HEIGHT - size) - 1;
@@ -65,7 +65,7 @@ impl ZoneFeatureBuilder for MushroomFieldBuilder {
             let (x, y) = Zone::get_xy_from_index(index);
 
             counter += 1;
-            if (owner_opt.is_none() && (counter >= size || Roll::dice(1, 4) == 1)) {
+            if owner_opt.is_none() && (counter >= size || Roll::dice(1, 4) == 1) {
                 // Guarantee an open space in the fence
                 owner_opt = Some(Spawn::moleman_farmer(ecs_world, x, y));
             } else {

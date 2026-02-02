@@ -380,32 +380,29 @@ impl Player {
     fn pick_up(ecs_world: &mut World) -> RunState {
         let player_entity = Player::get_entity(ecs_world);
 
-        let mut picked_something = false;
-        match Player::take_from_map(ecs_world) {
-            None => {}
-            Some(item) => {
-                picked_something = true;
+        if let Some(item) = Player::take_from_map(ecs_world) {
+            // Check if the item is being stolen from a shop
+            if Utils::get_item_owner(ecs_world, item).is_some() {
+                //Show Dialog
+                RunState::ShowDialog(DialogAction::Steal(item))
+            } else {
+                // Reset heal counter if the player did pick up something
                 let _ = ecs_world.insert_one(player_entity, WantsItem { items: vec![item] });
-            }
-        }
+                Player::reset_heal_counter(ecs_world);
 
-        if !picked_something {
+                RunState::DoTick
+            }
+        } else {
             let mut game_log_query = ecs_world.query::<&mut GameLog>();
             let (_, game_log) = game_log_query
                 .iter()
                 .last()
                 .expect("Game log is not in hecs::World");
-
             game_log
                 .entries
                 .push("There is nothing here to pick up".to_string());
 
             RunState::WaitingPlayerInput
-        } else {
-            // Reset heal counter if the player did pick up something
-            Player::reset_heal_counter(ecs_world);
-
-            RunState::DoTick
         }
     }
 
