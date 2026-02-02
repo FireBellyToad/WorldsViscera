@@ -1,6 +1,6 @@
 use crate::{
     components::common::Experience,
-    maps::arena_zone_builder::ArenaZoneBuilder,
+    maps::{arena_zone_builder::ArenaZoneBuilder, test_zone_builder::TestZoneBuilder},
     systems::{
         advancement_system::AdvancementSystem, debugger::Debugger, dig_manager::DigManager,
         leave_trail_system::LeaveTrailSystem, ranged_manager::RangedManager,
@@ -195,7 +195,7 @@ fn populate_world(ecs_world: &mut World) {
         },
     ));
 
-    let zone = ArenaZoneBuilder::build(1, ecs_world);
+    let zone = TestZoneBuilder::build(10, ecs_world);
 
     Spawn::player(ecs_world, &zone);
     Spawn::everyhing_in_map(ecs_world, &zone);

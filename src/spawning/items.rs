@@ -215,7 +215,7 @@ impl Spawn {
         ecs_world.spawn(lantern);
     }
 
-    pub fn wand(ecs_world: &mut World, x: i32, y: i32) {
+    pub fn wand(ecs_world: &mut World, x: i32, y: i32) -> Entity {
         let item_tile_index = (1, 0);
         let wand = (
             Position { x, y },
@@ -248,7 +248,7 @@ impl Spawn {
             },
         );
 
-        ecs_world.spawn(wand);
+        ecs_world.spawn(wand)
     }
 
     pub fn crowssbow(ecs_world: &mut World, x: i32, y: i32) -> Entity {
@@ -288,7 +288,7 @@ impl Spawn {
         ecs_world.spawn(crowssbow)
     }
 
-    pub fn slingshot(ecs_world: &mut World, x: i32, y: i32) {
+    pub fn slingshot(ecs_world: &mut World, x: i32, y: i32) -> Entity {
         let item_tile_index = (4, 2);
         let slingshot = (
             Position { x, y },
@@ -321,7 +321,7 @@ impl Spawn {
             },
         );
 
-        ecs_world.spawn(slingshot);
+        ecs_world.spawn(slingshot)
     }
 
     pub fn flask_of_oil(ecs_world: &mut World, x: i32, y: i32) {
@@ -676,5 +676,69 @@ impl Spawn {
         );
 
         ecs_world.spawn(helmet);
+    }
+
+    //TODO improve avoiding preassigned characters
+    pub fn give_crossbow_and_ammo(ecs_world: &mut World, entity: Entity) {
+        let crosswbow = Spawn::crowssbow(ecs_world, 0, 0);
+        let _ = ecs_world.remove_one::<Position>(crosswbow);
+        let _ = ecs_world.insert(
+            crosswbow,
+            (
+                InBackback {
+                    owner: entity,
+                    assigned_char: 'b',
+                },
+                Equipped {
+                    owner: entity,
+                    body_location: BodyLocation::BothHands,
+                },
+            ),
+        );
+
+        // Give the farmer some ammo
+        for _ in 0..3 {
+            let crosswbow_ammo = Spawn::crossbow_ammo(ecs_world, 0, 0);
+            let _ = ecs_world.remove_one::<Position>(crosswbow_ammo);
+            let _ = ecs_world.insert(
+                crosswbow_ammo,
+                (InBackback {
+                    owner: entity,
+                    assigned_char: 'c',
+                },),
+            );
+        }
+    }
+
+    //TODO improve avoiding preassigned characters
+    pub fn give_slingshot_and_ammo(ecs_world: &mut World, entity: Entity) {
+        let slingshot = Spawn::slingshot(ecs_world, 0, 0);
+        let _ = ecs_world.remove_one::<Position>(slingshot);
+        let _ = ecs_world.insert(
+            slingshot,
+            (
+                InBackback {
+                    owner: entity,
+                    assigned_char: 'b',
+                },
+                Equipped {
+                    owner: entity,
+                    body_location: BodyLocation::BothHands,
+                },
+            ),
+        );
+
+        // Give the farmer some ammo
+        for _ in 0..3 {
+            let crosswbow_ammo = Spawn::crossbow_ammo(ecs_world, 0, 0);
+            let _ = ecs_world.remove_one::<Position>(crosswbow_ammo);
+            let _ = ecs_world.insert(
+                crosswbow_ammo,
+                (InBackback {
+                    owner: entity,
+                    assigned_char: 'c',
+                },),
+            );
+        }
     }
 }

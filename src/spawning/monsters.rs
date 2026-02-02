@@ -77,6 +77,48 @@ impl Spawn {
         );
     }
 
+    pub fn abyssal_one(ecs_world: &mut World, x: i32, y: i32) {
+        let abyssal_one = Spawn::create_monster(
+            ecs_world,
+            (
+                "Abyssal One".to_string(),
+                Species {
+                    value: SpeciesEnum::DeepSpawn,
+                },
+                CombatStats {
+                    level: 10,
+                    current_stamina: 15,
+                    max_stamina: 15,
+                    base_armor: 0,
+                    unarmed_attack_dice: 6,
+                    current_toughness: 13,
+                    max_toughness: 13,
+                    current_dexterity: 14,
+                    max_dexterity: 14,
+                    speed: NORMAL,
+                },
+                Edible {
+                    nutrition_dice_number: 4,
+                    nutrition_dice_size: 6,
+                },
+                Smellable {
+                    smell_log: "organic waste".to_string(),
+                    intensity: SmellIntensity::Faint,
+                },
+                ProduceSound {
+                    sound_log: "someone panting".to_string(),
+                },
+                1.0,
+                1.0,
+                x,
+                y,
+            ),
+        );
+
+        // TODO change Venomous with Plaguebearer
+        let _ = ecs_world.insert(abyssal_one, (Smart {}, Venomous {}));
+    }
+
     pub fn freshwater_viperfish(ecs_world: &mut World, x: i32, y: i32) {
         let freshwater_viperfish = Spawn::create_monster(
             ecs_world,
@@ -198,6 +240,26 @@ impl Spawn {
         );
 
         let _ = ecs_world.insert(gremlin, (Smart {}, Small {}));
+
+        if Roll::d6() > 5 {
+            let wand = Spawn::wand(ecs_world, x, y);
+            let _ = ecs_world.remove_one::<Position>(wand);
+            let _ = ecs_world.insert(
+                wand,
+                (
+                    InBackback {
+                        owner: gremlin,
+                        assigned_char: 'b',
+                    },
+                    Equipped {
+                        owner: gremlin,
+                        body_location: BodyLocation::RightHand,
+                    },
+                ),
+            );
+        } else if Roll::d6() > 3 {
+            Spawn::give_slingshot_and_ammo(ecs_world, gremlin);
+        }
     }
 
     pub fn centipede(ecs_world: &mut World, x: i32, y: i32) {
@@ -346,48 +408,21 @@ impl Spawn {
                     nutrition_dice_size: 6,
                 },
                 Smellable {
-                    smell_log: "coal drenched in vinegar".to_string(),
+                    smell_log: "mushroom drenched in vinegar".to_string(),
                     intensity: SmellIntensity::Faint,
                 },
                 ProduceSound {
                     sound_log: "someone mumbling".to_string(),
                 },
                 2.0,
-                0.0,
+                1.0,
                 x,
                 y,
             ),
         );
 
         Spawn::moleman_chain(ecs_world, moleman_farmer);
-        let crosswbow = Spawn::crowssbow(ecs_world, x, y);
-        let _ = ecs_world.remove_one::<Position>(crosswbow);
-        let _ = ecs_world.insert(
-            crosswbow,
-            (
-                InBackback {
-                    owner: moleman_farmer,
-                    assigned_char: 'b',
-                },
-                Equipped {
-                    owner: moleman_farmer,
-                    body_location: BodyLocation::BothHands,
-                },
-            ),
-        );
-
-        // Give the farmer some ammo
-        for _ in 0..3 {
-            let crosswbow_ammo = Spawn::crossbow_ammo(ecs_world, x, y);
-            let _ = ecs_world.remove_one::<Position>(crosswbow_ammo);
-            let _ = ecs_world.insert(
-                crosswbow_ammo,
-                (InBackback {
-                    owner: moleman_farmer,
-                    assigned_char: 'c',
-                },),
-            );
-        }
+        Spawn::give_crossbow_and_ammo(ecs_world, moleman_farmer);
         // TODO Farmer cannot be hungry
         // let _ = ecs_world.remove_one::<Hunger>(moleman_farmer);
         let _ = ecs_world.insert(moleman_farmer, (Smart {}, Immobile {}));

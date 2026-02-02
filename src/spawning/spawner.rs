@@ -157,6 +157,7 @@ impl Spawn {
             14 => Spawn::gremlin(ecs_world, x, y),
             15 => Spawn::moleman(ecs_world, x, y),
             16 => Spawn::sulfuric_slug(ecs_world, x, y),
+            17 => Spawn::abyssal_one(ecs_world, x, y),
             _ => Spawn::random_terrain_monster(ecs_world, x, y, depth - 1),
         }
     }
@@ -183,7 +184,9 @@ impl Spawn {
             10 | 11 => {
                 let _ = Spawn::rockpick(ecs_world, x, y);
             }
-            12 | 13 => Spawn::slingshot(ecs_world, x, y),
+            12 | 13 => {
+                let _ = Spawn::slingshot(ecs_world, x, y);
+            }
             14 | 15 => Spawn::leather_armor(ecs_world, x, y),
             16 | 17 => Spawn::lantern(ecs_world, x, y),
             18 | 19 => Spawn::leather_cap(ecs_world, x, y),
@@ -198,7 +201,9 @@ impl Spawn {
                 let _ = Spawn::crossbow_ammo(ecs_world, x, y);
             }
             24 => Spawn::breastplate(ecs_world, x, y),
-            25 => Spawn::wand(ecs_world, x, y),
+            25 => {
+                let _ = Spawn::wand(ecs_world, x, y);
+            }
             26 => Spawn::helmet(ecs_world, x, y),
             _ => {}
         };

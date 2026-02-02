@@ -4,8 +4,8 @@ use crate::{
     components::{
         actions::WantsItem,
         combat::CombatStats,
-        common::{GameLog, MyTurn, Named, Position},
-        items::{InBackback, Item, Perishable, ToBeHarvested},
+        common::{GameLog, Hates, MyTurn, Named, Position},
+        items::{InBackback, Item, Perishable, ShopOwner, ToBeHarvested},
         monster::Small,
         player::Player,
     },
@@ -39,6 +39,9 @@ impl ItemCollection {
                 )>()
                 .with::<&MyTurn>();
 
+            // List of shopper entities
+            let mut shopper_owner = ecs_world.query::<(&Named, &ShopOwner, &mut Hates)>();
+
             //Items in all backpacks
             let mut items_in_backpacks = ecs_world.query::<(&Item, &InBackback)>();
 
@@ -58,7 +61,7 @@ impl ItemCollection {
             for (collector, (wants_item, stats, position, small, to_be_harvested)) in
                 &mut collectors
             {
-                for item in &wants_item.items {
+                for &item in &wants_item.items {
                     let mut char_to_assign = OPTION_TO_CHAR_MAP[0];
 
                     // All the currently assigned chars of the item carried by the owner
@@ -94,7 +97,7 @@ impl ItemCollection {
 
                         // Show appropriate log messages
                         let named_item =
-                            ecs_world.get::<&Named>(*item).expect("Entity is not Named");
+                            ecs_world.get::<&Named>(item).expect("Entity is not Named");
 
                         if player_id == collector.id() {
                             game_log
@@ -103,7 +106,7 @@ impl ItemCollection {
                         } else if zone.visible_tiles
                             [Zone::get_index_from_xy(&position.x, &position.y)]
                         {
-                            // Log NPC infighting only if visible
+                            // Log NPC  only if visible
                             game_log.entries.push(format!(
                                 "The {} picks up the {}",
                                 named_owner.name, named_item.name
@@ -112,11 +115,25 @@ impl ItemCollection {
 
                         // If needs to be on ground but not starting to rot (usually plants or mushroom)
                         if to_be_harvested.is_some() {
-                            harvested_list.push(*item);
+                            harvested_list.push(item);
                         }
 
                         // Pick up and keep track of the owner
-                        item_owner_list.push((*item, collector, char_to_assign, stats.speed));
+                        item_owner_list.push((item, collector, char_to_assign, stats.speed));
+
+                        // Check if the item is being stolen from a shop
+                        for (_, (named_owner, shop_owner, hates)) in &mut shopper_owner {
+                            if shop_owner.shop_tiles.iter().any(|&index| {
+                                Zone::get_index_from_xy(&position.x, &position.y) == index
+                            }) {
+                                game_log.entries.push(format!(
+                                    "You stole the {}! The {} gets angry!",
+                                    named_item.name, named_owner.name
+                                ));
+
+                                hates.list.insert(collector.id());
+                            }
+                        }
                     }
                 }
             }

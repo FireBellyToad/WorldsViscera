@@ -1,7 +1,7 @@
 use crate::{
     components::{
-        common::Viewshed,
-        items::{Ammo, Armor, Equippable, RangedWeapon},
+        common::{Position, Viewshed},
+        items::{Ammo, Armor, Equippable, RangedWeapon, ShopOwner},
     },
     maps::zone::Zone,
 };
@@ -175,5 +175,31 @@ impl Utils {
         }
 
         (new_x, new_y)
+    }
+
+    /// Check if a shop owner has ownership of an item and returns its Entity when found.
+    pub fn get_item_owner(ecs_world: &mut World, item: Entity) -> Option<Entity> {
+        let mut shop_owner = ecs_world.query::<(&Named, &ShopOwner)>();
+        let mut query_result = ecs_world
+            .query_one::<&Position>(item)
+            .expect("Item must have Position");
+
+        let mut found = None;
+        let position = query_result.get().expect("Item must have Position");
+
+        for (owner, (_, shop_owner)) in &mut shop_owner {
+            if found.is_none()
+                && shop_owner
+                    .shop_tiles
+                    .iter()
+                    .any(|&index| Zone::get_index_from_xy(&position.x, &position.y) == index)
+            {
+                found = Some(owner);
+
+                break;
+            }
+        }
+
+        found
     }
 }
