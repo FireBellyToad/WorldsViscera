@@ -1,4 +1,4 @@
-use crate::maps::zone::DecalType;
+use crate::{components::health::DiseaseType, maps::zone::DecalType};
 
 pub struct Monster {}
 
@@ -6,7 +6,9 @@ pub struct Aquatic {}
 
 pub struct Venomous {}
 
-pub struct DiseaseBearer {}
+pub struct DiseaseBearer {
+    pub disease_type: DiseaseType,
+}
 
 pub struct Smart {}
 

@@ -17,4 +17,12 @@ pub struct Thirst {
 pub struct Diseased {
     pub tick_counter: i32,
     pub is_improving: bool,
+    pub disease_type: DiseaseType,
+}
+
+#[derive(PartialEq, Debug, Clone)]
+pub enum DiseaseType {
+    FleshRot,
+    Fever,
+    Calcification,
 }

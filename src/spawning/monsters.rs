@@ -10,7 +10,7 @@ use crate::{
             BlocksTile, Hates, Immobile, MyTurn, Named, Position, ProduceCorpse, ProduceSound,
             Renderable, SmellIntensity, Smellable, Species, SpeciesEnum, Viewshed,
         },
-        health::Hunger,
+        health::{DiseaseType, Hunger},
         items::{BodyLocation, Deadly, Edible, Equipped, InBackback},
         monster::{Aquatic, DiseaseBearer, IsPrey, LeaveTrail, Monster, Small, Smart, Venomous},
     },
@@ -115,7 +115,15 @@ impl Spawn {
             ),
         );
 
-        let _ = ecs_world.insert(abyssal_one, (Smart {}, DiseaseBearer {}));
+        let _ = ecs_world.insert(
+            abyssal_one,
+            (
+                Smart {},
+                DiseaseBearer {
+                    disease_type: DiseaseType::FleshRot,
+                },
+            ),
+        );
     }
 
     pub fn freshwater_viperfish(ecs_world: &mut World, x: i32, y: i32) {

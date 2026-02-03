@@ -1,5 +1,9 @@
 use crate::{
-    components::{combat::InflictsDamage, health::Diseased, monster::DiseaseBearer},
+    components::{
+        combat::InflictsDamage,
+        health::{DiseaseType, Diseased},
+        monster::DiseaseBearer,
+    },
     constants::MAX_DISEASE_TICK_COUNTER,
     utils::common::Utils,
 };
@@ -26,7 +30,7 @@ impl MeleeManager {
     pub fn run(ecs_world: &mut World) {
         let mut wants_to_melee_list: Vec<(Entity, i32)> = Vec::new();
         let mut hidden_list: Vec<Entity> = Vec::new();
-        let mut infected_list: Vec<Entity> = Vec::new();
+        let mut infected_list: Vec<(Entity, DiseaseType)> = Vec::new();
         let player_id = Player::get_entity_id(ecs_world);
 
         // Scope for keeping borrow checker quiet
@@ -229,7 +233,9 @@ impl MeleeManager {
 
                     // If the attacker inflicts disease and target fails the saving throws
                     // inflict disease
-                    if disease_bearer.is_some() && Roll::d20() > target_stats.current_toughness {
+                    if let Some(dis_bear_some) = disease_bearer
+                        && Roll::d20() > target_stats.current_toughness
+                    {
                         // If the target is already infected, worsen its status
                         if let Ok(mut disease) = ecs_world.get::<&mut Diseased>(wants_melee.target)
                         {
@@ -237,7 +243,8 @@ impl MeleeManager {
                             disease.tick_counter = 0;
                         } else {
                             // Infect the healthy target otherwise
-                            infected_list.push(wants_melee.target);
+                            infected_list
+                                .push((wants_melee.target, dis_bear_some.disease_type.clone()));
                             if player_id == wants_melee.target.id() {
                                 game_log
                                     .entries
@@ -263,12 +270,13 @@ impl MeleeManager {
         }
 
         // Infect the infected
-        for infected in infected_list {
+        for (infected, disease_type) in infected_list {
             let _ = ecs_world.insert_one(
                 infected,
                 Diseased {
                     tick_counter: MAX_DISEASE_TICK_COUNTER + Roll::d20(),
                     is_improving: false,
+                    disease_type,
                 },
             );
         }

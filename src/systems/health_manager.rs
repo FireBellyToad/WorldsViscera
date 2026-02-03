@@ -6,13 +6,13 @@ use crate::{
     components::{
         combat::{CombatStats, SufferingDamage},
         common::{GameLog, MyTurn, Named, Position},
-        health::{Diseased, Hunger},
+        health::{DiseaseType, Diseased, Hunger},
         player::Player,
     },
-    constants::{MAX_DISEASE_TICK_COUNTER, MAX_HUNGER_TICK_COUNTER},
+    constants::MAX_DISEASE_TICK_COUNTER,
     maps::zone::{DecalType, Zone},
     systems::hunger_check::HungerStatus,
-    utils::roll::Roll,
+    utils::{common::Utils, roll::Roll},
 };
 
 pub struct HealthManager {}
@@ -21,6 +21,7 @@ pub struct HealthManager {}
 impl HealthManager {
     pub fn run(ecs_world: &mut World) {
         let mut healed_entities: Vec<Entity> = Vec::new();
+        let mut dizzy_entities_list: Vec<(Entity, i32)> = Vec::new();
 
         // Scope for keeping borrow checker quiet
         {
@@ -83,96 +84,115 @@ impl HealthManager {
                     } else {
                         // if failed, randomize consequences
                         disease.is_improving = false;
-                        match Roll::d6() {
-                            1 => {
-                                damage.toughness_damage_received += Roll::dice(1, 2);
-                                if player_id == diseased_entity.id() {
-                                    game_log.entries.push("You cough blood!".to_string());
-                                } else {
-                                    game_log
-                                        .entries
-                                        .push(format!("{} coughs blood!", named.name));
-                                }
-
-                                zone.decals_tiles.insert(
-                                    Zone::get_index_from_xy(&position.x, &position.y),
-                                    DecalType::Blood,
-                                );
-                            }
-                            2 => {
-                                damage.dexterity_damage_received += Roll::dice(1, 2);
-                                if player_id == diseased_entity.id() {
-                                    game_log.entries.push("Your muscles stiffen!".to_string());
-                                } else {
-                                    game_log
-                                        .entries
-                                        .push(format!("{}'s body is stiffening!", named.name));
-                                }
-                            }
-                            3 => {
-                                damage.damage_received += Roll::dice(2, 4);
-                                if player_id == diseased_entity.id() {
-                                    game_log
-                                        .entries
-                                        .push("Your head spins and you stumble!".to_string());
-                                } else {
-                                    game_log.entries.push(format!("{} stumbles!", named.name));
-                                }
-                            }
-                            4 => {
-                                hunger.tick_counter -= Roll::dice(3, 10);
-                                match hunger.current_status {
-                                    HungerStatus::Satiated => {
-                                        hunger.current_status = HungerStatus::Normal;
+                        match disease.disease_type {
+                            DiseaseType::FleshRot => {
+                                // Vomit or cough blood
+                                if Roll::d6() > 3 {
+                                    damage.toughness_damage_received += Roll::dice(1, 3);
+                                    if player_id == diseased_entity.id() {
+                                        if Roll::d6() > 3 {
+                                            game_log.entries.push("You cough blood!".to_string());
+                                        } else {
+                                            game_log
+                                                .entries
+                                                .push("Your skin peels away!".to_string());
+                                        }
+                                    } else if zone.visible_tiles
+                                        [Zone::get_index_from_xy(&position.x, &position.y)]
+                                    {
+                                        if Roll::d6() > 3 {
+                                            game_log
+                                                .entries
+                                                .push(format!("{} coughs blood!", named.name));
+                                        } else {
+                                            game_log
+                                                .entries
+                                                .push(format!("{}'s skin peels away!", named.name));
+                                        }
                                     }
-                                    HungerStatus::Normal => {
-                                        hunger.current_status = HungerStatus::Hungry;
-                                    }
-                                    HungerStatus::Hungry => {
-                                        hunger.current_status = HungerStatus::Starved;
-                                    }
-                                    HungerStatus::Starved => {}
-                                }
 
-                                zone.decals_tiles.insert(
-                                    Zone::get_index_from_xy(&position.x, &position.y),
-                                    DecalType::Vomit,
-                                );
-
-                                if player_id == diseased_entity.id() {
-                                    game_log.entries.push("You vomit badly!".to_string());
-                                } else {
-                                    game_log
-                                        .entries
-                                        .push(format!("{} vomits badly!", named.name));
-                                }
-                            }
-                            5 => {
-                                if player_id == diseased_entity.id() {
-                                    game_log
-                                        .entries
-                                        .push("You feel dizzy for a moment!".to_string());
-                                }
-                            }
-                            6 => {
-                                damage.toughness_damage_received += Roll::dice(1, 2);
-                                damage.dexterity_damage_received += Roll::dice(1, 2);
-                                if player_id == diseased_entity.id() {
-                                    game_log.entries.push(
-                                        "You cough blood and your body stiffens!".to_string(),
+                                    zone.decals_tiles.insert(
+                                        Zone::get_index_from_xy(&position.x, &position.y),
+                                        DecalType::Blood,
                                     );
                                 } else {
-                                    game_log.entries.push(format!(
-                                        "{} coughs blood and its body stiffens!",
-                                        named.name
-                                    ));
+                                    hunger.tick_counter -= Roll::dice(3, 10);
+                                    match hunger.current_status {
+                                        HungerStatus::Satiated => {
+                                            hunger.current_status = HungerStatus::Normal;
+                                        }
+                                        HungerStatus::Normal => {
+                                            hunger.current_status = HungerStatus::Hungry;
+                                        }
+                                        HungerStatus::Hungry => {
+                                            hunger.current_status = HungerStatus::Starved;
+                                        }
+                                        HungerStatus::Starved => {}
+                                    }
+
+                                    zone.decals_tiles.insert(
+                                        Zone::get_index_from_xy(&position.x, &position.y),
+                                        DecalType::Vomit,
+                                    );
+
+                                    if player_id == diseased_entity.id() {
+                                        game_log.entries.push("You vomit badly!".to_string());
+                                    } else if zone.visible_tiles
+                                        [Zone::get_index_from_xy(&position.x, &position.y)]
+                                    {
+                                        game_log
+                                            .entries
+                                            .push(format!("{} vomits badly!", named.name));
+                                    }
                                 }
-                                zone.decals_tiles.insert(
-                                    Zone::get_index_from_xy(&position.x, &position.y),
-                                    DecalType::Blood,
-                                );
                             }
-                            _ => {}
+                            DiseaseType::Fever => {
+                                // You fumble or lose a turn.
+                                if Roll::d6() > 3 {
+                                    damage.damage_received += Roll::dice(2, 4);
+                                    if player_id == diseased_entity.id() {
+                                        game_log
+                                            .entries
+                                            .push("Your head spins and you stumble!".to_string());
+                                    } else {
+                                        game_log.entries.push(format!("{} stumbles!", named.name));
+                                    }
+                                } else if zone.visible_tiles
+                                    [Zone::get_index_from_xy(&position.x, &position.y)]
+                                {
+                                    dizzy_entities_list.push((diseased_entity, stats.speed));
+                                    if player_id == diseased_entity.id() {
+                                        game_log
+                                            .entries
+                                            .push("You feel dizzy for a moment!".to_string());
+                                    }
+                                }
+                            }
+                            DiseaseType::Calcification => {
+                                damage.dexterity_damage_received += Roll::dice(1, 2);
+                                if player_id == diseased_entity.id() {
+                                    if Roll::d6() > 3 {
+                                        game_log.entries.push("Your muscles stiffens!".to_string());
+                                    } else {
+                                        game_log.entries.push(
+                                            "A calcified patch appears on your skin!".to_string(),
+                                        );
+                                    }
+                                } else if zone.visible_tiles
+                                    [Zone::get_index_from_xy(&position.x, &position.y)]
+                                {
+                                    if Roll::d6() > 3 {
+                                        game_log
+                                            .entries
+                                            .push(format!("{}'s body stiffens!", named.name));
+                                    } else {
+                                        game_log.entries.push(format!(
+                                            "A calcified patch appears on {}'s skin!",
+                                            named.name
+                                        ));
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -183,5 +203,9 @@ impl HealthManager {
         for healed in healed_entities {
             let _ = ecs_world.remove_one::<Diseased>(healed);
         }
+        // TODO make sure this works
+        // for (waiter, speed) in dizzy_entities_list {
+        //     Utils::wait_after_action(ecs_world, waiter, speed);
+        // }
     }
 }
