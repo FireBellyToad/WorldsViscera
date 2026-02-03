@@ -6,9 +6,9 @@ use crate::{
     components::{
         combat::{CombatStats, SufferingDamage},
         common::{Experience, GameLog, Hates, Named, Position},
-        health::CanAutomaticallyHeal,
+        health::{CanAutomaticallyHeal, DiseaseType},
         items::{Deadly, Edible},
-        monster::Venomous,
+        monster::{DiseaseBearer, Venomous},
         player::Player,
     },
     constants::{AUTO_ADVANCE_EXP_COUNTER_START, MAX_STAMINA_HEAL_TICK_COUNTER},
@@ -194,7 +194,9 @@ impl DamageManager {
             let edible;
             // Scope for keeping borrow checker quiet
             {
-                let edible_ref = ecs_world.get::<&Edible>(killed_entity).expect("");
+                let edible_ref = ecs_world
+                    .get::<&Edible>(killed_entity)
+                    .expect("killed_entity must be Edible");
                 edible = Edible {
                     nutrition_dice_number: edible_ref.nutrition_dice_number,
                     nutrition_dice_size: edible_ref.nutrition_dice_size,
@@ -203,7 +205,20 @@ impl DamageManager {
 
             let is_venomous = ecs_world.get::<&Venomous>(killed_entity).is_ok();
             let deadly = ecs_world.get::<&Deadly>(killed_entity).is_ok();
-            Spawn::corpse(ecs_world, x, y, name, edible, is_venomous, deadly);
+            let mut disease_type_opt: Option<DiseaseType> = None;
+            if let Ok(disease_bearer) = ecs_world.get::<&DiseaseBearer>(killed_entity) {
+                disease_type_opt = Some(disease_bearer.disease_type.clone());
+            };
+            Spawn::corpse(
+                ecs_world,
+                x,
+                y,
+                name,
+                edible,
+                is_venomous,
+                deadly,
+                disease_type_opt,
+            );
             ecs_world
                 .despawn(killed_entity)
                 .expect("Cannot despawn entity");

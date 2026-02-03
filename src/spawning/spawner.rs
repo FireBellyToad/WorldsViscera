@@ -6,10 +6,11 @@ use crate::components::common::{
     CanListen, CanSmell, Diggable, Experience, MyTurn, Named, Position, ProduceSound, Renderable,
     SmellIntensity, Smellable, Species, SpeciesEnum, Viewshed,
 };
-use crate::components::health::{CanAutomaticallyHeal, Hunger, Thirst};
+use crate::components::health::{CanAutomaticallyHeal, DiseaseType, Hunger, Thirst};
 use crate::components::items::{
     Corpse, Deadly, Edible, Item, Perishable, Poisonous, ProduceLight, Quaffable, TurnedOn,
 };
+use crate::components::monster::DiseaseBearer;
 use crate::components::player::Player;
 use crate::constants::*;
 use crate::maps::zone::{TileType, Zone};
@@ -62,7 +63,7 @@ impl Spawn {
                 level: 1,
                 current_stamina: rolled_stamina,
                 max_stamina: rolled_stamina,
-                base_armor: 0,
+                base_armor: 10,
                 unarmed_attack_dice: 2,
                 current_toughness: rolled_toughness,
                 max_toughness: rolled_toughness,
@@ -154,11 +155,12 @@ impl Spawn {
             (1..=5) => Spawn::giant_slug(ecs_world, x, y),
             (6..=9) => Spawn::giant_cockroach(ecs_world, x, y),
             (10..=12) => Spawn::deep_one(ecs_world, x, y),
-            13 => Spawn::centipede(ecs_world, x, y),
-            14 => Spawn::gremlin(ecs_world, x, y),
-            15 => Spawn::moleman(ecs_world, x, y),
-            16 => Spawn::sulfuric_slug(ecs_world, x, y),
-            17 => Spawn::abyssal_one(ecs_world, x, y),
+            13 => Spawn::calcificator(ecs_world, x, y),
+            14 => Spawn::centipede(ecs_world, x, y),
+            15 => Spawn::gremlin(ecs_world, x, y),
+            16 => Spawn::moleman(ecs_world, x, y),
+            17 => Spawn::sulfuric_slug(ecs_world, x, y),
+            18 => Spawn::abyssal_one(ecs_world, x, y),
             _ => Spawn::random_terrain_monster(ecs_world, x, y, depth - 1),
         }
     }
@@ -225,6 +227,7 @@ impl Spawn {
         edible: Edible,
         is_venomous: bool,
         deadly: bool,
+        disease_type_opt: Option<DiseaseType>,
     ) {
         let item_tile_index = (0, 0);
         let corpse = (
@@ -258,6 +261,8 @@ impl Spawn {
             let _ = ecs_world.insert_one(corpse_spawned, Poisonous {});
         } else if deadly {
             let _ = ecs_world.insert_one(corpse_spawned, Deadly {});
+        } else if let Some(disease_type) = disease_type_opt {
+            let _ = ecs_world.insert_one(corpse_spawned, DiseaseBearer { disease_type });
         }
     }
 

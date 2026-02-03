@@ -126,6 +126,52 @@ impl Spawn {
         );
     }
 
+    pub fn calcificator(ecs_world: &mut World, x: i32, y: i32) {
+        let calcificator = Spawn::create_monster(
+            ecs_world,
+            (
+                "Calcificator".to_string(),
+                Species {
+                    value: SpeciesEnum::Undead,
+                },
+                CombatStats {
+                    level: 3,
+                    current_stamina: 3,
+                    max_stamina: 3,
+                    base_armor: 1,
+                    unarmed_attack_dice: 2,
+                    current_toughness: 12,
+                    max_toughness: 12,
+                    current_dexterity: 6,
+                    max_dexterity: 6,
+                    speed: SLOW,
+                },
+                Edible {
+                    nutrition_dice_number: 1,
+                    nutrition_dice_size: 1,
+                },
+                Smellable {
+                    smell_log: "chalk".to_string(),
+                    intensity: SmellIntensity::Faint,
+                },
+                ProduceSound {
+                    sound_log: "chalk scratching on floor".to_string(),
+                },
+                10.0,
+                0.0,
+                x,
+                y,
+            ),
+        );
+
+        let _ = ecs_world.insert(
+            calcificator,
+            (DiseaseBearer {
+                disease_type: DiseaseType::Calcification,
+            },),
+        );
+    }
+
     pub fn freshwater_viperfish(ecs_world: &mut World, x: i32, y: i32) {
         let freshwater_viperfish = Spawn::create_monster(
             ecs_world,

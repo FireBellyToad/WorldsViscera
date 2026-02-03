@@ -5,10 +5,12 @@ use crate::{
         actions::WantsToEat,
         combat::{CombatStats, SufferingDamage},
         common::{GameLog, Named, Position},
-        health::Hunger,
+        health::{DiseaseType, Diseased, Hunger},
         items::{Deadly, Edible, Poisonous, Rotten},
+        monster::DiseaseBearer,
         player::Player,
     },
+    constants::MAX_DISEASE_TICK_COUNTER,
     maps::zone::{DecalType, Zone},
     systems::hunger_check::HungerStatus,
     utils::{common::Utils, roll::Roll},
@@ -21,6 +23,7 @@ impl EatingEdibles {
         let mut eater_cleanup_list: Vec<Entity> = Vec::new();
         let mut eaten_eater_list: Vec<(Entity, Entity, i32)> = Vec::new();
         let mut killed_list: Vec<Entity> = Vec::new();
+        let mut infected_list: Vec<(Entity, DiseaseType)> = Vec::new();
         let player_id = Player::get_entity_id(ecs_world);
 
         // Scope for keeping borrow checker quiet
@@ -76,7 +79,25 @@ impl EatingEdibles {
                         continue;
                     }
 
-                    // Is it unsavoury? Then vomit badly
+                    // inflict disease of diseased corpse
+                    if let Ok(dis_bear_some) = ecs_world.get::<&DiseaseBearer>(wants_to_eat.item)
+                        && Roll::d20() > stats.current_toughness
+                    {
+                        // If the target is already infected, worsen its status
+                        if let Ok(mut disease) = ecs_world.get::<&mut Diseased>(eater) {
+                            disease.is_improving = false;
+                            disease.tick_counter = 0;
+                        } else {
+                            // Infect the healthy target otherwise
+                            infected_list.push((eater, dis_bear_some.disease_type.clone()));
+                            if player_id == eater.id() {
+                                game_log
+                                    .entries
+                                    .push("You start to feel ill...".to_string());
+                            }
+                        }
+                    }
+
                     let is_poisonous = ecs_world
                         .satisfies::<&Poisonous>(wants_to_eat.item)
                         .unwrap_or(false);
@@ -163,6 +184,18 @@ impl EatingEdibles {
                 .get::<&mut CombatStats>(killed)
                 .expect("Entity has no CombatStats");
             damage.damage_received = stats.current_stamina + stats.current_toughness;
+        }
+
+        // Infect the infected
+        for (infected, disease_type) in infected_list {
+            let _ = ecs_world.insert_one(
+                infected,
+                Diseased {
+                    tick_counter: MAX_DISEASE_TICK_COUNTER + Roll::d20(),
+                    is_improving: false,
+                    disease_type,
+                },
+            );
         }
     }
 }
