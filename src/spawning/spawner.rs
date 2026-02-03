@@ -73,6 +73,7 @@ impl Spawn {
             SufferingDamage {
                 damage_received: 0,
                 toughness_damage_received: 0,
+                dexterity_damage_received: 0,
                 damager: None,
             },
             CanAutomaticallyHeal { tick_counter: 0 },

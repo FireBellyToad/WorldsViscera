@@ -9,6 +9,7 @@ pub mod drinking_quaffables;
 pub mod eating_edibles;
 pub mod fov;
 pub mod fuel_manager;
+pub mod health_manager;
 pub mod hidden_manager;
 pub mod hunger_check;
 pub mod item_collection;

@@ -12,7 +12,7 @@ use crate::{
         },
         health::Hunger,
         items::{BodyLocation, Deadly, Edible, Equipped, InBackback},
-        monster::{Aquatic, IsPrey, LeaveTrail, Monster, Small, Smart, Venomous},
+        monster::{Aquatic, DiseaseBearer, IsPrey, LeaveTrail, Monster, Small, Smart, Venomous},
     },
     constants::{
         BASE_MONSTER_VIEW_RADIUS, FAST, MAX_HUNGER_TICK_COUNTER, NORMAL, SLOW, SLUG_TRAIL_LIFETIME,
@@ -115,8 +115,7 @@ impl Spawn {
             ),
         );
 
-        // TODO change Venomous with Plaguebearer
-        let _ = ecs_world.insert(abyssal_one, (Smart {}, Venomous {}));
+        let _ = ecs_world.insert(abyssal_one, (Smart {}, DiseaseBearer {}));
     }
 
     pub fn freshwater_viperfish(ecs_world: &mut World, x: i32, y: i32) {
@@ -459,6 +458,7 @@ impl Spawn {
             SufferingDamage {
                 damage_received: 0,
                 toughness_damage_received: 0,
+                dexterity_damage_received: 0,
                 damager: None,
             },
             Hunger {

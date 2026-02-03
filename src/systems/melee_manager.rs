@@ -1,4 +1,8 @@
-use crate::{components::combat::InflictsDamage, utils::common::Utils};
+use crate::{
+    components::{combat::InflictsDamage, health::Diseased, monster::DiseaseBearer},
+    constants::MAX_DISEASE_TICK_COUNTER,
+    utils::common::Utils,
+};
 use std::cmp::max;
 
 use hecs::{Entity, World};
@@ -22,6 +26,7 @@ impl MeleeManager {
     pub fn run(ecs_world: &mut World) {
         let mut wants_to_melee_list: Vec<(Entity, i32)> = Vec::new();
         let mut hidden_list: Vec<Entity> = Vec::new();
+        let mut infected_list: Vec<Entity> = Vec::new();
         let player_id = Player::get_entity_id(ecs_world);
 
         // Scope for keeping borrow checker quiet
@@ -35,6 +40,7 @@ impl MeleeManager {
                     &CombatStats,
                     Option<&IsHidden>,
                     Option<&Venomous>,
+                    Option<&DiseaseBearer>,
                 )>()
                 .with::<&MyTurn>();
 
@@ -58,7 +64,15 @@ impl MeleeManager {
 
             for (
                 attacker,
-                (wants_melee, named_attacker, attacker_position, attacker_stats, hidden, venomous),
+                (
+                    wants_melee,
+                    named_attacker,
+                    attacker_position,
+                    attacker_stats,
+                    hidden,
+                    venomous,
+                    disease_bearer,
+                ),
             ) in &mut attackers
             {
                 let attacker_is_player = attacker.id() == player_id;
@@ -213,6 +227,25 @@ impl MeleeManager {
                         }
                     }
 
+                    // If the attacker inflicts disease and target fails the saving throws
+                    // inflict disease
+                    if disease_bearer.is_some() && Roll::d20() > target_stats.current_toughness {
+                        // If the target is already infected, worsen its status
+                        if let Ok(mut disease) = ecs_world.get::<&mut Diseased>(wants_melee.target)
+                        {
+                            disease.is_improving = false;
+                            disease.tick_counter = 0;
+                        } else {
+                            // Infect the healthy target otherwise
+                            infected_list.push(wants_melee.target);
+                            if player_id == wants_melee.target.id() {
+                                game_log
+                                    .entries
+                                    .push("You start to feel ill...".to_string());
+                            }
+                        }
+                    }
+
                     wants_to_melee_list.push((attacker, attacker_stats.speed));
                 }
             }
@@ -227,6 +260,17 @@ impl MeleeManager {
         //No longer hidden
         for attacker in hidden_list {
             let _ = ecs_world.remove_one::<IsHidden>(attacker);
+        }
+
+        // Infect the infected
+        for infected in infected_list {
+            let _ = ecs_world.insert_one(
+                infected,
+                Diseased {
+                    tick_counter: MAX_DISEASE_TICK_COUNTER + Roll::d20(),
+                    is_improving: false,
+                },
+            );
         }
     }
 

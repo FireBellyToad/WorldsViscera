@@ -3,8 +3,8 @@ use crate::{
     maps::{arena_zone_builder::ArenaZoneBuilder, test_zone_builder::TestZoneBuilder},
     systems::{
         advancement_system::AdvancementSystem, debugger::Debugger, dig_manager::DigManager,
-        leave_trail_system::LeaveTrailSystem, ranged_manager::RangedManager,
-        trade_system::TradeSystem,
+        health_manager::HealthManager, leave_trail_system::LeaveTrailSystem,
+        ranged_manager::RangedManager, trade_system::TradeSystem,
     },
 };
 use components::{common::GameLog, player::Player};
@@ -282,6 +282,7 @@ fn do_in_tick_game_logic(game_engine: &mut GameEngine, game_state: &mut EngineSt
     //If there are particles, skip everything and draw
     if !ParticleManager::check_if_animations_are_present(game_engine, game_state) {
         MeleeManager::run(&mut game_state.ecs_world);
+        HealthManager::run(&mut game_state.ecs_world);
         DamageManager::run(&game_state.ecs_world);
         DamageManager::remove_dead_and_check_gameover(game_state);
         //Proceed on game logic if is not Game Over

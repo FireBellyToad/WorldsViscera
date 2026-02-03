@@ -6,6 +6,8 @@ pub struct Aquatic {}
 
 pub struct Venomous {}
 
+pub struct DiseaseBearer {}
+
 pub struct Smart {}
 
 pub struct Small {}

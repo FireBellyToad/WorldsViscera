@@ -75,6 +75,19 @@ impl DamageManager {
                     stats.current_stamina = 0;
                 }
             }
+
+            // Disease hits
+            if damageable.dexterity_damage_received > 0 {
+                stats.current_dexterity = max(
+                    0,
+                    stats.current_dexterity - damageable.dexterity_damage_received,
+                );
+
+                // TODO paralysis
+                // if stats.current_dexterity < 1 {
+                //     stats.current_stamina = 0;
+                // }
+            }
         }
     }
 
@@ -146,6 +159,7 @@ impl DamageManager {
                 // Reset SufferingDamage component
                 damageable.damage_received = 0;
                 damageable.toughness_damage_received = 0;
+                damageable.dexterity_damage_received = 0;
                 damageable.damager = None;
             }
         }
