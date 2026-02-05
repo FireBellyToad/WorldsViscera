@@ -3,7 +3,7 @@ use hecs::World;
 use crate::{
     components::{
         common::{MyTurn, Position, SmellIntensity, Smellable},
-        monster::{LeaveTrail, TrailComponent},
+        monster::{LeaveTrail, TrailCounter},
     },
     maps::zone::{DecalType, Zone},
 };
@@ -56,11 +56,7 @@ impl LeaveTrailSystem {
                 },
             };
             let (x, y) = Zone::get_xy_from_index(trail_pos_idx);
-            ecs_world.spawn((
-                smell,
-                TrailComponent { of, trail_counter },
-                Position { x, y },
-            ));
+            ecs_world.spawn((smell, TrailCounter { trail_counter }, Position { x, y }));
         }
     }
 
@@ -70,7 +66,7 @@ impl LeaveTrailSystem {
         // Scope for keeping borrow checker quiet
         {
             // List of entities that has stats
-            let mut trails_spawned = ecs_world.query::<(&mut TrailComponent, &Position)>();
+            let mut trails_spawned = ecs_world.query::<(&mut TrailCounter, &Position)>();
 
             let mut zone_query = ecs_world.query::<&mut Zone>();
             let (_, zone) = zone_query

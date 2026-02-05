@@ -12,7 +12,7 @@ use crate::{
     constants::MAX_DISEASE_TICK_COUNTER,
     maps::zone::{DecalType, Zone},
     systems::hunger_check::HungerStatus,
-    utils::{common::Utils, roll::Roll},
+    utils::roll::Roll,
 };
 
 pub struct HealthManager {}

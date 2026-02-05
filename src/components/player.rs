@@ -77,18 +77,14 @@ impl Player {
                 if let Some(special_tile) = zone
                     .decals_tiles
                     .get(&Zone::get_index_from_xy(&position.x, &position.y))
+                    && let DecalType::Slime = special_tile
                 {
-                    match special_tile {
-                        DecalType::Slime => {
-                            // Do DEX saving or slip on slime!
-                            if stats.current_dexterity < Roll::d20() {
-                                game_log.entries.push("You slip on the slime!".to_string());
+                    // Do DEX saving or slip on slime!
+                    if stats.current_dexterity < Roll::d20() {
+                        game_log.entries.push("You slip on the slime!".to_string());
 
-                                return_state = RunState::DoTick;
-                                break;
-                            }
-                        }
-                        _ => {}
+                        return_state = RunState::DoTick;
+                        break;
                     }
                 }
 
@@ -145,18 +141,14 @@ impl Player {
                     if let Some(special_tile) = zone
                         .decals_tiles
                         .get(&Zone::get_index_from_xy(&position.x, &position.y))
+                        && let DecalType::Acid = special_tile
                     {
-                        match special_tile {
-                            DecalType::Acid => {
-                                // Do DEX saving or be damaged!
-                                if stats.current_dexterity < Roll::d20() {
-                                    game_log
-                                        .entries
-                                        .push("You burn yourself on the acid!".to_string());
-                                    suffering_damage.damage_received += Roll::dice(1, 3);
-                                }
-                            }
-                            _ => {}
+                        // Do DEX saving or be damaged!
+                        if stats.current_dexterity < Roll::d20() {
+                            game_log
+                                .entries
+                                .push("You burn yourself on the acid!".to_string());
+                            suffering_damage.damage_received += Roll::dice(1, 3);
                         }
                     }
 

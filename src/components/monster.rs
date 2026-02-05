@@ -21,8 +21,7 @@ pub struct LeaveTrail {
     pub trail_lifetime: u32,
 }
 
-pub struct TrailComponent {
-    pub of: DecalType,
+pub struct TrailCounter {
     pub trail_counter: u32,
 }
 

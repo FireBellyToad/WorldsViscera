@@ -4,7 +4,6 @@ use crate::{
     components::{
         common::*,
         items::{InBackback, MustBeFueled, ProduceLight, TurnedOn},
-        monster::TrailComponent,
     },
     maps::zone::Zone,
     systems::fov::FieldOfView,
