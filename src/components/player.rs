@@ -73,7 +73,7 @@ impl Player {
                 .expect("Game log is not in hecs::World");
 
             for (player_entity, (position, viewshed, stats, suffering_damage)) in &mut players {
-                // Check if player is on slime
+                // Check if player is on slime before moving away
                 if let Some(special_tile) = zone
                     .decals_tiles
                     .get(&Zone::get_index_from_xy(&position.x, &position.y))
@@ -86,15 +86,6 @@ impl Player {
 
                                 return_state = RunState::DoTick;
                                 break;
-                            }
-                        }
-                        DecalType::Acid => {
-                            // Do DEX saving or be damaged!
-                            if stats.current_dexterity < Roll::d20() {
-                                game_log
-                                    .entries
-                                    .push("You burn yourself on the acid!".to_string());
-                                suffering_damage.damage_received += Roll::dice(1, 3);
                             }
                         }
                         _ => {}
@@ -149,6 +140,26 @@ impl Player {
                     position.y = (position.y + delta_y).clamp(0, MAP_HEIGHT - 1);
                     viewshed.must_recalculate = true;
                     zone.blocked_tiles[Zone::get_index_from_xy(&position.x, &position.y)] = true;
+
+                    // Check if player has stepped on a acid
+                    if let Some(special_tile) = zone
+                        .decals_tiles
+                        .get(&Zone::get_index_from_xy(&position.x, &position.y))
+                    {
+                        match special_tile {
+                            DecalType::Acid => {
+                                // Do DEX saving or be damaged!
+                                if stats.current_dexterity < Roll::d20() {
+                                    game_log
+                                        .entries
+                                        .push("You burn yourself on the acid!".to_string());
+                                    suffering_damage.damage_received += Roll::dice(1, 3);
+                                }
+                            }
+                            _ => {}
+                        }
+                    }
+
                     return_state = RunState::DoTick;
                 }
             }

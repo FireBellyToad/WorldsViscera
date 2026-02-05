@@ -122,6 +122,7 @@ pub const RUST_CHANCE: i32 = 1;
 pub const BASE_MONSTER_VIEW_RADIUS: i32 = 8;
 pub const MAX_HIDDEN_TURNS: i32 = 9;
 pub const SLUG_TRAIL_LIFETIME: u32 = 50;
+pub const FILTH_TRAIL_LIFETIME: u32 = 20;
 pub const MAX_PRIORITIES_NUMBER: usize = 10;
 
 /// Saving Throw related constants

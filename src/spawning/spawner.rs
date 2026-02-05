@@ -93,7 +93,7 @@ impl Spawn {
             },
             Smellable {
                 intensity: SmellIntensity::Faint,
-                smell_log: "yourself".to_string(),
+                smell_log: Some("yourself".to_string()),
             },
             CanListen {
                 listen_cache: HashMap::new(),
@@ -155,12 +155,13 @@ impl Spawn {
             (1..=5) => Spawn::giant_slug(ecs_world, x, y),
             (6..=9) => Spawn::giant_cockroach(ecs_world, x, y),
             (10..=12) => Spawn::deep_one(ecs_world, x, y),
-            13 => Spawn::calcificator(ecs_world, x, y),
-            14 => Spawn::centipede(ecs_world, x, y),
-            15 => Spawn::gremlin(ecs_world, x, y),
-            16 => Spawn::moleman(ecs_world, x, y),
-            17 => Spawn::sulfuric_slug(ecs_world, x, y),
-            18 => Spawn::abyssal_one(ecs_world, x, y),
+            (13..=14) => Spawn::living_filth(ecs_world, x, y),
+            15 => Spawn::calcificator(ecs_world, x, y),
+            16 => Spawn::centipede(ecs_world, x, y),
+            17 => Spawn::gremlin(ecs_world, x, y),
+            18 => Spawn::moleman(ecs_world, x, y),
+            19 => Spawn::sulfuric_slug(ecs_world, x, y),
+            20 => Spawn::abyssal_one(ecs_world, x, y),
             _ => Spawn::random_terrain_monster(ecs_world, x, y, depth - 1),
         }
     }
@@ -272,13 +273,12 @@ impl Spawn {
         match tile {
             TileType::Brazier => {
                 ecs_world.spawn((
-                    true,
                     Position { x, y },
                     ProduceLight {
                         radius: BRAZIER_RADIUS,
                     },
                     Smellable {
-                        smell_log: "burning chemicals".to_string(),
+                        smell_log: Some("burning chemicals".to_string()),
                         intensity: SmellIntensity::Strong,
                     },
                     ProduceSound {
@@ -289,7 +289,6 @@ impl Spawn {
             }
             TileType::DownPassage => {
                 ecs_world.spawn((
-                    true,
                     Position { x, y },
                     ProduceSound {
                         sound_log: "breeze from below".to_string(),
@@ -298,7 +297,6 @@ impl Spawn {
             }
             TileType::CrackedWall => {
                 ecs_world.spawn((
-                    true,
                     Position { x, y },
                     Diggable {
                         dig_points: Roll::dice(4, 10),

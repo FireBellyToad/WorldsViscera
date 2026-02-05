@@ -22,6 +22,7 @@ pub enum DecalType {
     Vomit,
     Slime,
     Acid,
+    Filth,
 }
 
 /// Zone Struct

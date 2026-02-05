@@ -37,7 +37,7 @@ impl Spawn {
                 z_index: 0,
             },
             Smellable {
-                smell_log: "mushrooms".to_string(),
+                smell_log: Some("mushrooms".to_string()),
                 intensity: SmellIntensity::Faint,
             },
             ToBeHarvested {},
@@ -205,7 +205,7 @@ impl Spawn {
                 fuel_counter: STARTING_FUEL + Roll::d100(),
             },
             Smellable {
-                smell_log: "a scent of burning fuel".to_string(),
+                smell_log: Some("a scent of burning fuel".to_string()),
                 intensity: SmellIntensity::Faint,
             },
             TurnedOff {},
@@ -243,7 +243,7 @@ impl Spawn {
                 dice_size: 4,
             },
             Smellable {
-                smell_log: "ozone".to_string(),
+                smell_log: Some("ozone".to_string()),
                 intensity: SmellIntensity::Faint,
             },
         );
@@ -348,7 +348,7 @@ impl Spawn {
                 fuel_counter: STARTING_FUEL + Roll::d100(),
             },
             Smellable {
-                smell_log: "a faint scent of fuel".to_string(),
+                smell_log: Some("a faint scent of fuel".to_string()),
                 intensity: SmellIntensity::Faint,
             },
             Appliable {},

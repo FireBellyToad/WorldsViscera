@@ -15,12 +15,12 @@ use crate::{
         monster::{Aquatic, DiseaseBearer, IsPrey, LeaveTrail, Monster, Small, Smart, Venomous},
     },
     constants::{
-        BASE_MONSTER_VIEW_RADIUS, FAST, MAX_HUNGER_TICK_COUNTER, NORMAL, SLOW, SLUG_TRAIL_LIFETIME,
-        TILE_SIZE_F32,
+        BASE_MONSTER_VIEW_RADIUS, FAST, FILTH_TRAIL_LIFETIME, MAX_HUNGER_TICK_COUNTER, NORMAL,
+        SLOW, SLUG_TRAIL_LIFETIME, TILE_SIZE_F32,
     },
     maps::zone::DecalType,
     spawning::spawner::Spawn,
-    systems::hunger_check::HungerStatus,
+    systems::{hunger_check::HungerStatus},
     utils::{assets::TextureName, roll::Roll},
 };
 
@@ -63,7 +63,7 @@ impl Spawn {
                     nutrition_dice_size: 6,
                 },
                 Smellable {
-                    smell_log: "dried human sweat".to_string(),
+                    smell_log: Some("dried human sweat".to_string()),
                     intensity: SmellIntensity::Faint,
                 },
                 ProduceSound {
@@ -102,7 +102,7 @@ impl Spawn {
                     nutrition_dice_size: 6,
                 },
                 Smellable {
-                    smell_log: "organic waste".to_string(),
+                    smell_log: Some("organic waste".to_string()),
                     intensity: SmellIntensity::Faint,
                 },
                 ProduceSound {
@@ -151,7 +151,7 @@ impl Spawn {
                     nutrition_dice_size: 1,
                 },
                 Smellable {
-                    smell_log: "chalk".to_string(),
+                    smell_log: Some("chalk".to_string()),
                     intensity: SmellIntensity::Faint,
                 },
                 ProduceSound {
@@ -169,6 +169,59 @@ impl Spawn {
             (DiseaseBearer {
                 disease_type: DiseaseType::Calcification,
             },),
+        );
+    }
+
+    pub fn living_filth(ecs_world: &mut World, x: i32, y: i32) {
+        let living_filth = Spawn::create_monster(
+            ecs_world,
+            (
+                "Living filth".to_string(),
+                Species {
+                    value: SpeciesEnum::Slime,
+                },
+                CombatStats {
+                    level: 1,
+                    current_stamina: 6,
+                    max_stamina: 6,
+                    base_armor: 1,
+                    unarmed_attack_dice: 2,
+                    current_toughness: 8,
+                    max_toughness: 8,
+                    current_dexterity: 5,
+                    max_dexterity: 5,
+                    speed: SLOW,
+                },
+                Edible {
+                    nutrition_dice_number: 1,
+                    nutrition_dice_size: 1,
+                },
+                Smellable {
+                    smell_log: Some("foul sewage".to_string()),
+                    intensity: SmellIntensity::Strong,
+                },
+                ProduceSound {
+                    sound_log: "slimy flop".to_string(),
+                },
+                11.0,
+                0.0,
+                x,
+                y,
+            ),
+        );
+
+        // TODO add damage resistance from weapon maybe?
+        let _ = ecs_world.insert(
+            living_filth,
+            (
+                LeaveTrail {
+                    of: DecalType::Filth,
+                    trail_lifetime: FILTH_TRAIL_LIFETIME,
+                },
+                DiseaseBearer {
+                    disease_type: DiseaseType::Fever,
+                },
+            ),
         );
     }
 
@@ -197,7 +250,7 @@ impl Spawn {
                     nutrition_dice_size: 6,
                 },
                 Smellable {
-                    smell_log: "fish".to_string(),
+                    smell_log: Some("fish".to_string()),
                     intensity: SmellIntensity::None,
                 },
                 ProduceSound {
@@ -238,7 +291,7 @@ impl Spawn {
                     nutrition_dice_size: 6,
                 },
                 Smellable {
-                    smell_log: "humid algae".to_string(),
+                    smell_log: Some("humid algae".to_string()),
                     intensity: SmellIntensity::None,
                 },
                 ProduceSound {
@@ -279,7 +332,7 @@ impl Spawn {
                     nutrition_dice_size: 6,
                 },
                 Smellable {
-                    smell_log: "cheap leather".to_string(),
+                    smell_log: Some("cheap leather".to_string()),
                     intensity: SmellIntensity::Faint,
                 },
                 ProduceSound {
@@ -340,7 +393,7 @@ impl Spawn {
                     nutrition_dice_size: 8,
                 },
                 Smellable {
-                    smell_log: "something off and dusty".to_string(),
+                    smell_log: Some("something off and dusty".to_string()),
                     intensity: SmellIntensity::None,
                 },
                 ProduceSound {
@@ -381,7 +434,7 @@ impl Spawn {
                     nutrition_dice_size: 6,
                 },
                 Smellable {
-                    smell_log: "coal drenched in vinegar".to_string(),
+                    smell_log: Some("coal drenched in vinegar".to_string()),
                     intensity: SmellIntensity::Faint,
                 },
                 ProduceSound {
@@ -461,7 +514,7 @@ impl Spawn {
                     nutrition_dice_size: 6,
                 },
                 Smellable {
-                    smell_log: "mushroom drenched in vinegar".to_string(),
+                    smell_log: Some("mushroom drenched in vinegar".to_string()),
                     intensity: SmellIntensity::Faint,
                 },
                 ProduceSound {
@@ -565,7 +618,7 @@ impl Spawn {
                     nutrition_dice_size: 6,
                 },
                 Smellable {
-                    smell_log: "cupboard dust".to_string(),
+                    smell_log: Some("cupboard dust".to_string()),
                     intensity: SmellIntensity::Faint,
                 },
                 ProduceSound {
@@ -606,7 +659,7 @@ impl Spawn {
                     nutrition_dice_size: 6,
                 },
                 Smellable {
-                    smell_log: "foul saliva".to_string(),
+                    smell_log: Some("foul saliva".to_string()),
                     intensity: SmellIntensity::Faint,
                 },
                 ProduceSound {
@@ -658,7 +711,7 @@ impl Spawn {
                     nutrition_dice_size: 6,
                 },
                 Smellable {
-                    smell_log: "nasty sulphuric fumes".to_string(),
+                    smell_log: Some("nasty sulphuric fumes".to_string()),
                     intensity: SmellIntensity::Strong,
                 },
                 ProduceSound {

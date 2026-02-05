@@ -63,9 +63,13 @@ impl SmellManager {
 
                             if can_smell {
                                 have_smelled_something = true;
-                                game_log
-                                    .entries
-                                    .push(format!("You smell {}", smells.smell_log));
+                                game_log.entries.push(format!(
+                                    "You smell {}",
+                                    smells
+                                        .smell_log
+                                        .as_ref()
+                                        .expect("must have valid smell log")
+                                ));
                             }
                         }
                     }

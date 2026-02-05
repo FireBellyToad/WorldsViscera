@@ -65,6 +65,8 @@ impl MonsterApproach {
             ) in &mut named_monsters
             {
                 let current_pos_index = Zone::get_index_from_xy(&position.x, &position.y);
+
+                // Checking if could slip on slime before moving away
                 if leave_trail.is_none()
                     && let Some(special_tile) = zone.decals_tiles.get(&current_pos_index)
                 {
@@ -82,21 +84,6 @@ impl MonsterApproach {
                                         .push(format!("The {} slips on the slime!", named.name));
                                 }
                                 continue;
-                            }
-                        }
-                        DecalType::Acid => {
-                            // Do DEX saving or slip on slime!
-                            if stats.current_dexterity < Roll::d20() {
-                                suffering_damage.damage_received += Roll::dice(1, 3);
-                                if zone.visible_tiles
-                                    [Zone::get_index_from_xy(&position.x, &position.y)]
-                                {
-                                    // Log only if visible
-                                    game_log.entries.push(format!(
-                                        "The {} burn itself on the acid!",
-                                        named.name
-                                    ));
-                                }
                             }
                         }
                         _ => {}
@@ -156,6 +143,30 @@ impl MonsterApproach {
                     position.x = path[1].0;
                     position.y = path[1].1;
                     zone.blocked_tiles[Zone::get_index_from_xy(&position.x, &position.y)] = true;
+
+                    // Checking if could step on acid after moving
+                    if leave_trail.is_none()
+                        && let Some(special_tile) = zone.decals_tiles.get(&current_pos_index)
+                    {
+                        match special_tile {
+                            DecalType::Acid => {
+                                // Do DEX saving or slip on slime!
+                                if stats.current_dexterity < Roll::d20() {
+                                    suffering_damage.damage_received += Roll::dice(1, 3);
+                                    if zone.visible_tiles
+                                        [Zone::get_index_from_xy(&position.x, &position.y)]
+                                    {
+                                        // Log only if visible
+                                        game_log.entries.push(format!(
+                                            "The {} burn itself on the acid!",
+                                            named.name
+                                        ));
+                                    }
+                                }
+                            }
+                            _ => {}
+                        }
+                    }
 
                     if wants_to_approach.counter == 0 {
                         // Approached point, stop moving

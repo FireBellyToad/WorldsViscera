@@ -21,9 +21,9 @@ pub struct LeaveTrail {
     pub trail_lifetime: u32,
 }
 
-pub struct TrailPlaceholder {
+pub struct TrailComponent {
+    pub of: DecalType,
     pub trail_counter: u32,
-    pub trail_pos_idx: usize,
 }
 
 pub struct WantsToApproach {

@@ -2,17 +2,17 @@ use hecs::World;
 
 use crate::{
     components::{
-        common::{MyTurn, Position},
-        monster::{LeaveTrail, TrailPlaceholder},
+        common::{MyTurn, Position, SmellIntensity, Smellable},
+        monster::{LeaveTrail, TrailComponent},
     },
-    maps::zone::Zone,
+    maps::zone::{DecalType, Zone},
 };
 
 pub struct LeaveTrailSystem {}
 
 impl LeaveTrailSystem {
     pub fn run(ecs_world: &mut World) {
-        let mut trail_to_spawn: Vec<(usize, u32)> = Vec::new();
+        let mut trail_to_spawn: Vec<(usize, u32, DecalType)> = Vec::new();
 
         // Scope for keeping borrow checker quiet
         {
@@ -33,20 +33,33 @@ impl LeaveTrailSystem {
                     // Insert the trail tile at the entity's position
                     let _ = zone.decals_tiles.insert(trail_pos_idx, leave.of.clone());
                     //get ready to spawn trail counter entity
-                    trail_to_spawn.push((trail_pos_idx, leave.trail_lifetime));
+                    trail_to_spawn.push((trail_pos_idx, leave.trail_lifetime, leave.of.clone()));
                 }
             }
         }
 
         // Spawn trail entities at positions in trail_to_spawn.
         // This is done to ensure that the trail will vanish after a certain time.
-        for (trail_pos_idx, trail_counter) in trail_to_spawn {
-            ecs_world.spawn((
-                true,
-                TrailPlaceholder {
-                    trail_counter,
-                    trail_pos_idx,
+        for (trail_pos_idx, trail_counter, of) in trail_to_spawn {
+            let smell = match of {
+                DecalType::Filth => Smellable {
+                    smell_log: Some("filth".to_string()),
+                    intensity: SmellIntensity::Faint,
                 },
+                DecalType::Acid => Smellable {
+                    smell_log: Some("acidic fumes".to_string()),
+                    intensity: SmellIntensity::Faint,
+                },
+                _ => Smellable {
+                    smell_log: None,
+                    intensity: SmellIntensity::None,
+                },
+            };
+            let (x, y) = Zone::get_xy_from_index(trail_pos_idx);
+            ecs_world.spawn((
+                smell,
+                TrailComponent { of, trail_counter },
+                Position { x, y },
             ));
         }
     }
@@ -57,7 +70,7 @@ impl LeaveTrailSystem {
         // Scope for keeping borrow checker quiet
         {
             // List of entities that has stats
-            let mut trails_spawned = ecs_world.query::<&mut TrailPlaceholder>();
+            let mut trails_spawned = ecs_world.query::<(&mut TrailComponent, &Position)>();
 
             let mut zone_query = ecs_world.query::<&mut Zone>();
             let (_, zone) = zone_query
@@ -65,9 +78,10 @@ impl LeaveTrailSystem {
                 .last()
                 .expect("Zone is not in hecs::World");
 
-            for (entity, trail) in &mut trails_spawned {
+            for (entity, (trail, position)) in &mut trails_spawned {
                 if trail.trail_counter == 0 {
-                    zone.decals_tiles.remove(&trail.trail_pos_idx);
+                    zone.decals_tiles
+                        .remove(&Zone::get_index_from_xy(&position.x, &position.y));
                     to_despawn.push(entity);
                 } else {
                     trail.trail_counter -= 1;

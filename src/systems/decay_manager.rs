@@ -68,7 +68,7 @@ impl DecayManager {
                     Rotten {},
                     Smellable {
                         intensity: SmellIntensity::Faint,
-                        smell_log: format!("rotten {}", name),
+                        smell_log: Some(format!("rotten {}", name)),
                     },
                 ),
             );

@@ -43,7 +43,7 @@ pub enum SmellIntensity {
 }
 
 pub struct Smellable {
-    pub smell_log: String,
+    pub smell_log: Option<String>,
     pub intensity: SmellIntensity,
 }
 

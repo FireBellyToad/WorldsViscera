@@ -4,6 +4,7 @@ use crate::{
     components::{
         common::*,
         items::{InBackback, MustBeFueled, ProduceLight, TurnedOn},
+        monster::TrailComponent,
     },
     maps::zone::Zone,
     systems::fov::FieldOfView,
@@ -13,7 +14,7 @@ pub struct MapIndexing {}
 
 impl MapIndexing {
     pub fn run(ecs_world: &World) {
-        let mut entites = ecs_world.query::<&Position>();
+        let mut entities_with_pos = ecs_world.query::<&Position>();
         let mut blockers = ecs_world.query::<&Position>().with::<&BlocksTile>();
         let mut zone_query = ecs_world.query::<&mut Zone>();
         let (_, zone) = zone_query
@@ -51,7 +52,7 @@ impl MapIndexing {
 
         zone.clear_content_index();
         //index all the things in the zone based on their position
-        for (entity, position) in &mut entites {
+        for (entity, position) in &mut entities_with_pos {
             zone.tile_content[Zone::get_index_from_xy(&position.x, &position.y)].push(entity);
         }
     }
