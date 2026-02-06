@@ -4,9 +4,9 @@ use crate::{
     components::{
         actions::WantsToEat,
         combat::{CombatStats, SufferingDamage},
-        common::{GameLog, Named, Position},
+        common::{GameLog, Hates, Named, Position},
         health::{DiseaseType, Diseased, Hunger},
-        items::{Deadly, Edible, Poisonous, Rotten},
+        items::{Deadly, Edible, Poisonous, Rotten, ShopOwner},
         monster::DiseaseBearer,
         player::Player,
     },
@@ -31,6 +31,8 @@ impl EatingEdibles {
             // List of entities that want to collect items
             let mut eaters =
                 ecs_world.query::<(&WantsToEat, &CombatStats, &mut Hunger, &Position, &Named)>();
+            // List of shopper entities
+            let mut shopper_owner = ecs_world.query::<(&Named, &ShopOwner, &mut Hates)>();
 
             let mut zone_query = ecs_world.query::<&mut Zone>();
             let (_, zone) = zone_query
@@ -148,6 +150,20 @@ impl EatingEdibles {
                             edible_nutrition.nutrition_dice_number,
                             edible_nutrition.nutrition_dice_size,
                         ) * 3;
+                    }
+
+                    // Check if the item is being stolen from a shop
+                    for (_, (named_owner, shop_owner, hates)) in &mut shopper_owner {
+                        if shop_owner.shop_tiles.iter().any(|&index| {
+                            Zone::get_index_from_xy(&position.x, &position.y) == index
+                        }) {
+                            game_log.entries.push(format!(
+                                "You eat the stolen {}! The {} gets angry!",
+                                named_edible.name, named_owner.name
+                            ));
+
+                            hates.list.insert(eater.id());
+                        }
                     }
                 } else {
                     if eater.id() == player_id {
