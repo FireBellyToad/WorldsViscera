@@ -127,6 +127,7 @@ pub struct ShopOwner {
     pub wanted_items: Vec<Tradable>,
 }
 
+pub struct DontLeaveCorpse {}
 pub struct Corpse {}
 
 pub enum Tradable {

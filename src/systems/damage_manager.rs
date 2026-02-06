@@ -7,7 +7,7 @@ use crate::{
         combat::{CombatStats, SufferingDamage},
         common::{Experience, GameLog, Hates, Named, Position},
         health::{CanAutomaticallyHeal, DiseaseType},
-        items::{Deadly, Edible},
+        items::{Deadly, DontLeaveCorpse, Edible},
         monster::{DiseaseBearer, Venomous},
         player::Player,
     },
@@ -186,39 +186,39 @@ impl DamageManager {
 
             ItemDropping::drop_all_of(killed_entity, ecs_world, x, y);
 
-            // Create corpse
+            // Create corpse if has no "DontLeaveCorpse" component
             // Change nutrition based on monster
+            // The corpse carries the venom of the disease that the monster had (scorpions and beasts like that)
             // TODO it would be cool to make the corpse carry on the poison that killed him...
-            // The corpse carries the venom that the monster used (scorpions and beasts like that)
-
-            let edible;
-            // Scope for keeping borrow checker quiet
+            if !ecs_world
+                .satisfies::<&DontLeaveCorpse>(killed_entity)
+                .unwrap_or(false)
             {
-                let edible_ref = ecs_world
-                    .get::<&Edible>(killed_entity)
-                    .expect("killed_entity must be Edible");
-                edible = Edible {
-                    nutrition_dice_number: edible_ref.nutrition_dice_number,
-                    nutrition_dice_size: edible_ref.nutrition_dice_size,
+                let edible;
+                // Scope for keeping borrow checker quiet
+                {
+                    let edible_ref = ecs_world
+                        .get::<&Edible>(killed_entity)
+                        .expect("killed_entity must be Edible");
+                    edible = Edible {
+                        nutrition_dice_number: edible_ref.nutrition_dice_number,
+                        nutrition_dice_size: edible_ref.nutrition_dice_size,
+                    }
                 }
+
+                let is_venomous = ecs_world.get::<&Venomous>(killed_entity).is_ok();
+                let deadly = ecs_world.get::<&Deadly>(killed_entity).is_ok();
+                let mut disease_type_opt: Option<DiseaseType> = None;
+                if let Ok(disease_bearer) = ecs_world.get::<&DiseaseBearer>(killed_entity) {
+                    disease_type_opt = Some(disease_bearer.disease_type.clone());
+                };
+                Spawn::corpse(
+                    ecs_world,
+                    (x, y, name, edible, is_venomous, deadly, disease_type_opt),
+                );
             }
 
-            let is_venomous = ecs_world.get::<&Venomous>(killed_entity).is_ok();
-            let deadly = ecs_world.get::<&Deadly>(killed_entity).is_ok();
-            let mut disease_type_opt: Option<DiseaseType> = None;
-            if let Ok(disease_bearer) = ecs_world.get::<&DiseaseBearer>(killed_entity) {
-                disease_type_opt = Some(disease_bearer.disease_type.clone());
-            };
-            Spawn::corpse(
-                ecs_world,
-                x,
-                y,
-                name,
-                edible,
-                is_venomous,
-                deadly,
-                disease_type_opt,
-            );
+            //Despawn the killed entity anyway
             ecs_world
                 .despawn(killed_entity)
                 .expect("Cannot despawn entity");

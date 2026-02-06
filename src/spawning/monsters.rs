@@ -11,7 +11,7 @@ use crate::{
             Renderable, SmellIntensity, Smellable, Species, SpeciesEnum, Viewshed,
         },
         health::{DiseaseType, Hunger},
-        items::{BodyLocation, Deadly, Edible, Equipped, InBackback},
+        items::{BodyLocation, Deadly, DontLeaveCorpse, Edible, Equipped, InBackback},
         monster::{Aquatic, DiseaseBearer, IsPrey, LeaveTrail, Monster, Small, Smart, Venomous},
     },
     constants::{
@@ -20,7 +20,7 @@ use crate::{
     },
     maps::zone::DecalType,
     spawning::spawner::Spawn,
-    systems::{hunger_check::HungerStatus},
+    systems::hunger_check::HungerStatus,
     utils::{assets::TextureName, roll::Roll},
 };
 
@@ -214,6 +214,7 @@ impl Spawn {
         let _ = ecs_world.insert(
             living_filth,
             (
+                DontLeaveCorpse {},
                 LeaveTrail {
                     of: DecalType::Filth,
                     trail_lifetime: FILTH_TRAIL_LIFETIME,

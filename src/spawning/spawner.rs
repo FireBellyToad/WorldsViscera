@@ -21,6 +21,8 @@ use crate::utils::roll::Roll;
 use hecs::{Entity, World};
 use macroquad::math::Rect;
 
+type CorpseSpawnData = (i32, i32, String, Edible, bool, bool, Option<DiseaseType>);
+
 /// Spawner of game entities
 pub struct Spawn {}
 
@@ -220,16 +222,8 @@ impl Spawn {
     }
 
     /// Spawn a corpse
-    pub fn corpse(
-        ecs_world: &mut World,
-        x: i32,
-        y: i32,
-        name: String,
-        edible: Edible,
-        is_venomous: bool,
-        deadly: bool,
-        disease_type_opt: Option<DiseaseType>,
-    ) {
+    pub fn corpse(ecs_world: &mut World, data: CorpseSpawnData) {
+        let (x, y, name, edible, is_venomous, deadly, disease_type_opt) = data;
         let item_tile_index = (0, 0);
         let corpse = (
             Position { x, y },
