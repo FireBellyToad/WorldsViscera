@@ -385,7 +385,7 @@ impl MonsterThink {
         3. Si muove casualmente nella zona
 
         */
-        // Array to put the targets found in order of priority (0 = top priority, 9 = least priority)
+        // Array to put the targets found in order of priority (0 = top priority, 4 = least priority)
         let mut targets_vec: Vec<Option<MonsterTargetPick>> = vec![None; MAX_PRIORITIES_NUMBER];
 
         // Search in range of view possible targets
@@ -420,7 +420,9 @@ impl MonsterThink {
                         // Starvation makes the monster behave more aggressively
                         // Should be a cannibal in this state
                         // TODO do not make it suicidial, do level check on target
-                        if monster_dto.hunger.current_status == HungerStatus::Starved {
+                        if monster_dto.hunger.current_status == HungerStatus::Starved
+                            && targets_vec[0].is_none()
+                        {
                             targets_vec[0] = Some((action, Some(entity), x, y));
                         } else {
                             let target_species = ecs_world
@@ -433,7 +435,7 @@ impl MonsterThink {
 
                             if is_enemy {
                                 //Enemy target is far away, try to approach it. Unless it's prey, than it should escape
-                                if monster_dto.is_prey {
+                                if monster_dto.is_prey && targets_vec[0].is_none() {
                                     let (target_x, target_y) =
                                         Utils::calculate_farthest_visible_point(
                                             &x,
@@ -442,7 +444,7 @@ impl MonsterThink {
                                         );
                                     targets_vec[0] =
                                         Some((action, Some(entity), target_x, target_y));
-                                } else {
+                                } else if targets_vec[1].is_none() {
                                     targets_vec[1] = Some((action, Some(entity), x, y));
                                 }
                             }
@@ -464,7 +466,9 @@ impl MonsterThink {
                             match monster_dto.hunger.current_status {
                                 HungerStatus::Starved => {
                                     // If starved and not smart, do stupid stuff like eating deadly food
-                                    if !monster_dto.is_smart || !is_deadly {
+                                    if (!monster_dto.is_smart || !is_deadly)
+                                        && targets_vec[0].is_none()
+                                    {
                                         targets_vec[0] = Some((action, Some(entity), x, y));
                                     }
                                 }
@@ -473,7 +477,9 @@ impl MonsterThink {
                                     //TODO maybe pick it up for later?
                                 }
                                 _ => {
-                                    targets_vec[3] = Some((action, Some(entity), x, y));
+                                    if targets_vec[2].is_none() {
+                                        targets_vec[2] = Some((action, Some(entity), x, y));
+                                    }
                                 }
                             }
                         } else if monster_dto.is_smart && monster_dto.backpack_is_not_full {
@@ -485,7 +491,10 @@ impl MonsterThink {
                                 } else {
                                     action = MonsterAction::Move;
                                 }
-                                targets_vec[4] = Some((action, Some(entity), x, y));
+
+                                if targets_vec[3].is_none() {
+                                    targets_vec[3] = Some((action, Some(entity), x, y));
+                                }
                             }
                         }
                     }

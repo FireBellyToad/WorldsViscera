@@ -89,6 +89,21 @@ impl ZoneBuilder for DrunkenWalkZoneBuilder {
         zone.populate_blocked();
         zone.populate_water();
 
+        // First crack generation, used for player spawn point and down passage to ensure we have a path to the exit
+        let mut first_crack_tiles = CracksBuilder::build(&mut zone, ecs_world);
+        while first_crack_tiles.is_empty() {
+            first_crack_tiles = CracksBuilder::build(&mut zone, ecs_world);
+        }
+
+        // Random starting point for player, taken from first crack
+        // This must be done before generating monsters and items
+        for &index in first_crack_tiles.iter() {
+            if !zone.blocked_tiles[index] {
+                zone.player_spawn_point = index;
+                break;
+            }
+        }
+
         // Generate monster and items spawn points within each room
         let monster_number = Roll::dice(1, MAX_MONSTERS_IN_ZONE) + depth as i32 + 1;
         let items_number = max(0, Roll::dice(1, MAX_ITEMS_IN_ZONE) + 3 - depth as i32);
@@ -155,27 +170,6 @@ impl ZoneBuilder for DrunkenWalkZoneBuilder {
                     break;
                 }
             }
-        }
-
-        // First crack generation, used for player spawn point and down passage to ensure we have a path to the exit
-        let mut first_crack_tiles = CracksBuilder::build(&mut zone, ecs_world);
-        while first_crack_tiles.is_empty() {
-            first_crack_tiles = CracksBuilder::build(&mut zone, ecs_world);
-        }
-
-        // Random starting point for player, taken from first crack
-        for &index in first_crack_tiles.iter().skip(2) {
-            if zone.tiles[index] == TileType::Floor {
-                zone.player_spawn_point = index;
-                break;
-            }
-        }
-
-        zone.player_spawn_point = zone.tiles.len() / 2;
-        while zone.tiles[zone.player_spawn_point] == TileType::Wall {
-            try_x = Roll::dice(1, MAP_WIDTH - 2);
-            try_y = Roll::dice(1, MAP_HEIGHT - 2);
-            zone.player_spawn_point = Zone::get_index_from_xy(&try_x, &try_y);
         }
 
         // Random point for DownPassage, taken from the craked wall. This ensures that the passage is somehow reachable.

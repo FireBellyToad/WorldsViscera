@@ -65,7 +65,7 @@ impl Spawn {
                 level: 1,
                 current_stamina: rolled_stamina,
                 max_stamina: rolled_stamina,
-                base_armor: 10,
+                base_armor: 0,
                 unarmed_attack_dice: 2,
                 current_toughness: rolled_toughness,
                 max_toughness: rolled_toughness,
@@ -164,7 +164,8 @@ impl Spawn {
             18 => Spawn::moleman(ecs_world, x, y),
             19 => Spawn::sulfuric_slug(ecs_world, x, y),
             20 => Spawn::abyssal_one(ecs_world, x, y),
-            _ => Spawn::random_terrain_monster(ecs_world, x, y, depth - 1),
+            (21..) => Spawn::random_terrain_monster(ecs_world, x, y, depth - 1),
+            _ => {}
         }
     }
 
@@ -176,7 +177,8 @@ impl Spawn {
         match dice_roll {
             (1..=4) => Spawn::cave_shrimp(ecs_world, x, y),
             (5..=9) => Spawn::freshwater_viperfish(ecs_world, x, y),
-            _ => Spawn::random_water_monster(ecs_world, x, y, depth - 1),
+            (10..) => Spawn::random_water_monster(ecs_world, x, y, depth - 1),
+            _ => {}
         }
     }
 

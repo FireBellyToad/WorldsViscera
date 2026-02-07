@@ -5,6 +5,7 @@ use crate::{
         combat::{CombatStats, SufferingDamage},
         common::*,
         monster::{Aquatic, LeaveTrail, Monster, WantsToApproach},
+        player::Player,
     },
     maps::zone::{DecalType, Zone},
     utils::{common::Utils, pathfinding::Pathfinding, roll::Roll},
@@ -18,7 +19,6 @@ impl MonsterApproach {
     pub fn run(ecs_world: &mut World) {
         let mut waiter_speed_list: Vec<(Entity, i32)> = Vec::new();
         let mut approacher_list: Vec<Entity> = Vec::new();
-
         // Scope for keeping borrow checker quiet
         {
             let mut named_monsters = ecs_world
@@ -34,6 +34,8 @@ impl MonsterApproach {
                     Option<&Immobile>,
                 )>()
                 .with::<(&Monster, &MyTurn)>();
+
+            let mut player_pos = ecs_world.query::<&Position>().with::<&Player>();
 
             //Log all actions
             let mut game_log_query = ecs_world.query::<&mut GameLog>();
@@ -92,7 +94,7 @@ impl MonsterApproach {
                     continue;
                 }
 
-                let (move_to_x, move_to_y) =
+                let (mut move_to_x, mut move_to_y) =
                     (wants_to_approach.target_x, wants_to_approach.target_y);
 
                 if zone.blocked_tiles[Zone::get_index_from_xy(&move_to_x, &move_to_y)] {
@@ -101,8 +103,8 @@ impl MonsterApproach {
                     for y in position.y - 1..position.y + 1 {
                         for x in position.x - 1..position.x + 1 {
                             if !zone.blocked_tiles[Zone::get_index_from_xy(&x, &y)] {
-                                wants_to_approach.target_x = x;
-                                wants_to_approach.target_y = y;
+                                move_to_x = x;
+                                move_to_y = y;
                                 can_move = true;
                                 break;
                             }

@@ -5,7 +5,7 @@ use crate::{
         actions::WantsItem,
         combat::CombatStats,
         common::{GameLog, Hates, MyTurn, Named, Position},
-        items::{InBackback, Item, Perishable, ShopOwner, ToBeHarvested},
+        items::{InBackback, Item, Perishable, ToBeHarvested},
         monster::Small,
         player::Player,
     },
@@ -30,13 +30,7 @@ impl ItemCollection {
         {
             // List of entities that want to collect items
             let mut collectors = ecs_world
-                .query::<(
-                    &WantsItem,
-                    &CombatStats,
-                    &Position,
-                    Option<&Small>,
-                    Option<&ToBeHarvested>,
-                )>()
+                .query::<(&WantsItem, &CombatStats, &Position, Option<&Small>, &Named)>()
                 .with::<&MyTurn>();
 
             //Items in all backpacks
@@ -55,7 +49,7 @@ impl ItemCollection {
                 .last()
                 .expect("Zone is not in hecs::World");
 
-            for (collector, (wants_item, stats, position, small, to_be_harvested)) in
+            for (collector, (wants_item, stats, position, small, named_collector)) in
                 &mut collectors
             {
                 for &item in &wants_item.items {
@@ -67,10 +61,6 @@ impl ItemCollection {
                         .filter(|(_, (_, b))| b.owner.id() == collector.id())
                         .map(|(_, (_, b))| b.assigned_char)
                         .collect();
-
-                    let named_owner = ecs_world
-                        .get::<&Named>(collector)
-                        .expect("Entity is not Named");
 
                     // Small monster can only pick up 3 items
                     if all_currently_assigned_chars.len() == MAX_ITEMS_IN_BACKPACK
@@ -106,12 +96,12 @@ impl ItemCollection {
                             // Log NPC  only if visible
                             game_log.entries.push(format!(
                                 "The {} picks up the {}",
-                                named_owner.name, named_item.name
+                                named_collector.name, named_item.name
                             ));
                         }
 
                         // If needs to be on ground but not starting to rot (usually plants or mushroom)
-                        if to_be_harvested.is_some() {
+                        if ecs_world.satisfies::<&ToBeHarvested>(item).unwrap_or(false) {
                             harvested_list.push(item);
                         }
 
@@ -126,10 +116,19 @@ impl ItemCollection {
                                 .query_one::<(&mut Hates, &Named)>(owner)
                                 .expect("owner must be named and hate");
                             if let Some((hates, named_owner)) = shop_owner_query.get() {
-                                game_log.entries.push(format!(
-                                    "You stole the {}! The {} gets angry!",
-                                    named_item.name, named_owner.name
-                                ));
+                                if collector.id() == player_id {
+                                    game_log.entries.push(format!(
+                                        "You stole the {}! The {} gets angry!",
+                                        named_item.name, named_owner.name
+                                    ));
+                                } else if zone.visible_tiles
+                                    [Zone::get_index_from_xy(&position.x, &position.y)]
+                                {
+                                    game_log.entries.push(format!(
+                                        "The {} eats the stolen {}! The {} gets angry!",
+                                        named_collector.name, named_item.name, named_owner.name
+                                    ));
+                                }
 
                                 hates.list.insert(collector.id());
                             }

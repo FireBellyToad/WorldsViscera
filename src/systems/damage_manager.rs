@@ -155,12 +155,12 @@ impl DamageManager {
                                 .push(format!("{} staggers in pain!", named.name));
                         }
                     }
+                    // Reset SufferingDamage component
+                    damageable.damage_received = 0;
+                    damageable.toughness_damage_received = 0;
+                    damageable.dexterity_damage_received = 0;
+                    damageable.damager = None;
                 }
-                // Reset SufferingDamage component
-                damageable.damage_received = 0;
-                damageable.toughness_damage_received = 0;
-                damageable.dexterity_damage_received = 0;
-                damageable.damager = None;
             }
         }
 

@@ -36,8 +36,8 @@ impl DecayManager {
                 perishable.rot_counter -= 1;
 
                 if perishable.rot_counter <= 0 {
-                    // Check if something is already rotten (is Unsavoury)
-                    match ecs_world.get::<&Poisonous>(entity) {
+                    // Check if something is already rotten
+                    match ecs_world.get::<&Rotten>(entity) {
                         Ok(_) => {
                             // despawn if rot while already rotten
                             rotten_edibles_to_despawn.push(entity);

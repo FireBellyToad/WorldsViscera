@@ -6,7 +6,7 @@ use crate::{
         combat::{CombatStats, SufferingDamage},
         common::{GameLog, Hates, Named, Position},
         health::{DiseaseType, Diseased, Hunger},
-        items::{Deadly, Edible, Poisonous, Rotten, ShopOwner},
+        items::{Deadly, Edible, Poisonous, Rotten},
         monster::DiseaseBearer,
         player::Player,
     },
@@ -158,10 +158,19 @@ impl EatingEdibles {
                             .query_one::<(&mut Hates, &Named)>(owner)
                             .expect("owner must be named and hate");
                         if let Some((hates, named_owner)) = shop_owner_query.get() {
-                            game_log.entries.push(format!(
-                                "You eat the stolen {}! The {} gets angry!",
-                                named_edible.name, named_owner.name
-                            ));
+                            if eater.id() == player_id {
+                                game_log.entries.push(format!(
+                                    "You eat the stolen {}! The {} gets angry!",
+                                    named_edible.name, named_owner.name
+                                ));
+                            } else if zone.visible_tiles
+                                [Zone::get_index_from_xy(&position.x, &position.y)]
+                            {
+                                game_log.entries.push(format!(
+                                    "The {} eats the stolen {}! The {} gets angry!",
+                                    named_eater.name, named_edible.name, named_owner.name
+                                ));
+                            }
 
                             hates.list.insert(eater.id());
                         }
