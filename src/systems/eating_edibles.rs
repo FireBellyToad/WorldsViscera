@@ -31,8 +31,6 @@ impl EatingEdibles {
             // List of entities that want to collect items
             let mut eaters =
                 ecs_world.query::<(&WantsToEat, &CombatStats, &mut Hunger, &Position, &Named)>();
-            // List of shopper entities
-            let mut shopper_owner = ecs_world.query::<(&Named, &ShopOwner, &mut Hates)>();
 
             let mut zone_query = ecs_world.query::<&mut Zone>();
             let (_, zone) = zone_query
@@ -153,10 +151,13 @@ impl EatingEdibles {
                     }
 
                     // Check if the item is being stolen from a shop
-                    for (_, (named_owner, shop_owner, hates)) in &mut shopper_owner {
-                        if shop_owner.shop_tiles.iter().any(|&index| {
-                            Zone::get_index_from_xy(&position.x, &position.y) == index
-                        }) {
+                    if let Some(owner) =
+                        Utils::get_item_owner_by_position(ecs_world, &position.x, &position.y)
+                    {
+                        let mut shop_owner_query = ecs_world
+                            .query_one::<(&mut Hates, &Named)>(owner)
+                            .expect("owner must be named and hate");
+                        if let Some((hates, named_owner)) = shop_owner_query.get() {
                             game_log.entries.push(format!(
                                 "You eat the stolen {}! The {} gets angry!",
                                 named_edible.name, named_owner.name

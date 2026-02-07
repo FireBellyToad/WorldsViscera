@@ -39,9 +39,6 @@ impl ItemCollection {
                 )>()
                 .with::<&MyTurn>();
 
-            // List of shopper entities
-            let mut shopper_owner = ecs_world.query::<(&Named, &ShopOwner, &mut Hates)>();
-
             //Items in all backpacks
             let mut items_in_backpacks = ecs_world.query::<(&Item, &InBackback)>();
 
@@ -122,10 +119,13 @@ impl ItemCollection {
                         item_owner_list.push((item, collector, char_to_assign, stats.speed));
 
                         // Check if the item is being stolen from a shop
-                        for (_, (named_owner, shop_owner, hates)) in &mut shopper_owner {
-                            if shop_owner.shop_tiles.iter().any(|&index| {
-                                Zone::get_index_from_xy(&position.x, &position.y) == index
-                            }) {
+                        if let Some(owner) =
+                            Utils::get_item_owner_by_position(ecs_world, &position.x, &position.y)
+                        {
+                            let mut shop_owner_query = ecs_world
+                                .query_one::<(&mut Hates, &Named)>(owner)
+                                .expect("owner must be named and hate");
+                            if let Some((hates, named_owner)) = shop_owner_query.get() {
                                 game_log.entries.push(format!(
                                     "You stole the {}! The {} gets angry!",
                                     named_item.name, named_owner.name

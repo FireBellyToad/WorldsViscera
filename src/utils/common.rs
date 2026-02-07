@@ -177,21 +177,30 @@ impl Utils {
     }
 
     /// Check if a shop owner has ownership of an item and returns its Entity when found.
-    pub fn get_item_owner(ecs_world: &mut World, item: Entity) -> Option<Entity> {
-        let mut shop_owner = ecs_world.query::<(&Named, &ShopOwner)>();
+    pub fn get_item_owner(ecs_world: &World, item: Entity) -> Option<Entity> {
         let mut query_result = ecs_world
             .query_one::<&Position>(item)
             .expect("Item must have Position");
-
-        let mut found = None;
         let position = query_result.get().expect("Item must have Position");
 
+        Utils::get_item_owner_by_position(ecs_world, &position.x, &position.y)
+    }
+
+    /// Check if a shop owner has ownership of an item and returns its Entity when found.
+    pub fn get_item_owner_by_position(
+        ecs_world: &World,
+        item_x: &i32,
+        item_y: &i32,
+    ) -> Option<Entity> {
+        let mut shop_owner = ecs_world.query::<(&Named, &ShopOwner)>();
+
+        let mut found = None;
         for (owner, (_, shop_owner)) in &mut shop_owner {
             if found.is_none()
                 && shop_owner
                     .shop_tiles
                     .iter()
-                    .any(|&index| Zone::get_index_from_xy(&position.x, &position.y) == index)
+                    .any(|&index| Zone::get_index_from_xy(&item_x, &item_y) == index)
             {
                 found = Some(owner);
 
