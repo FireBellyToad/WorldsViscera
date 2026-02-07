@@ -138,26 +138,26 @@ impl Draw {
             .last()
             .expect("Player is not in hecs::World");
 
-        let level_text = format!("LVL: {}", player_stats.level);
+        let level_text = format!("LVL:{}", player_stats.level);
         let level_text_len = level_text.len();
 
-        let exp_text = format!("EXP: {}", experience.value);
+        let exp_text = format!("EXP:{}", experience.value);
         let exp_text_len = exp_text.len();
 
         let sta_text = format!(
-            "STA: {}/{}",
+            "STA:{}/{}",
             player_stats.current_stamina, player_stats.max_stamina
         );
         let sta_text_len = sta_text.len();
 
         let tou_text = format!(
-            "TOU {}/{}",
+            "TOU:{}/{}",
             player_stats.current_toughness, player_stats.max_toughness
         );
         let tou_text_len = tou_text.len();
 
         let dex_text = format!(
-            "DEX {}/{}",
+            "DEX:{}/{}",
             player_stats.current_dexterity, player_stats.max_dexterity
         );
         let hunger_status = &hunger.current_status;
@@ -169,13 +169,13 @@ impl Draw {
         let thirst_text_len = thirst_text.len();
 
         let dex_text_len = dex_text.len();
-        let depth_text = format!("Depth: {}", zone.depth);
+        let depth_text = format!("Depth:{}", zone.depth);
         let depth_text_len = depth_text.len();
 
         draw_rectangle(
             (HEADER_LEFT_SPAN + HUD_BORDER) as f32,
             (MAP_HEIGHT * TILE_SIZE) as f32 + UI_BORDER as f32,
-            8.0 * LETTER_SIZE - HUD_BORDER as f32 * 3.0
+            8.0 * LETTER_SIZE - HUD_BORDER as f32 * 2.0
                 + (level_text_len as f32 * LETTER_SIZE)
                 + (exp_text_len as f32 * LETTER_SIZE)
                 + (sta_text_len as f32 * LETTER_SIZE)
