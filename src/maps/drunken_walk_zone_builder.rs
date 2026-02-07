@@ -76,10 +76,21 @@ impl ZoneBuilder for DrunkenWalkZoneBuilder {
             0,
             Roll::dice(1, MAX_RIVERS_IN_ZONE) + 1 - (depth as i32 / 3),
         );
-        for _ in 0..river_number {
-            RiverBuilder::build(&mut zone, ecs_world);
+        // Render pool if no river is available
+        let (mut try_x, mut try_y);
+        if river_number == 0 {
+            let mut pool = zone.tiles.len() / 2;
+            while zone.tiles[pool] != TileType::Floor {
+                try_x = Roll::dice(1, MAP_WIDTH - 2);
+                try_y = Roll::dice(1, MAP_HEIGHT - 2);
+                pool = Zone::get_index_from_xy(&try_x, &try_y);
+            }
+            zone.tiles[pool] = TileType::Water;
+        } else {
+            for _ in 0..river_number {
+                RiverBuilder::build(&mut zone, ecs_world);
+            }
         }
-
         //Mushroom Field
         if depth.is_multiple_of(MUSHROOM_FIELD_LEVEL) {
             MushroomFieldBuilder::build(&mut zone, ecs_world);
@@ -102,6 +113,15 @@ impl ZoneBuilder for DrunkenWalkZoneBuilder {
                 zone.player_spawn_point = index;
                 break;
             }
+        }
+
+        // Choose a random point for player spawn after
+        // ensuring first crack gieves a path to the exit
+        zone.player_spawn_point = zone.tiles.len() / 2;
+        while zone.tiles[zone.player_spawn_point] == TileType::Wall {
+            try_x = Roll::dice(1, MAP_WIDTH - 2);
+            try_y = Roll::dice(1, MAP_HEIGHT - 2);
+            zone.player_spawn_point = Zone::get_index_from_xy(&try_x, &try_y);
         }
 
         // Generate monster and items spawn points within each room

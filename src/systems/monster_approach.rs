@@ -5,7 +5,6 @@ use crate::{
         combat::{CombatStats, SufferingDamage},
         common::*,
         monster::{Aquatic, LeaveTrail, Monster, WantsToApproach},
-        player::Player,
     },
     maps::zone::{DecalType, Zone},
     utils::{common::Utils, pathfinding::Pathfinding, roll::Roll},
@@ -35,9 +34,7 @@ impl MonsterApproach {
                 )>()
                 .with::<(&Monster, &MyTurn)>();
 
-            let mut player_pos = ecs_world.query::<&Position>().with::<&Player>();
 
-            //Log all actions
             let mut game_log_query = ecs_world.query::<&mut GameLog>();
             let (_, game_log) = game_log_query
                 .iter()

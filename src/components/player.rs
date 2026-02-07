@@ -387,7 +387,7 @@ impl Player {
             // Check if the item is being stolen from a shop
             if Utils::get_item_owner(ecs_world, item).is_some() {
                 //Show Dialog
-                RunState::ShowDialog(DialogAction::Steal_Pick(item))
+                RunState::ShowDialog(DialogAction::StealPick(item))
             } else {
                 // Reset heal counter if the player did pick up something
                 let _ = ecs_world.insert_one(player_entity, WantsItem { items: vec![item] });
@@ -442,7 +442,7 @@ impl Player {
             // Check if the item is being stolen from a shop
             if Utils::get_item_owner(ecs_world, item).is_some() {
                 //Show Theft Dialog
-                return RunState::ShowDialog(DialogAction::Steal_Eat(item));
+                return RunState::ShowDialog(DialogAction::StealEat(item));
             } else {
                 //Show eat Dialog
                 return RunState::ShowDialog(DialogAction::Eat(item));

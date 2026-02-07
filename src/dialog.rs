@@ -27,8 +27,8 @@ pub enum DialogAction {
     Eat(Entity),
     Quaff(Entity),
     Trade(TradeDtt),
-    Steal_Pick(Entity),
-    Steal_Eat(Entity),
+    StealPick(Entity),
+    StealEat(Entity),
 }
 
 pub struct Dialog {}
@@ -70,11 +70,11 @@ impl Dialog {
                         DialogAction::Quaff(item) => {
                             let _ = ecs_world.insert_one(player_entity, WantsToDrink { item });
                         }
-                        DialogAction::Steal_Pick(item) => {
+                        DialogAction::StealPick(item) => {
                             let _ = ecs_world
                                 .insert_one(player_entity, WantsItem { items: vec![item] });
                         }
-                        DialogAction::Steal_Eat(item) => {
+                        DialogAction::StealEat(item) => {
                             return RunState::ShowDialog(DialogAction::Eat(item));
                         }
                         DialogAction::Trade(trade_info) => {
@@ -115,7 +115,7 @@ impl Dialog {
                     "Drink it?".to_string(),
                 ]
             }
-            DialogAction::Steal_Pick(item) => {
+            DialogAction::StealPick(item) => {
                 let named = ecs_world.get::<&Named>(*item).expect("Item is not named");
                 vec![
                     "Picking this".to_string(),
@@ -124,7 +124,7 @@ impl Dialog {
                     "Steal it?".to_string(),
                 ]
             }
-            DialogAction::Steal_Eat(item) => {
+            DialogAction::StealEat(item) => {
                 let named = ecs_world.get::<&Named>(*item).expect("Item is not named");
                 vec![
                     "Eating this".to_string(),

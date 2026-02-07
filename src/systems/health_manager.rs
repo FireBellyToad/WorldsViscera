@@ -76,10 +76,8 @@ impl HealthManager {
                     if Roll::d20() <= stats.current_toughness {
                         if disease.is_improving {
                             healed_entities.push(diseased_entity);
-                            println!("Entity {} is healed", diseased_entity.id())
                         } else {
                             disease.is_improving = true;
-                            println!("Entity {} is_improving", diseased_entity.id())
                         }
                     } else {
                         // if failed, randomize consequences
@@ -153,7 +151,7 @@ impl HealthManager {
                                     if player_id == diseased_entity.id() {
                                         game_log
                                             .entries
-                                            .push("Your head spins and you stumble!".to_string());
+                                            .push("The fever makes you stumble!".to_string());
                                     } else {
                                         game_log.entries.push(format!("{} stumbles!", named.name));
                                     }
@@ -162,9 +160,10 @@ impl HealthManager {
                                 {
                                     dizzy_entities_list.push((diseased_entity, stats.speed));
                                     if player_id == diseased_entity.id() {
-                                        game_log
-                                            .entries
-                                            .push("You feel dizzy for a moment!".to_string());
+                                        game_log.entries.push(
+                                            "The fever makes you feel dizzy for a moment!"
+                                                .to_string(),
+                                        );
                                     }
                                 }
                             }

@@ -3,7 +3,7 @@ use hecs::{Entity, World};
 use crate::{
     components::{
         common::{GameLog, Named, SmellIntensity, Smellable},
-        items::{InBackback, Perishable, Poisonous, Rotten},
+        items::{InBackback, Perishable,  Rotten},
         player::Player,
     },
     constants::STARTING_ROT_COUNTER,
