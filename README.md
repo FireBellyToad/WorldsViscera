@@ -10,6 +10,9 @@ This game could not ever been possibile without:
 * [The Roguebasin](https://roguebasin.com/)
 * [NetHack Wiki](https://nethackwiki.com/wiki/Main_Page)
 
+# WASM release
+
+> cargo build --release --target wasm32-unknown-unknown
 
 ## 06/05/2025
 

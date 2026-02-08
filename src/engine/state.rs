@@ -28,6 +28,7 @@ pub enum RunState {
 pub struct EngineState {
     pub ecs_world: World, // World of ECS, where the framework lives
     pub run_state: RunState,
+    pub debug_mode: bool,
 }
 
 // State implementations

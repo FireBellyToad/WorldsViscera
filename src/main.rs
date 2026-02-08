@@ -74,6 +74,7 @@ async fn main() {
     let mut game_state = EngineState {
         ecs_world: create_ecs_world(),
         run_state: RunState::TitleScreen,
+        debug_mode: false,
     };
 
     let mut tick = 0;
@@ -195,7 +196,7 @@ fn populate_world(ecs_world: &mut World) {
         },
     ));
 
-    let zone = ArenaZoneBuilder::build(1, ecs_world);
+    let zone = TestZoneBuilder::build(1, ecs_world);
 
     Spawn::player(ecs_world, &zone);
     Spawn::everyhing_in_map(ecs_world, &zone);
@@ -309,8 +310,20 @@ fn do_in_tick_game_logic(game_engine: &mut GameEngine, game_state: &mut EngineSt
 
 fn do_tickless_logic(game_state: &mut EngineState) {
     SmellManager::run(&mut game_state.ecs_world);
-    DamageManager::remove_dead_and_check_gameover(game_state);
 
     #[cfg(not(target_arch = "wasm32"))]
-    Debugger::run(&mut game_state.ecs_world);
+    {
+        if is_key_pressed(KeyCode::F12) {
+            game_state.debug_mode = !game_state.debug_mode;
+            println!("Debug mode {}", game_state.debug_mode);
+        }
+
+        if game_state.debug_mode {
+            Debugger::run(&mut game_state.ecs_world);
+            // TODO spawn what prompt
+            if is_key_pressed(KeyCode::F11) {
+                Spawn::wand(&mut game_state.ecs_world, MAP_WIDTH / 2, MAP_HEIGHT / 2);
+            }
+        }
+    }
 }

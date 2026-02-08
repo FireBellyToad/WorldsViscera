@@ -116,7 +116,7 @@ impl DamageManager {
             for (entity, (stats, named, damageable, position)) in &mut damageables {
                 // if has been damaged and Stamina is 0, do a thougness saving throw or die.
                 // On 0 or less toughness, die anyway
-                if stats.current_stamina == 0
+                if stats.current_stamina <= 0
                     && (damageable.damage_received > 0 || damageable.toughness_damage_received > 0)
                 {
                     let saving_throw_roll = Roll::d20();
@@ -155,12 +155,12 @@ impl DamageManager {
                                 .push(format!("{} staggers in pain!", named.name));
                         }
                     }
-                    // Reset SufferingDamage component
-                    damageable.damage_received = 0;
-                    damageable.toughness_damage_received = 0;
-                    damageable.dexterity_damage_received = 0;
-                    damageable.damager = None;
                 }
+                // Reset SufferingDamage component
+                damageable.damage_received = 0;
+                damageable.toughness_damage_received = 0;
+                damageable.dexterity_damage_received = 0;
+                damageable.damager = None;
             }
         }
 

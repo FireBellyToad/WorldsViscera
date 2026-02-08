@@ -52,6 +52,10 @@ impl MapIndexing {
         zone.clear_content_index();
         //index all the things in the zone based on their position
         for (entity, position) in &mut entities_with_pos {
+            println!(
+                "INDEXING - pos of {:?} is x: {}, y: {}",
+                entity, position.x, position.y
+            );
             zone.tile_content[Zone::get_index_from_xy(&position.x, &position.y)].push(entity);
         }
     }

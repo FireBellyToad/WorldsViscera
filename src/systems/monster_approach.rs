@@ -5,6 +5,7 @@ use crate::{
         combat::{CombatStats, SufferingDamage},
         common::*,
         monster::{Aquatic, LeaveTrail, Monster, WantsToApproach},
+        player::Player,
     },
     maps::zone::{DecalType, Zone},
     utils::{common::Utils, pathfinding::Pathfinding, roll::Roll},
@@ -33,7 +34,6 @@ impl MonsterApproach {
                     Option<&Immobile>,
                 )>()
                 .with::<(&Monster, &MyTurn)>();
-
 
             let mut game_log_query = ecs_world.query::<&mut GameLog>();
             let (_, game_log) = game_log_query
@@ -86,39 +86,17 @@ impl MonsterApproach {
                 //Monster must wait too after an action, even if this turn will not move!
                 waiter_speed_list.push((monster_entity, stats.speed));
 
+                // Do not do anything if the monster is immobile
                 if immobile.is_some() {
                     approacher_list.push(monster_entity);
                     continue;
                 }
 
-                let (mut move_to_x, mut move_to_y) =
-                    (wants_to_approach.target_x, wants_to_approach.target_y);
-
-                if zone.blocked_tiles[Zone::get_index_from_xy(&move_to_x, &move_to_y)] {
-                    // If destination is somehow now blocked, monster move to first empty space from top left.
-                    let mut can_move = false;
-                    for y in position.y - 1..position.y + 1 {
-                        for x in position.x - 1..position.x + 1 {
-                            if !zone.blocked_tiles[Zone::get_index_from_xy(&x, &y)] {
-                                move_to_x = x;
-                                move_to_y = y;
-                                can_move = true;
-                                break;
-                            }
-                        }
-                    }
-                    //If none found, just stops
-                    if !can_move {
-                        approacher_list.push(monster_entity);
-                        continue;
-                    }
-                }
-
                 let pathfinding_result = Pathfinding::dijkstra_wrapper(
                     position.x,
                     position.y,
-                    move_to_x,
-                    move_to_y,
+                    wants_to_approach.target_x,
+                    wants_to_approach.target_y,
                     zone,
                     true,
                     aquatic.is_some(),

@@ -30,7 +30,7 @@ impl ZoneBuilder for TestZoneBuilder {
         }
 
         //Straight river
-        for y in 1..MAP_HEIGHT {
+        for y in 1..MAP_HEIGHT - 1 {
             zone.tiles[Zone::get_index_from_xy(&10, &y)] = TileType::Water;
         }
         //Lake

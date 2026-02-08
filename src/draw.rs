@@ -36,7 +36,10 @@ impl Draw {
     pub fn render_game(game_state: &EngineState, assets: &HashMap<TextureName, Texture2D>) {
         let mut zones = game_state.ecs_world.query::<&Zone>();
         match game_state.run_state {
-            RunState::GameOver => Draw::game_over(),
+            RunState::GameOver => {
+                Draw::game_over();
+                Draw::game_log(&game_state.ecs_world);
+            }
             RunState::TitleScreen => Draw::title_screen(assets),
             _ => {
                 // Zone and renderables
@@ -45,8 +48,10 @@ impl Draw {
                     Draw::renderables(&game_state.ecs_world, assets, zone);
                     Draw::smells(&game_state.ecs_world, assets, zone);
 
-                    #[cfg(not(target_arch = "wasm32"))]
-                    Draw::debug_exit(zone);
+                    if game_state.debug_mode {
+                        Draw::debug_exit(zone);
+                        Draw::debug_blocked(zone);
+                    }
                 }
 
                 //Overlay
@@ -356,14 +361,14 @@ impl Draw {
         draw_rectangle(0.0, 0.0, 64.0, 32.0, BLACK);
         draw_text(
             title,
-            (WINDOW_WIDTH / 2) as f32 - ((title.len() as f32 / 2.0) * FONT_SIZE),
+            (WINDOW_WIDTH / 2) as f32 - ((title.len() as f32 / 2.25) * FONT_SIZE),
             64.0,
             FONT_SIZE * 2.0,
             WHITE,
         );
         draw_text(
             command,
-            (WINDOW_WIDTH / 2) as f32 - ((command.len() as f32 / 2.0) * FONT_SIZE / 2.0),
+            (WINDOW_WIDTH / 2) as f32 - ((command.len() as f32 / 2.25) * FONT_SIZE / 2.0),
             96.0,
             FONT_SIZE,
             WHITE,
@@ -723,6 +728,26 @@ impl Draw {
                 TILE_SIZE_F32,
                 RED,
             );
+        }
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    fn debug_blocked(zone: &Zone) {
+        for (index, &is_blocked) in zone.blocked_tiles.iter().enumerate() {
+            if is_blocked {
+                use macroquad::color::BLUE;
+
+                let (rounded_x, rounded_y) = Zone::get_xy_from_index(index);
+
+                draw_rectangle_lines(
+                    (UI_BORDER + (rounded_x * TILE_SIZE)) as f32,
+                    (UI_BORDER + (rounded_y * TILE_SIZE)) as f32,
+                    TILE_SIZE_F32,
+                    TILE_SIZE_F32,
+                    2.0,
+                    BLUE,
+                );
+            }
         }
     }
 }

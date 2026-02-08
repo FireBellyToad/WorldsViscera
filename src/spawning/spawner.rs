@@ -3,8 +3,8 @@ use std::collections::HashMap;
 
 use crate::components::combat::{CombatStats, SufferingDamage};
 use crate::components::common::{
-    CanListen, CanSmell, Diggable, Experience, MyTurn, Named, Position, ProduceSound, Renderable,
-    SmellIntensity, Smellable, Species, SpeciesEnum, Viewshed,
+    BlocksTile, CanListen, CanSmell, Diggable, Experience, MyTurn, Named, Position, ProduceSound,
+    Renderable, SmellIntensity, Smellable, Species, SpeciesEnum, Viewshed,
 };
 use crate::components::health::{CanAutomaticallyHeal, DiseaseType, Hunger, Thirst};
 use crate::components::items::{
@@ -111,10 +111,13 @@ impl Spawn {
 
         let _ = ecs_world.insert(
             player_entity,
-            (Experience {
-                value: 0,
-                auto_advance_counter: 0,
-            },),
+            (
+                Experience {
+                    value: 0,
+                    auto_advance_counter: 0,
+                },
+                BlocksTile {},
+            ),
         );
     }
 

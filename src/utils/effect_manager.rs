@@ -2,8 +2,9 @@ use bresenham::Bresenham;
 
 pub struct EffectManager {}
 
+/// Manages line, explosion and area effects in game
 impl EffectManager {
-    //Gets a line of effect
+    ///Creates a line of effect
     pub fn new_line(start: (i32, i32), end: (i32, i32)) -> Vec<(i32, i32)> {
         // convert start and end
         let start_isize = (start.0 as isize, start.1 as isize);
