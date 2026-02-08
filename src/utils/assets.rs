@@ -9,6 +9,7 @@ pub enum TextureName {
     Tiles,
     Items,
     Particles,
+    TitleScreen,
 }
 
 pub struct Load {}
@@ -39,6 +40,12 @@ impl Load {
             load_texture("assets/particles.png")
                 .await
                 .expect("assets/particles.png non loaded"),
+        );
+        assets.insert(
+            TextureName::TitleScreen,
+            load_texture("assets/title.png")
+                .await
+                .expect("assets/title.png non loaded"),
         );
         assets
     }

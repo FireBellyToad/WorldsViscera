@@ -7,7 +7,7 @@ use macroquad::{
     math::Rect,
     shapes::{draw_circle, draw_rectangle, draw_rectangle_lines},
     text::draw_text,
-    texture::{DrawTextureParams, Texture2D, draw_texture_ex},
+    texture::{DrawTextureParams, Texture2D, draw_texture, draw_texture_ex},
 };
 
 use crate::{
@@ -37,7 +37,7 @@ impl Draw {
         let mut zones = game_state.ecs_world.query::<&Zone>();
         match game_state.run_state {
             RunState::GameOver => Draw::game_over(),
-            RunState::TitleScreen => Draw::title_screen(),
+            RunState::TitleScreen => Draw::title_screen(assets),
             _ => {
                 // Zone and renderables
                 for (_, zone) in &mut zones {
@@ -69,9 +69,10 @@ impl Draw {
                     }
                     _ => {}
                 }
+
+                Draw::game_log(&game_state.ecs_world);
             }
         }
-        Draw::game_log(&game_state.ecs_world);
     }
 
     /// Draw HUD
@@ -344,7 +345,12 @@ impl Draw {
     }
 
     /// Draw title game screen
-    fn title_screen() {
+    fn title_screen(assets: &HashMap<TextureName, Texture2D>) {
+        let texture_to_render = assets
+            .get(&TextureName::TitleScreen)
+            .expect("TitleScreen texture not found");
+        draw_texture(texture_to_render, 0.0, 0.0, WHITE);
+
         let title = "WORLD'S VISCERA";
         let command = "Press any key to start, Q to exit";
         draw_rectangle(0.0, 0.0, 64.0, 32.0, BLACK);
