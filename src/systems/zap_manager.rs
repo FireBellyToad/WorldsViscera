@@ -73,10 +73,6 @@ impl ZapManager {
                 if zapper_position.x != wants_zap.target.0
                     || zapper_position.y != wants_zap.target.1
                 {
-                    println!(
-                        "zapper_position is x: {}, y: {}",
-                        zapper_position.x, zapper_position.y
-                    );
                     //TODO what if the effect is not a line?
                     let line_effect = EffectManager::new_line(
                         (zapper_position.x, zapper_position.y),
@@ -85,12 +81,9 @@ impl ZapManager {
 
                     // Zap all entities in line (Excluding first)!
                     for (i, &(x, y)) in line_effect.iter().enumerate().skip(1) {
-                        println!("Pos is line {}, x: {}, y: {}", i, x, y);
                         let index = Zone::get_index_from_xy(&x, &y);
-                        println!("Targets found in line {:?}", &zone.tile_content[index]);
                         target_list.push(&zone.tile_content[index]);
                     }
-                    println!("Targets found in total {:?}", &target_list);
 
                     //TODO use particle type given by zapper item
                     particle_animations.push(ParticleAnimation::new_line(
