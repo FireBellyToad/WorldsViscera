@@ -4,7 +4,8 @@ use crate::{
     components::{
         actions::WantsToApply,
         common::{GameLog, Named, Wet},
-        items::{Applied, InBackback, MustBeFueled, TurnedOff, TurnedOn},
+        health::{Cured, DiseaseType},
+        items::{Appliable, Applied, Cure, InBackback, MustBeFueled, TurnedOff, TurnedOn},
         player::Player,
     },
     engine::state::EngineState,
@@ -15,28 +16,27 @@ pub struct ApplySystem {}
 impl ApplySystem {
     /// Check entities that wants to apply Something
     pub fn check(ecs_world: &mut World) {
-        let mut applicators_items_applied: Vec<(Entity, Entity)> = Vec::new();
+        let mut applicators_items_applied: Vec<(Entity, Entity, i32)> = Vec::new();
         let player_id = Player::get_entity_id(ecs_world);
 
         {
             let mut appliers = ecs_world.query::<&WantsToApply>();
 
             for (applier, wants_to_apply) in &mut appliers {
-                applicators_items_applied.push((applier, wants_to_apply.item));
-                println!(
-                    "ApplySystem::check applier {} wants to apply {:?}",
-                    applier.id(),
-                    wants_to_apply.item.id()
-                );
+                let time = ecs_world
+                    .get::<&Appliable>(wants_to_apply.item)
+                    .expect("Must have Appliable component")
+                    .application_time;
+                applicators_items_applied.push((applier, wants_to_apply.item, time));
             }
         }
 
-        for (applier, item) in applicators_items_applied {
+        for (applier, item, multiplier) in applicators_items_applied {
             let _ = ecs_world.remove_one::<WantsToApply>(applier);
             let _ = ecs_world.insert_one(item, Applied {});
 
             if player_id == applier.id() {
-                Player::wait_after_action(ecs_world);
+                Player::wait_after_action(ecs_world, multiplier);
             }
         }
     }
@@ -47,8 +47,9 @@ impl ApplySystem {
         let mut entities_applied: Vec<Entity> = Vec::new();
         let mut entities_to_turn_on: Vec<Entity> = Vec::new();
         let mut entities_to_turn_off: Vec<Entity> = Vec::new();
-
+        let mut entities_cured: Vec<(Entity, Vec<DiseaseType>)> = Vec::new();
         let player_id = Player::get_entity_id(ecs_world);
+
         // Scope for keeping borrow checker quiet
         {
             //Log all the applications
@@ -70,6 +71,9 @@ impl ApplySystem {
                     Option<&Wet>,
                     Option<&MustBeFueled>,
                 )>()
+                .with::<&Applied>();
+            let mut applyables_cured = ecs_world
+                .query::<(&Cure, &Named, &InBackback)>()
                 .with::<&Applied>();
 
             // Turn off item
@@ -119,6 +123,20 @@ impl ApplySystem {
                         .push(format!("You turn on your {}", named.name));
                 }
             }
+
+            // Curing diseases with an applied item
+            for (entity, (cure, named, in_backback)) in &mut applyables_cured {
+                entities_applied.push(entity);
+                entities_cured.push((in_backback.owner, cure.diseases.clone()));
+
+                if player_id == in_backback.owner.id() {
+                    game_log
+                        .entries
+                        .push(format!("You apply the {} on yourself", named.name));
+                } else {
+                    //TODO would be nice to log npc
+                }
+            }
         }
 
         for entity in entities_applied {
@@ -133,6 +151,10 @@ impl ApplySystem {
         for entity in entities_to_turn_off {
             let _ = ecs_world.exchange_one::<TurnedOn, TurnedOff>(entity, TurnedOff {});
             Player::force_view_recalculation(ecs_world);
+        }
+
+        for (entity, diseases) in entities_cured {
+            let _ = ecs_world.insert_one(entity, Cured { diseases });
         }
     }
 }

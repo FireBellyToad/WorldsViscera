@@ -3,26 +3,27 @@ use hecs::{Entity, World};
 use crate::{
     components::{
         actions::WantsToDrink,
-        common::{GameLog, Named, Position},
+        combat::CombatStats,
+        common::{GameLog, Named},
         health::Thirst,
         items::Quaffable,
         player::Player,
     },
-    utils::roll::Roll,
+    utils::{common::Utils, roll::Roll},
 };
 
 pub struct DrinkingQuaffables {}
 
 impl DrinkingQuaffables {
     pub fn run(ecs_world: &mut World) {
-        let mut drinker_list: Vec<Entity> = Vec::new();
+        let mut drinker_list: Vec<(Entity, i32)> = Vec::new();
         let mut drunk_list: Vec<Entity> = Vec::new();
         let player_id = Player::get_entity_id(ecs_world);
 
         // Scope for keeping borrow checker quiet
         {
             // List of entities that want to collect items
-            let mut drinkers = ecs_world.query::<(&WantsToDrink, &mut Thirst, &Position)>();
+            let mut drinkers = ecs_world.query::<(&WantsToDrink, &mut Thirst, &CombatStats)>();
 
             //Log all the pick ups
             let mut game_log_query = ecs_world.query::<&mut GameLog>();
@@ -31,9 +32,9 @@ impl DrinkingQuaffables {
                 .last()
                 .expect("Game log is not in hecs::World");
 
-            for (drinker, (wants_to_drink, thirst, _)) in &mut drinkers {
+            for (drinker, (wants_to_drink, thirst, stats)) in &mut drinkers {
                 // Keep track of the drinker
-                drinker_list.push(drinker);
+                drinker_list.push((drinker, stats.speed));
                 //Drink!
                 drunk_list.push(wants_to_drink.item);
 
@@ -76,13 +77,11 @@ impl DrinkingQuaffables {
             let _ = ecs_world.despawn(drunk);
         }
 
-        for drinker in drinker_list {
+        for (drinker, speed) in drinker_list {
             // Remove owner's will to drink
             let _ = ecs_world.remove_one::<WantsToDrink>(drinker);
 
-            if player_id == drinker.id() {
-                Player::wait_after_action(ecs_world);
-            }
+            Utils::wait_after_action(ecs_world, drinker, speed);
         }
     }
 }

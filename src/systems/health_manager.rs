@@ -6,7 +6,7 @@ use crate::{
     components::{
         combat::{CombatStats, SufferingDamage},
         common::{GameLog, MyTurn, Named, Position},
-        health::{DiseaseType, Diseased, Hunger},
+        health::{Cured, DiseaseType, Diseased, Hunger},
         player::Player,
     },
     constants::MAX_DISEASE_TICK_COUNTER,
@@ -20,7 +20,7 @@ pub struct HealthManager {}
 /// Checking hunger status
 impl HealthManager {
     pub fn run(ecs_world: &mut World) {
-        let mut healed_entities: Vec<Entity> = Vec::new();
+        let mut healed_entities: Vec<(Entity, bool)> = Vec::new();
         let mut dizzy_entities_list: Vec<(Entity, i32)> = Vec::new();
 
         // Scope for keeping borrow checker quiet
@@ -34,6 +34,7 @@ impl HealthManager {
                     &mut Hunger,
                     &Named,
                     &Position,
+                    Option<&Cured>,
                 )>()
                 .with::<&MyTurn>();
 
@@ -52,9 +53,20 @@ impl HealthManager {
                 .last()
                 .expect("Zone is not in hecs::World");
 
-            for (diseased_entity, (disease, stats, damage, hunger, named, position)) in
+            for (diseased_entity, (disease, stats, damage, hunger, named, position, cured_opt)) in
                 &mut diseased_entities
             {
+                // Heal if cured
+                if let Some(cured) = cured_opt
+                    && cured.diseases.iter().any(|d| d == &disease.disease_type)
+                {
+                    healed_entities.push((diseased_entity, true));
+                    if player_id == diseased_entity.id() {
+                        game_log.entries.push("You feel much better".to_string());
+                    }
+                    continue;
+                }
+
                 // When clock is depleted, decrease disease status
                 disease.tick_counter = max(0, disease.tick_counter - 1);
                 println!(
@@ -75,7 +87,7 @@ impl HealthManager {
                     // If saving throw is successful, improve health status or heal if already improved
                     if Roll::d20() <= stats.current_toughness {
                         if disease.is_improving {
-                            healed_entities.push(diseased_entity);
+                            healed_entities.push((diseased_entity, false));
                         } else {
                             disease.is_improving = true;
                         }
@@ -198,9 +210,13 @@ impl HealthManager {
             }
         }
 
-        // Remove disease from healed entities
-        for healed in healed_entities {
-            let _ = ecs_world.remove_one::<Diseased>(healed);
+        // Remove disease from healed entities. Remove cure component if healed from cure
+        for (healed, from_cure) in healed_entities {
+            if from_cure {
+                let _ = ecs_world.remove::<(Diseased, Cured)>(healed);
+            } else {
+                let _ = ecs_world.remove_one::<Diseased>(healed);
+            }
         }
         // TODO make sure this works
         // for (waiter, speed) in dizzy_entities_list {

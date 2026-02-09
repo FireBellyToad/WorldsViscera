@@ -80,8 +80,8 @@ impl ZapManager {
                     );
 
                     // Zap all entities in line (Excluding first)!
-                    for (i, &(x, y)) in line_effect.iter().enumerate().skip(1) {
-                        let index = Zone::get_index_from_xy(&x, &y);
+                    for (x, y) in line_effect.iter().skip(1) {
+                        let index = Zone::get_index_from_xy(x, y);
                         target_list.push(&zone.tile_content[index]);
                     }
 

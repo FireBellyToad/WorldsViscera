@@ -1,6 +1,9 @@
 use hecs::Entity;
 
-use crate::constants::{BOLT_PARTICLE_TYPE, STONE_PARTICLE_TYPE};
+use crate::{
+    components::health::DiseaseType,
+    constants::{BOLT_PARTICLE_TYPE, STONE_PARTICLE_TYPE},
+};
 
 pub struct Item {
     pub item_tile: (i32, i32),
@@ -69,7 +72,9 @@ pub struct Refiller {
 pub struct TurnedOn {}
 pub struct TurnedOff {}
 
-pub struct Appliable {}
+pub struct Appliable {
+    pub application_time: i32,
+}
 pub struct Applied {}
 
 pub struct Equippable {
@@ -133,4 +138,8 @@ pub struct Corpse {}
 pub enum Tradable {
     Corpse,
     Rotten,
+}
+
+pub struct Cure {
+    pub diseases: Vec<DiseaseType>,
 }

@@ -120,7 +120,7 @@ async fn main() {
                 }
                 RunState::WaitingPlayerInput => {
                     do_tickless_logic(&mut game_state);
-                    game_state.run_state = Player::checks_keyboard_input(&mut game_state.ecs_world);
+                    game_state.run_state = Player::checks_keyboard_input(&mut game_state);
                 }
                 RunState::DoTick => {
                     println!("DoTick ---------------------------- tick {}", tick);
@@ -160,7 +160,10 @@ async fn main() {
                 RunState::GoToNextZone => {
                     // Reset heal counter if the player did not wait
                     Player::reset_heal_counter(&game_state.ecs_world);
-                    Player::wait_after_action(&mut game_state.ecs_world);
+                    Player::wait_after_action(
+                        &mut game_state.ecs_world,
+                        STANDARD_ACTION_MULTIPLIER,
+                    );
                     change_zone(&mut game_state);
                     clear_input_queue();
                     game_state.run_state = RunState::BeforeTick;
@@ -196,7 +199,7 @@ fn populate_world(ecs_world: &mut World) {
         },
     ));
 
-    let zone = ArenaZoneBuilder::build(1, ecs_world);
+    let zone = TestZoneBuilder::build(20, ecs_world);
 
     Spawn::player(ecs_world, &zone);
     Spawn::everyhing_in_map(ecs_world, &zone);
@@ -263,6 +266,7 @@ fn do_before_tick_logic(game_state: &mut EngineState) {
     DecayManager::run(&mut game_state.ecs_world);
     HungerCheck::run(&mut game_state.ecs_world);
     ThirstCheck::run(&mut game_state.ecs_world);
+    HealthManager::run(&mut game_state.ecs_world);
     FuelManager::check_fuel(&mut game_state.ecs_world);
     WetManager::run(&mut game_state.ecs_world);
     HiddenManager::run(&mut game_state.ecs_world);
@@ -283,7 +287,6 @@ fn do_in_tick_game_logic(game_engine: &mut GameEngine, game_state: &mut EngineSt
     //If there are particles, skip everything and draw
     if !ParticleManager::check_if_animations_are_present(game_engine, game_state) {
         MeleeManager::run(&mut game_state.ecs_world);
-        HealthManager::run(&mut game_state.ecs_world);
         DamageManager::run(&game_state.ecs_world);
         DamageManager::remove_dead_and_check_gameover(game_state);
         //Proceed on game logic if is not Game Over
@@ -323,6 +326,8 @@ fn do_tickless_logic(game_state: &mut EngineState) {
             // TODO spawn what prompt
             if is_key_pressed(KeyCode::F11) {
                 Spawn::wand(&mut game_state.ecs_world, MAP_WIDTH / 2, MAP_HEIGHT / 2);
+            } else if is_key_pressed(KeyCode::F10) {
+                Spawn::curing_paste(&mut game_state.ecs_world, MAP_WIDTH / 2, MAP_HEIGHT / 2);
             }
         }
     }

@@ -9,14 +9,11 @@ use std::cmp::max;
 
 use hecs::{Entity, World};
 
-use crate::{
-    components::{
-        common::{MyTurn, Named, SpeciesEnum, WaitingToAct},
-        items::{
-            BodyLocation, Equipped, Eroded, InBackback, Invokable, Metallic, MustBeFueled, TurnedOn,
-        },
+use crate::components::{
+    common::{MyTurn, Named, SpeciesEnum, WaitingToAct},
+    items::{
+        BodyLocation, Equipped, Eroded, InBackback, Invokable, Metallic, MustBeFueled, TurnedOn,
     },
-    constants::MAX_ACTION_SPEED,
 };
 
 pub type ItemsInBackpack<'a> = (
@@ -62,8 +59,8 @@ impl Utils {
 
     /// Utility function to make an entity wait after an action
     pub fn wait_after_action(ecs_world: &mut World, waiter: Entity, speed: i32) {
-        let count = max(1, MAX_ACTION_SPEED / speed);
-        println!("Entity id {} must wait {} ticks", waiter.id(), count);
+        let count = max(1, speed);
+        println!("Entity {:?} must wait {} ticks", waiter, count);
         // TODO account speed penalties
         let _ = ecs_world.exchange_one::<MyTurn, WaitingToAct>(
             waiter,

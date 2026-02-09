@@ -56,10 +56,12 @@ pub const DIALOG_TOP_SPAN: i32 = DIALOG_SIZE / 6;
 
 /// Timing related constants
 pub const MILLISECONDS_TO_WAIT: f32 = 5.1;
-pub const SLOW: i32 = 1;
+pub const SLOW: i32 = 4;
 pub const NORMAL: i32 = 2;
-pub const FAST: i32 = 4;
-pub const MAX_ACTION_SPEED: i32 = 4;
+pub const FAST: i32 = 1;
+pub const STANDARD_ACTION_MULTIPLIER: i32 = 1;
+pub const LONG_ACTION_MULTIPLIER: i32 = 2;
+pub const VERY_LONG_ACTION_MULTIPLIER: i32 = 3;
 
 /// Spawning related constants
 pub const MAX_MONSTERS_IN_ZONE: i32 = 5;

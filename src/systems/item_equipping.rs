@@ -3,6 +3,7 @@ use hecs::{Entity, World};
 use crate::{
     components::{
         actions::WantsToEquip,
+        combat::CombatStats,
         common::{GameLog, Named, Position},
         items::{BodyLocation, Equipped},
         player::Player,
@@ -15,8 +16,8 @@ pub struct ItemEquipping {}
 
 impl ItemEquipping {
     pub fn run(ecs_world: &mut World) {
-        let mut item_to_equip_list: Vec<(Entity, BodyLocation, Entity)> = Vec::new();
-        let mut item_to_unequip_list: Vec<(Entity, Entity)> = Vec::new();
+        let mut item_to_equip_list: Vec<(Entity, BodyLocation, Entity, i32)> = Vec::new();
+        let mut item_to_unequip_list: Vec<(Entity, Entity, i32)> = Vec::new();
         let mut cleanup_equip: Vec<Entity> = Vec::new();
 
         let player_id = Player::get_entity_id(ecs_world);
@@ -24,7 +25,7 @@ impl ItemEquipping {
         // Scope for keeping borrow checker quiet
         {
             // List of entities that want to equip items
-            let mut items_to_equip = ecs_world.query::<(&WantsToEquip, &Position)>();
+            let mut items_to_equip = ecs_world.query::<(&WantsToEquip, &Position, &CombatStats)>();
             let mut equipped_items = ecs_world.query::<&Equipped>();
 
             //Log all the equipments
@@ -40,7 +41,7 @@ impl ItemEquipping {
                 .last()
                 .expect("Zone is not in hecs::World");
 
-            for (equipper, (wants_to_equip, position)) in &mut items_to_equip {
+            for (equipper, (wants_to_equip, position, stats)) in &mut items_to_equip {
                 // Show appropriate log messages
                 let named_item: hecs::Ref<'_, Named> = ecs_world
                     .get::<&Named>(wants_to_equip.item)
@@ -49,7 +50,7 @@ impl ItemEquipping {
 
                 if is_already_equipped {
                     // Unequip item
-                    item_to_unequip_list.push((equipper, wants_to_equip.item));
+                    item_to_unequip_list.push((equipper, wants_to_equip.item, stats.speed));
 
                     if player_id == equipper.id() {
                         game_log
@@ -93,6 +94,7 @@ impl ItemEquipping {
                                 wants_to_equip.item,
                                 wants_to_equip.body_location.clone(),
                                 equipper,
+                                stats.speed,
                             ));
 
                             if player_id == equipper.id() {
@@ -113,7 +115,7 @@ impl ItemEquipping {
             }
         }
 
-        for (item, body_location, equipper) in item_to_equip_list {
+        for (item, body_location, equipper, speed) in item_to_equip_list {
             // Remove owner's will to equip
             let _ = ecs_world.remove_one::<WantsToEquip>(equipper);
 
@@ -126,19 +128,15 @@ impl ItemEquipping {
                 },
             );
 
-            if player_id == equipper.id() {
-                Player::wait_after_action(ecs_world);
-            }
+            Utils::wait_after_action(ecs_world, equipper, speed);
         }
 
-        for (unequipper, item) in item_to_unequip_list {
+        for (unequipper, item, speed) in item_to_unequip_list {
             // Unequip and remove owner's will to equip
             let _ = ecs_world.remove_one::<WantsToEquip>(unequipper);
             let _ = ecs_world.remove_one::<Equipped>(item);
 
-            if player_id == unequipper.id() {
-                Player::wait_after_action(ecs_world);
-            }
+            Utils::wait_after_action(ecs_world, unequipper, speed);
         }
 
         for to_clean in cleanup_equip {

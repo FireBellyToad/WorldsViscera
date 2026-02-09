@@ -65,7 +65,7 @@ impl Spawn {
                 level: 1,
                 current_stamina: rolled_stamina,
                 max_stamina: rolled_stamina,
-                base_armor: 0,
+                base_armor: 20,
                 unarmed_attack_dice: 2,
                 current_toughness: rolled_toughness,
                 max_toughness: rolled_toughness,
@@ -216,6 +216,7 @@ impl Spawn {
                 let _ = Spawn::wand(ecs_world, x, y);
             }
             26 => Spawn::helmet(ecs_world, x, y),
+            27 => Spawn::curing_paste(ecs_world, x, y),
             _ => {}
         };
     }

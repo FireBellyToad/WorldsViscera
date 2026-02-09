@@ -1,6 +1,6 @@
 use crate::{
     components::{common::Position, items::TurnedOff},
-    constants::FLAME_PARTICLE_TYPE,
+    constants::{FLAME_PARTICLE_TYPE, STANDARD_ACTION_MULTIPLIER},
     utils::particle_animation::ParticleAnimation,
 };
 use hecs::{Entity, World};
@@ -201,7 +201,7 @@ impl FuelManager {
             let _ = ecs_world.despawn(item_used);
 
             if player_id == refiller.id() {
-                Player::wait_after_action(ecs_world);
+                Player::wait_after_action(ecs_world, STANDARD_ACTION_MULTIPLIER);
             }
         }
 

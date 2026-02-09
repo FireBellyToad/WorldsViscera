@@ -79,10 +79,8 @@ impl EatingEdibles {
                         continue;
                     }
 
-                    // inflict disease of diseased corpse
-                    if let Ok(dis_bear_some) = ecs_world.get::<&DiseaseBearer>(wants_to_eat.item)
-                        && Roll::d20() > stats.current_toughness
-                    {
+                    // inflict disease of diseased corpse (without saving throw)
+                    if let Ok(dis_bear_some) = ecs_world.get::<&DiseaseBearer>(wants_to_eat.item) {
                         // If the target is already infected, worsen its status
                         if let Ok(mut disease) = ecs_world.get::<&mut Diseased>(eater) {
                             disease.is_improving = false;

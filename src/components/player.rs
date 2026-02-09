@@ -2,6 +2,8 @@ use crate::components::actions::WantsToTrade;
 use crate::components::combat::{SufferingDamage, WantsToDig, WantsToShoot};
 use crate::components::common::{Diggable, Named};
 use crate::components::items::{DiggingTool, RangedWeapon, ShopOwner};
+use crate::constants::STANDARD_ACTION_MULTIPLIER;
+use crate::engine::state::EngineState;
 use crate::utils::common::ItemsInBackpack;
 use crate::utils::roll::Roll;
 use crate::{components::actions::WantsToInvoke, maps::zone::DecalType};
@@ -159,7 +161,7 @@ impl Player {
 
         // if return_state == RunState::DoTick here, than is moving, needs to wait!
         if return_state == RunState::DoTick {
-            Player::wait_after_action(ecs_world);
+            Player::wait_after_action(ecs_world, STANDARD_ACTION_MULTIPLIER);
         }
 
         // Attack if needed
@@ -180,7 +182,8 @@ impl Player {
     ///
     /// Handle player input
     ///
-    pub fn checks_keyboard_input(ecs_world: &mut World) -> RunState {
+    pub fn checks_keyboard_input(game_state: &mut EngineState) -> RunState {
+        let ecs_world = &mut game_state.ecs_world;
         let mut run_state = RunState::WaitingPlayerInput;
         let mut check_chars_pressed = false;
         let mut is_actively_waiting = false;
@@ -202,6 +205,7 @@ impl Player {
                 // Skip turn doing nothing, so you can heal
                 KeyCode::Space => {
                     run_state = RunState::DoTick;
+                    Player::wait_after_action(ecs_world, STANDARD_ACTION_MULTIPLIER);
                     is_actively_waiting = true;
                 }
 
@@ -222,6 +226,7 @@ impl Player {
                         // Skip turn doing nothing, so you can heal
                         '.' => {
                             run_state = RunState::DoTick;
+                            Player::wait_after_action(ecs_world, STANDARD_ACTION_MULTIPLIER);
                             is_actively_waiting = true;
                         }
 
@@ -241,9 +246,11 @@ impl Player {
                             run_state = RunState::ShowInventory(InventoryAction::Apply);
                         }
 
-                        //DEBUG ONLY KILL
+                        //Kill himself in debug mode only
                         'k' => {
-                            run_state = RunState::GameOver;
+                            if game_state.debug_mode {
+                                run_state = RunState::GameOver;
+                            }
                         }
 
                         '>' => {
@@ -643,7 +650,7 @@ impl Player {
     }
 
     /// Wait some ticks after action is taken
-    pub fn wait_after_action(ecs_world: &mut World) {
+    pub fn wait_after_action(ecs_world: &mut World, multiplier: i32) {
         let player = Player::get_entity(ecs_world);
         let speed;
 
@@ -655,7 +662,7 @@ impl Player {
                 .speed;
         }
 
-        Utils::wait_after_action(ecs_world, player, speed);
+        Utils::wait_after_action(ecs_world, player, speed * multiplier);
     }
 
     /// Utility method for FOV forced recalculation

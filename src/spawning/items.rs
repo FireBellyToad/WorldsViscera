@@ -1,5 +1,8 @@
 use crate::{
-    components::items::{Ammo, AmmoType, DiggingTool, RangedWeapon},
+    components::{
+        health::DiseaseType,
+        items::{Ammo, AmmoType, Cure, DiggingTool, RangedWeapon},
+    },
     spawning::spawner::Spawn,
 };
 use hecs::{Entity, World};
@@ -178,6 +181,37 @@ impl Spawn {
         ecs_world.spawn(flask_of_water);
     }
 
+    pub fn curing_paste(ecs_world: &mut World, x: i32, y: i32) {
+        let item_tile_index = (8, 0);
+        let curing_paste = (
+            Position { x, y },
+            Renderable {
+                texture_name: TextureName::Items,
+                texture_region: Rect {
+                    x: (item_tile_index.0 * TILE_SIZE) as f32,
+                    y: (item_tile_index.1 * TILE_SIZE) as f32,
+                    w: TILE_SIZE_F32,
+                    h: TILE_SIZE_F32,
+                },
+                z_index: 0,
+            },
+            Named {
+                name: "curing paste".to_string(),
+            },
+            Item {
+                item_tile: item_tile_index,
+            },
+            Appliable {
+                application_time: VERY_LONG_ACTION_MULTIPLIER,
+            },
+            Cure {
+                diseases: vec![DiseaseType::Calcification, DiseaseType::FleshRot],
+            },
+        );
+
+        ecs_world.spawn(curing_paste);
+    }
+
     pub fn lantern(ecs_world: &mut World, x: i32, y: i32) {
         let item_tile_index = (3, 0);
         let lantern = (
@@ -209,7 +243,9 @@ impl Spawn {
                 intensity: SmellIntensity::Faint,
             },
             TurnedOff {},
-            Appliable {},
+            Appliable {
+                application_time: STANDARD_ACTION_MULTIPLIER,
+            },
         );
 
         ecs_world.spawn(lantern);
@@ -280,7 +316,7 @@ impl Spawn {
             },
             InflictsDamage {
                 number_of_dices: 1,
-                dice_size: 6,
+                dice_size: 8,
             },
             Metallic {},
         );
@@ -317,7 +353,7 @@ impl Spawn {
             },
             InflictsDamage {
                 number_of_dices: 1,
-                dice_size: 3,
+                dice_size: 4,
             },
         );
 
@@ -351,7 +387,9 @@ impl Spawn {
                 smell_log: Some("a faint scent of fuel".to_string()),
                 intensity: SmellIntensity::Faint,
             },
-            Appliable {},
+            Appliable {
+                application_time: STANDARD_ACTION_MULTIPLIER,
+            },
         );
 
         ecs_world.spawn(flask_of_oil);

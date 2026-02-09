@@ -20,6 +20,10 @@ pub struct Diseased {
     pub disease_type: DiseaseType,
 }
 
+pub struct Cured {
+    pub diseases: Vec<DiseaseType>,
+}
+
 #[derive(PartialEq, Debug, Clone)]
 pub enum DiseaseType {
     FleshRot,
