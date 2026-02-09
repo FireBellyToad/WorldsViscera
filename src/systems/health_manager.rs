@@ -9,10 +9,10 @@ use crate::{
         health::{Cured, DiseaseType, Diseased, Hunger},
         player::Player,
     },
-    constants::MAX_DISEASE_TICK_COUNTER,
+    constants::{MAX_DISEASE_TICK_COUNTER, VERY_LONG_ACTION_MULTIPLIER},
     maps::zone::{DecalType, Zone},
     systems::hunger_check::HungerStatus,
-    utils::roll::Roll,
+    utils::{common::Utils, roll::Roll},
 };
 
 pub struct HealthManager {}
@@ -218,9 +218,10 @@ impl HealthManager {
                 let _ = ecs_world.remove_one::<Diseased>(healed);
             }
         }
-        // TODO make sure this works
-        // for (waiter, speed) in dizzy_entities_list {
-        //     Utils::wait_after_action(ecs_world, waiter, speed);
-        // }
+
+        // Makes entities waiting for a while
+        for (waiter, speed) in dizzy_entities_list {
+            Utils::wait_after_action(ecs_world, waiter, speed * VERY_LONG_ACTION_MULTIPLIER);
+        }
     }
 }
