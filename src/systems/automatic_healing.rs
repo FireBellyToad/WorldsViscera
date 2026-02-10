@@ -77,11 +77,11 @@ impl AutomaticHealing {
                                     entities_free.push(entity);
 
                                     if entity.id() == player_id {
-                                        game_log.entries.push("You are paralyzed!".to_string());
+                                        game_log.entries.push("You can move now".to_string());
                                     } else {
                                         game_log
                                             .entries
-                                            .push(format!("{} is paralyzed!", named.name));
+                                            .push(format!("{} can move now", named.name));
                                     }
                                 }
                             }
