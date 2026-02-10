@@ -6,7 +6,7 @@ use crate::{
     components::{
         combat::{CombatStats, SufferingDamage},
         common::{Experience, GameLog, Hates, Named, Position},
-        health::{CanAutomaticallyHeal, DiseaseType},
+        health::{CanAutomaticallyHeal, DiseaseType, Paralyzed},
         items::{Deadly, DontLeaveCorpse, Edible},
         monster::{DiseaseBearer, Venomous},
         player::Player,
@@ -76,17 +76,12 @@ impl DamageManager {
                 }
             }
 
-            // Disease hits
+            // Disease hits on dexterity
             if damageable.dexterity_damage_received > 0 {
                 stats.current_dexterity = max(
                     0,
                     stats.current_dexterity - damageable.dexterity_damage_received,
                 );
-
-                // TODO paralysis
-                // if stats.current_dexterity < 1 {
-                //     stats.current_stamina = 0;
-                // }
             }
         }
     }
@@ -95,6 +90,7 @@ impl DamageManager {
     pub fn remove_dead_and_check_gameover(game_state: &mut EngineState) -> bool {
         let ecs_world = &mut game_state.ecs_world;
         let mut dead_entities: Vec<DeadEntityData> = Vec::new();
+        let mut paralyzed_entities: Vec<Entity> = Vec::new();
         let player_entity_id = Player::get_entity_id(ecs_world);
 
         // Scope for keeping borrow checker quiet
@@ -111,49 +107,62 @@ impl DamageManager {
                 .last()
                 .expect("Zone is not in hecs::World");
 
-            let mut damageables =
-                ecs_world.query::<(&CombatStats, &Named, &mut SufferingDamage, &Position)>();
-            for (entity, (stats, named, damageable, position)) in &mut damageables {
+            let mut damageables = ecs_world.query::<(
+                &CombatStats,
+                &Named,
+                &mut SufferingDamage,
+                &Position,
+                Option<&Paralyzed>,
+            )>();
+            for (entity, (stats, named, damageable, position, paralyzed_opt)) in &mut damageables {
                 // if has been damaged and Stamina is 0, do a thougness saving throw or die.
                 // On 0 or less toughness, die anyway
                 if stats.current_stamina <= 0
                     && (damageable.damage_received > 0 || damageable.toughness_damage_received > 0)
                 {
                     let saving_throw_roll = Roll::d20();
+                    let is_killed =
+                        stats.current_toughness < 1 || saving_throw_roll > stats.current_toughness;
+
+                    // If killed, add to dead entities list with all necessary information
+                    if is_killed {
+                        dead_entities.push((
+                            entity,
+                            named.name.clone(),
+                            (position.x, position.y),
+                            damageable.damager,
+                            stats.level,
+                        ));
+                    }
+
                     if entity.id() == player_entity_id {
-                        if stats.current_toughness < 1
-                            || saving_throw_roll > stats.current_toughness
-                        {
-                            dead_entities.push((
-                                entity,
-                                named.name.clone(),
-                                (position.x, position.y),
-                                damageable.damager,
-                                stats.level,
-                            ));
+                        if is_killed {
                             game_log.entries.push("You die!".to_string());
-                        } else if stats.current_toughness > 0 {
+                        } else {
                             game_log.entries.push("You stagger in pain!".to_string());
                         }
                     } else if zone.visible_tiles[Zone::get_index_from_xy(&position.x, &position.y)]
                     {
                         // Log npc deaths only if visible by player
-                        if stats.current_toughness < 1
-                            || saving_throw_roll > stats.current_toughness
-                        {
-                            dead_entities.push((
-                                entity,
-                                named.name.clone(),
-                                (position.x, position.y),
-                                damageable.damager,
-                                stats.level,
-                            ));
+                        if is_killed {
                             game_log.entries.push(format!("{} dies!", named.name));
                         } else if stats.current_toughness > 0 {
                             game_log
                                 .entries
                                 .push(format!("{} staggers in pain!", named.name));
                         }
+                    }
+                }
+
+                if stats.current_dexterity == 0 && paralyzed_opt.is_none() {
+                    paralyzed_entities.push(entity);
+
+                    if entity.id() == player_entity_id {
+                        game_log.entries.push("You are paralyzed!".to_string());
+                    } else {
+                        game_log
+                            .entries
+                            .push(format!("{} is paralyzed!", named.name));
                     }
                 }
                 // Reset SufferingDamage component
@@ -222,6 +231,11 @@ impl DamageManager {
             ecs_world
                 .despawn(killed_entity)
                 .expect("Cannot despawn entity");
+        }
+
+        // Handle paralysis
+        for entity in paralyzed_entities {
+            let _ = ecs_world.insert_one(entity, Paralyzed {});
         }
 
         false

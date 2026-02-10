@@ -2,8 +2,11 @@ use hecs::World;
 
 use crate::{
     components::{
+        combat::CombatStats,
         common::Named,
+        health::Paralyzed,
         monster::{Monster, Smart},
+        player::Player,
     },
     utils::common::ItemsInBackpack,
 };
@@ -21,6 +24,9 @@ impl Debugger {
                 .with::<&Monster>()
                 .without::<&Smart>();
             let mut items = ecs_world.query::<ItemsInBackpack>();
+            let mut paralyzed_player = ecs_world
+                .query::<&CombatStats>()
+                .with::<(&Player, &Paralyzed)>();
 
             for (monster, name) in &mut stupid_monsters {
                 if items
@@ -33,6 +39,12 @@ impl Debugger {
                         "Monster {:?} {} has something in backpack even if not smart!!!",
                         monster, name.name
                     )
+                }
+            }
+
+            for (e, combat_stats) in &mut paralyzed_player {
+                if combat_stats.current_dexterity > 0 {
+                    panic!("Player {:?} has 1+ DEX but is paralyzed", e);
                 }
             }
         }

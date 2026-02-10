@@ -89,6 +89,7 @@ async fn main() {
             // Run system only while not paused, or else wait for player input.
             // Make the whole game turn based
 
+            do_tickless_logic(&mut game_state);
             match game_state.run_state {
                 RunState::TitleScreen => {
                     // Quit game on Q
@@ -119,7 +120,7 @@ async fn main() {
                     }
                 }
                 RunState::WaitingPlayerInput => {
-                    do_tickless_logic(&mut game_state);
+                    SmellManager::run(&mut game_state.ecs_world);
                     game_state.run_state = Player::checks_keyboard_input(&mut game_state);
                 }
                 RunState::DoTick => {
@@ -199,7 +200,7 @@ fn populate_world(ecs_world: &mut World) {
         },
     ));
 
-    let zone = TestZoneBuilder::build(20, ecs_world);
+    let zone = TestZoneBuilder::build(5, ecs_world);
 
     Spawn::player(ecs_world, &zone);
     Spawn::everyhing_in_map(ecs_world, &zone);
@@ -276,6 +277,7 @@ fn do_before_tick_logic(game_state: &mut EngineState) {
     // These Systems must always be run last
     MapIndexing::run(&game_state.ecs_world);
     FieldOfView::calculate(&game_state.ecs_world);
+    TurnCheck::check_for_turn_reset(&mut game_state.ecs_world);
 }
 
 fn do_in_tick_game_logic(game_engine: &mut GameEngine, game_state: &mut EngineState) {
@@ -312,8 +314,6 @@ fn do_in_tick_game_logic(game_engine: &mut GameEngine, game_state: &mut EngineSt
 }
 
 fn do_tickless_logic(game_state: &mut EngineState) {
-    SmellManager::run(&mut game_state.ecs_world);
-
     #[cfg(not(target_arch = "wasm32"))]
     {
         if is_key_pressed(KeyCode::F12) {
@@ -328,6 +328,17 @@ fn do_tickless_logic(game_state: &mut EngineState) {
                 Spawn::wand(&mut game_state.ecs_world, MAP_WIDTH / 2, MAP_HEIGHT / 2);
             } else if is_key_pressed(KeyCode::F10) {
                 Spawn::curing_paste(&mut game_state.ecs_world, MAP_WIDTH / 2, MAP_HEIGHT / 2);
+            } else if is_key_pressed(KeyCode::F9) {
+                Spawn::calcificator(&mut game_state.ecs_world, MAP_WIDTH / 2, MAP_HEIGHT / 2);
+            } else if is_key_pressed(KeyCode::F8) {
+                use crate::components::combat::CombatStats;
+
+                let entity = Player::get_entity(&mut game_state.ecs_world);
+                let mut stats = game_state
+                    .ecs_world
+                    .get::<&mut CombatStats>(entity)
+                    .expect("must have stats");
+                stats.current_dexterity = 0;
             }
         }
     }

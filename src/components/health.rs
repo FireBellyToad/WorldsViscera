@@ -30,3 +30,5 @@ pub enum DiseaseType {
     Fever,
     Calcification,
 }
+
+pub struct Paralyzed {}

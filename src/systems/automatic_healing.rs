@@ -1,23 +1,34 @@
 use std::cmp::min;
 
-use hecs::World;
+use hecs::{Entity, World};
 
 use crate::{
     components::{
         combat::CombatStats,
-        common::MyTurn,
-        health::{CanAutomaticallyHeal, Hunger, Thirst},
+        common::{GameLog, MyTurn, Named},
+        health::{CanAutomaticallyHeal, Hunger, Paralyzed, Thirst},
+        player::Player,
     },
     constants::{MAX_STAMINA_HEAL_TICK_COUNTER, MAX_STATS_HEAL_TICK_COUNTER},
     systems::{hunger_check::HungerStatus, thirst_check::ThirstStatus},
 };
 
+/// Handles automatic healing in entities
 pub struct AutomaticHealing {}
 
 impl AutomaticHealing {
     pub fn run(ecs_world: &mut World) {
+        let mut entities_free: Vec<Entity> = Vec::new();
+        let player_id = Player::get_entity_id(ecs_world);
+
         // Scope for keeping borrow checker quiet
         {
+            let mut game_log_query = ecs_world.query::<&mut GameLog>();
+            let (_, game_log) = game_log_query
+                .iter()
+                .last()
+                .expect("Game log is not in hecs::World");
+
             // List of entities that has stats
             let mut statted_entities = ecs_world
                 .query::<(
@@ -25,10 +36,14 @@ impl AutomaticHealing {
                     &mut CanAutomaticallyHeal,
                     &Hunger,
                     &Thirst,
+                    &Named,
+                    Option<&Paralyzed>,
                 )>()
                 .with::<&MyTurn>();
 
-            for (_, (stats, auto_heal, hunger, thirst)) in &mut statted_entities {
+            for (entity, (stats, auto_heal, hunger, thirst, named, paralyzed_opt)) in
+                &mut statted_entities
+            {
                 // Each 4 ticks, heal 1 STA. if STA is full, each 16 ticks, heal 1 stats point
                 if auto_heal.tick_counter == 0 && stats.max_stamina > stats.current_stamina {
                     auto_heal.tick_counter = MAX_STAMINA_HEAL_TICK_COUNTER;
@@ -56,11 +71,29 @@ impl AutomaticHealing {
                             if stats.max_dexterity > stats.current_dexterity {
                                 stats.current_dexterity =
                                     min(stats.max_dexterity, stats.current_dexterity + 1);
+
+                                // Remove Paralyzed component if entity's dexterity is healed
+                                if paralyzed_opt.is_some() {
+                                    entities_free.push(entity);
+
+                                    if entity.id() == player_id {
+                                        game_log.entries.push("You are paralyzed!".to_string());
+                                    } else {
+                                        game_log
+                                            .entries
+                                            .push(format!("{} is paralyzed!", named.name));
+                                    }
+                                }
                             }
                         }
                     }
                 }
             }
+        }
+
+        //Remove Paralyzed component from entities that have been cured
+        for entity in entities_free {
+            let _ = ecs_world.remove_one::<Paralyzed>(entity);
         }
     }
 }

@@ -60,14 +60,22 @@ impl Utils {
     /// Utility function to make an entity wait after an action
     pub fn wait_after_action(ecs_world: &mut World, waiter: Entity, speed: i32) {
         let count = max(1, speed);
-        println!("Entity {:?} must wait {} ticks", waiter, count);
         // TODO account speed penalties
-        let _ = ecs_world.exchange_one::<MyTurn, WaitingToAct>(
-            waiter,
-            WaitingToAct {
-                tick_countdown: count,
-            },
-        );
+        if let Ok(mut already_waiting) = ecs_world.get::<&mut WaitingToAct>(waiter) {
+            already_waiting.tick_countdown += count;
+            println!(
+                "Entity {:?} must wait {} ticks",
+                waiter, already_waiting.tick_countdown
+            );
+        } else {
+            println!("Entity {:?} must wait {} ticks", waiter, count);
+            let _ = ecs_world.exchange_one::<MyTurn, WaitingToAct>(
+                waiter,
+                WaitingToAct {
+                    tick_countdown: count,
+                },
+            );
+        }
     }
 
     // Gets armor value
