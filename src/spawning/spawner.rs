@@ -65,7 +65,7 @@ impl Spawn {
                 level: 1,
                 current_stamina: rolled_stamina,
                 max_stamina: rolled_stamina,
-                base_armor: 20,
+                base_armor: 0,
                 unarmed_attack_dice: 2,
                 current_toughness: rolled_toughness,
                 max_toughness: rolled_toughness,

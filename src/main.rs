@@ -200,7 +200,7 @@ fn populate_world(ecs_world: &mut World) {
         },
     ));
 
-    let zone = TestZoneBuilder::build(5, ecs_world);
+    let zone = ArenaZoneBuilder::build(1, ecs_world);
 
     Spawn::player(ecs_world, &zone);
     Spawn::everyhing_in_map(ecs_world, &zone);
@@ -333,7 +333,7 @@ fn do_tickless_logic(game_state: &mut EngineState) {
             } else if is_key_pressed(KeyCode::F8) {
                 use crate::components::combat::CombatStats;
 
-                let entity = Player::get_entity(&mut game_state.ecs_world);
+                let entity = Player::get_entity(&game_state.ecs_world);
                 let mut stats = game_state
                     .ecs_world
                     .get::<&mut CombatStats>(entity)

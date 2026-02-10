@@ -205,7 +205,7 @@ impl Utils {
                 && shop_owner
                     .shop_tiles
                     .iter()
-                    .any(|&index| Zone::get_index_from_xy(&item_x, &item_y) == index)
+                    .any(|&index| Zone::get_index_from_xy(item_x, item_y) == index)
             {
                 found = Some(owner);
 

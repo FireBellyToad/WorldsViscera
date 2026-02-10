@@ -60,7 +60,7 @@ pub const SLOW: i32 = 4;
 pub const NORMAL: i32 = 2;
 pub const FAST: i32 = 1;
 pub const STANDARD_ACTION_MULTIPLIER: i32 = 1;
-pub const LONG_ACTION_MULTIPLIER: i32 = 2;
+// pub const LONG_ACTION_MULTIPLIER: i32 = 2;
 pub const VERY_LONG_ACTION_MULTIPLIER: i32 = 3;
 
 /// Spawning related constants

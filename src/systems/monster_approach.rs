@@ -5,7 +5,6 @@ use crate::{
         combat::{CombatStats, SufferingDamage},
         common::*,
         monster::{Aquatic, LeaveTrail, Monster, WantsToApproach},
-        player::Player,
     },
     maps::zone::{DecalType, Zone},
     utils::{common::Utils, pathfinding::Pathfinding, roll::Roll},
