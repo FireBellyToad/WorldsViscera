@@ -1,5 +1,3 @@
-use std::sync::Mutex;
-
 use crate::{
     components::common::Experience,
     maps::{arena_zone_builder::ArenaZoneBuilder, test_zone_builder::TestZoneBuilder},
@@ -16,7 +14,7 @@ use engine::{
     gameengine::GameEngine,
     state::{EngineState, RunState},
 };
-use hecs::{Entity, World};
+use hecs::World;
 use inventory::Inventory;
 use macroquad::prelude::*;
 use spawning::spawner::Spawn;
@@ -202,7 +200,7 @@ fn populate_world(ecs_world: &mut World) {
         },
     ));
 
-    let zone = ArenaZoneBuilder::build(1, ecs_world);
+    let zone = TestZoneBuilder::build(1, ecs_world);
 
     Spawn::player(ecs_world, &zone);
     Spawn::everyhing_in_map(ecs_world, &zone);

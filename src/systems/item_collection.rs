@@ -52,8 +52,9 @@ impl ItemCollection {
             for (collector, (wants_item, stats, position, small, named_collector)) in
                 &mut collectors
             {
+                let mut last_assigned_char = ' ';
                 for &item in &wants_item.items {
-                    let mut char_to_assign = OPTION_TO_CHAR_MAP[0];
+                    let mut char_to_assign = last_assigned_char;
 
                     // All the currently assigned chars of the item carried by the owner
                     let all_currently_assigned_chars: Vec<char> = items_in_backpacks
@@ -76,11 +77,16 @@ impl ItemCollection {
                         }
                     } else {
                         // Assign the first "available" char to picked up item
+                        // Keep in mind the last assigned char, which is not in the backpack right now
+                        // so we can avoid assigning the same char to another item
                         let mut index = 0;
-                        while all_currently_assigned_chars.contains(&char_to_assign) {
+                        while all_currently_assigned_chars.contains(&char_to_assign)
+                            || char_to_assign == last_assigned_char
+                        {
                             char_to_assign = OPTION_TO_CHAR_MAP[index];
                             index += 1;
                         }
+                        last_assigned_char = char_to_assign;
 
                         // Show appropriate log messages
                         let named_item =

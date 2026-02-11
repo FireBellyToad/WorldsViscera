@@ -2,7 +2,7 @@ use std::sync::Mutex;
 
 use crate::components::actions::WantsToTrade;
 use crate::components::combat::{SufferingDamage, WantsToDig, WantsToShoot};
-use crate::components::common::{Diggable, Named};
+use crate::components::common::{Diggable, Hates, Named};
 use crate::components::items::{DiggingTool, RangedWeapon, ShopOwner};
 use crate::constants::STANDARD_ACTION_MULTIPLIER;
 use crate::engine::state::EngineState;
@@ -693,7 +693,7 @@ impl Player {
             let mut player_query = ecs_world
                 .query::<(&Viewshed, &Position)>()
                 .with::<&Player>();
-            let (_, (viewshed, player_pos)) = player_query
+            let (player, (viewshed, player_pos)) = player_query
                 .iter()
                 .last()
                 .expect("Player is not in hecs::World");
@@ -704,9 +704,14 @@ impl Player {
                 .last()
                 .expect("Game log is not in hecs::World");
 
+            // Search for visibile shop owners in the visibile tiles
             for &index in &viewshed.visible_tiles {
                 for &entity in &zone.tile_content[index] {
-                    if ecs_world.satisfies::<&ShopOwner>(entity).unwrap_or(false) {
+                    // If is a non-angered shop owner, try to trade
+                    if ecs_world.satisfies::<&ShopOwner>(entity).unwrap_or(false)
+                        && let Ok(hates) = ecs_world.get::<&Hates>(entity)
+                        && !hates.list.contains(&player.id())
+                    {
                         let pos = ecs_world
                             .get::<&Position>(entity)
                             .expect("Entity does not have a Position");
@@ -730,9 +735,11 @@ impl Player {
                 }
             }
 
-            game_log
-                .entries
-                .push("You can't see anyone willing to trade".to_string());
+            if owner_entity.is_none() {
+                game_log
+                    .entries
+                    .push("You can't see anyone willing to trade".to_string());
+            }
         }
 
         // If we found a shop owner, offer them an item
