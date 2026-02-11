@@ -120,7 +120,10 @@ impl Spawn {
             ),
         );
 
-        PLAYER_STORAGE.lock().unwrap().replace(player_entity);
+        PLAYER_STORAGE
+            .lock()
+            .expect("Failed to get lock onplayer entity")
+            .replace(player_entity);
     }
 
     /// Spawn entities inside a room
