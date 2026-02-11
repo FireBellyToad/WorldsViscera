@@ -328,7 +328,7 @@ impl Inventory {
 
     /// Get all items in backpack for UI
     fn get_all_in_backpack(ecs_world: &World) -> InventoryItemData {
-        let player_id = Player::get_entity_id(ecs_world);
+        let player_id = Player::get_entity_id();
         let mut inventory_query = ecs_world.query::<InventoryItem>();
         let mut inventory = inventory_query
             .iter()
@@ -361,7 +361,7 @@ impl Inventory {
 
     /// Get all items in backpack with a certain component T for UI
     fn get_all_in_backpack_filtered_by<T: Component>(ecs_world: &World) -> InventoryItemData {
-        let player_id = Player::get_entity_id(ecs_world);
+        let player_id = Player::get_entity_id();
 
         let mut inventory_query = ecs_world.query::<InventoryItem>().with::<&T>();
 

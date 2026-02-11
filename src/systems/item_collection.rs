@@ -24,7 +24,7 @@ impl ItemCollection {
         let mut item_owner_list: Vec<(Entity, Entity, char, i32)> = Vec::new();
         let mut failed_pick_upper: Vec<Entity> = Vec::new();
         let mut harvested_list: Vec<Entity> = Vec::new();
-        let player_id = Player::get_entity_id(ecs_world);
+        let player_id = Player::get_entity_id();
 
         // Scope for keeping borrow checker quiet
         {

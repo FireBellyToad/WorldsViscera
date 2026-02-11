@@ -31,7 +31,7 @@ impl MeleeManager {
         let mut wants_to_melee_list: Vec<(Entity, i32)> = Vec::new();
         let mut hidden_list: Vec<Entity> = Vec::new();
         let mut infected_list: Vec<(Entity, DiseaseType)> = Vec::new();
-        let player_id = Player::get_entity_id(ecs_world);
+        let player_id = Player::get_entity_id();
 
         // Scope for keeping borrow checker quiet
         {

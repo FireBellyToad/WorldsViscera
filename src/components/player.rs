@@ -1,3 +1,5 @@
+use std::sync::Mutex;
+
 use crate::components::actions::WantsToTrade;
 use crate::components::combat::{SufferingDamage, WantsToDig, WantsToShoot};
 use crate::components::common::{Diggable, Named};
@@ -38,6 +40,8 @@ pub enum SpecialViewMode {
     RangedTargeting,
     Smell,
 }
+
+pub static PLAYER_STORAGE: Mutex<Option<Entity>> = Mutex::new(None);
 
 /// Player struct
 pub struct Player {}
@@ -218,7 +222,7 @@ impl Player {
         // Player commands. Handed with characters to manage different keyboards layout
         // Do it only if no keys were pressed or else Arrow keys and space will not work properly
         if check_chars_pressed {
-            let player_entity = Player::get_entity(ecs_world);
+            let player_entity = Player::get_entity();
             match get_char_pressed() {
                 None => run_state = RunState::WaitingPlayerInput, // Nothing happened
                 Some(char) => {
@@ -322,7 +326,7 @@ impl Player {
         ecs_world: &mut World,
         special_view_mode: SpecialViewMode,
     ) -> RunState {
-        let player_entity = Player::get_entity(ecs_world);
+        let player_entity = Player::get_entity();
         // ESC for escaping targeting without using Invokable
         if is_key_down(KeyCode::Escape) {
             // Remove components linked to view mode to avoid bugs
@@ -388,7 +392,7 @@ impl Player {
 
     /// Picks up something to store in backpack
     fn pick_up(ecs_world: &mut World) -> RunState {
-        let player_entity = Player::get_entity(ecs_world);
+        let player_entity = Player::get_entity();
 
         if let Some(item) = Player::take_from_map(ecs_world) {
             // Check if the item is being stolen from a shop
@@ -617,19 +621,21 @@ impl Player {
     }
 
     /// Extract Player's entity from world and return it with copy
-    pub fn get_entity(ecs_world: &World) -> Entity {
-        let mut player_query = ecs_world.query::<&Player>();
-        let (player_entity, _) = player_query
-            .iter()
-            .last()
-            .expect("Player is not in hecs::World");
-
-        player_entity
+    pub fn get_entity() -> Entity {
+        PLAYER_STORAGE
+            .lock()
+            .expect("Failed to get lock onplayer entity")
+            .expect("Player is None!")
     }
     /// Extract Player's entity id from world and return it with copy
-    pub fn get_entity_id(ecs_world: &World) -> u32 {
-        Player::get_entity(ecs_world).id()
+    pub fn get_entity_id() -> u32 {
+        PLAYER_STORAGE
+            .lock()
+            .expect("Failed to get lock onplayer entity")
+            .expect("Player is None!")
+            .id()
     }
+
     /// Extract Player's entity from world and return it with copy
     pub fn can_act(ecs_world: &World) -> bool {
         let mut player_query = ecs_world.query::<(&Player, &MyTurn)>();
@@ -651,7 +657,7 @@ impl Player {
 
     /// Wait some ticks after action is taken
     pub fn wait_after_action(ecs_world: &mut World, multiplier: i32) {
-        let player = Player::get_entity(ecs_world);
+        let player = Player::get_entity();
         let speed;
 
         // Scope for keeping borrow checker quiet
@@ -668,7 +674,7 @@ impl Player {
     /// Utility method for FOV forced recalculation
     pub fn force_view_recalculation(ecs_world: &World) {
         let mut player_viewshed = ecs_world
-            .get::<&mut Viewshed>(Player::get_entity(ecs_world))
+            .get::<&mut Viewshed>(Player::get_entity())
             .expect("Player entity does not have a Viewshed");
         player_viewshed.must_recalculate = true;
     }
@@ -731,7 +737,7 @@ impl Player {
 
         // If we found a shop owner, offer them an item
         if let Some(target) = owner_entity {
-            let player_entity = Player::get_entity(ecs_world);
+            let player_entity = Player::get_entity();
             let _ = ecs_world.insert_one(player_entity, WantsToTrade { target, item: None });
             return RunState::ShowInventory(InventoryAction::Trade);
         }

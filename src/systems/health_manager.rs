@@ -38,7 +38,7 @@ impl HealthManager {
                 )>()
                 .with::<&MyTurn>();
 
-            let player_id = Player::get_entity_id(ecs_world);
+            let player_id = Player::get_entity_id();
 
             //Log all the disease checks
             let mut game_log_query = ecs_world.query::<&mut GameLog>();

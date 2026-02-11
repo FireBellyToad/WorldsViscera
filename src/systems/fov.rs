@@ -14,7 +14,7 @@ pub struct FieldOfView {}
 
 impl FieldOfView {
     pub fn calculate(ecs_world: &World) {
-        let player_entity_id = Player::get_entity_id(ecs_world);
+        let player_entity_id = Player::get_entity_id();
 
         let mut zone_query = ecs_world.query::<&mut Zone>();
         let (_, zone) = zone_query

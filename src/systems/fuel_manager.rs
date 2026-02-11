@@ -39,7 +39,7 @@ impl FuelManager {
                 .with::<&TurnedOn>()
                 .without::<&Refiller>();
 
-            let player_entity = Player::get_entity(ecs_world);
+            let player_entity = Player::get_entity();
 
             let mut game_log_query = ecs_world.query::<&mut GameLog>();
             let (_, game_log) = game_log_query
@@ -87,7 +87,7 @@ impl FuelManager {
 
     pub fn do_refills(ecs_world: &mut World) {
         let mut refillers_and_items_used: Vec<(Entity, Entity)> = Vec::new();
-        let player_id = Player::get_entity_id(ecs_world);
+        let player_id = Player::get_entity_id();
         let mut particle_animations: Vec<ParticleAnimation> = Vec::new();
 
         // Scope for keeping borrow checker quiet

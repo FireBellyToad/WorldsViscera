@@ -16,7 +16,7 @@ impl DigManager {
     pub fn run(ecs_world: &mut World) {
         let mut diggers_list: Vec<(Entity, i32)> = Vec::new();
         let mut digged_list: Vec<Entity> = Vec::new();
-        let player_id = Player::get_entity_id(ecs_world);
+        let player_id = Player::get_entity_id();
 
         // Scope for keeping borrow checker quiet
         {

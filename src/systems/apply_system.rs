@@ -17,7 +17,7 @@ impl ApplySystem {
     /// Check entities that wants to apply Something
     pub fn check(ecs_world: &mut World) {
         let mut applicators_items_applied: Vec<(Entity, Entity, i32)> = Vec::new();
-        let player_id = Player::get_entity_id(ecs_world);
+        let player_id = Player::get_entity_id();
 
         {
             let mut appliers = ecs_world.query::<&WantsToApply>();
@@ -48,7 +48,7 @@ impl ApplySystem {
         let mut entities_to_turn_on: Vec<Entity> = Vec::new();
         let mut entities_to_turn_off: Vec<Entity> = Vec::new();
         let mut entities_cured: Vec<(Entity, Vec<DiseaseType>)> = Vec::new();
-        let player_id = Player::get_entity_id(ecs_world);
+        let player_id = Player::get_entity_id();
 
         // Scope for keeping borrow checker quiet
         {

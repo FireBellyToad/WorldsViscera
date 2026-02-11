@@ -11,7 +11,7 @@ use crate::components::items::{
     Corpse, Deadly, Edible, Item, Perishable, Poisonous, ProduceLight, Quaffable, TurnedOn,
 };
 use crate::components::monster::DiseaseBearer;
-use crate::components::player::Player;
+use crate::components::player::{PLAYER_STORAGE, Player};
 use crate::constants::*;
 use crate::maps::zone::{TileType, Zone};
 use crate::systems::hunger_check::HungerStatus;
@@ -119,6 +119,8 @@ impl Spawn {
                 BlocksTile {},
             ),
         );
+
+        PLAYER_STORAGE.lock().unwrap().replace(player_entity);
     }
 
     /// Spawn entities inside a room

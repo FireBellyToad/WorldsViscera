@@ -20,7 +20,7 @@ impl ItemEquipping {
         let mut item_to_unequip_list: Vec<(Entity, Entity, i32)> = Vec::new();
         let mut cleanup_equip: Vec<Entity> = Vec::new();
 
-        let player_id = Player::get_entity_id(ecs_world);
+        let player_id = Player::get_entity_id();
 
         // Scope for keeping borrow checker quiet
         {

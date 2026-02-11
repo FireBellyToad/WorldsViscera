@@ -50,7 +50,7 @@ impl RangedManager {
 
             let mut equipped_armors = ecs_world.query::<(&Armor, &Equipped, Option<&Eroded>)>();
 
-            let player_id = Player::get_entity_id(ecs_world);
+            let player_id = Player::get_entity_id();
 
             for (shooter, (wants_to_zap, wants_to_shoot, shooter_position, stats)) in &mut shooters
             {

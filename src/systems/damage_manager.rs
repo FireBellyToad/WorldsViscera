@@ -91,7 +91,7 @@ impl DamageManager {
         let ecs_world = &mut game_state.ecs_world;
         let mut dead_entities: Vec<DeadEntityData> = Vec::new();
         let mut paralyzed_entities: Vec<Entity> = Vec::new();
-        let player_entity_id = Player::get_entity_id(ecs_world);
+        let player_entity_id = Player::get_entity_id();
 
         // Scope for keeping borrow checker quiet
         {

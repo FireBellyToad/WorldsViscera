@@ -20,7 +20,7 @@ impl AdvancementSystem {
             // List of entities that has stats
             let mut experienced_entities = ecs_world.query::<(&mut Experience, &mut CombatStats)>();
 
-            let player_id = Player::get_entity_id(ecs_world);
+            let player_id = Player::get_entity_id();
 
             //Log all
             let mut game_log_query = ecs_world.query::<&mut GameLog>();

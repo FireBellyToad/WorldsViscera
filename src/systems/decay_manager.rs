@@ -3,7 +3,7 @@ use hecs::{Entity, World};
 use crate::{
     components::{
         common::{GameLog, Named, SmellIntensity, Smellable},
-        items::{InBackback, Perishable,  Rotten},
+        items::{InBackback, Perishable, Rotten},
         player::Player,
     },
     constants::STARTING_ROT_COUNTER,
@@ -17,7 +17,7 @@ impl DecayManager {
     pub fn run(ecs_world: &mut World) {
         let mut expired_edibles: Vec<(Entity, String)> = Vec::new();
         let mut rotten_edibles_to_despawn: Vec<Entity> = Vec::new();
-        let player_id = Player::get_entity_id(ecs_world);
+        let player_id = Player::get_entity_id();
 
         // Scope for keeping borrow checker quiet
         {

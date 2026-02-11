@@ -14,7 +14,7 @@ pub struct TurnCheck {}
 impl TurnCheck {
     pub fn run(ecs_world: &mut World) {
         let mut entities_that_can_act: Vec<Entity> = Vec::new();
-        // let player_id = Player::get_entity_id(ecs_world);
+        // let player_id = Player::get_entity_id();
 
         // Scope for keeping borrow checker quiet
         {

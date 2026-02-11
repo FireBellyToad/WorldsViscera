@@ -18,7 +18,7 @@ impl ItemDropping {
         let mut item_drop_position_list: Vec<(Entity, Entity, (i32, i32), i32)> = Vec::new();
         let mut item_drop_nothing: Vec<Entity> = Vec::new();
 
-        let player_id = Player::get_entity_id(ecs_world);
+        let player_id = Player::get_entity_id();
 
         // Scope for keeping borrow checker quiet
         {

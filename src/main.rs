@@ -1,3 +1,5 @@
+use std::sync::Mutex;
+
 use crate::{
     components::common::Experience,
     maps::{arena_zone_builder::ArenaZoneBuilder, test_zone_builder::TestZoneBuilder},
@@ -14,7 +16,7 @@ use engine::{
     gameengine::GameEngine,
     state::{EngineState, RunState},
 };
-use hecs::World;
+use hecs::{Entity, World};
 use inventory::Inventory;
 use macroquad::prelude::*;
 use spawning::spawner::Spawn;
@@ -333,7 +335,7 @@ fn do_tickless_logic(game_state: &mut EngineState) {
             } else if is_key_pressed(KeyCode::F8) {
                 use crate::components::combat::CombatStats;
 
-                let entity = Player::get_entity(&game_state.ecs_world);
+                let entity = Player::get_entity();
                 let mut stats = game_state
                     .ecs_world
                     .get::<&mut CombatStats>(entity)
