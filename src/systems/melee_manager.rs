@@ -10,7 +10,7 @@ use crate::{
 };
 use std::cmp::max;
 
-use hecs::{Entity, World};
+use hecs::Entity;
 
 use crate::{
     components::{
@@ -18,7 +18,6 @@ use crate::{
         common::{GameLog, MyTurn, Named, Position},
         items::{Armor, Equipped, Eroded, MeleeWeapon},
         monster::Venomous,
-        player::Player,
     },
     constants::MAX_HIDDEN_TURNS,
     maps::zone::Zone,

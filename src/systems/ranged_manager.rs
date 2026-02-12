@@ -5,14 +5,13 @@ use crate::{
 };
 use std::{cmp::max, panic};
 
-use hecs::{Entity, World};
+use hecs::Entity;
 
 use crate::{
     components::{
         combat::{CombatStats, SufferingDamage, WantsToShoot, WantsToZap},
         common::{GameLog, Hates, Named, Position},
         items::{Armor, Equipped, Eroded, RangedWeapon},
-        player::Player,
     },
     maps::zone::Zone,
     utils::{

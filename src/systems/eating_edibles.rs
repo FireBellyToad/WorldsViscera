@@ -1,4 +1,4 @@
-use hecs::{Entity, World};
+use hecs::Entity;
 
 use crate::{
     components::{
@@ -8,7 +8,6 @@ use crate::{
         health::{DiseaseType, Diseased, Hunger},
         items::{Deadly, Edible, Poisonous, Rotten},
         monster::DiseaseBearer,
-        player::Player,
     },
     constants::MAX_DISEASE_TICK_COUNTER,
     engine::state::GameState,

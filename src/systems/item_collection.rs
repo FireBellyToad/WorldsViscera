@@ -1,4 +1,4 @@
-use hecs::{Entity, World};
+use hecs::Entity;
 
 use crate::{
     components::{
@@ -7,7 +7,6 @@ use crate::{
         common::{GameLog, Hates, MyTurn, Named, Position},
         items::{InBackback, Item, Perishable, ToBeHarvested},
         monster::Small,
-        player::Player,
     },
     constants::{
         MAX_ITEMS_IN_BACKPACK, MAX_ITEMS_IN_BACKPACK_FOR_SMALL, OPTION_TO_CHAR_MAP,

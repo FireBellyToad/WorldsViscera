@@ -1,4 +1,4 @@
-use hecs::{Entity, World};
+use hecs::Entity;
 
 use crate::{
     components::{
@@ -6,7 +6,6 @@ use crate::{
         combat::{CombatStats, InflictsDamage, SufferingDamage, WantsToZap},
         common::{GameLog, Named, Position, Wet},
         items::{Invokable, InvokablesEnum},
-        player::Player,
     },
     constants::{AUTOFAIL_SAVING_THROW, LIGHTING_PARTICLE_TYPE},
     engine::state::GameState,

@@ -4,7 +4,7 @@ use crate::{
     components::{
         common::{CanListen, GameLog},
         items::InBackback,
-        player::{Player, SpecialViewMode},
+        player::SpecialViewMode,
     },
     dialog::DialogAction,
     inventory::InventoryAction,

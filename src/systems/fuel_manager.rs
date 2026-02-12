@@ -4,7 +4,7 @@ use crate::{
     engine::state::GameState,
     utils::{common::Utils, particle_animation::ParticleAnimation},
 };
-use hecs::{Entity, World};
+use hecs::Entity;
 
 use crate::{
     components::{

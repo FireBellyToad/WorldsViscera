@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use hecs::{Component, Entity, World};
+use hecs::{Component, Entity};
 use macroquad::{
     color::{BLACK, WHITE},
     input::{KeyCode, clear_input_queue, get_char_pressed, is_key_pressed},
@@ -21,7 +21,7 @@ use crate::{
             Appliable, Edible, Equippable, Equipped, Eroded, InBackback, Invokable, Item,
             MustBeFueled, Quaffable, RangedWeapon, Refiller,
         },
-        player::{Player, SpecialViewMode},
+        player::SpecialViewMode,
     },
     constants::*,
     engine::state::{GameState, RunState},

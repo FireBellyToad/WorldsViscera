@@ -9,7 +9,6 @@ use crate::{
         health::{CanAutomaticallyHeal, DiseaseType, Paralyzed},
         items::{Deadly, DontLeaveCorpse, Edible},
         monster::{DiseaseBearer, Venomous},
-        player::Player,
     },
     constants::{AUTO_ADVANCE_EXP_COUNTER_START, MAX_STAMINA_HEAL_TICK_COUNTER},
     engine::state::{GameState, RunState},

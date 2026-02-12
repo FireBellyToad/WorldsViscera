@@ -6,7 +6,6 @@ use crate::{
         combat::CombatStats,
         common::{GameLog, MyTurn, Named, Position},
         items::{Equipped, InBackback},
-        player::Player,
     },
     engine::state::GameState,
     utils::common::{ItemsInBackpack, Utils},

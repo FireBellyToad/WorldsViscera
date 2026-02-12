@@ -13,7 +13,6 @@ use crate::{
     components::{
         actions::{WantsItem, WantsToDrink, WantsToEat},
         common::Named,
-        player::Player,
     },
     constants::*,
     engine::state::{GameState, RunState},

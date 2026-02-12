@@ -1,13 +1,12 @@
 use std::cmp::max;
 
-use hecs::{Entity, World};
+use hecs::Entity;
 
 use crate::{
     components::{
         combat::{CombatStats, SufferingDamage},
         common::{GameLog, MyTurn, Named, Position},
         health::{Cured, DiseaseType, Diseased, Hunger},
-        player::Player,
     },
     constants::{MAX_DISEASE_TICK_COUNTER, VERY_LONG_ACTION_MULTIPLIER},
     engine::state::GameState,

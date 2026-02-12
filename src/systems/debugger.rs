@@ -1,4 +1,3 @@
-use hecs::World;
 
 use crate::{
     components::{

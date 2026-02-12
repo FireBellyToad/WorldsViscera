@@ -1,8 +1,7 @@
 use adam_fov_rs::{IVec2, compute_fov};
-use hecs::World;
 
 use crate::{
-    components::{common::*, player::Player},
+    components::common::*,
     constants::{MAP_HEIGHT, MAP_WIDTH},
     engine::state::GameState,
     maps::zone::Zone,

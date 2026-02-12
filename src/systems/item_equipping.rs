@@ -1,4 +1,4 @@
-use hecs::{Entity, World};
+use hecs::Entity;
 
 use crate::{
     components::{
@@ -6,7 +6,6 @@ use crate::{
         combat::CombatStats,
         common::{GameLog, Named, Position},
         items::{BodyLocation, Equipped},
-        player::Player,
     },
     engine::state::GameState,
     maps::zone::Zone,

@@ -1,4 +1,4 @@
-use hecs::{Entity, World};
+use hecs::Entity;
 
 use crate::{
     components::{
@@ -7,7 +7,6 @@ use crate::{
         common::{GameLog, Named},
         health::Thirst,
         items::Quaffable,
-        player::Player,
     },
     engine::state::GameState,
     utils::{common::Utils, roll::Roll},

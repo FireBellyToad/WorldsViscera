@@ -1,13 +1,11 @@
 use std::cmp::{max, min};
 
-use hecs::World;
 
 use crate::{
     components::{
         combat::{CombatStats, SufferingDamage},
         common::{GameLog, MyTurn, Position},
         health::Hunger,
-        player::Player,
     },
     constants::MAX_HUNGER_TICK_COUNTER,
     engine::state::GameState,
