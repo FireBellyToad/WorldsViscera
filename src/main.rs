@@ -1,6 +1,6 @@
 use crate::{
     components::common::Experience,
-    maps::{arena_zone_builder::ArenaZoneBuilder, test_zone_builder::TestZoneBuilder},
+    maps::arena_zone_builder::ArenaZoneBuilder,
     systems::{
         advancement_system::AdvancementSystem, debugger::Debugger, dig_manager::DigManager,
         health_manager::HealthManager, leave_trail_system::LeaveTrailSystem,
