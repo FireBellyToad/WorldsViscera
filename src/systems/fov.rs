@@ -20,11 +20,10 @@ impl FieldOfView {
             .expect("Player id should be set")
             .id();
 
-        let mut zone_query = ecs_world.query::<&mut Zone>();
-        let (_, zone) = zone_query
-            .iter()
-            .last()
-            .expect("Zone is not in hecs::World");
+        let zone = game_state
+            .current_zone
+            .as_mut()
+            .expect("must have Some Zone");
 
         //Deconstruct data into tuple
         let mut viewsheds = ecs_world.query::<(&mut Viewshed, &Position)>();

@@ -47,11 +47,10 @@ impl ZapManager {
                 .last()
                 .expect("Game log is not in hecs::World");
 
-            let mut zone_query = ecs_world.query::<&Zone>();
-            let (_, zone) = zone_query
-                .iter()
-                .last()
-                .expect("Zone is not in hecs::World");
+            let zone = game_state
+                .current_zone
+                .as_ref()
+                .expect("must have Some Zone");
 
             for (zapper, (wants_zap, wants_invoke, zapper_position, stats, wet)) in &mut zappers {
                 let mut target_list: Vec<&Vec<Entity>> = Vec::new();

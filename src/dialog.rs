@@ -34,7 +34,7 @@ pub struct Dialog {}
 
 impl Dialog {
     /// Handle dialog input
-    pub fn handle_input(game_state: &mut GameState, action: DialogAction) -> RunState {
+    pub fn handle_input(game_state: &mut GameState, action: DialogAction) {
         let ecs_world = &mut game_state.ecs_world;
         match get_char_pressed() {
             Some(letterkey) => match letterkey {
@@ -46,7 +46,7 @@ impl Dialog {
                     // show equivalent inventory action on exit
                     // Usually is used when we do an action while there is an appropriate object on the ground
                     // so that the player can choose if use that item or one that is already in inventory
-                    match action {
+                    game_state.run_state = match action {
                         DialogAction::Eat(_) => RunState::ShowInventory(InventoryAction::Eat),
                         DialogAction::Quaff(_) => RunState::ShowInventory(InventoryAction::Quaff),
                         _ => RunState::WaitingPlayerInput,
@@ -69,7 +69,7 @@ impl Dialog {
                                 .insert_one(player_entity, WantsItem { items: vec![item] });
                         }
                         DialogAction::StealEat(item) => {
-                            return RunState::ShowDialog(DialogAction::Eat(item));
+                            game_state.run_state = RunState::ShowDialog(DialogAction::Eat(item));
                         }
                         DialogAction::Trade(trade_info) => {
                             TradeSystem::end_trade(ecs_world, trade_info);
@@ -78,11 +78,11 @@ impl Dialog {
 
                     //Avoid strange behaviors
                     clear_input_queue();
-                    RunState::DoTick
+                    game_state.run_state = RunState::DoTick;
                 }
-                _ => RunState::ShowDialog(action),
+                _ => game_state.run_state = RunState::ShowDialog(action),
             },
-            None => RunState::ShowDialog(action),
+            None => game_state.run_state = RunState::ShowDialog(action),
         }
     }
 

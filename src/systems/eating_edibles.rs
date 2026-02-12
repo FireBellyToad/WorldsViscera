@@ -36,11 +36,10 @@ impl EatingEdibles {
             let mut eaters =
                 ecs_world.query::<(&WantsToEat, &CombatStats, &mut Hunger, &Position, &Named)>();
 
-            let mut zone_query = ecs_world.query::<&mut Zone>();
-            let (_, zone) = zone_query
-                .iter()
-                .last()
-                .expect("Zone is not in hecs::World");
+            let zone = game_state
+                .current_zone
+                .as_mut()
+                .expect("must have Some Zone");
 
             //Log all the eating
             let mut game_log_query = ecs_world.query::<&mut GameLog>();

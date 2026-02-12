@@ -30,12 +30,10 @@ impl SmellManager {
                 .last()
                 .expect("Game log is not in hecs::World");
 
-            let mut zone_query = ecs_world.query::<&Zone>();
-            let (_, zone) = zone_query
-                .iter()
-                .last()
-                .expect("Zone is not in hecs::World");
-
+            let zone = game_state
+                .current_zone
+                .as_ref()
+                .expect("must have Some Zone");
             for (smeller, (wants_to_smell, smell_ability, smeller_position)) in &mut smellers {
                 let index =
                     Zone::get_index_from_xy(&wants_to_smell.target.0, &wants_to_smell.target.1);

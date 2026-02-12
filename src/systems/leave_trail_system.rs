@@ -1,4 +1,3 @@
-
 use crate::{
     components::{
         common::{MyTurn, Position, SmellIntensity, Smellable},
@@ -18,11 +17,10 @@ impl LeaveTrailSystem {
 
         // Scope for keeping borrow checker quiet
         {
-            let mut zone_query = ecs_world.query::<&mut Zone>();
-            let (_, zone) = zone_query
-                .iter()
-                .last()
-                .expect("Zone is not in hecs::World");
+            let zone = game_state
+                .current_zone
+                .as_mut()
+                .expect("must have Some Zone");
 
             // List of entities that has stats
             let mut trailers = ecs_world
@@ -72,11 +70,10 @@ impl LeaveTrailSystem {
             // List of entities that has stats
             let mut trails_spawned = ecs_world.query::<(&mut TrailCounter, &Position)>();
 
-            let mut zone_query = ecs_world.query::<&mut Zone>();
-            let (_, zone) = zone_query
-                .iter()
-                .last()
-                .expect("Zone is not in hecs::World");
+            let zone = game_state
+                .current_zone
+                .as_mut()
+                .expect("must have Some Zone");
 
             for (entity, (trail, position)) in &mut trails_spawned {
                 if trail.trail_counter == 0 {

@@ -1,6 +1,6 @@
 use crate::{
     components::common::Experience,
-    maps::arena_zone_builder::ArenaZoneBuilder,
+    maps::{arena_zone_builder::ArenaZoneBuilder, test_zone_builder::TestZoneBuilder},
     systems::{
         advancement_system::AdvancementSystem, debugger::Debugger, dig_manager::DigManager,
         health_manager::HealthManager, leave_trail_system::LeaveTrailSystem,
@@ -75,6 +75,7 @@ async fn main() {
         ecs_world: World::new(),
         run_state: RunState::TitleScreen,
         current_player_entity: None,
+        current_zone: None,
         debug_mode: false,
     };
     populate_world(&mut game_state);
@@ -194,36 +195,31 @@ fn populate_world(game_state: &mut GameState) {
     Spawn::everyhing_in_map(&mut game_state.ecs_world, &zone);
 
     // Add zone
-    let _ = game_state.ecs_world.spawn((true, zone));
+    game_state.current_zone = Some(zone);
 }
 
-fn change_zone(engine: &mut GameState) {
+fn change_zone(game_state: &mut GameState) {
     // Generate new seed, or else it will always generate the same things
     rand::srand(macroquad::miniquad::date::now() as _);
 
-    let current_depth;
-    // Scope for keeping borrow checker quiet
-    {
-        let mut zone_query = engine.ecs_world.query::<&Zone>();
-        let (_, zone) = zone_query
-            .iter()
-            .last()
-            .expect("Zone is not in hecs::World");
-        current_depth = zone.depth;
-    }
+    let current_depth = game_state
+        .current_zone
+        .as_ref()
+        .expect("must have Some Zone")
+        .depth;
 
-    let entities_to_delete = engine.get_entities_to_delete_on_zone_change();
+    let entities_to_delete = game_state.get_entities_to_delete_on_zone_change();
 
     for e in entities_to_delete {
-        let _ = engine.ecs_world.despawn(e);
+        let _ = game_state.ecs_world.despawn(e);
     }
 
-    let zone = DrunkenWalkZoneBuilder::build(current_depth + 1, &mut engine.ecs_world);
+    let zone = DrunkenWalkZoneBuilder::build(current_depth + 1, &mut game_state.ecs_world);
 
     // Scope for keeping borrow checker quiet
     {
         //Set player position in new zone and force a FOV recalculation. Also, award experience
-        let mut player_query_viewshed = engine
+        let mut player_query_viewshed = game_state
             .ecs_world
             .query::<(&mut Position, &mut Viewshed, &mut Experience)>()
             .with::<&Player>();
@@ -242,10 +238,10 @@ fn change_zone(engine: &mut GameState) {
         }
     }
 
-    Spawn::everyhing_in_map(&mut engine.ecs_world, &zone);
+    Spawn::everyhing_in_map(&mut game_state.ecs_world, &zone);
 
     // Add zone (previous shuold be removed)
-    engine.ecs_world.spawn((true, zone));
+    game_state.current_zone = Some(zone);
 }
 
 fn do_before_tick_logic(game_state: &mut GameState) {
@@ -277,7 +273,7 @@ fn do_in_tick_game_logic(game_engine: &mut GameEngine, game_state: &mut GameStat
     //If there are particles, skip everything and draw
     if !ParticleManager::check_if_animations_are_present(game_engine, game_state) {
         MeleeManager::run(game_state);
-        DamageManager::run(&game_state.ecs_world);
+        DamageManager::run(game_state);
         DamageManager::remove_dead_and_check_gameover(game_state);
         //Proceed on game logic if is not Game Over
         if game_state.run_state != RunState::GameOver {

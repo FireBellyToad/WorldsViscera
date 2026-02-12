@@ -13,17 +13,15 @@ use crate::{
 pub struct MapIndexing {}
 
 impl MapIndexing {
-    pub fn run(game_state: &GameState) {
+    pub fn run(game_state: &mut GameState) {
         let ecs_world = &game_state.ecs_world;
 
         let mut entities_with_pos = ecs_world.query::<&Position>();
         let mut blockers = ecs_world.query::<&Position>().with::<&BlocksTile>();
-        let mut zone_query = ecs_world.query::<&mut Zone>();
-        let (_, zone) = zone_query
-            .iter()
-            .last()
-            .expect("Zone is not in hecs::World");
-
+        let zone = game_state
+            .current_zone
+            .as_mut()
+            .expect("must have Some Zone");
         //index all blocked tiles
         zone.populate_blocked();
         for (_, position) in &mut blockers {

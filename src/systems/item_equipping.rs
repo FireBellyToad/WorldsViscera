@@ -38,11 +38,10 @@ impl ItemEquipping {
                 .last()
                 .expect("Game log is not in hecs::World");
 
-            let mut zone_query = ecs_world.query::<&mut Zone>();
-            let (_, zone) = zone_query
-                .iter()
-                .last()
-                .expect("Zone is not in hecs::World");
+            let zone = game_state
+                .current_zone
+                .as_ref()
+                .expect("must have Some Zone");
 
             for (equipper, (wants_to_equip, position, stats)) in &mut items_to_equip {
                 // Show appropriate log messages

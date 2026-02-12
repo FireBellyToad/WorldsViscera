@@ -8,6 +8,7 @@ use crate::{
     },
     dialog::DialogAction,
     inventory::InventoryAction,
+    maps::zone::Zone,
 };
 
 #[derive(PartialEq, Debug, Clone)]
@@ -29,6 +30,7 @@ pub struct GameState {
     pub ecs_world: World, // World of ECS, where the framework lives
     pub run_state: RunState,
     pub current_player_entity: Option<Entity>,
+    pub current_zone: Option<Zone>,
     pub debug_mode: bool,
 }
 

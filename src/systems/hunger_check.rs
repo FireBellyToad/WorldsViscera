@@ -1,6 +1,5 @@
 use std::cmp::{max, min};
 
-
 use crate::{
     components::{
         combat::{CombatStats, SufferingDamage},
@@ -39,6 +38,11 @@ pub struct HungerCheck {}
 impl HungerCheck {
     pub fn run(game_state: &mut GameState) {
         let ecs_world = &mut game_state.ecs_world;
+        let zone = game_state
+            .current_zone
+            .as_mut()
+            .expect("must have Some Zone");
+
         let player_id = game_state
             .current_player_entity
             .expect("Player id should be set")
@@ -49,12 +53,6 @@ impl HungerCheck {
             let mut hungry_entities = ecs_world
                 .query::<(&mut Hunger, &CombatStats, &Position)>()
                 .with::<&MyTurn>();
-
-            let mut zone_query = ecs_world.query::<&mut Zone>();
-            let (_, zone) = zone_query
-                .iter()
-                .last()
-                .expect("Zone is not in hecs::World");
 
             //Log all the hunger checks
             let mut game_log_query = ecs_world.query::<&mut GameLog>();

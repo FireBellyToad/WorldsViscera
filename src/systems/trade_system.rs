@@ -8,7 +8,6 @@ use crate::{
     },
     dialog::DialogAction,
     engine::state::{GameState, RunState},
-    maps::zone::Zone,
 };
 
 pub type TradeDtt = (Entity, Entity, Entity, Vec<Entity>);
@@ -61,11 +60,10 @@ impl TradeSystem {
                     }
 
                     if item_selling_cost > 0 {
-                        let mut zone_query = ecs_world.query::<&mut Zone>();
-                        let (_, zone) = zone_query
-                            .iter()
-                            .last()
-                            .expect("Zone is not in hecs::World");
+                        let zone = game_state
+                            .current_zone
+                            .as_mut()
+                            .expect("must have Some Zone");
 
                         let mut items_to_be_received: Vec<Entity> = Vec::new();
                         for &index in &shop_owner.shop_tiles {

@@ -193,7 +193,9 @@ impl Spawn {
         match dice_roll {
             (1..=3) => Spawn::shiv(ecs_world, x, y),
             (4..=6) => Spawn::flask_of_oil(ecs_world, x, y),
-            (7..=9) => Spawn::slingshot_ammo(ecs_world, x, y),
+            (7..=9) => {
+                let _ = Spawn::slingshot_ammo(ecs_world, x, y);
+            }
             10 | 11 => {
                 let _ = Spawn::rockpick(ecs_world, x, y);
             }

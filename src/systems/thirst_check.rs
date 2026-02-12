@@ -1,6 +1,5 @@
 use std::cmp::{max, min};
 
-
 use crate::{
     components::{
         combat::{CombatStats, SufferingDamage},
@@ -50,11 +49,10 @@ impl ThirstCheck {
                 .query::<(&mut Thirst, &CombatStats, &Position)>()
                 .with::<&MyTurn>();
 
-            let mut zone_query = ecs_world.query::<&mut Zone>();
-            let (_, zone) = zone_query
-                .iter()
-                .last()
-                .expect("Zone is not in hecs::World");
+            let zone = game_state
+                .current_zone
+                .as_mut()
+                .expect("must have Some Zone");
 
             //Log all the thirst checks
             let mut game_log_query = ecs_world.query::<&mut GameLog>();

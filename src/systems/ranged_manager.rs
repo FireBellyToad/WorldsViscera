@@ -48,12 +48,10 @@ impl RangedManager {
                 .last()
                 .expect("Game log is not in hecs::World");
 
-            let mut zone_query = ecs_world.query::<&Zone>();
-            let (_, zone) = zone_query
-                .iter()
-                .last()
-                .expect("Zone is not in hecs::World");
-
+            let zone = game_state
+                .current_zone
+                .as_ref()
+                .expect("must have Some Zone");
             let mut equipped_armors = ecs_world.query::<(&Armor, &Equipped, Option<&Eroded>)>();
 
             for (shooter, (wants_to_zap, wants_to_shoot, shooter_position, stats)) in &mut shooters

@@ -628,7 +628,7 @@ impl Spawn {
         ecs_world.spawn(crossbow_ammo)
     }
 
-    pub fn slingshot_ammo(ecs_world: &mut World, x: i32, y: i32) {
+    pub fn slingshot_ammo(ecs_world: &mut World, x: i32, y: i32) -> Entity {
         let item_tile_index = (6, 0);
         let slingshot_ammo = (
             Position { x, y },
@@ -654,7 +654,7 @@ impl Spawn {
             },
         );
 
-        ecs_world.spawn(slingshot_ammo);
+        ecs_world.spawn(slingshot_ammo)
     }
 
     pub fn leather_cap(ecs_world: &mut World, x: i32, y: i32) {
@@ -768,10 +768,10 @@ impl Spawn {
 
         // Give the farmer some ammo
         for _ in 0..3 {
-            let crosswbow_ammo = Spawn::crossbow_ammo(ecs_world, 0, 0);
-            let _ = ecs_world.remove_one::<Position>(crosswbow_ammo);
+            let slingshot_ammo = Spawn::slingshot_ammo(ecs_world, 0, 0);
+            let _ = ecs_world.remove_one::<Position>(slingshot_ammo);
             let _ = ecs_world.insert(
-                crosswbow_ammo,
+                slingshot_ammo,
                 (InBackback {
                     owner: entity,
                     assigned_char: 'c',

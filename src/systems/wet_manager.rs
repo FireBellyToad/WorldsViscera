@@ -38,11 +38,10 @@ impl WetManager {
                 .last()
                 .expect("Game log is not in hecs::World");
 
-            let mut zone_query = ecs_world.query::<&mut Zone>();
-            let (_, zone) = zone_query
-                .iter()
-                .last()
-                .expect("Zone is not in hecs::World");
+            let zone = game_state
+                .current_zone
+                .as_ref()
+                .expect("must have Some Zone");
 
             // List of entities that want to drop items
             let mut wettable_entities = ecs_world.query::<(Option<&Position>, Option<&mut Wet>)>();

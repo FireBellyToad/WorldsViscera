@@ -37,24 +37,22 @@ impl Draw {
         match game_state.run_state {
             RunState::GameOver => {
                 Draw::game_over();
-                Draw::game_log(&game_state.ecs_world);
+                Draw::game_log(game_state);
             }
             RunState::TitleScreen => Draw::title_screen(assets),
             _ => {
                 // Zone and renderables
-                // TODO reimplement to avoid borrow checker errors
-                {
-                    let mut zones = game_state.ecs_world.query::<&Zone>();
-                    for (_, zone) in &mut zones {
-                        Draw::zone(zone, assets);
-                        Draw::renderables(&game_state.ecs_world, assets, zone);
-                        Draw::smells(&game_state.ecs_world, assets, zone);
+                let zone = game_state
+                    .current_zone
+                    .as_ref()
+                    .expect("must have Some Zone");
+                Draw::zone(zone, assets);
+                Draw::renderables(&game_state.ecs_world, assets, zone);
+                Draw::smells(&game_state.ecs_world, assets, zone);
 
-                        if game_state.debug_mode {
-                            Draw::debug_exit(zone);
-                            Draw::debug_blocked(zone);
-                        }
-                    }
+                if game_state.debug_mode {
+                    Draw::debug_exit(zone);
+                    Draw::debug_blocked(zone);
                 }
 
                 //Overlay (clone is needed to avoid borrow checker errors)
@@ -62,31 +60,28 @@ impl Draw {
                     RunState::ShowInventory(mode) => Inventory::draw(assets, game_state, mode),
                     RunState::ShowDialog(mode) => Dialog::draw(assets, &game_state.ecs_world, mode),
                     RunState::MouseTargeting(special_view_mode) => {
-                        Draw::targeting(&game_state.ecs_world, special_view_mode);
+                        Draw::targeting(game_state, special_view_mode);
                     }
                     RunState::DrawParticles => {
                         let mut animations = game_state.ecs_world.query::<&mut ParticleAnimation>();
+                        let zone = game_state
+                            .current_zone
+                            .as_ref()
+                            .expect("must have Some Zone");
                         for a in &mut animations {
-                            // For each zone, draw particles. Usually is only one zone!
-                            // TODO reimplement to avoid borrow checker errors
-                            {
-                                let mut zones = game_state.ecs_world.query::<&Zone>();
-                                for (_, zone) in &mut zones {
-                                    Draw::particles(a.1, assets, zone);
-                                }
-                            }
+                            Draw::particles(a.1, assets, zone);
                         }
                     }
                     _ => {}
                 }
 
-                Draw::game_log(&game_state.ecs_world);
+                Draw::game_log(game_state);
             }
         }
     }
 
     /// Draw HUD
-    fn game_log(ecs_world: &World) {
+    fn game_log(game_state: &mut GameState) {
         // ------- Background Rectangle -----------
         draw_rectangle(
             UI_BORDER_F32,
@@ -105,11 +100,11 @@ impl Draw {
 
         // ------- Stat Text header -----------
 
-        Draw::hud_header(ecs_world);
+        Draw::hud_header(game_state);
 
         // ------- Messages log  -----------
 
-        let mut game_log_query = ecs_world.query::<&GameLog>();
+        let mut game_log_query = game_state.ecs_world.query::<&GameLog>();
         let (_, game_log) = game_log_query
             .iter()
             .last()
@@ -137,9 +132,12 @@ impl Draw {
         }
     }
 
-    fn hud_header(ecs_world: &World) {
-        let mut zones = ecs_world.query::<&Zone>();
-        let (_, zone) = zones.iter().last().expect("Zone is not in hecs::World");
+    fn hud_header(game_state: &mut GameState) {
+        let zone = game_state
+            .current_zone
+            .as_ref()
+            .expect("must have Some Zone");
+        let ecs_world = &mut game_state.ecs_world;
 
         let mut player_query = ecs_world
             .query::<(&Experience, &CombatStats, &Hunger, &Thirst)>()
@@ -394,7 +392,7 @@ impl Draw {
     }
 
     /// Draw target on tile where mouse is poiting
-    fn targeting(ecs_world: &World, special_view_mode: &SpecialViewMode) {
+    fn targeting(game_state: &mut GameState, special_view_mode: &SpecialViewMode) {
         draw_text(
             "Use mouse to select, ESC to cancel",
             24.0,
@@ -403,12 +401,10 @@ impl Draw {
             WHITE,
         );
 
-        let mut zone_query = ecs_world.query::<&Zone>();
-        let (_, zone) = zone_query
-            .iter()
-            .last()
-            .expect("Zone is not in hecs::World");
-
+        let zone = game_state
+            .current_zone
+            .as_ref()
+            .expect("must have Some Zone");
         let (mouse_x, mouse_y) = mouse_position();
 
         let rounded_x = (((mouse_x - UI_BORDER_F32) / TILE_SIZE_F32).ceil() - 1.0) as i32;

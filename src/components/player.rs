@@ -63,11 +63,10 @@ impl Player {
                 )>()
                 .with::<&Player>();
 
-            let mut zone_query = ecs_world.query::<&mut Zone>();
-            let (_, zone) = zone_query
-                .iter()
-                .last()
-                .expect("Zone is not in hecs::World");
+            let zone = game_state
+                .current_zone
+                .as_mut()
+                .expect("must have Some Zone");
 
             let mut game_log_query = ecs_world.query::<&mut GameLog>();
             let (_, game_log) = game_log_query
@@ -220,10 +219,6 @@ impl Player {
         // Player commands. Handed with characters to manage different keyboards layout
         // Do it only if no keys were pressed or else Arrow keys and space will not work properly
         if check_chars_pressed {
-            let ecs_world = &mut game_state.ecs_world;
-            let player_entity = game_state
-                .current_player_entity
-                .expect("must be some Player");
             match get_char_pressed() {
                 None => game_state.run_state = RunState::WaitingPlayerInput, // Nothing happened
                 Some(char) => {
@@ -237,12 +232,12 @@ impl Player {
 
                         //Pick up
                         'p' => {
-                            game_state.run_state = Player::pick_up(game_state);
+                            Player::pick_up(game_state);
                         }
 
                         //Eat item
                         'e' => {
-                            game_state.run_state = Player::try_eat(ecs_world, player_entity);
+                            Player::try_eat(game_state);
                         }
 
                         //Apply item
@@ -259,7 +254,7 @@ impl Player {
                         }
 
                         '>' => {
-                            game_state.run_state = Player::try_next_level(ecs_world);
+                            Player::try_next_level(game_state);
                         }
 
                         //Drop item
@@ -285,7 +280,7 @@ impl Player {
                             clear_input_queue();
 
                             // Drink from river
-                            game_state.run_state = Player::try_drink(ecs_world, player_entity);
+                            Player::try_drink(game_state);
                         }
 
                         //Smell (whiff) action
@@ -299,13 +294,12 @@ impl Player {
                             clear_input_queue();
                             // TODO change with equipped ranged weapon, so check if it is ranged and equipped before
                             // entering in target mode
-
-                            game_state.run_state = Player::try_shoot(ecs_world, player_entity);
+                            Player::try_shoot(game_state);
                         }
 
                         //Trade item to shop owner
                         't' => {
-                            game_state.run_state = Player::try_trade(ecs_world, player_entity);
+                            Player::try_trade(game_state);
                         }
 
                         _ => {}
@@ -353,11 +347,10 @@ impl Player {
                     let mut is_valid_tile = false;
                     // Scope for keeping borrow checker quiet
                     {
-                        let mut zone_query = ecs_world.query::<&Zone>();
-                        let (_, zone) = zone_query
-                            .iter()
-                            .last()
-                            .expect("Zone is not in hecs::World");
+                        let zone = game_state
+                            .current_zone
+                            .as_ref()
+                            .expect("must have Some Zone");
                         // Make sure that we are targeting a valid tile
                         let index = Zone::get_index_from_xy(&rounded_x, &rounded_y);
                         if index < zone.visible_tiles.len() {
@@ -391,7 +384,7 @@ impl Player {
     }
 
     /// Picks up something to store in backpack
-    fn pick_up(game_state: &mut GameState) -> RunState {
+    fn pick_up(game_state: &mut GameState) {
         let ecs_world = &mut game_state.ecs_world;
         let player_entity = game_state.current_player_entity.expect("Must be Some");
 
@@ -399,13 +392,13 @@ impl Player {
             // Check if the item is being stolen from a shop
             if Utils::get_item_owner(ecs_world, item).is_some() {
                 //Show Dialog
-                RunState::ShowDialog(DialogAction::StealPick(item))
+                game_state.run_state = RunState::ShowDialog(DialogAction::StealPick(item));
             } else {
                 // Reset heal counter if the player did pick up something
                 let _ = ecs_world.insert_one(player_entity, WantsItem { items: vec![item] });
                 Player::reset_heal_counter(ecs_world);
 
-                RunState::DoTick
+                game_state.run_state = RunState::DoTick;
             }
         } else {
             let mut game_log_query = ecs_world.query::<&mut GameLog>();
@@ -417,7 +410,7 @@ impl Player {
                 .entries
                 .push("There is nothing here to pick up".to_string());
 
-            RunState::WaitingPlayerInput
+            game_state.run_state = RunState::WaitingPlayerInput;
         }
     }
 
@@ -443,7 +436,9 @@ impl Player {
     }
 
     /// Try to eat. Return new Runstate
-    fn try_eat(ecs_world: &mut World, _player_entity: Entity) -> RunState {
+    fn try_eat(game_state: &mut GameState) {
+        let ecs_world = &mut game_state.ecs_world;
+
         clear_input_queue();
         let item_on_ground = Player::take_from_map(ecs_world);
 
@@ -454,28 +449,34 @@ impl Player {
             // Check if the item is being stolen from a shop
             if Utils::get_item_owner(ecs_world, item).is_some() {
                 //Show Theft Dialog
-                return RunState::ShowDialog(DialogAction::StealEat(item));
+
+                game_state.run_state = RunState::ShowDialog(DialogAction::StealEat(item));
             } else {
                 //Show eat Dialog
-                return RunState::ShowDialog(DialogAction::Eat(item));
-            }
-        }
 
-        RunState::ShowInventory(InventoryAction::Eat)
+                game_state.run_state = RunState::ShowDialog(DialogAction::Eat(item));
+            }
+        } else {
+            game_state.run_state = RunState::ShowInventory(InventoryAction::Eat)
+        }
     }
 
     /// Try to drink. Return new Runstate and true if it can heal
-    fn try_drink(ecs_world: &mut World, player_entity: Entity) -> RunState {
+    fn try_drink(game_state: &mut GameState) {
+        let ecs_world = &mut game_state.ecs_world;
+        let player_entity = game_state
+            .current_player_entity
+            .expect("must have some player");
         let there_is_river_here: bool;
 
+        // Show quaffable items in inventory
+        game_state.run_state = RunState::ShowInventory(InventoryAction::Quaff);
         // Scope for keeping borrow checker quiet
         {
-            let mut zone_query = ecs_world.query::<&Zone>();
-            let (_, zone) = zone_query
-                .iter()
-                .last()
-                .expect("Zone is not in hecs::World");
-
+            let zone = game_state
+                .current_zone
+                .as_ref()
+                .expect("must have Some Zone");
             let mut player_query = ecs_world.query::<&Position>().with::<&Player>();
             let (_, position) = player_query
                 .iter()
@@ -492,7 +493,7 @@ impl Player {
             let river_entity = Spawn::river_water_entity(ecs_world);
             let _ = ecs_world.insert_one(player_entity, WantsToDrink { item: river_entity });
 
-            return RunState::DoTick;
+            game_state.run_state = RunState::DoTick;
         } else {
             // Drink a quaffable item on ground
             let item_on_ground = Player::take_from_map(ecs_world);
@@ -501,17 +502,16 @@ impl Player {
             if let Some(item) = item_on_ground
                 && ecs_world.satisfies::<&Quaffable>(item).unwrap_or(false)
             {
-                return RunState::ShowDialog(DialogAction::Quaff(item));
+                game_state.run_state = RunState::ShowDialog(DialogAction::Quaff(item));
             }
         }
-
-        // Show quaffable items in inventory
-        RunState::ShowInventory(InventoryAction::Quaff)
     }
 
-    fn try_next_level(ecs_world: &mut World) -> RunState {
+    fn try_next_level(game_state: &mut GameState) {
+        let ecs_world = &mut game_state.ecs_world;
         let standing_on_tile;
 
+        game_state.run_state = RunState::WaitingPlayerInput;
         //Scope to keep borrow checker quiet
         {
             let mut player_query = ecs_world.query::<&Position>().with::<&Player>();
@@ -520,11 +520,10 @@ impl Player {
                 .last()
                 .expect("Player is not in hecs::World");
 
-            let mut zone_query = ecs_world.query::<&Zone>();
-            let (_, zone) = zone_query
-                .iter()
-                .last()
-                .expect("Zone is not in hecs::World");
+            let zone = game_state
+                .current_zone
+                .as_ref()
+                .expect("must have Some Zone");
             standing_on_tile = &zone.tiles[Zone::get_index_from_xy(&position.x, &position.y)];
 
             let mut game_log_query = ecs_world.query::<&mut GameLog>();
@@ -540,17 +539,17 @@ impl Player {
             //TODO skill check
             if standing_on_tile == &TileType::DownPassage {
                 game_log.entries.push("You climb down...".to_string());
-                return RunState::GoToNextZone;
+                game_state.run_state = RunState::GoToNextZone;
             } else {
                 game_log.entries.push("You can't go down here".to_string());
             }
         }
-
-        RunState::WaitingPlayerInput
     }
 
     /// Try to shoot a ranged weapon: checks if the player has a ranged weapon equipped
-    fn try_shoot(ecs_world: &mut World, player_entity: Entity) -> RunState {
+    fn try_shoot(game_state: &mut GameState) {
+        let ecs_world = &mut game_state.ecs_world;
+        let player_entity = game_state.current_player_entity.expect("must be some");
         let mut weapon_opt: Option<Entity> = None;
         //Scope to keep borrow checker quiet
         {
@@ -608,17 +607,18 @@ impl Player {
                         "You don't have any ammunition for your {}",
                         weapon_named.name
                     ));
-                    return RunState::WaitingPlayerInput;
+                    game_state.run_state = RunState::WaitingPlayerInput;
+                    return;
                 }
             }
 
             // Ready to shoot
             let _ = ecs_world.insert_one(player_entity, WantsToShoot { weapon });
-            return RunState::MouseTargeting(SpecialViewMode::RangedTargeting);
+            game_state.run_state = RunState::MouseTargeting(SpecialViewMode::RangedTargeting);
+        } else {
+            // No ranged weapon equipped, abort without advancing to next tick
+            game_state.run_state = RunState::WaitingPlayerInput;
         }
-
-        // No ranged weapon equipped, abort without advancing to next tick
-        RunState::WaitingPlayerInput
     }
 
     /// Extract Player's entity from world and return it with copy
@@ -673,20 +673,23 @@ impl Player {
     }
 
     /// Try to trade an item to a potetial shop owner
-    pub fn try_trade(ecs_world: &mut World, player: Entity) -> RunState {
+    pub fn try_trade(game_state: &mut GameState) {
+        game_state.run_state = RunState::WaitingPlayerInput;
         let mut owner_entity: Option<Entity> = None;
+        let ecs_world = &mut game_state.ecs_world;
+        let player = game_state
+            .current_player_entity
+            .expect("must be some entity");
         // Scope for keeping borrow checker quiet
         {
-            let mut zone_query = ecs_world.query::<&Zone>();
-            let (_, zone) = zone_query
-                .iter()
-                .last()
-                .expect("Zone is not in hecs::World");
-
+            let zone = game_state
+                .current_zone
+                .as_ref()
+                .expect("must have Some Zone");
             let mut player_query = ecs_world
                 .query::<(&Viewshed, &Position)>()
                 .with::<&Player>();
-            let (player, (viewshed, player_pos)) = player_query
+            let (_, (viewshed, player_pos)) = player_query
                 .iter()
                 .last()
                 .expect("Player is not in hecs::World");
@@ -717,7 +720,7 @@ impl Player {
                                 "You see someone who may trade, but it's too far away".to_string(),
                             );
                             //We must guarantee only one shop owner per zone
-                            return RunState::WaitingPlayerInput;
+                            game_state.run_state = RunState::WaitingPlayerInput;
                         }
                     }
                 }
@@ -738,9 +741,7 @@ impl Player {
         // If we found a shop owner, offer them an item
         if let Some(target) = owner_entity {
             let _ = ecs_world.insert_one(player, WantsToTrade { target, item: None });
-            return RunState::ShowInventory(InventoryAction::Trade);
+            game_state.run_state = RunState::ShowInventory(InventoryAction::Trade);
         }
-
-        RunState::WaitingPlayerInput
     }
 }

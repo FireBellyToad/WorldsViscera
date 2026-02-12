@@ -1,6 +1,6 @@
 use std::cmp::max;
 
-use hecs::{Entity, World};
+use hecs::{Entity};
 
 use crate::{
     components::{
@@ -24,15 +24,15 @@ pub struct DamageManager {}
 
 /// Damage manager system
 impl DamageManager {
-    pub fn run(ecs_world: &World) {
+    pub fn run(game_state: &mut GameState) {
+        let ecs_world = &mut game_state.ecs_world;
         let mut damageables =
             ecs_world.query::<(&mut SufferingDamage, &mut CombatStats, &Position)>();
 
-        let mut zone_query = ecs_world.query::<&mut Zone>();
-        let (_, zone) = zone_query
-            .iter()
-            .last()
-            .expect("Zone is not in hecs::World");
+        let zone = game_state
+            .current_zone
+            .as_mut()
+            .expect("must have Some Zone");
 
         for (damaged_entity, (damageable, stats, position)) in &mut damageables {
             if damageable.damage_received > 0 {
@@ -103,11 +103,10 @@ impl DamageManager {
                 .last()
                 .expect("Game log is not in hecs::World");
 
-            let mut zone_query = ecs_world.query::<&mut Zone>();
-            let (_, zone) = zone_query
-                .iter()
-                .last()
-                .expect("Zone is not in hecs::World");
+            let zone = game_state
+                .current_zone
+                .as_ref()
+                .expect("must have Some Zone");
 
             let mut damageables = ecs_world.query::<(
                 &CombatStats,

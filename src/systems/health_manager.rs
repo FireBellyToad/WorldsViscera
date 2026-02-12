@@ -51,11 +51,10 @@ impl HealthManager {
                 .last()
                 .expect("Game log is not in hecs::World");
 
-            let mut zone_query = ecs_world.query::<&mut Zone>();
-            let (_, zone) = zone_query
-                .iter()
-                .last()
-                .expect("Zone is not in hecs::World");
+            let zone = game_state
+                .current_zone
+                .as_mut()
+                .expect("must have Some Zone");
 
             for (diseased_entity, (disease, stats, damage, hunger, named, position, cured_opt)) in
                 &mut diseased_entities
