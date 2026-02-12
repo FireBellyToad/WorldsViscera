@@ -5,7 +5,7 @@ use crate::components::combat::{SufferingDamage, WantsToDig, WantsToShoot};
 use crate::components::common::{Diggable, Hates, Named};
 use crate::components::items::{DiggingTool, RangedWeapon, ShopOwner};
 use crate::constants::STANDARD_ACTION_MULTIPLIER;
-use crate::engine::state::EngineState;
+use crate::engine::state::GameState;
 use crate::utils::common::ItemsInBackpack;
 use crate::utils::roll::Roll;
 use crate::{components::actions::WantsToInvoke, maps::zone::DecalType};
@@ -186,7 +186,7 @@ impl Player {
     ///
     /// Handle player input
     ///
-    pub fn checks_keyboard_input(game_state: &mut EngineState) -> RunState {
+    pub fn checks_keyboard_input(game_state: &mut GameState) -> RunState {
         let ecs_world = &mut game_state.ecs_world;
         let mut run_state = RunState::WaitingPlayerInput;
         let mut check_chars_pressed = false;

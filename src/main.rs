@@ -12,7 +12,7 @@ use constants::*;
 use draw::Draw;
 use engine::{
     gameengine::GameEngine,
-    state::{EngineState, RunState},
+    state::{GameState, RunState},
 };
 use hecs::World;
 use inventory::Inventory;
@@ -71,11 +71,13 @@ async fn main() {
 
     //Init ECS
     let mut game_engine = GameEngine::new();
-    let mut game_state = EngineState {
-        ecs_world: create_ecs_world(),
+    let mut game_state = GameState {
+        ecs_world: World::new(),
         run_state: RunState::TitleScreen,
+        current_player_entity: None,
         debug_mode: false,
     };
+    populate_world(&mut game_state);
 
     let mut tick = 0;
     loop {
@@ -97,7 +99,7 @@ async fn main() {
                         break;
                     } else if get_last_key_pressed().is_some() {
                         game_state.ecs_world.clear();
-                        populate_world(&mut game_state.ecs_world);
+                        populate_world(&mut game_state);
                         clear_input_queue();
                         game_state.run_state = RunState::BeforeTick;
                         tick = 0;
@@ -140,7 +142,7 @@ async fn main() {
                         break;
                     } else if is_key_pressed(KeyCode::R) {
                         game_state.ecs_world.clear();
-                        populate_world(&mut game_state.ecs_world);
+                        populate_world(&mut game_state);
                         clear_input_queue();
                         game_state.run_state = RunState::BeforeTick;
                         tick = 0;
@@ -181,35 +183,27 @@ async fn main() {
     }
 }
 
-fn create_ecs_world() -> World {
-    let mut world = World::new();
-
-    populate_world(&mut world);
-
-    world
-}
-
-fn populate_world(ecs_world: &mut World) {
+fn populate_world(game_state: &mut GameState) {
     // Generate new seed, or else it will always generate the same things
     rand::srand(macroquad::miniquad::date::now() as _);
     //Add Game log to world
-    ecs_world.spawn((
+    game_state.ecs_world.spawn((
         true,
         GameLog {
             entries: vec!["Welcome to World's Viscera".to_string()],
         },
     ));
 
-    let zone = ArenaZoneBuilder::build(1, ecs_world);
+    let zone = ArenaZoneBuilder::build(1, &mut game_state.ecs_world);
 
-    Spawn::player(ecs_world, &zone);
-    Spawn::everyhing_in_map(ecs_world, &zone);
+    game_state.current_player_entity = Some(Spawn::player(&mut game_state.ecs_world, &zone));
+    Spawn::everyhing_in_map(&mut game_state.ecs_world, &zone);
 
     // Add zone
-    let _ = ecs_world.spawn((true, zone));
+    let _ = game_state.ecs_world.spawn((true, zone));
 }
 
-fn change_zone(engine: &mut EngineState) {
+fn change_zone(engine: &mut GameState) {
     // Generate new seed, or else it will always generate the same things
     rand::srand(macroquad::miniquad::date::now() as _);
 
@@ -260,7 +254,7 @@ fn change_zone(engine: &mut EngineState) {
     engine.ecs_world.spawn((true, zone));
 }
 
-fn do_before_tick_logic(game_state: &mut EngineState) {
+fn do_before_tick_logic(game_state: &mut GameState) {
     TurnCheck::run(&mut game_state.ecs_world);
     RangedManager::check_ammo_counts(&mut game_state.ecs_world);
     AutomaticHealing::run(&mut game_state.ecs_world);
@@ -280,7 +274,7 @@ fn do_before_tick_logic(game_state: &mut EngineState) {
     TurnCheck::check_for_turn_reset(&mut game_state.ecs_world);
 }
 
-fn do_in_tick_game_logic(game_engine: &mut GameEngine, game_state: &mut EngineState) {
+fn do_in_tick_game_logic(game_engine: &mut GameEngine, game_state: &mut GameState) {
     // Every System that could produce particle animations should be run before the particle manager check
     // This makes sure that the particle animations will not be executed after the Entity has been killed
     ZapManager::run(&mut game_state.ecs_world);
@@ -313,7 +307,7 @@ fn do_in_tick_game_logic(game_engine: &mut GameEngine, game_state: &mut EngineSt
     }
 }
 
-fn do_tickless_logic(game_state: &mut EngineState) {
+fn do_tickless_logic(game_state: &mut GameState) {
     #[cfg(not(target_arch = "wasm32"))]
     {
         if is_key_pressed(KeyCode::F12) {

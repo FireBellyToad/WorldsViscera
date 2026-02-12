@@ -19,7 +19,7 @@ use crate::{
     },
     constants::*,
     dialog::Dialog,
-    engine::state::{EngineState, RunState},
+    engine::state::{GameState, RunState},
     inventory::Inventory,
     maps::zone::{DecalType, TileType, Zone},
     systems::{hunger_check::HungerStatus, thirst_check::ThirstStatus},
@@ -33,7 +33,7 @@ use crate::{
 pub struct Draw {}
 
 impl Draw {
-    pub fn render_game(game_state: &EngineState, assets: &HashMap<TextureName, Texture2D>) {
+    pub fn render_game(game_state: &GameState, assets: &HashMap<TextureName, Texture2D>) {
         let mut zones = game_state.ecs_world.query::<&Zone>();
         match game_state.run_state {
             RunState::GameOver => {

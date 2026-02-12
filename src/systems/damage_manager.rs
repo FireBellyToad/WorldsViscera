@@ -12,7 +12,7 @@ use crate::{
         player::Player,
     },
     constants::{AUTO_ADVANCE_EXP_COUNTER_START, MAX_STAMINA_HEAL_TICK_COUNTER},
-    engine::state::{EngineState, RunState},
+    engine::state::{GameState, RunState},
     maps::zone::{DecalType, Zone},
     spawning::spawner::Spawn,
     systems::item_dropping::ItemDropping,
@@ -87,7 +87,7 @@ impl DamageManager {
     }
 
     /// Check which entities are dead and removes them. Returns true if Player is dead
-    pub fn remove_dead_and_check_gameover(game_state: &mut EngineState) -> bool {
+    pub fn remove_dead_and_check_gameover(game_state: &mut GameState) -> bool {
         let ecs_world = &mut game_state.ecs_world;
         let mut dead_entities: Vec<DeadEntityData> = Vec::new();
         let mut paralyzed_entities: Vec<Entity> = Vec::new();

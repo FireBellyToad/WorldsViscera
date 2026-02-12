@@ -3,7 +3,7 @@ use hecs::Entity;
 use crate::{
     engine::{
         gameengine::GameEngine,
-        state::{EngineState, RunState},
+        state::{GameState, RunState},
     },
     utils::particle_animation::ParticleAnimation,
 };
@@ -12,7 +12,7 @@ pub struct ParticleManager {}
 
 /// Particle Manager
 impl ParticleManager {
-    pub fn run(game_state: &mut EngineState) {
+    pub fn run(game_state: &mut GameState) {
         let mut anim_to_remove: Vec<Entity> = Vec::new();
 
         //Animate with current timing
@@ -36,7 +36,7 @@ impl ParticleManager {
     // Check if animations are present in ECS World, and set the appropriate delay for better animation
     pub fn check_if_animations_are_present(
         game_engine: &mut GameEngine,
-        game_state: &mut EngineState,
+        game_state: &mut GameState,
     ) -> bool {
         let mut animations = game_state.ecs_world.query::<&ParticleAnimation>();
 

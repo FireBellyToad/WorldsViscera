@@ -28,7 +28,7 @@ pub struct Spawn {}
 
 impl Spawn {
     /// Spawn player
-    pub fn player(ecs_world: &mut World, zone: &Zone) {
+    pub fn player(ecs_world: &mut World, zone: &Zone) -> Entity {
         // Roll appropriate stats
         let rolled_toughness = Roll::stat();
         let rolled_dexterity = Roll::stat();
@@ -124,6 +124,7 @@ impl Spawn {
             .lock()
             .expect("Failed to get lock onplayer entity")
             .replace(player_entity);
+        player_entity
     }
 
     /// Spawn entities inside a room

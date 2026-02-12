@@ -8,7 +8,7 @@ use crate::{
         items::{Appliable, Applied, Cure, InBackback, MustBeFueled, TurnedOff, TurnedOn},
         player::Player,
     },
-    engine::state::EngineState,
+    engine::state::GameState,
 };
 
 pub struct ApplySystem {}
@@ -42,7 +42,7 @@ impl ApplySystem {
     }
 
     /// Implement behavious for applied item
-    pub fn do_applications(game_state: &mut EngineState) {
+    pub fn do_applications(game_state: &mut GameState) {
         let ecs_world = &mut game_state.ecs_world;
         let mut entities_applied: Vec<Entity> = Vec::new();
         let mut entities_to_turn_on: Vec<Entity> = Vec::new();

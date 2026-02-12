@@ -25,14 +25,15 @@ pub enum RunState {
 }
 
 // Game state struct
-pub struct EngineState {
+pub struct GameState {
     pub ecs_world: World, // World of ECS, where the framework lives
     pub run_state: RunState,
+    pub current_player_entity: Option<Entity>,
     pub debug_mode: bool,
 }
 
 // State implementations
-impl EngineState {
+impl GameState {
     /// Retain the player, gamelog and backpack items when changing Zone
     pub fn get_entities_to_delete_on_zone_change(&mut self) -> Vec<Entity> {
         let mut entities_to_delete: Vec<Entity> = Vec::new();
