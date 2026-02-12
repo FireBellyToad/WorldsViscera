@@ -118,8 +118,12 @@ impl ItemCollection {
                         item_owner_list.push((item, collector, char_to_assign, stats.speed));
 
                         // Check if the item is being stolen from a shop
-                        if let Some(owner) =
-                            Utils::get_item_owner_by_position(ecs_world, &position.x, &position.y)
+                        if !wants_item.was_bought
+                            && let Some(owner) = Utils::get_item_owner_by_position(
+                                ecs_world,
+                                &position.x,
+                                &position.y,
+                            )
                         {
                             let mut shop_owner_query = ecs_world
                                 .query_one::<(&mut Hates, &Named)>(owner)
@@ -134,7 +138,7 @@ impl ItemCollection {
                                     [Zone::get_index_from_xy(&position.x, &position.y)]
                                 {
                                     game_log.entries.push(format!(
-                                        "The {} eats the stolen {}! The {} gets angry!",
+                                        "The {} stoles the {}! The {} gets angry!",
                                         named_collector.name, named_item.name, named_owner.name
                                     ));
                                 }

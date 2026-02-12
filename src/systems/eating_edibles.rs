@@ -152,28 +152,30 @@ impl EatingEdibles {
                     }
 
                     // Check if the item is being stolen from a shop
-                    if let Some(owner) =
-                        Utils::get_item_owner_by_position(ecs_world, &position.x, &position.y)
-                    {
-                        let mut shop_owner_query = ecs_world
-                            .query_one::<(&mut Hates, &Named)>(owner)
-                            .expect("owner must be named and hate");
-                        if let Some((hates, named_owner)) = shop_owner_query.get() {
-                            if eater.id() == player_id {
-                                game_log.entries.push(format!(
-                                    "You eat the stolen {}! The {} gets angry!",
-                                    named_edible.name, named_owner.name
-                                ));
-                            } else if zone.visible_tiles
-                                [Zone::get_index_from_xy(&position.x, &position.y)]
-                            {
-                                game_log.entries.push(format!(
-                                    "The {} eats the stolen {}! The {} gets angry!",
-                                    named_eater.name, named_edible.name, named_owner.name
-                                ));
-                            }
+                    if let Ok(item_pos) = ecs_world.get::<&Position>(wants_to_eat.item) {
+                        if let Some(owner) =
+                            Utils::get_item_owner_by_position(ecs_world, &item_pos.x, &item_pos.y)
+                        {
+                            let mut shop_owner_query = ecs_world
+                                .query_one::<(&mut Hates, &Named)>(owner)
+                                .expect("owner must be named and hate");
+                            if let Some((hates, named_owner)) = shop_owner_query.get() {
+                                if eater.id() == player_id {
+                                    game_log.entries.push(format!(
+                                        "You eat the stolen {}! The {} gets angry!",
+                                        named_edible.name, named_owner.name
+                                    ));
+                                } else if zone.visible_tiles
+                                    [Zone::get_index_from_xy(&item_pos.x, &item_pos.y)]
+                                {
+                                    game_log.entries.push(format!(
+                                        "The {} eats the stolen {}! The {} gets angry!",
+                                        named_eater.name, named_edible.name, named_owner.name
+                                    ));
+                                }
 
-                            hates.list.insert(eater.id());
+                                hates.list.insert(eater.id());
+                            }
                         }
                     }
                 } else {

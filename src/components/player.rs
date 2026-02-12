@@ -395,7 +395,13 @@ impl Player {
                 game_state.run_state = RunState::ShowDialog(DialogAction::StealPick(item));
             } else {
                 // Reset heal counter if the player did pick up something
-                let _ = ecs_world.insert_one(player_entity, WantsItem { items: vec![item] });
+                let _ = ecs_world.insert_one(
+                    player_entity,
+                    WantsItem {
+                        items: vec![item],
+                        was_bought: false,
+                    },
+                );
                 Player::reset_heal_counter(ecs_world);
 
                 game_state.run_state = RunState::DoTick;

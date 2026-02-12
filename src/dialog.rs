@@ -65,11 +65,17 @@ impl Dialog {
                             let _ = ecs_world.insert_one(player_entity, WantsToDrink { item });
                         }
                         DialogAction::StealPick(item) => {
-                            let _ = ecs_world
-                                .insert_one(player_entity, WantsItem { items: vec![item] });
+                            let _ = ecs_world.insert_one(
+                                player_entity,
+                                WantsItem {
+                                    items: vec![item],
+                                    was_bought: false,
+                                },
+                            );
                         }
                         DialogAction::StealEat(item) => {
                             game_state.run_state = RunState::ShowDialog(DialogAction::Eat(item));
+                            return; // abort all other actions
                         }
                         DialogAction::Trade(trade_info) => {
                             TradeSystem::end_trade(ecs_world, trade_info);

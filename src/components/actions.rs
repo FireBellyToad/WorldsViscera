@@ -4,6 +4,7 @@ use crate::components::items::BodyLocation;
 
 pub struct WantsItem {
     pub items: Vec<Entity>,
+    pub was_bought: bool,
 }
 
 pub struct WantsToEquip {

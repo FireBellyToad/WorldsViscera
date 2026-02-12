@@ -125,6 +125,7 @@ impl TradeSystem {
             trader,
             WantsItem {
                 items: items_to_be_received,
+                was_bought: true,
             },
         );
 

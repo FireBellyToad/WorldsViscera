@@ -268,7 +268,7 @@ impl MonsterThink {
 
         // pick up item
         for (pickupper, item) in pickup_list {
-            let _ = ecs_world.insert_one(pickupper, WantsItem { items: vec![item] });
+            let _ = ecs_world.insert_one(pickupper, WantsItem { items: vec![item], was_bought: false });
         }
 
         // Zap place
