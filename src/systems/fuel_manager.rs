@@ -1,7 +1,8 @@
 use crate::{
     components::{common::Position, items::TurnedOff},
     constants::{FLAME_PARTICLE_TYPE, STANDARD_ACTION_MULTIPLIER},
-    utils::particle_animation::ParticleAnimation,
+    engine::state::GameState,
+    utils::{common::Utils, particle_animation::ParticleAnimation},
 };
 use hecs::{Entity, World};
 
@@ -28,7 +29,12 @@ type Fueler<'a> = (
 pub struct FuelManager {}
 
 impl FuelManager {
-    pub fn check_fuel(ecs_world: &mut World) {
+    pub fn check_fuel(game_state: &mut GameState) {
+        let ecs_world = &mut game_state.ecs_world;
+        let player_entity = game_state
+            .current_player_entity
+            .expect("Player should be set");
+
         let mut entities_to_turn_off: Vec<Entity> = Vec::new();
 
         // Scope for keeping borrow checker quiet
@@ -38,8 +44,6 @@ impl FuelManager {
                 .query::<(&mut MustBeFueled, &Named, Option<&InBackback>)>()
                 .with::<&TurnedOn>()
                 .without::<&Refiller>();
-
-            let player_entity = Player::get_entity();
 
             let mut game_log_query = ecs_world.query::<&mut GameLog>();
             let (_, game_log) = game_log_query
@@ -66,9 +70,6 @@ impl FuelManager {
                             }
                             _ => {}
                         }
-
-                        //show immediately new vision
-                        Player::force_view_recalculation(ecs_world);
                     }
                 }
 
@@ -80,14 +81,20 @@ impl FuelManager {
         }
 
         for entity in entities_to_turn_off {
-            let _ = ecs_world.exchange_one::<TurnedOn, TurnedOff>(entity, TurnedOff {});
-            Player::force_view_recalculation(ecs_world);
+            let _ = game_state
+                .ecs_world
+                .exchange_one::<TurnedOn, TurnedOff>(entity, TurnedOff {});
+            Player::force_view_recalculation(game_state);
         }
     }
 
-    pub fn do_refills(ecs_world: &mut World) {
-        let mut refillers_and_items_used: Vec<(Entity, Entity)> = Vec::new();
-        let player_id = Player::get_entity_id();
+    pub fn do_refills(game_state: &mut GameState) {
+        let ecs_world = &mut game_state.ecs_world;
+        let player_id = game_state
+            .current_player_entity
+            .expect("Player id should be set")
+            .id();
+        let mut refillers_and_items_used: Vec<(Entity, Entity, i32)> = Vec::new();
         let mut particle_animations: Vec<ParticleAnimation> = Vec::new();
 
         // Scope for keeping borrow checker quiet
@@ -191,18 +198,16 @@ impl FuelManager {
                 }
 
                 // Remember refiller and what has been used to cleanup later
-                refillers_and_items_used.push((refiller, item_used));
+                refillers_and_items_used.push((refiller, item_used, fueler_stats.speed));
             }
         }
 
         //Cleanup
-        for (refiller, item_used) in refillers_and_items_used {
+        for (refiller, item_used, speed) in refillers_and_items_used {
             let _ = ecs_world.remove_one::<WantsToFuel>(refiller);
             let _ = ecs_world.despawn(item_used);
 
-            if player_id == refiller.id() {
-                Player::wait_after_action(ecs_world, STANDARD_ACTION_MULTIPLIER);
-            }
+            Utils::wait_after_action(ecs_world, refiller, speed * STANDARD_ACTION_MULTIPLIER);
         }
 
         for particle in particle_animations {

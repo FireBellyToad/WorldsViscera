@@ -6,13 +6,15 @@ use crate::{
         player::Player,
     },
     constants::LISTEN_COOLDOWN_START,
+    engine::state::GameState,
     utils::{common::Utils, roll::Roll},
 };
 
 pub struct SoundSystem {}
 
 impl SoundSystem {
-    pub fn run(ecs_world: &mut World) {
+    pub fn run(game_state: &mut GameState) {
+        let ecs_world = &mut game_state.ecs_world;
         //Log all the equipments
         let mut game_log_query = ecs_world.query::<&mut GameLog>();
         let (_, game_log) = game_log_query

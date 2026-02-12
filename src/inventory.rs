@@ -24,11 +24,11 @@ use crate::{
         player::{Player, SpecialViewMode},
     },
     constants::*,
-    engine::state::RunState,
+    engine::state::{GameState, RunState},
     utils::assets::TextureName,
 };
 
-#[derive(PartialEq, Debug, Clone)]
+#[derive(PartialEq, Debug, Clone, Copy)]
 pub enum InventoryAction {
     Eat,
     Drop,
@@ -56,12 +56,13 @@ pub struct Inventory {}
 
 impl Inventory {
     /// Handle inventory input
-    pub fn handle_input(ecs_world: &mut World, mode: InventoryAction) -> RunState {
+    pub fn handle_input(game_state: &mut GameState, mode: InventoryAction) {
         if is_key_pressed(KeyCode::Escape) {
             // Exit inventory, clear queue to avoid to reopen on cancel
             // caused by char input queue
             clear_input_queue();
-            return RunState::WaitingPlayerInput;
+
+            game_state.run_state = RunState::WaitingPlayerInput;
         } else {
             //Any other key
             let mut selected_item_entity: Option<Entity> = None;
@@ -70,41 +71,30 @@ impl Inventory {
             match get_char_pressed() {
                 None => {}
                 Some(letterkey) => {
-                    let mut player_query = ecs_world.query::<&Player>();
-                    let (player_entity, _) = player_query
-                        .iter()
-                        .last()
-                        .expect("Player is not in hecs::World");
-
-                    //Log
-                    let mut game_log_query = ecs_world.query::<&mut GameLog>();
-                    let (_, game_log) = game_log_query
-                        .iter()
-                        .last()
-                        .expect("Game log is not in hecs::World");
+                    let player_entity = game_state.current_player_entity.expect("must be Some");
 
                     //Inventory = Named items in backpack of the Player assigned to the pressed char key
                     let inventory: InventoryItemData = match mode {
                         InventoryAction::Eat => {
-                            Inventory::get_all_in_backpack_filtered_by::<Edible>(ecs_world)
+                            Inventory::get_all_in_backpack_filtered_by::<Edible>(game_state)
                         }
                         InventoryAction::Invoke => {
-                            Inventory::get_all_in_backpack_filtered_by::<Invokable>(ecs_world)
+                            Inventory::get_all_in_backpack_filtered_by::<Invokable>(game_state)
                         }
                         InventoryAction::Quaff => {
-                            Inventory::get_all_in_backpack_filtered_by::<Quaffable>(ecs_world)
+                            Inventory::get_all_in_backpack_filtered_by::<Quaffable>(game_state)
                         }
                         InventoryAction::RefillWhat => {
-                            Inventory::get_all_in_backpack_filtered_by::<MustBeFueled>(ecs_world)
+                            Inventory::get_all_in_backpack_filtered_by::<MustBeFueled>(game_state)
                         }
                         InventoryAction::Equip => {
-                            Inventory::get_all_in_backpack_filtered_by::<Equippable>(ecs_world)
+                            Inventory::get_all_in_backpack_filtered_by::<Equippable>(game_state)
                         }
                         InventoryAction::Apply => {
-                            Inventory::get_all_in_backpack_filtered_by::<Appliable>(ecs_world)
+                            Inventory::get_all_in_backpack_filtered_by::<Appliable>(game_state)
                         }
                         InventoryAction::Trade | InventoryAction::Drop => {
-                            Inventory::get_all_in_backpack(ecs_world)
+                            Inventory::get_all_in_backpack(game_state)
                         }
                     };
 
@@ -118,6 +108,12 @@ impl Inventory {
                         selected_item_entity = Some(item_sel_unwrap.0);
                         user_entity = Some(player_entity);
                     } else {
+                        //Log TODO change
+                        let mut game_log_query = game_state.ecs_world.query::<&mut GameLog>();
+                        let (_, game_log) = game_log_query
+                            .iter()
+                            .last()
+                            .expect("Game log is not in hecs::World");
                         game_log
                             .entries
                             .push(format!("No item available for letter {letterkey}"));
@@ -126,43 +122,49 @@ impl Inventory {
             }
 
             // Use selected item
-            let mut new_run_state = RunState::DoTick;
+
+            game_state.run_state = RunState::DoTick;
             if let Some(item) = selected_item_entity {
                 let user = user_entity.expect("user_entity is none!");
                 match mode {
                     InventoryAction::Eat => {
-                        let _ = ecs_world.insert_one(user, WantsToEat { item });
+                        let _ = game_state.ecs_world.insert_one(user, WantsToEat { item });
                     }
                     InventoryAction::Drop => {
-                        let _ = ecs_world.insert_one(user, WantsToDrop { item });
+                        let _ = game_state.ecs_world.insert_one(user, WantsToDrop { item });
                     }
                     InventoryAction::Quaff => {
-                        let _ = ecs_world.insert_one(user, WantsToDrink { item });
+                        let _ = game_state.ecs_world.insert_one(user, WantsToDrink { item });
                     }
                     InventoryAction::Invoke => {
-                        let _ = ecs_world.insert_one(user, WantsToInvoke { item });
-                        new_run_state = RunState::MouseTargeting(SpecialViewMode::ZapTargeting);
+                        let _ = game_state
+                            .ecs_world
+                            .insert_one(user, WantsToInvoke { item });
+
+                        game_state.run_state =
+                            RunState::MouseTargeting(SpecialViewMode::ZapTargeting);
                     }
                     InventoryAction::RefillWhat => {
                         // Select what to refill, then which item you are going to refill with
-                        let wants_to_fuel = ecs_world.get::<&mut WantsToFuel>(user);
+                        let wants_to_fuel = game_state.ecs_world.get::<&mut WantsToFuel>(user);
                         wants_to_fuel.expect("Must have WantsToFuel!").item = Some(item);
                     }
                     InventoryAction::Trade => {
                         // Select what to offer, then which item you are going to offer
-                        let wants_to_fuel = ecs_world.get::<&mut WantsToTrade>(user);
+                        let wants_to_fuel = game_state.ecs_world.get::<&mut WantsToTrade>(user);
                         wants_to_fuel.expect("Must have WantsToTrade!").item = Some(item);
                     }
                     InventoryAction::Equip => {
                         let body_location;
                         // Scope to keep the borrow check quiet
                         {
-                            let equippable = ecs_world
+                            let equippable = game_state
+                                .ecs_world
                                 .get::<&Equippable>(item)
                                 .expect("Should be Equippable!");
                             body_location = equippable.body_location.clone();
                         }
-                        let _ = ecs_world.insert_one(
+                        let _ = game_state.ecs_world.insert_one(
                             user,
                             WantsToEquip {
                                 item,
@@ -172,17 +174,23 @@ impl Inventory {
                     }
                     InventoryAction::Apply => {
                         // Applied refillers must be handled in a custom way
-                        if ecs_world.satisfies::<&Refiller>(item).unwrap_or(false) {
-                            let _ = ecs_world.insert_one(
+                        if game_state
+                            .ecs_world
+                            .satisfies::<&Refiller>(item)
+                            .unwrap_or(false)
+                        {
+                            let _ = game_state.ecs_world.insert_one(
                                 user,
                                 WantsToFuel {
                                     item: None,
                                     with: item,
                                 },
                             );
-                            new_run_state = RunState::ShowInventory(InventoryAction::RefillWhat);
+
+                            game_state.run_state =
+                                RunState::ShowInventory(InventoryAction::RefillWhat);
                         } else {
-                            let _ = ecs_world.insert_one(user, WantsToApply { item });
+                            let _ = game_state.ecs_world.insert_one(user, WantsToApply { item });
                             println!("Player wants to apply {:?}", item.id());
                         }
                     }
@@ -190,17 +198,16 @@ impl Inventory {
 
                 //Avoid strange behaviors
                 clear_input_queue();
-                return new_run_state;
+            } else {
+                // Keep inventory showing if invalid or no item has been selected
+                game_state.run_state = RunState::ShowInventory(mode);
             }
         }
-
-        // Keep inventory showing if invalid or no item has been selected
-        RunState::ShowInventory(mode)
     }
 
     pub fn draw(
         assets: &HashMap<TextureName, Texture2D>,
-        ecs_world: &World,
+        game_state: &mut GameState,
         mode: &InventoryAction,
     ) {
         let texture_to_render = assets.get(&TextureName::Items).expect("Texture not found");
@@ -212,35 +219,35 @@ impl Inventory {
         match mode {
             InventoryAction::Eat => {
                 header_text = "Eat what?";
-                inventory = Inventory::get_all_in_backpack_filtered_by::<Edible>(ecs_world);
+                inventory = Inventory::get_all_in_backpack_filtered_by::<Edible>(game_state);
             }
             InventoryAction::Invoke => {
                 header_text = "Invoke what?";
-                inventory = Inventory::get_all_in_backpack_filtered_by::<Invokable>(ecs_world);
+                inventory = Inventory::get_all_in_backpack_filtered_by::<Invokable>(game_state);
             }
             InventoryAction::Quaff => {
                 header_text = "Drink what?";
-                inventory = Inventory::get_all_in_backpack_filtered_by::<Quaffable>(ecs_world);
+                inventory = Inventory::get_all_in_backpack_filtered_by::<Quaffable>(game_state);
             }
             InventoryAction::RefillWhat => {
                 header_text = "Refill what?";
-                inventory = Inventory::get_all_in_backpack_filtered_by::<MustBeFueled>(ecs_world);
+                inventory = Inventory::get_all_in_backpack_filtered_by::<MustBeFueled>(game_state);
             }
             InventoryAction::Equip => {
                 header_text = "Equip what?";
-                inventory = Inventory::get_all_in_backpack_filtered_by::<Equippable>(ecs_world);
+                inventory = Inventory::get_all_in_backpack_filtered_by::<Equippable>(game_state);
             }
             InventoryAction::Trade => {
                 header_text = "Trade what?";
-                inventory = Inventory::get_all_in_backpack(ecs_world);
+                inventory = Inventory::get_all_in_backpack(game_state);
             }
             InventoryAction::Drop => {
                 header_text = "Drop what?";
-                inventory = Inventory::get_all_in_backpack(ecs_world);
+                inventory = Inventory::get_all_in_backpack(game_state);
             }
             InventoryAction::Apply => {
                 header_text = "Apply what?";
-                inventory = Inventory::get_all_in_backpack_filtered_by::<Appliable>(ecs_world);
+                inventory = Inventory::get_all_in_backpack_filtered_by::<Appliable>(game_state);
             }
         }
 
@@ -327,8 +334,12 @@ impl Inventory {
     }
 
     /// Get all items in backpack for UI
-    fn get_all_in_backpack(ecs_world: &World) -> InventoryItemData {
-        let player_id = Player::get_entity_id();
+    fn get_all_in_backpack(game_state: &GameState) -> InventoryItemData {
+        let ecs_world = &game_state.ecs_world;
+        let player_id = game_state
+            .current_player_entity
+            .expect("Player id should be set")
+            .id();
         let mut inventory_query = ecs_world.query::<InventoryItem>();
         let mut inventory = inventory_query
             .iter()
@@ -360,8 +371,12 @@ impl Inventory {
     }
 
     /// Get all items in backpack with a certain component T for UI
-    fn get_all_in_backpack_filtered_by<T: Component>(ecs_world: &World) -> InventoryItemData {
-        let player_id = Player::get_entity_id();
+    fn get_all_in_backpack_filtered_by<T: Component>(game_state: &GameState) -> InventoryItemData {
+        let ecs_world = &game_state.ecs_world;
+        let player_id = game_state
+            .current_player_entity
+            .expect("Player id should be set")
+            .id();
 
         let mut inventory_query = ecs_world.query::<InventoryItem>().with::<&T>();
 

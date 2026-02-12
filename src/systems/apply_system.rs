@@ -3,55 +3,59 @@ use hecs::{Entity, World};
 use crate::{
     components::{
         actions::WantsToApply,
+        combat::CombatStats,
         common::{GameLog, Named, Wet},
         health::{Cured, DiseaseType},
         items::{Appliable, Applied, Cure, InBackback, MustBeFueled, TurnedOff, TurnedOn},
         player::Player,
     },
     engine::state::GameState,
+    utils::common::Utils,
 };
 
 pub struct ApplySystem {}
 
 impl ApplySystem {
     /// Check entities that wants to apply Something
-    pub fn check(ecs_world: &mut World) {
+    pub fn check(game_state: &mut GameState) {
+        let ecs_world = &mut game_state.ecs_world;
+
         let mut applicators_items_applied: Vec<(Entity, Entity, i32)> = Vec::new();
-        let player_id = Player::get_entity_id();
 
         {
-            let mut appliers = ecs_world.query::<&WantsToApply>();
+            let mut appliers = ecs_world.query::<(&WantsToApply, &CombatStats)>();
 
-            for (applier, wants_to_apply) in &mut appliers {
+            for (applier, (wants_to_apply, stats)) in &mut appliers {
                 let time = ecs_world
                     .get::<&Appliable>(wants_to_apply.item)
                     .expect("Must have Appliable component")
                     .application_time;
-                applicators_items_applied.push((applier, wants_to_apply.item, time));
+                applicators_items_applied.push((applier, wants_to_apply.item, stats.speed * time));
             }
         }
 
-        for (applier, item, multiplier) in applicators_items_applied {
+        for (applier, item, time) in applicators_items_applied {
             let _ = ecs_world.remove_one::<WantsToApply>(applier);
             let _ = ecs_world.insert_one(item, Applied {});
 
-            if player_id == applier.id() {
-                Player::wait_after_action(ecs_world, multiplier);
-            }
+            Utils::wait_after_action(ecs_world, applier, time);
         }
     }
 
     /// Implement behavious for applied item
     pub fn do_applications(game_state: &mut GameState) {
-        let ecs_world = &mut game_state.ecs_world;
+        let player_id = game_state
+            .current_player_entity
+            .expect("Player id should be set")
+            .id();
         let mut entities_applied: Vec<Entity> = Vec::new();
         let mut entities_to_turn_on: Vec<Entity> = Vec::new();
         let mut entities_to_turn_off: Vec<Entity> = Vec::new();
         let mut entities_cured: Vec<(Entity, Vec<DiseaseType>)> = Vec::new();
-        let player_id = Player::get_entity_id();
 
         // Scope for keeping borrow checker quiet
         {
+            let ecs_world = &mut game_state.ecs_world;
             //Log all the applications
             let mut game_log_query = ecs_world.query::<&mut GameLog>();
             let (_, game_log) = game_log_query
@@ -140,21 +144,25 @@ impl ApplySystem {
         }
 
         for entity in entities_applied {
-            let _ = ecs_world.remove_one::<Applied>(entity);
+            let _ = game_state.ecs_world.remove_one::<Applied>(entity);
         }
 
         for entity in entities_to_turn_on {
-            let _ = ecs_world.exchange_one::<TurnedOff, TurnedOn>(entity, TurnedOn {});
-            Player::force_view_recalculation(ecs_world);
+            let _ = game_state
+                .ecs_world
+                .exchange_one::<TurnedOff, TurnedOn>(entity, TurnedOn {});
+            Player::force_view_recalculation(game_state);
         }
 
         for entity in entities_to_turn_off {
-            let _ = ecs_world.exchange_one::<TurnedOn, TurnedOff>(entity, TurnedOff {});
-            Player::force_view_recalculation(ecs_world);
+            let _ = game_state
+                .ecs_world
+                .exchange_one::<TurnedOn, TurnedOff>(entity, TurnedOff {});
+            Player::force_view_recalculation(game_state);
         }
 
         for (entity, diseases) in entities_cured {
-            let _ = ecs_world.insert_one(entity, Cured { diseases });
+            let _ = game_state.ecs_world.insert_one(entity, Cured { diseases });
         }
     }
 }

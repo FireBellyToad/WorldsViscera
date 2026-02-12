@@ -1,5 +1,6 @@
 use crate::{
     components::{combat::InflictsDamage, items::InBackback},
+    engine::state::GameState,
     utils::common::AmmunitionInBackpack,
 };
 use std::{cmp::max, panic};
@@ -23,7 +24,13 @@ use crate::{
 pub struct RangedManager {}
 
 impl RangedManager {
-    pub fn run(ecs_world: &mut World) {
+    pub fn run(game_state: &mut GameState) {
+        let ecs_world = &mut game_state.ecs_world;
+        let player_id = game_state
+            .current_player_entity
+            .expect("Player id should be set")
+            .id();
+
         let mut wants_to_shoot_list: Vec<(Entity, i32)> = Vec::new();
         let mut particle_animations: Vec<ParticleAnimation> = Vec::new();
 
@@ -49,8 +56,6 @@ impl RangedManager {
                 .expect("Zone is not in hecs::World");
 
             let mut equipped_armors = ecs_world.query::<(&Armor, &Equipped, Option<&Eroded>)>();
-
-            let player_id = Player::get_entity_id();
 
             for (shooter, (wants_to_zap, wants_to_shoot, shooter_position, stats)) in &mut shooters
             {
@@ -234,7 +239,8 @@ impl RangedManager {
     }
 
     /// Manage ammo in backpack, despawn empty ammo entities
-    pub fn check_ammo_counts(ecs_world: &mut World) {
+    pub fn check_ammo_counts(game_state: &mut GameState) {
+        let ecs_world = &mut game_state.ecs_world;
         let mut empty_ammo_list: Vec<Entity> = Vec::new();
 
         // Scope for keeping borrow checker quiet

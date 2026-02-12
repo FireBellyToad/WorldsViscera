@@ -37,8 +37,10 @@ impl GameState {
     /// Retain the player, gamelog and backpack items when changing Zone
     pub fn get_entities_to_delete_on_zone_change(&mut self) -> Vec<Entity> {
         let mut entities_to_delete: Vec<Entity> = Vec::new();
-
-        let player_id = Player::get_entity_id();
+        let player_id = self
+            .current_player_entity
+            .expect("Player id should be set")
+            .id();
 
         let mut must_delete;
         let all_entities_in_world: Vec<Entity> =

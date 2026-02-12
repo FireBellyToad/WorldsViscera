@@ -6,6 +6,7 @@ use crate::{
         common::*,
         monster::{Aquatic, LeaveTrail, Monster, WantsToApproach},
     },
+    engine::state::GameState,
     maps::zone::{DecalType, Zone},
     utils::{common::Utils, pathfinding::Pathfinding, roll::Roll},
 };
@@ -15,7 +16,9 @@ pub struct MonsterApproach {}
 
 impl MonsterApproach {
     /// Monster acting function
-    pub fn run(ecs_world: &mut World) {
+    pub fn run(game_state: &mut GameState) {
+        let ecs_world = &mut game_state.ecs_world;
+
         let mut waiter_speed_list: Vec<(Entity, i32)> = Vec::new();
         let mut approacher_list: Vec<Entity> = Vec::new();
         // Scope for keeping borrow checker quiet

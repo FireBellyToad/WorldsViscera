@@ -5,6 +5,7 @@ use crate::{
         actions::WantsToSmell,
         common::{CanSmell, GameLog, Position, SmellIntensity, Smellable},
     },
+    engine::state::GameState,
     maps::zone::Zone,
     utils::common::Utils,
 };
@@ -12,7 +13,9 @@ use crate::{
 pub struct SmellManager {}
 
 impl SmellManager {
-    pub fn run(ecs_world: &mut World) {
+    pub fn run(game_state: &mut GameState) {
+        let ecs_world = &mut game_state.ecs_world;
+
         let mut wants_to_smell_list: Vec<Entity> = Vec::new();
 
         // Scope for keeping borrow checker quiet

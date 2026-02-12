@@ -11,6 +11,7 @@ use crate::{
         player::Player,
     },
     constants::MAX_DISEASE_TICK_COUNTER,
+    engine::state::GameState,
     maps::zone::{DecalType, Zone},
     systems::hunger_check::HungerStatus,
     utils::{common::Utils, roll::Roll},
@@ -19,12 +20,16 @@ use crate::{
 pub struct EatingEdibles {}
 
 impl EatingEdibles {
-    pub fn run(ecs_world: &mut World) {
+    pub fn run(game_state: &mut GameState) {
+        let ecs_world = &mut game_state.ecs_world;
+        let player_id = game_state
+            .current_player_entity
+            .expect("Player id should be set")
+            .id();
         let mut eater_cleanup_list: Vec<Entity> = Vec::new();
         let mut eaten_eater_list: Vec<(Entity, Entity, i32)> = Vec::new();
         let mut killed_list: Vec<Entity> = Vec::new();
         let mut infected_list: Vec<(Entity, DiseaseType)> = Vec::new();
-        let player_id = Player::get_entity_id();
 
         // Scope for keeping borrow checker quiet
         {

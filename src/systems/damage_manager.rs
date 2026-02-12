@@ -89,9 +89,12 @@ impl DamageManager {
     /// Check which entities are dead and removes them. Returns true if Player is dead
     pub fn remove_dead_and_check_gameover(game_state: &mut GameState) -> bool {
         let ecs_world = &mut game_state.ecs_world;
+        let player_id = game_state
+            .current_player_entity
+            .expect("Player id should be set")
+            .id();
         let mut dead_entities: Vec<DeadEntityData> = Vec::new();
         let mut paralyzed_entities: Vec<Entity> = Vec::new();
-        let player_entity_id = Player::get_entity_id();
 
         // Scope for keeping borrow checker quiet
         {
@@ -135,7 +138,7 @@ impl DamageManager {
                         ));
                     }
 
-                    if entity.id() == player_entity_id {
+                    if entity.id() == player_id {
                         if is_killed {
                             game_log.entries.push("You die!".to_string());
                         } else {
@@ -157,7 +160,7 @@ impl DamageManager {
                 if stats.current_dexterity == 0 && paralyzed_opt.is_none() {
                     paralyzed_entities.push(entity);
 
-                    if entity.id() == player_entity_id {
+                    if entity.id() == player_id {
                         game_log.entries.push("You are paralyzed!".to_string());
                     } else {
                         game_log
@@ -175,7 +178,7 @@ impl DamageManager {
 
         //Remove all dead entities, stop game if player is dead
         for (killed_entity, name, (x, y), damager_opt, victim_level) in dead_entities {
-            if killed_entity.id() == player_entity_id {
+            if killed_entity.id() == player_id {
                 //Game over!
                 game_state.run_state = RunState::GameOver;
                 break;
@@ -183,7 +186,7 @@ impl DamageManager {
 
             // Award experience points to player if the victim was killed by him
             if let Some(damager) = damager_opt
-                && damager.id() == player_entity_id
+                && damager.id() == player_id
             {
                 let mut experience = ecs_world
                     .get::<&mut Experience>(damager)

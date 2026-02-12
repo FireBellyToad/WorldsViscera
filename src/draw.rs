@@ -33,8 +33,7 @@ use crate::{
 pub struct Draw {}
 
 impl Draw {
-    pub fn render_game(game_state: &GameState, assets: &HashMap<TextureName, Texture2D>) {
-        let mut zones = game_state.ecs_world.query::<&Zone>();
+    pub fn render_game(game_state: &mut GameState, assets: &HashMap<TextureName, Texture2D>) {
         match game_state.run_state {
             RunState::GameOver => {
                 Draw::game_over();
@@ -43,22 +42,24 @@ impl Draw {
             RunState::TitleScreen => Draw::title_screen(assets),
             _ => {
                 // Zone and renderables
-                for (_, zone) in &mut zones {
-                    Draw::zone(zone, assets);
-                    Draw::renderables(&game_state.ecs_world, assets, zone);
-                    Draw::smells(&game_state.ecs_world, assets, zone);
+                // TODO reimplement to avoid borrow checker errors
+                {
+                    let mut zones = game_state.ecs_world.query::<&Zone>();
+                    for (_, zone) in &mut zones {
+                        Draw::zone(zone, assets);
+                        Draw::renderables(&game_state.ecs_world, assets, zone);
+                        Draw::smells(&game_state.ecs_world, assets, zone);
 
-                    if game_state.debug_mode {
-                        Draw::debug_exit(zone);
-                        Draw::debug_blocked(zone);
+                        if game_state.debug_mode {
+                            Draw::debug_exit(zone);
+                            Draw::debug_blocked(zone);
+                        }
                     }
                 }
 
-                //Overlay
-                match &game_state.run_state {
-                    RunState::ShowInventory(mode) => {
-                        Inventory::draw(assets, &game_state.ecs_world, mode)
-                    }
+                //Overlay (clone is needed to avoid borrow checker errors)
+                match &game_state.run_state.clone() {
+                    RunState::ShowInventory(mode) => Inventory::draw(assets, game_state, mode),
                     RunState::ShowDialog(mode) => Dialog::draw(assets, &game_state.ecs_world, mode),
                     RunState::MouseTargeting(special_view_mode) => {
                         Draw::targeting(&game_state.ecs_world, special_view_mode);
@@ -67,8 +68,12 @@ impl Draw {
                         let mut animations = game_state.ecs_world.query::<&mut ParticleAnimation>();
                         for a in &mut animations {
                             // For each zone, draw particles. Usually is only one zone!
-                            for (_, zone) in &mut zones {
-                                Draw::particles(a.1, assets, zone);
+                            // TODO reimplement to avoid borrow checker errors
+                            {
+                                let mut zones = game_state.ecs_world.query::<&Zone>();
+                                for (_, zone) in &mut zones {
+                                    Draw::particles(a.1, assets, zone);
+                                }
                             }
                         }
                     }

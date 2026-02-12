@@ -4,6 +4,7 @@ use hecs::World;
 use crate::{
     components::{common::*, player::Player},
     constants::{MAP_HEIGHT, MAP_WIDTH},
+    engine::state::GameState,
     maps::zone::Zone,
     utils::common::Utils,
 };
@@ -13,8 +14,12 @@ use adam_fov_rs::GridPoint;
 pub struct FieldOfView {}
 
 impl FieldOfView {
-    pub fn calculate(ecs_world: &World) {
-        let player_entity_id = Player::get_entity_id();
+    pub fn calculate(game_state: &mut GameState) {
+        let ecs_world = &mut game_state.ecs_world;
+        let player_entity_id = game_state
+            .current_player_entity
+            .expect("Player id should be set")
+            .id();
 
         let mut zone_query = ecs_world.query::<&mut Zone>();
         let (_, zone) = zone_query

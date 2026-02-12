@@ -8,6 +8,7 @@ use crate::{
         items::{BodyLocation, Equipped},
         player::Player,
     },
+    engine::state::GameState,
     maps::zone::Zone,
     utils::common::Utils,
 };
@@ -15,12 +16,15 @@ use crate::{
 pub struct ItemEquipping {}
 
 impl ItemEquipping {
-    pub fn run(ecs_world: &mut World) {
+    pub fn run(game_state: &mut GameState) {
+        let ecs_world = &mut game_state.ecs_world;
+        let player_id = game_state
+            .current_player_entity
+            .expect("Player id should be set")
+            .id();
         let mut item_to_equip_list: Vec<(Entity, BodyLocation, Entity, i32)> = Vec::new();
         let mut item_to_unequip_list: Vec<(Entity, Entity, i32)> = Vec::new();
         let mut cleanup_equip: Vec<Entity> = Vec::new();
-
-        let player_id = Player::get_entity_id();
 
         // Scope for keeping borrow checker quiet
         {

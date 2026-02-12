@@ -8,18 +8,21 @@ use crate::{
         items::{Equipped, InBackback},
         player::Player,
     },
+    engine::state::GameState,
     utils::common::{ItemsInBackpack, Utils},
 };
 
 pub struct ItemDropping {}
 
 impl ItemDropping {
-    pub fn run(ecs_world: &mut World) {
+    pub fn run(game_state: &mut GameState) {
+        let ecs_world = &mut game_state.ecs_world;
+        let player_id = game_state
+            .current_player_entity
+            .expect("Player id should be set")
+            .id();
         let mut item_drop_position_list: Vec<(Entity, Entity, (i32, i32), i32)> = Vec::new();
         let mut item_drop_nothing: Vec<Entity> = Vec::new();
-
-        let player_id = Player::get_entity_id();
-
         // Scope for keeping borrow checker quiet
         {
             // List of entities that want to drop items

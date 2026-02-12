@@ -6,6 +6,7 @@ use crate::components::monster::IsPrey;
 use crate::constants::MAP_HEIGHT;
 use crate::constants::MAP_WIDTH;
 use crate::constants::MAX_PRIORITIES_NUMBER;
+use crate::engine::state::GameState;
 use crate::utils::roll::Roll;
 use std::collections::HashSet;
 
@@ -66,7 +67,13 @@ pub struct MonsterThink {}
 
 impl MonsterThink {
     /// Monster acting function
-    pub fn run(ecs_world: &mut World) {
+    pub fn run(game_state: &mut GameState) {
+        let ecs_world = &mut game_state.ecs_world;
+        let player_id = game_state
+            .current_player_entity
+            .expect("Player id should be set")
+            .id();
+
         let mut approacher_list: Vec<(Entity, i32, i32, u32)> = Vec::new();
         let mut pickup_list: Vec<(Entity, Entity)> = Vec::new();
         let mut attacker_target_list: Vec<(Entity, Entity)> = Vec::new();
@@ -97,8 +104,6 @@ impl MonsterThink {
                 .iter()
                 .last()
                 .expect("Zone is not in hecs::World");
-
-            let player_id = Player::get_entity_id();
 
             // For each viewshed position monster component join
             for (

@@ -10,6 +10,7 @@ use crate::{
         player::Player,
     },
     constants::{MAX_DISEASE_TICK_COUNTER, VERY_LONG_ACTION_MULTIPLIER},
+    engine::state::GameState,
     maps::zone::{DecalType, Zone},
     systems::hunger_check::HungerStatus,
     utils::{common::Utils, roll::Roll},
@@ -19,7 +20,13 @@ pub struct HealthManager {}
 
 /// Checking hunger status
 impl HealthManager {
-    pub fn run(ecs_world: &mut World) {
+    pub fn run(game_state: &mut GameState) {
+        let ecs_world = &mut game_state.ecs_world;
+        let player_id = game_state
+            .current_player_entity
+            .expect("Player id should be set")
+            .id();
+
         let mut healed_entities: Vec<(Entity, bool)> = Vec::new();
         let mut dizzy_entities_list: Vec<(Entity, i32)> = Vec::new();
 
@@ -37,8 +44,6 @@ impl HealthManager {
                     Option<&Cured>,
                 )>()
                 .with::<&MyTurn>();
-
-            let player_id = Player::get_entity_id();
 
             //Log all the disease checks
             let mut game_log_query = ecs_world.query::<&mut GameLog>();

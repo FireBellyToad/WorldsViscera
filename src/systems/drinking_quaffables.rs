@@ -9,17 +9,21 @@ use crate::{
         items::Quaffable,
         player::Player,
     },
+    engine::state::GameState,
     utils::{common::Utils, roll::Roll},
 };
 
 pub struct DrinkingQuaffables {}
 
 impl DrinkingQuaffables {
-    pub fn run(ecs_world: &mut World) {
+    pub fn run(game_state: &mut GameState) {
+        let ecs_world = &mut game_state.ecs_world;
+        let player_id = game_state
+            .current_player_entity
+            .expect("Player id should be set")
+            .id();
         let mut drinker_list: Vec<(Entity, i32)> = Vec::new();
         let mut drunk_list: Vec<Entity> = Vec::new();
-        let player_id = Player::get_entity_id();
-
         // Scope for keeping borrow checker quiet
         {
             // List of entities that want to collect items

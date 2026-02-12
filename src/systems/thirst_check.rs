@@ -10,6 +10,7 @@ use crate::{
         player::Player,
     },
     constants::MAX_THIRST_TICK_COUNTER,
+    engine::state::GameState,
     maps::zone::{DecalType, Zone},
     utils::roll::Roll,
 };
@@ -38,15 +39,18 @@ pub struct ThirstCheck {}
 
 /// Checking thirst status
 impl ThirstCheck {
-    pub fn run(ecs_world: &mut World) {
+    pub fn run(game_state: &mut GameState) {
+        let ecs_world = &mut game_state.ecs_world;
+        let player_id = game_state
+            .current_player_entity
+            .expect("Player id should be set")
+            .id();
         // Scope for keeping borrow checker quiet
         {
             // List of entities that has stats
             let mut thirsty_entities = ecs_world
                 .query::<(&mut Thirst, &CombatStats, &Position)>()
                 .with::<&MyTurn>();
-
-            let player_id = Player::get_entity_id();
 
             let mut zone_query = ecs_world.query::<&mut Zone>();
             let (_, zone) = zone_query

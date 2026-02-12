@@ -16,7 +16,7 @@ use crate::{
         player::Player,
     },
     constants::*,
-    engine::state::RunState,
+    engine::state::{GameState, RunState},
     inventory::InventoryAction,
     systems::trade_system::{TradeDtt, TradeSystem},
     utils::assets::TextureName,
@@ -35,7 +35,8 @@ pub struct Dialog {}
 
 impl Dialog {
     /// Handle dialog input
-    pub fn handle_input(ecs_world: &mut World, action: DialogAction) -> RunState {
+    pub fn handle_input(game_state: &mut GameState, action: DialogAction) -> RunState {
+        let ecs_world = &mut game_state.ecs_world;
         match get_char_pressed() {
             Some(letterkey) => match letterkey {
                 'n' => {
@@ -54,15 +55,9 @@ impl Dialog {
                 }
                 'y' => {
                     // Confirm action and execute its game logic
-                    let player_entity: Entity;
-                    {
-                        let mut player_query = ecs_world.query::<&Player>();
-                        (player_entity, _) = player_query
-                            .iter()
-                            .last()
-                            .expect("Player is not in hecs::World");
-                    }
-
+                    let player_entity = game_state
+                        .current_player_entity
+                        .expect("Player is not in hecs::World");
                     match action {
                         DialogAction::Eat(item) => {
                             let _ = ecs_world.insert_one(player_entity, WantsToEat { item });

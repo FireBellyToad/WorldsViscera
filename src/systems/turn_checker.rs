@@ -6,15 +6,19 @@ use crate::{
         common::{MyTurn, WaitingToAct},
         health::Paralyzed,
     },
+    engine::state::GameState,
     utils::common::Utils,
 };
 
 pub struct TurnCheck {}
 
 impl TurnCheck {
-    pub fn run(ecs_world: &mut World) {
+    pub fn run(game_state: &mut GameState) {
+        let ecs_world = &mut game_state.ecs_world;
         let mut entities_that_can_act: Vec<Entity> = Vec::new();
-        // let player_id = Player::get_entity_id();
+        // let player_id = game_state
+        //     .current_player_entity
+        //     .expect("Player id should be set");
 
         // Scope for keeping borrow checker quiet
         {
@@ -53,7 +57,8 @@ impl TurnCheck {
     }
 
     /// Check for turn reset (example: paralyzed entities)
-    pub fn check_for_turn_reset(ecs_world: &mut World) {
+    pub fn check_for_turn_reset(game_state: &mut GameState) {
+        let ecs_world = &mut game_state.ecs_world;
         let mut entities_resetting_turn: Vec<(Entity, i32)> = Vec::new();
 
         // Scope for keeping borrow checker quiet

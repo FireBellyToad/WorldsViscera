@@ -9,6 +9,7 @@ use crate::{
         player::Player,
     },
     constants::{AUTOFAIL_SAVING_THROW, LIGHTING_PARTICLE_TYPE},
+    engine::state::GameState,
     maps::zone::Zone,
     utils::{
         common::Utils, effect_manager::EffectManager, particle_animation::ParticleAnimation,
@@ -19,7 +20,12 @@ use crate::{
 pub struct ZapManager {}
 
 impl ZapManager {
-    pub fn run(ecs_world: &mut World) {
+    pub fn run(game_state: &mut GameState) {
+        let ecs_world = &mut game_state.ecs_world;
+        let player_id = game_state
+            .current_player_entity
+            .expect("Player id should be set")
+            .id();
         let mut wants_to_zap_list: Vec<(Entity, i32)> = Vec::new();
         let mut invokable_list: Vec<Entity> = Vec::new();
         let mut particle_animations: Vec<ParticleAnimation> = Vec::new();
@@ -47,8 +53,6 @@ impl ZapManager {
                 .iter()
                 .last()
                 .expect("Zone is not in hecs::World");
-
-            let player_id = Player::get_entity_id();
 
             for (zapper, (wants_zap, wants_invoke, zapper_position, stats, wet)) in &mut zappers {
                 let mut target_list: Vec<&Vec<Entity>> = Vec::new();

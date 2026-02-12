@@ -11,7 +11,7 @@ use crate::components::items::{
     Corpse, Deadly, Edible, Item, Perishable, Poisonous, ProduceLight, Quaffable, TurnedOn,
 };
 use crate::components::monster::DiseaseBearer;
-use crate::components::player::{PLAYER_STORAGE, Player};
+use crate::components::player::Player;
 use crate::constants::*;
 use crate::maps::zone::{TileType, Zone};
 use crate::systems::hunger_check::HungerStatus;
@@ -120,10 +120,6 @@ impl Spawn {
             ),
         );
 
-        PLAYER_STORAGE
-            .lock()
-            .expect("Failed to get lock onplayer entity")
-            .replace(player_entity);
         player_entity
     }
 

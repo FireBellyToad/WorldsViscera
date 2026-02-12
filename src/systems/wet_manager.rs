@@ -7,6 +7,7 @@ use crate::{
         player::Player,
     },
     constants::{BRAZIER_RADIUS, RUST_CHANCE, RUST_MAX_VALUE, STARTING_WET_COUNTER},
+    engine::state::GameState,
     maps::zone::{TileType, Zone},
     utils::{
         common::{ItemsInBackpack, Utils},
@@ -17,14 +18,17 @@ use crate::{
 pub struct WetManager {}
 
 impl WetManager {
-    pub fn run(ecs_world: &mut World) {
+    pub fn run(game_state: &mut GameState) {
+        let ecs_world = &mut game_state.ecs_world;
+        let player_id = game_state
+            .current_player_entity
+            .expect("Player id should be set")
+            .id();
         let mut entities_that_got_wet: Vec<Entity> = Vec::new();
         let mut entities_in_backpack_to_turn_off: Vec<Entity> = Vec::new();
         let mut entities_in_backpack_to_rust: Vec<(Entity, u32)> = Vec::new();
         let mut entities_that_dryed: Vec<Entity> = Vec::new();
         let mut entities_that_must_dry_faster: Vec<Entity> = Vec::new();
-
-        let player_id = Player::get_entity_id();
 
         // Scope for keeping borrow checker quiet
         {
@@ -159,8 +163,11 @@ impl WetManager {
         }
 
         for entity in entities_in_backpack_to_turn_off {
-            let _ = ecs_world.exchange_one::<TurnedOn, TurnedOff>(entity, TurnedOff {});
-            Player::force_view_recalculation(ecs_world);
+            // Doing like this to avoid borrow checker
+            let _ = game_state
+                .ecs_world
+                .exchange_one::<TurnedOn, TurnedOff>(entity, TurnedOff {});
+            Player::force_view_recalculation(game_state);
         }
     }
 

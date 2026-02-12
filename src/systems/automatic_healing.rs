@@ -1,15 +1,15 @@
 use std::cmp::min;
 
-use hecs::{Entity, World};
+use hecs::Entity;
 
 use crate::{
     components::{
         combat::CombatStats,
         common::{GameLog, MyTurn, Named},
         health::{CanAutomaticallyHeal, Hunger, Paralyzed, Thirst},
-        player::Player,
     },
     constants::{MAX_STAMINA_HEAL_TICK_COUNTER, MAX_STATS_HEAL_TICK_COUNTER},
+    engine::state::GameState,
     systems::{hunger_check::HungerStatus, thirst_check::ThirstStatus},
 };
 
@@ -17,9 +17,14 @@ use crate::{
 pub struct AutomaticHealing {}
 
 impl AutomaticHealing {
-    pub fn run(ecs_world: &mut World) {
+    pub fn run(game_state: &mut GameState) {
+        let ecs_world = &mut game_state.ecs_world;
+        let player_id = game_state
+            .current_player_entity
+            .expect("Player id should be set")
+            .id();
+
         let mut entities_free: Vec<Entity> = Vec::new();
-        let player_id = Player::get_entity_id();
 
         // Scope for keeping borrow checker quiet
         {

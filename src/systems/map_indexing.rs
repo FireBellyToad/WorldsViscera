@@ -5,6 +5,7 @@ use crate::{
         common::*,
         items::{InBackback, MustBeFueled, ProduceLight, TurnedOn},
     },
+    engine::state::GameState,
     maps::zone::Zone,
     systems::fov::FieldOfView,
 };
@@ -12,7 +13,9 @@ use crate::{
 pub struct MapIndexing {}
 
 impl MapIndexing {
-    pub fn run(ecs_world: &World) {
+    pub fn run(game_state: &GameState) {
+        let ecs_world = &game_state.ecs_world;
+
         let mut entities_with_pos = ecs_world.query::<&Position>();
         let mut blockers = ecs_world.query::<&Position>().with::<&BlocksTile>();
         let mut zone_query = ecs_world.query::<&mut Zone>();

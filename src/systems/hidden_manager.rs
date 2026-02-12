@@ -6,6 +6,7 @@ use crate::{
         common::{GameLog, MyTurn, Named, Position},
     },
     constants::MAX_HIDDEN_TURNS,
+    engine::state::GameState,
     maps::zone::Zone,
     utils::roll::Roll,
 };
@@ -13,7 +14,9 @@ use crate::{
 pub struct HiddenManager {}
 
 impl HiddenManager {
-    pub fn run(ecs_world: &mut World) {
+    pub fn run(game_state: &mut GameState) {
+        let ecs_world = &mut game_state.ecs_world;
+
         let mut hidden_entities: Vec<(Entity, i32)> = Vec::new();
         let mut exposed_entities: Vec<Entity> = Vec::new();
 

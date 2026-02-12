@@ -92,7 +92,7 @@ async fn main() {
             // Make the whole game turn based
 
             do_tickless_logic(&mut game_state);
-            match game_state.run_state {
+            match game_state.run_state.clone() {
                 RunState::TitleScreen => {
                     // Quit game on Q
                     if is_key_pressed(KeyCode::Q) {
@@ -122,8 +122,8 @@ async fn main() {
                     }
                 }
                 RunState::WaitingPlayerInput => {
-                    SmellManager::run(&mut game_state.ecs_world);
-                    game_state.run_state = Player::checks_keyboard_input(&mut game_state);
+                    SmellManager::run(&mut game_state);
+                    Player::checks_keyboard_input(&mut game_state);
                 }
                 RunState::DoTick => {
                     println!("DoTick ---------------------------- tick {}", tick);
@@ -149,24 +149,18 @@ async fn main() {
                     }
                 }
                 RunState::ShowInventory(mode) => {
-                    game_state.run_state = Inventory::handle_input(&mut game_state.ecs_world, mode);
+                    Inventory::handle_input(&mut game_state, mode);
                 }
                 RunState::ShowDialog(mode) => {
-                    game_state.run_state = Dialog::handle_input(&mut game_state.ecs_world, mode);
+                    Dialog::handle_input(&mut game_state, mode.clone());
                 }
                 RunState::MouseTargeting(special_view_mode) => {
-                    game_state.run_state = Player::checks_input_for_targeting(
-                        &mut game_state.ecs_world,
-                        special_view_mode,
-                    );
+                    Player::checks_input_for_targeting(&mut game_state, special_view_mode);
                 }
                 RunState::GoToNextZone => {
                     // Reset heal counter if the player did not wait
                     Player::reset_heal_counter(&game_state.ecs_world);
-                    Player::wait_after_action(
-                        &mut game_state.ecs_world,
-                        STANDARD_ACTION_MULTIPLIER,
-                    );
+                    Player::wait_after_action(&mut game_state, STANDARD_ACTION_MULTIPLIER);
                     change_zone(&mut game_state);
                     clear_input_queue();
                     game_state.run_state = RunState::BeforeTick;
@@ -177,7 +171,7 @@ async fn main() {
             }
 
             // Keep this here, is needed to render correctly the particles!
-            Draw::render_game(&game_state, &assets);
+            Draw::render_game(&mut game_state, &assets);
             next_frame().await;
         }
     }
@@ -255,54 +249,53 @@ fn change_zone(engine: &mut GameState) {
 }
 
 fn do_before_tick_logic(game_state: &mut GameState) {
-    TurnCheck::run(&mut game_state.ecs_world);
-    RangedManager::check_ammo_counts(&mut game_state.ecs_world);
-    AutomaticHealing::run(&mut game_state.ecs_world);
-    DecayManager::run(&mut game_state.ecs_world);
-    HungerCheck::run(&mut game_state.ecs_world);
-    ThirstCheck::run(&mut game_state.ecs_world);
-    HealthManager::run(&mut game_state.ecs_world);
-    FuelManager::check_fuel(&mut game_state.ecs_world);
-    WetManager::run(&mut game_state.ecs_world);
-    HiddenManager::run(&mut game_state.ecs_world);
-    MonsterThink::run(&mut game_state.ecs_world);
-    LeaveTrailSystem::handle_spawned_trail(&mut game_state.ecs_world);
-    AdvancementSystem::run(&mut game_state.ecs_world);
+    TurnCheck::run(game_state);
+    RangedManager::check_ammo_counts(game_state);
+    AutomaticHealing::run(game_state);
+    DecayManager::run(game_state);
+    HungerCheck::run(game_state);
+    ThirstCheck::run(game_state);
+    HealthManager::run(game_state);
+    FuelManager::check_fuel(game_state);
+    WetManager::run(game_state);
+    HiddenManager::run(game_state);
+    MonsterThink::run(game_state);
+    LeaveTrailSystem::handle_spawned_trail(game_state);
+    AdvancementSystem::run(game_state);
     // These Systems must always be run last
-    MapIndexing::run(&game_state.ecs_world);
-    FieldOfView::calculate(&game_state.ecs_world);
-    TurnCheck::check_for_turn_reset(&mut game_state.ecs_world);
+    MapIndexing::run(game_state);
+    FieldOfView::calculate(game_state);
+    TurnCheck::check_for_turn_reset(game_state);
 }
 
 fn do_in_tick_game_logic(game_engine: &mut GameEngine, game_state: &mut GameState) {
     // Every System that could produce particle animations should be run before the particle manager check
     // This makes sure that the particle animations will not be executed after the Entity has been killed
-    ZapManager::run(&mut game_state.ecs_world);
-    RangedManager::run(&mut game_state.ecs_world);
-    FuelManager::do_refills(&mut game_state.ecs_world);
+    ZapManager::run(game_state);
+    RangedManager::run(game_state);
+    FuelManager::do_refills(game_state);
     //If there are particles, skip everything and draw
     if !ParticleManager::check_if_animations_are_present(game_engine, game_state) {
-        MeleeManager::run(&mut game_state.ecs_world);
+        MeleeManager::run(game_state);
         DamageManager::run(&game_state.ecs_world);
         DamageManager::remove_dead_and_check_gameover(game_state);
         //Proceed on game logic if is not Game Over
         if game_state.run_state != RunState::GameOver {
-            ApplySystem::check(&mut game_state.ecs_world);
+            ApplySystem::check(game_state);
             ApplySystem::do_applications(game_state);
-            ItemCollection::run(&mut game_state.ecs_world);
-            ItemEquipping::run(&mut game_state.ecs_world);
-            ItemDropping::run(&mut game_state.ecs_world);
-            EatingEdibles::run(&mut game_state.ecs_world);
-            DigManager::run(&mut game_state.ecs_world);
-            DrinkingQuaffables::run(&mut game_state.ecs_world);
-            SoundSystem::run(&mut game_state.ecs_world);
-            LeaveTrailSystem::run(&mut game_state.ecs_world);
-            MonsterApproach::run(&mut game_state.ecs_world);
-            game_state.run_state =
-                TradeSystem::run(&mut game_state.ecs_world, game_state.run_state.clone());
+            ItemCollection::run(game_state);
+            ItemEquipping::run(game_state);
+            ItemDropping::run(game_state);
+            EatingEdibles::run(game_state);
+            DigManager::run(game_state);
+            DrinkingQuaffables::run(game_state);
+            SoundSystem::run(game_state);
+            LeaveTrailSystem::run(game_state);
+            MonsterApproach::run(game_state);
+            TradeSystem::run(game_state);
             // These Systems must always be run last
-            MapIndexing::run(&game_state.ecs_world);
-            FieldOfView::calculate(&game_state.ecs_world);
+            MapIndexing::run(game_state);
+            FieldOfView::calculate(game_state);
         }
     }
 }
@@ -316,7 +309,7 @@ fn do_tickless_logic(game_state: &mut GameState) {
         }
 
         if game_state.debug_mode {
-            Debugger::run(&mut game_state.ecs_world);
+            Debugger::run(game_state);
             // TODO spawn what prompt
             if is_key_pressed(KeyCode::F11) {
                 Spawn::wand(&mut game_state.ecs_world, MAP_WIDTH / 2, MAP_HEIGHT / 2);
@@ -327,10 +320,11 @@ fn do_tickless_logic(game_state: &mut GameState) {
             } else if is_key_pressed(KeyCode::F8) {
                 use crate::components::combat::CombatStats;
 
-                let entity = Player::get_entity();
                 let mut stats = game_state
                     .ecs_world
-                    .get::<&mut CombatStats>(entity)
+                    .get::<&mut CombatStats>(
+                        game_state.current_player_entity.expect("must be some"),
+                    )
                     .expect("must have stats");
                 stats.current_dexterity = 0;
             }

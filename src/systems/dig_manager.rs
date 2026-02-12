@@ -1,11 +1,11 @@
-use hecs::{Entity, World};
+use hecs::Entity;
 
 use crate::{
     components::{
         combat::{CombatStats, InflictsDamage, WantsToDig},
         common::{Diggable, GameLog, MyTurn, Position},
-        player::Player,
     },
+    engine::state::GameState,
     maps::zone::{TileType, Zone},
     utils::{common::Utils, roll::Roll},
 };
@@ -13,10 +13,14 @@ use crate::{
 pub struct DigManager {}
 
 impl DigManager {
-    pub fn run(ecs_world: &mut World) {
+    pub fn run(game_state: &mut GameState) {
+        let ecs_world = &mut game_state.ecs_world;
+        let player_id = game_state
+            .current_player_entity
+            .expect("Player id should be set")
+            .id();
         let mut diggers_list: Vec<(Entity, i32)> = Vec::new();
         let mut digged_list: Vec<Entity> = Vec::new();
-        let player_id = Player::get_entity_id();
 
         // Scope for keeping borrow checker quiet
         {

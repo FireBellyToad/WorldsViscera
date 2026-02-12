@@ -4,9 +4,9 @@ use crate::{
     components::{
         common::{GameLog, Named, SmellIntensity, Smellable},
         items::{InBackback, Perishable, Rotten},
-        player::Player,
     },
     constants::STARTING_ROT_COUNTER,
+    engine::state::GameState,
     utils::roll::Roll,
 };
 
@@ -14,10 +14,15 @@ pub struct DecayManager {}
 
 /// Handles the decay of perishable items in the game world.
 impl DecayManager {
-    pub fn run(ecs_world: &mut World) {
+    pub fn run(game_state: &mut GameState) {
+        let ecs_world = &mut game_state.ecs_world;
+        let player_id = game_state
+            .current_player_entity
+            .expect("Player id should be set")
+            .id();
+
         let mut expired_edibles: Vec<(Entity, String)> = Vec::new();
         let mut rotten_edibles_to_despawn: Vec<Entity> = Vec::new();
-        let player_id = Player::get_entity_id();
 
         // Scope for keeping borrow checker quiet
         {

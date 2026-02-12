@@ -1,5 +1,3 @@
-use std::sync::Mutex;
-
 use crate::components::actions::WantsToTrade;
 use crate::components::combat::{SufferingDamage, WantsToDig, WantsToShoot};
 use crate::components::common::{Diggable, Hates, Named};
@@ -34,14 +32,12 @@ use crate::{
     utils::common::Utils,
 };
 
-#[derive(PartialEq, Debug, Clone)]
+#[derive(PartialEq, Debug, Clone, Copy)]
 pub enum SpecialViewMode {
     ZapTargeting,
     RangedTargeting,
     Smell,
 }
-
-pub static PLAYER_STORAGE: Mutex<Option<Entity>> = Mutex::new(None);
 
 /// Player struct
 pub struct Player {}
@@ -50,13 +46,14 @@ impl Player {
     ///
     /// Try to move player
     ///
-    fn try_move(delta_x: i32, delta_y: i32, ecs_world: &mut World) -> RunState {
-        let mut return_state = RunState::WaitingPlayerInput;
+    fn try_move(delta_x: i32, delta_y: i32, game_state: &mut GameState) {
+        game_state.run_state = RunState::WaitingPlayerInput;
         let mut attacker_target: Option<(Entity, Entity)> = None;
         let mut digger_target: Option<(Entity, Entity, Entity)> = None;
 
         // Scope for keeping borrow checker quiet
         {
+            let ecs_world = &mut game_state.ecs_world;
             let mut players = ecs_world
                 .query::<(
                     &mut Position,
@@ -89,7 +86,7 @@ impl Player {
                     if stats.current_dexterity < Roll::d20() {
                         game_log.entries.push("You slip on the slime!".to_string());
 
-                        return_state = RunState::DoTick;
+                        game_state.run_state = RunState::DoTick;
                         break;
                     }
                 }
@@ -158,59 +155,60 @@ impl Player {
                         }
                     }
 
-                    return_state = RunState::DoTick;
+                    game_state.run_state = RunState::DoTick;
                 }
             }
         }
 
         // if return_state == RunState::DoTick here, than is moving, needs to wait!
-        if return_state == RunState::DoTick {
-            Player::wait_after_action(ecs_world, STANDARD_ACTION_MULTIPLIER);
+        if game_state.run_state == RunState::DoTick {
+            Player::wait_after_action(game_state, STANDARD_ACTION_MULTIPLIER);
         }
 
         // Attack if needed
         if let Some((attacker, target)) = attacker_target {
-            let _ = ecs_world.insert_one(attacker, WantsToMelee { target });
-            return_state = RunState::DoTick;
+            let _ = game_state
+                .ecs_world
+                .insert_one(attacker, WantsToMelee { target });
+            game_state.run_state = RunState::DoTick;
         }
 
         // Dig if needed
         if let Some((digger, tool, target)) = digger_target {
-            let _ = ecs_world.insert_one(digger, WantsToDig { target, tool });
-            return_state = RunState::DoTick;
+            let _ = game_state
+                .ecs_world
+                .insert_one(digger, WantsToDig { target, tool });
+            game_state.run_state = RunState::DoTick;
         }
-
-        return_state
     }
 
     ///
     /// Handle player input
     ///
-    pub fn checks_keyboard_input(game_state: &mut GameState) -> RunState {
-        let ecs_world = &mut game_state.ecs_world;
-        let mut run_state = RunState::WaitingPlayerInput;
+    pub fn checks_keyboard_input(game_state: &mut GameState) {
+        game_state.run_state = RunState::WaitingPlayerInput;
         let mut check_chars_pressed = false;
         let mut is_actively_waiting = false;
         // Player movement
         match get_key_pressed() {
-            None => run_state = RunState::WaitingPlayerInput, // Nothing happened
+            None => game_state.run_state = RunState::WaitingPlayerInput, // Nothing happened
             Some(key) => match key {
-                KeyCode::Kp4 | KeyCode::Left => run_state = Player::try_move(-1, 0, ecs_world),
-                KeyCode::Kp6 | KeyCode::Right => run_state = Player::try_move(1, 0, ecs_world),
-                KeyCode::Kp8 | KeyCode::Up => run_state = Player::try_move(0, -1, ecs_world),
-                KeyCode::Kp2 | KeyCode::Down => run_state = Player::try_move(0, 1, ecs_world),
+                KeyCode::Kp4 | KeyCode::Left => Player::try_move(-1, 0, game_state),
+                KeyCode::Kp6 | KeyCode::Right => Player::try_move(1, 0, game_state),
+                KeyCode::Kp8 | KeyCode::Up => Player::try_move(0, -1, game_state),
+                KeyCode::Kp2 | KeyCode::Down => Player::try_move(0, 1, game_state),
 
                 // Diagonals
-                KeyCode::Kp9 => run_state = Player::try_move(1, -1, ecs_world),
-                KeyCode::Kp7 => run_state = Player::try_move(-1, -1, ecs_world),
-                KeyCode::Kp3 => run_state = Player::try_move(1, 1, ecs_world),
-                KeyCode::Kp1 => run_state = Player::try_move(-1, 1, ecs_world),
+                KeyCode::Kp9 => Player::try_move(1, -1, game_state),
+                KeyCode::Kp7 => Player::try_move(-1, -1, game_state),
+                KeyCode::Kp3 => Player::try_move(1, 1, game_state),
+                KeyCode::Kp1 => Player::try_move(-1, 1, game_state),
 
                 // Skip turn doing nothing, so you can heal
                 KeyCode::Space => {
-                    run_state = RunState::DoTick;
-                    Player::wait_after_action(ecs_world, STANDARD_ACTION_MULTIPLIER);
+                    Player::wait_after_action(game_state, STANDARD_ACTION_MULTIPLIER);
                     is_actively_waiting = true;
+                    game_state.run_state = RunState::DoTick;
                 }
 
                 // Something was pressed but is not in this match?
@@ -222,61 +220,64 @@ impl Player {
         // Player commands. Handed with characters to manage different keyboards layout
         // Do it only if no keys were pressed or else Arrow keys and space will not work properly
         if check_chars_pressed {
-            let player_entity = Player::get_entity();
+            let ecs_world = &mut game_state.ecs_world;
+            let player_entity = game_state
+                .current_player_entity
+                .expect("must be some Player");
             match get_char_pressed() {
-                None => run_state = RunState::WaitingPlayerInput, // Nothing happened
+                None => game_state.run_state = RunState::WaitingPlayerInput, // Nothing happened
                 Some(char) => {
                     match char {
                         // Skip turn doing nothing, so you can heal
                         '.' => {
-                            run_state = RunState::DoTick;
-                            Player::wait_after_action(ecs_world, STANDARD_ACTION_MULTIPLIER);
+                            game_state.run_state = RunState::DoTick;
+                            Player::wait_after_action(game_state, STANDARD_ACTION_MULTIPLIER);
                             is_actively_waiting = true;
                         }
 
                         //Pick up
                         'p' => {
-                            run_state = Player::pick_up(ecs_world);
+                            game_state.run_state = Player::pick_up(game_state);
                         }
 
                         //Eat item
                         'e' => {
-                            run_state = Player::try_eat(ecs_world, player_entity);
+                            game_state.run_state = Player::try_eat(ecs_world, player_entity);
                         }
 
                         //Apply item
                         'a' => {
                             clear_input_queue();
-                            run_state = RunState::ShowInventory(InventoryAction::Apply);
+                            game_state.run_state = RunState::ShowInventory(InventoryAction::Apply);
                         }
 
                         //Kill himself in debug mode only
                         'k' => {
                             if game_state.debug_mode {
-                                run_state = RunState::GameOver;
+                                game_state.run_state = RunState::GameOver;
                             }
                         }
 
                         '>' => {
-                            run_state = Player::try_next_level(ecs_world);
+                            game_state.run_state = Player::try_next_level(ecs_world);
                         }
 
                         //Drop item
                         'd' => {
                             clear_input_queue();
-                            run_state = RunState::ShowInventory(InventoryAction::Drop);
+                            game_state.run_state = RunState::ShowInventory(InventoryAction::Drop);
                         }
 
                         //Equip item
                         'f' => {
                             clear_input_queue();
-                            run_state = RunState::ShowInventory(InventoryAction::Equip);
+                            game_state.run_state = RunState::ShowInventory(InventoryAction::Equip);
                         }
 
                         //Invoke item
                         'i' => {
                             clear_input_queue();
-                            run_state = RunState::ShowInventory(InventoryAction::Invoke);
+                            game_state.run_state = RunState::ShowInventory(InventoryAction::Invoke);
                         }
 
                         //Quaff item
@@ -284,13 +285,13 @@ impl Player {
                             clear_input_queue();
 
                             // Drink from river
-                            run_state = Player::try_drink(ecs_world, player_entity);
+                            game_state.run_state = Player::try_drink(ecs_world, player_entity);
                         }
 
                         //Smell (whiff) action
                         'w' => {
                             clear_input_queue();
-                            run_state = RunState::MouseTargeting(SpecialViewMode::Smell);
+                            game_state.run_state = RunState::MouseTargeting(SpecialViewMode::Smell);
                         }
 
                         //Shoot
@@ -299,12 +300,12 @@ impl Player {
                             // TODO change with equipped ranged weapon, so check if it is ranged and equipped before
                             // entering in target mode
 
-                            run_state = Player::try_shoot(ecs_world, player_entity);
+                            game_state.run_state = Player::try_shoot(ecs_world, player_entity);
                         }
 
                         //Trade item to shop owner
                         't' => {
-                            run_state = Player::try_trade(ecs_world, player_entity);
+                            game_state.run_state = Player::try_trade(ecs_world, player_entity);
                         }
 
                         _ => {}
@@ -314,19 +315,20 @@ impl Player {
         }
 
         // Reset heal counter if the player did not wait through space or . key
-        if run_state == RunState::DoTick && !is_actively_waiting {
-            Player::reset_heal_counter(ecs_world);
+        if game_state.run_state == RunState::DoTick && !is_actively_waiting {
+            Player::reset_heal_counter(&game_state.ecs_world);
         }
-
-        run_state
     }
 
     /// Checks mouse input
     pub fn checks_input_for_targeting(
-        ecs_world: &mut World,
+        game_state: &mut GameState,
         special_view_mode: SpecialViewMode,
-    ) -> RunState {
-        let player_entity = Player::get_entity();
+    ) {
+        let ecs_world = &mut game_state.ecs_world;
+        let player_entity = game_state.current_player_entity.expect("must be Some");
+        // Keep RunState to MouseTargeting running while player is targeting
+        game_state.run_state = RunState::MouseTargeting(special_view_mode);
         // ESC for escaping targeting without using Invokable
         if is_key_down(KeyCode::Escape) {
             // Remove components linked to view mode to avoid bugs
@@ -339,7 +341,7 @@ impl Player {
                 }
                 _ => {}
             }
-            return RunState::WaitingPlayerInput;
+            game_state.run_state = RunState::WaitingPlayerInput;
         } else if is_mouse_button_down(MouseButton::Left) {
             let (mouse_x, mouse_y) = mouse_position();
 
@@ -372,7 +374,7 @@ impl Player {
                         );
                         // Reset heal counter if the player did not wait
                         Player::reset_heal_counter(ecs_world);
-                        return RunState::DoTick;
+                        game_state.run_state = RunState::DoTick;
                     }
                 }
                 SpecialViewMode::Smell => {
@@ -382,17 +384,16 @@ impl Player {
                             target: (rounded_x, rounded_y),
                         },
                     );
-                    return RunState::WaitingPlayerInput;
+                    game_state.run_state = RunState::WaitingPlayerInput;
                 }
             }
         }
-
-        RunState::MouseTargeting(special_view_mode)
     }
 
     /// Picks up something to store in backpack
-    fn pick_up(ecs_world: &mut World) -> RunState {
-        let player_entity = Player::get_entity();
+    fn pick_up(game_state: &mut GameState) -> RunState {
+        let ecs_world = &mut game_state.ecs_world;
+        let player_entity = game_state.current_player_entity.expect("Must be Some");
 
         if let Some(item) = Player::take_from_map(ecs_world) {
             // Check if the item is being stolen from a shop
@@ -621,22 +622,6 @@ impl Player {
     }
 
     /// Extract Player's entity from world and return it with copy
-    pub fn get_entity() -> Entity {
-        PLAYER_STORAGE
-            .lock()
-            .expect("Failed to get lock onplayer entity")
-            .expect("Player is None!")
-    }
-    /// Extract Player's entity id from world and return it with copy
-    pub fn get_entity_id() -> u32 {
-        PLAYER_STORAGE
-            .lock()
-            .expect("Failed to get lock onplayer entity")
-            .expect("Player is None!")
-            .id()
-    }
-
-    /// Extract Player's entity from world and return it with copy
     pub fn can_act(ecs_world: &World) -> bool {
         let mut player_query = ecs_world.query::<(&Player, &MyTurn)>();
 
@@ -656,8 +641,11 @@ impl Player {
     }
 
     /// Wait some ticks after action is taken
-    pub fn wait_after_action(ecs_world: &mut World, multiplier: i32) {
-        let player = Player::get_entity();
+    pub fn wait_after_action(game_state: &mut GameState, multiplier: i32) {
+        let ecs_world = &mut game_state.ecs_world;
+        let player = game_state
+            .current_player_entity
+            .expect("Player should be set");
         let speed;
 
         // Scope for keeping borrow checker quiet
@@ -668,19 +656,24 @@ impl Player {
                 .speed;
         }
 
-        Utils::wait_after_action(ecs_world, player, speed * multiplier);
+        Utils::wait_after_action(&mut game_state.ecs_world, player, speed * multiplier);
     }
 
     /// Utility method for FOV forced recalculation
-    pub fn force_view_recalculation(ecs_world: &World) {
-        let mut player_viewshed = ecs_world
-            .get::<&mut Viewshed>(Player::get_entity())
+    pub fn force_view_recalculation(game_state: &mut GameState) {
+        let mut player_viewshed = game_state
+            .ecs_world
+            .get::<&mut Viewshed>(
+                game_state
+                    .current_player_entity
+                    .expect("must be some entity"),
+            )
             .expect("Player entity does not have a Viewshed");
         player_viewshed.must_recalculate = true;
     }
 
     /// Try to trade an item to a potetial shop owner
-    pub fn try_trade(ecs_world: &mut World, _player: Entity) -> RunState {
+    pub fn try_trade(ecs_world: &mut World, player: Entity) -> RunState {
         let mut owner_entity: Option<Entity> = None;
         // Scope for keeping borrow checker quiet
         {
@@ -744,8 +737,7 @@ impl Player {
 
         // If we found a shop owner, offer them an item
         if let Some(target) = owner_entity {
-            let player_entity = Player::get_entity();
-            let _ = ecs_world.insert_one(player_entity, WantsToTrade { target, item: None });
+            let _ = ecs_world.insert_one(player, WantsToTrade { target, item: None });
             return RunState::ShowInventory(InventoryAction::Trade);
         }
 

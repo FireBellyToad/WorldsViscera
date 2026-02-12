@@ -8,6 +8,7 @@ use crate::{
         monster::{Monster, Smart},
         player::Player,
     },
+    engine::state::GameState,
     utils::common::ItemsInBackpack,
 };
 
@@ -15,7 +16,9 @@ use crate::{
 pub struct Debugger {}
 
 impl Debugger {
-    pub fn run(ecs_world: &mut World) {
+    pub fn run(game_state: &mut GameState) {
+        let ecs_world = &mut game_state.ecs_world;
+
         // Scope for keeping borrow checker quiet
         {
             // List of entities that want to smell things

@@ -7,7 +7,7 @@ use crate::{
         items::{Corpse, Item, Rotten, ShopOwner, Tradable},
     },
     dialog::DialogAction,
-    engine::state::RunState,
+    engine::state::{GameState, RunState},
     maps::zone::Zone,
 };
 
@@ -17,9 +17,10 @@ pub struct TradeSystem {}
 
 /// System for handling trading between entities
 impl TradeSystem {
-    pub fn run(ecs_world: &mut World, run_state: RunState) -> RunState {
+    pub fn run(game_state: &mut GameState) {
+        let ecs_world = &mut game_state.ecs_world;
         let mut traders: Vec<Entity> = Vec::new();
-        let mut new_run_state = None;
+        let mut new_run_state_opt = None;
 
         // Scope for keeping borrow checker quiet
         {
@@ -89,7 +90,7 @@ impl TradeSystem {
                                 .push(format!("{} has no items to trade", shop_owner_name.name));
                         } else {
                             // Open trade dialog
-                            new_run_state = Some(RunState::ShowDialog(DialogAction::Trade((
+                            new_run_state_opt = Some(RunState::ShowDialog(DialogAction::Trade((
                                 trader,
                                 traded_item,
                                 wants_to_trade.target,
@@ -113,10 +114,8 @@ impl TradeSystem {
 
         // If a dialog must be opened, new_run_state is Some
         // If not, the game continues with the current run state
-        if let Some(new_run_state) = new_run_state {
-            new_run_state
-        } else {
-            run_state
+        if let Some(new_run_state) = new_run_state_opt {
+            game_state.run_state = new_run_state;
         }
     }
 

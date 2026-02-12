@@ -1,12 +1,10 @@
-use hecs::World;
-
 use crate::{
     components::{
         combat::CombatStats,
         common::{Experience, GameLog},
-        player::Player,
     },
     constants::AUTO_ADVANCE_EXP_COUNTER_START,
+    engine::state::GameState,
     utils::roll::Roll,
 };
 
@@ -14,13 +12,17 @@ pub struct AdvancementSystem {}
 
 /// Level and Experience Advancement System
 impl AdvancementSystem {
-    pub fn run(ecs_world: &mut World) {
+    pub fn run(game_state: &mut GameState) {
+        let ecs_world = &game_state.ecs_world;
+        let player_id = game_state
+            .current_player_entity
+            .expect("Player id should be set")
+            .id();
+
         // Scope for keeping borrow checker quiet
         {
             // List of entities that has stats
             let mut experienced_entities = ecs_world.query::<(&mut Experience, &mut CombatStats)>();
-
-            let player_id = Player::get_entity_id();
 
             //Log all
             let mut game_log_query = ecs_world.query::<&mut GameLog>();

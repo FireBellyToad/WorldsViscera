@@ -5,13 +5,16 @@ use crate::{
         common::{MyTurn, Position, SmellIntensity, Smellable},
         monster::{LeaveTrail, TrailCounter},
     },
+    engine::state::GameState,
     maps::zone::{DecalType, Zone},
 };
 
 pub struct LeaveTrailSystem {}
 
 impl LeaveTrailSystem {
-    pub fn run(ecs_world: &mut World) {
+    pub fn run(game_state: &mut GameState) {
+        let ecs_world = &mut game_state.ecs_world;
+
         let mut trail_to_spawn: Vec<(usize, u32, DecalType)> = Vec::new();
 
         // Scope for keeping borrow checker quiet
@@ -61,7 +64,9 @@ impl LeaveTrailSystem {
     }
 
     /// Handle spawned trail entities and despawn them after a certain time, cleaning up the zone's trail decals
-    pub fn handle_spawned_trail(ecs_world: &mut World) {
+    pub fn handle_spawned_trail(game_state: &mut GameState) {
+        let ecs_world = &mut game_state.ecs_world;
+
         let mut to_despawn = Vec::new();
         // Scope for keeping borrow checker quiet
         {

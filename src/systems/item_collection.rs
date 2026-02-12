@@ -13,6 +13,7 @@ use crate::{
         MAX_ITEMS_IN_BACKPACK, MAX_ITEMS_IN_BACKPACK_FOR_SMALL, OPTION_TO_CHAR_MAP,
         STARTING_ROT_COUNTER,
     },
+    engine::state::GameState,
     maps::zone::Zone,
     utils::{common::Utils, roll::Roll},
 };
@@ -20,11 +21,15 @@ use crate::{
 pub struct ItemCollection {}
 
 impl ItemCollection {
-    pub fn run(ecs_world: &mut World) {
+    pub fn run(game_state: &mut GameState) {
+        let ecs_world = &mut game_state.ecs_world;
+        let player_id = game_state
+            .current_player_entity
+            .expect("Player id should be set")
+            .id();
         let mut item_owner_list: Vec<(Entity, Entity, char, i32)> = Vec::new();
         let mut failed_pick_upper: Vec<Entity> = Vec::new();
         let mut harvested_list: Vec<Entity> = Vec::new();
-        let player_id = Player::get_entity_id();
 
         // Scope for keeping borrow checker quiet
         {
