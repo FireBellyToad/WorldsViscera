@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crate::systems::{hunger_check::HungerStatus, thirst_check::ThirstStatus};
 
 pub struct CanAutomaticallyHeal {
@@ -15,16 +17,14 @@ pub struct Thirst {
 }
 
 pub struct Diseased {
-    pub tick_counter: i32,
-    pub is_improving: bool,
-    pub disease_type: DiseaseType,
+    pub tick_counters: HashMap<DiseaseType, (i32, bool)>,
 }
 
 pub struct Cured {
     pub diseases: Vec<DiseaseType>,
 }
 
-#[derive(PartialEq, Debug, Clone)]
+#[derive(Eq, PartialEq, Debug, Clone, Hash)]
 pub enum DiseaseType {
     FleshRot,
     Fever,

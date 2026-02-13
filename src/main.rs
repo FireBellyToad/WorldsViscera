@@ -1,6 +1,6 @@
 use crate::{
     components::common::Experience,
-    maps::arena_zone_builder::ArenaZoneBuilder,
+    maps::{arena_zone_builder::ArenaZoneBuilder, test_zone_builder::TestZoneBuilder},
     systems::{
         advancement_system::AdvancementSystem, debugger::Debugger, dig_manager::DigManager,
         health_manager::HealthManager, leave_trail_system::LeaveTrailSystem,
@@ -189,7 +189,7 @@ fn populate_world(game_state: &mut GameState) {
         },
     ));
 
-    let zone = ArenaZoneBuilder::build(1, &mut game_state.ecs_world);
+    let zone = TestZoneBuilder::build(1, &mut game_state.ecs_world);
 
     game_state.current_player_entity = Some(Spawn::player(&mut game_state.ecs_world, &zone));
     Spawn::everyhing_in_map(&mut game_state.ecs_world, &zone);
@@ -323,6 +323,31 @@ fn do_tickless_logic(game_state: &mut GameState) {
                     )
                     .expect("must have stats");
                 stats.current_dexterity = 0;
+            } else if is_key_pressed(KeyCode::F7) {
+                use std::collections::HashMap;
+
+                use crate::{
+                    components::health::{DiseaseType, Diseased},
+                    utils::roll::Roll,
+                };
+
+                let mut tick_counters = HashMap::new();
+                tick_counters.insert(
+                    DiseaseType::Fever,
+                    (MAX_DISEASE_TICK_COUNTER + Roll::d20(), false),
+                );
+                tick_counters.insert(
+                    DiseaseType::FleshRot,
+                    (MAX_DISEASE_TICK_COUNTER + Roll::d20(), false),
+                );
+                tick_counters.insert(
+                    DiseaseType::Calcification,
+                    (MAX_DISEASE_TICK_COUNTER + Roll::d20(), false),
+                );
+                let _ = game_state.ecs_world.insert_one(
+                    game_state.current_player_entity.expect("must be some"),
+                    Diseased { tick_counters },
+                );
             }
         }
     }

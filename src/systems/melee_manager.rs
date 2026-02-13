@@ -8,7 +8,7 @@ use crate::{
     engine::state::GameState,
     utils::common::Utils,
 };
-use std::cmp::max;
+use std::{cmp::max, collections::HashMap};
 
 use hecs::Entity;
 
@@ -239,15 +239,22 @@ impl MeleeManager {
                     if let Some(dis_bear_some) = disease_bearer
                         && Roll::d20() > target_stats.current_toughness
                     {
+                        let disease_type = dis_bear_some.disease_type.clone();
                         // If the target is already infected, worsen its status
-                        if let Ok(mut disease) = ecs_world.get::<&mut Diseased>(wants_melee.target)
-                        {
-                            disease.is_improving = false;
-                            disease.tick_counter = 0;
+                        if let Ok(mut dis) = ecs_world.get::<&mut Diseased>(wants_melee.target) {
+                            // If the target is already infected, worsen its status
+                            if dis.tick_counters.contains_key(&disease_type) {
+                                dis.tick_counters.insert(disease_type, (0, false));
+                            } else {
+                                // Infect the healthy target otherwise
+                                dis.tick_counters.insert(
+                                    disease_type,
+                                    (MAX_DISEASE_TICK_COUNTER + Roll::d20(), false),
+                                );
+                            }
                         } else {
                             // Infect the healthy target otherwise
-                            infected_list
-                                .push((wants_melee.target, dis_bear_some.disease_type.clone()));
+                            infected_list.push((wants_melee.target, disease_type));
                             if player_id == wants_melee.target.id() {
                                 game_log
                                     .entries
@@ -272,16 +279,16 @@ impl MeleeManager {
             let _ = ecs_world.remove_one::<IsHidden>(attacker);
         }
 
-        // Infect the infected
+        // If the attacker inflicts disease and target fails the saving throws
+        // inflict disease
         for (infected, disease_type) in infected_list {
-            let _ = ecs_world.insert_one(
-                infected,
-                Diseased {
-                    tick_counter: MAX_DISEASE_TICK_COUNTER + Roll::d20(),
-                    is_improving: false,
-                    disease_type,
-                },
+            // Infect the healthy target otherwise
+            let mut tick_counters = HashMap::new();
+            tick_counters.insert(
+                disease_type,
+                (MAX_DISEASE_TICK_COUNTER + Roll::d20(), false),
             );
+            let _ = ecs_world.insert_one(infected, Diseased { tick_counters });
         }
     }
 
