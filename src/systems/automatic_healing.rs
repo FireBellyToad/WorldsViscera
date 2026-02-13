@@ -5,7 +5,7 @@ use hecs::Entity;
 use crate::{
     components::{
         combat::CombatStats,
-        common::{GameLog, MyTurn, Named},
+        common::{MyTurn, Named},
         health::{CanAutomaticallyHeal, Hunger, Paralyzed, Thirst},
     },
     constants::{MAX_STAMINA_HEAL_TICK_COUNTER, MAX_STATS_HEAL_TICK_COUNTER},

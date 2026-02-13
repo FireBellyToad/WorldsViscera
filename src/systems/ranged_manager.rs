@@ -10,7 +10,7 @@ use hecs::Entity;
 use crate::{
     components::{
         combat::{CombatStats, SufferingDamage, WantsToShoot, WantsToZap},
-        common::{GameLog, Hates, Named, Position},
+        common::{Hates, Named, Position},
         items::{Armor, Equipped, Eroded, RangedWeapon},
     },
     maps::zone::Zone,

@@ -4,7 +4,7 @@ use crate::{
     components::{
         actions::WantsItem,
         combat::CombatStats,
-        common::{GameLog, Hates, MyTurn, Named, Position},
+        common::{Hates, MyTurn, Named, Position},
         items::{InBackback, Item, Perishable, ToBeHarvested},
         monster::Small,
     },

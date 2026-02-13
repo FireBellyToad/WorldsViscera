@@ -6,7 +6,7 @@ use crate::{
     components::{
         actions::WantsToEat,
         combat::{CombatStats, SufferingDamage},
-        common::{GameLog, Hates, Named, Position},
+        common::{Hates, Named, Position},
         health::{DiseaseType, Diseased, Hunger},
         items::{Deadly, Edible, Poisonous, Rotten},
         monster::DiseaseBearer,

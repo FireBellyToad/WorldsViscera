@@ -4,7 +4,7 @@ use crate::{
     components::{
         actions::WantsToEquip,
         combat::CombatStats,
-        common::{GameLog, Named, Position},
+        common::{Named, Position},
         items::{BodyLocation, Equipped},
     },
     engine::state::GameState,

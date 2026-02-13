@@ -1,6 +1,6 @@
 use crate::{
     components::{
-        common::{CanListen, GameLog, Position, ProduceSound},
+        common::{CanListen, Position, ProduceSound},
         player::Player,
     },
     constants::LISTEN_COOLDOWN_START,

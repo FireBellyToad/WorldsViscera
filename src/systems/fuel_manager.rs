@@ -10,7 +10,7 @@ use crate::{
     components::{
         actions::WantsToFuel,
         combat::{CombatStats, SufferingDamage},
-        common::{GameLog, Named},
+        common::Named,
         items::{InBackback, MustBeFueled, Refiller, TurnedOn},
         player::Player,
     },

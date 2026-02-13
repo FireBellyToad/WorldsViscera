@@ -4,7 +4,7 @@ use crate::{
     components::{
         actions::WantsToApply,
         combat::CombatStats,
-        common::{GameLog, Named, Wet},
+        common::{Named, Wet},
         health::{Cured, DiseaseType},
         items::{Appliable, Applied, Cure, InBackback, MustBeFueled, TurnedOff, TurnedOn},
         player::Player,

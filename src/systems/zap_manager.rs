@@ -4,7 +4,7 @@ use crate::{
     components::{
         actions::WantsToInvoke,
         combat::{CombatStats, InflictsDamage, SufferingDamage, WantsToZap},
-        common::{GameLog, Named, Position, Wet},
+        common::{Named, Position, Wet},
         items::{Invokable, InvokablesEnum},
     },
     constants::{AUTOFAIL_SAVING_THROW, LIGHTING_PARTICLE_TYPE},

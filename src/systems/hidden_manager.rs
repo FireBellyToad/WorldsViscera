@@ -3,7 +3,7 @@ use hecs::Entity;
 use crate::{
     components::{
         combat::{CanHide, CombatStats, IsHidden},
-        common::{GameLog, MyTurn, Named, Position},
+        common::{MyTurn, Named, Position},
     },
     constants::MAX_HIDDEN_TURNS,
     engine::state::GameState,

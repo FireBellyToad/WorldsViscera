@@ -3,7 +3,7 @@ use hecs::{Entity, World};
 use crate::{
     components::{
         actions::{WantsItem, WantsToTrade},
-        common::{GameLog, Named},
+        common::Named,
         items::{Corpse, Item, Rotten, ShopOwner, Tradable},
     },
     dialog::DialogAction,

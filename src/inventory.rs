@@ -16,7 +16,7 @@ use crate::{
             WantsToApply, WantsToDrink, WantsToDrop, WantsToEat, WantsToEquip, WantsToFuel,
             WantsToInvoke, WantsToTrade,
         },
-        common::{GameLog, Named, Wet},
+        common::{Named, Wet},
         items::{
             Appliable, Edible, Equippable, Equipped, Eroded, InBackback, Invokable, Item,
             MustBeFueled, Quaffable, RangedWeapon, Refiller,

@@ -3,7 +3,7 @@ use std::cmp::{max, min};
 use crate::{
     components::{
         combat::{CombatStats, SufferingDamage},
-        common::{GameLog, MyTurn, Position},
+        common::{MyTurn, Position},
         health::Hunger,
     },
     constants::MAX_HUNGER_TICK_COUNTER,

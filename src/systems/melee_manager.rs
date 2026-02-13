@@ -15,7 +15,7 @@ use hecs::Entity;
 use crate::{
     components::{
         combat::{CanHide, CombatStats, IsHidden, SufferingDamage, WantsToMelee},
-        common::{GameLog, MyTurn, Named, Position},
+        common::{MyTurn, Named, Position},
         items::{Armor, Equipped, Eroded, MeleeWeapon},
         monster::Venomous,
     },

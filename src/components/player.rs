@@ -17,7 +17,7 @@ use crate::{
     components::{
         actions::{WantsItem, WantsToDrink, WantsToSmell},
         combat::{CombatStats, WantsToMelee, WantsToZap},
-        common::{GameLog, MyTurn, Position, Viewshed},
+        common::{MyTurn, Position, Viewshed},
         health::CanAutomaticallyHeal,
         items::{Edible, Item, Quaffable},
     },

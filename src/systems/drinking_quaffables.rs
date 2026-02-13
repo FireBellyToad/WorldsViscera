@@ -4,7 +4,7 @@ use crate::{
     components::{
         actions::WantsToDrink,
         combat::CombatStats,
-        common::{GameLog, Named},
+        common::Named,
         health::Thirst,
         items::Quaffable,
     },

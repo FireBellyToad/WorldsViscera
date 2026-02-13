@@ -1,7 +1,7 @@
 use crate::{
     components::{
         combat::CombatStats,
-        common::{Experience, GameLog},
+        common::Experience,
     },
     constants::AUTO_ADVANCE_EXP_COUNTER_START,
     engine::state::GameState,

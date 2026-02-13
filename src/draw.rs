@@ -13,7 +13,7 @@ use macroquad::{
 use crate::{
     components::{
         combat::{CombatStats, IsHidden},
-        common::{CanSmell, Experience, GameLog, Position, Renderable, SmellIntensity, Smellable},
+        common::{CanSmell, Experience, Position, Renderable, SmellIntensity, Smellable},
         health::{Hunger, Thirst},
         player::{Player, SpecialViewMode},
     },

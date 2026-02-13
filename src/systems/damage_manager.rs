@@ -5,7 +5,7 @@ use hecs::Entity;
 use crate::{
     components::{
         combat::{CombatStats, SufferingDamage},
-        common::{Experience, GameLog, Hates, Named, Position},
+        common::{Experience, Hates, Named, Position},
         health::{CanAutomaticallyHeal, DiseaseType, Paralyzed},
         items::{Deadly, DontLeaveCorpse, Edible},
         monster::{DiseaseBearer, Venomous},

@@ -4,7 +4,7 @@ use crate::{
     components::{
         actions::WantsToDrop,
         combat::CombatStats,
-        common::{GameLog, MyTurn, Named, Position},
+        common::{MyTurn, Named, Position},
         items::{Equipped, InBackback},
     },
     engine::state::GameState,

@@ -1,11 +1,11 @@
-use std::{cmp::max, collections::HashMap};
+use std::cmp::max;
 
 use hecs::Entity;
 
 use crate::{
     components::{
         combat::{CombatStats, SufferingDamage},
-        common::{GameLog, MyTurn, Named, Position},
+        common::{MyTurn, Named, Position},
         health::{Cured, DiseaseType, Diseased, Hunger},
     },
     constants::{MAX_DISEASE_TICK_COUNTER, VERY_LONG_ACTION_MULTIPLIER},

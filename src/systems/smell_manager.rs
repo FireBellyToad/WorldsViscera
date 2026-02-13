@@ -3,7 +3,7 @@ use hecs::Entity;
 use crate::{
     components::{
         actions::WantsToSmell,
-        common::{CanSmell, GameLog, Position, SmellIntensity, Smellable},
+        common::{CanSmell, Position, SmellIntensity, Smellable},
     },
     engine::state::GameState,
     maps::zone::Zone,

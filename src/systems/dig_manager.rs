@@ -3,7 +3,7 @@ use hecs::Entity;
 use crate::{
     components::{
         combat::{CombatStats, InflictsDamage, WantsToDig},
-        common::{Diggable, GameLog, MyTurn, Position},
+        common::{Diggable, MyTurn, Position},
     },
     engine::state::GameState,
     maps::zone::{TileType, Zone},

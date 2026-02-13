@@ -2,7 +2,7 @@ use hecs::Entity;
 
 use crate::{
     components::{
-        common::{GameLog, Named, SmellIntensity, Smellable},
+        common::{Named, SmellIntensity, Smellable},
         items::{InBackback, Perishable, Rotten},
     },
     constants::STARTING_ROT_COUNTER,
