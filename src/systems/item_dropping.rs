@@ -30,18 +30,14 @@ impl ItemDropping {
                 .with::<&MyTurn>();
 
             //Log all the drop downs
-            let mut game_log_query = ecs_world.query::<&mut GameLog>();
-            let (_, game_log) = game_log_query
-                .iter()
-                .last()
-                .expect("Game log is not in hecs::World");
 
             for (dropper, (wants_item, stats, drop_position)) in &mut items_to_drop {
                 let is_equipped = ecs_world.get::<&Equipped>(wants_item.item).is_ok();
 
                 if is_equipped {
                     if player_id == dropper.id() {
-                        game_log
+                        game_state
+                            .game_log
                             .entries
                             .push("You cannot drop an equipped item".to_string());
                     }
@@ -61,14 +57,15 @@ impl ItemDropping {
                     ));
 
                     if player_id == dropper.id() {
-                        game_log
+                        game_state
+                            .game_log
                             .entries
                             .push(format!("You drop up the {}", named_item.name));
                     } else {
                         let named_dropper = ecs_world
                             .get::<&Named>(dropper)
                             .expect("Entity is not Named");
-                        game_log.entries.push(format!(
+                        game_state.game_log.entries.push(format!(
                             "{} drops up a {}",
                             named_dropper.name, named_item.name
                         ));

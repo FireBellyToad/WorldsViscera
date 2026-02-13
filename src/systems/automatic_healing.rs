@@ -28,12 +28,6 @@ impl AutomaticHealing {
 
         // Scope for keeping borrow checker quiet
         {
-            let mut game_log_query = ecs_world.query::<&mut GameLog>();
-            let (_, game_log) = game_log_query
-                .iter()
-                .last()
-                .expect("Game log is not in hecs::World");
-
             // List of entities that has stats
             let mut statted_entities = ecs_world
                 .query::<(
@@ -82,9 +76,13 @@ impl AutomaticHealing {
                                     entities_free.push(entity);
 
                                     if entity.id() == player_id {
-                                        game_log.entries.push("You can move now".to_string());
+                                        game_state
+                                            .game_log
+                                            .entries
+                                            .push("You can move now".to_string());
                                     } else {
-                                        game_log
+                                        game_state
+                                            .game_log
                                             .entries
                                             .push(format!("{} can move now", named.name));
                                     }

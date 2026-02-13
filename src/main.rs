@@ -76,6 +76,7 @@ async fn main() {
         run_state: RunState::TitleScreen,
         current_player_entity: None,
         current_zone: None,
+        game_log: GameLog::new(),
         debug_mode: false,
     };
     populate_world(&mut game_state);

@@ -35,11 +35,6 @@ impl DigManager {
                 .expect("must have Some Zone");
 
             //Log all the pick ups
-            let mut game_log_query = ecs_world.query::<&mut GameLog>();
-            let (_, game_log) = game_log_query
-                .iter()
-                .last()
-                .expect("Game log is not in hecs::World");
 
             for (digger, (wants_to_dig, stats)) in &mut collectors {
                 let mut diggable = ecs_world
@@ -55,14 +50,18 @@ impl DigManager {
                 diggers_list.push((digger, stats.speed));
 
                 if digger.id() == player_id {
-                    game_log
+                    game_state
+                        .game_log
                         .entries
                         .push("You dig the crack in the stone wall".to_string());
                 }
 
                 // Clear path if digged enough
                 if diggable.dig_points <= 0 {
-                    game_log.entries.push("The cracked wall opens!".to_string());
+                    game_state
+                        .game_log
+                        .entries
+                        .push("The cracked wall opens!".to_string());
 
                     let pos = ecs_world
                         .get::<&Position>(wants_to_dig.target)

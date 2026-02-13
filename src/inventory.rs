@@ -108,13 +108,8 @@ impl Inventory {
                         selected_item_entity = Some(item_sel_unwrap.0);
                         user_entity = Some(player_entity);
                     } else {
-                        //Log TODO change
-                        let mut game_log_query = game_state.ecs_world.query::<&mut GameLog>();
-                        let (_, game_log) = game_log_query
-                            .iter()
-                            .last()
-                            .expect("Game log is not in hecs::World");
-                        game_log
+                        game_state
+                            .game_log
                             .entries
                             .push(format!("No item available for letter {letterkey}"));
                     }

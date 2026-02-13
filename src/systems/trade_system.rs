@@ -25,12 +25,6 @@ impl TradeSystem {
         {
             let mut want_to_trade = ecs_world.query::<&WantsToTrade>();
 
-            let mut game_log_query = ecs_world.query::<&mut GameLog>();
-            let (_, game_log) = game_log_query
-                .iter()
-                .last()
-                .expect("Game log is not in hecs::World");
-
             for (trader, wants_to_trade) in &mut want_to_trade {
                 // Only get traders who has something to trade
                 if let Some(traded_item) = wants_to_trade.item {
@@ -83,7 +77,8 @@ impl TradeSystem {
                         }
 
                         if items_to_be_received.is_empty() {
-                            game_log
+                            game_state
+                                .game_log
                                 .entries
                                 .push(format!("{} has no items to trade", shop_owner_name.name));
                         } else {
@@ -96,7 +91,8 @@ impl TradeSystem {
                             ))));
                         }
                     } else {
-                        game_log
+                        game_state
+                            .game_log
                             .entries
                             .push(format!("{} is not interested", shop_owner_name.name));
                     }

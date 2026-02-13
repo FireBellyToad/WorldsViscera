@@ -1,6 +1,6 @@
 use std::cmp::max;
 
-use hecs::{Entity};
+use hecs::Entity;
 
 use crate::{
     components::{
@@ -97,12 +97,6 @@ impl DamageManager {
 
         // Scope for keeping borrow checker quiet
         {
-            let mut game_log_query = ecs_world.query::<&mut GameLog>();
-            let (_, game_log) = game_log_query
-                .iter()
-                .last()
-                .expect("Game log is not in hecs::World");
-
             let zone = game_state
                 .current_zone
                 .as_ref()
@@ -138,17 +132,24 @@ impl DamageManager {
 
                     if entity.id() == player_id {
                         if is_killed {
-                            game_log.entries.push("You die!".to_string());
+                            game_state.game_log.entries.push("You die!".to_string());
                         } else {
-                            game_log.entries.push("You stagger in pain!".to_string());
+                            game_state
+                                .game_log
+                                .entries
+                                .push("You stagger in pain!".to_string());
                         }
                     } else if zone.visible_tiles[Zone::get_index_from_xy(&position.x, &position.y)]
                     {
                         // Log npc deaths only if visible by player
                         if is_killed {
-                            game_log.entries.push(format!("{} dies!", named.name));
+                            game_state
+                                .game_log
+                                .entries
+                                .push(format!("{} dies!", named.name));
                         } else if stats.current_toughness > 0 {
-                            game_log
+                            game_state
+                                .game_log
                                 .entries
                                 .push(format!("{} staggers in pain!", named.name));
                         }
@@ -159,9 +160,13 @@ impl DamageManager {
                     paralyzed_entities.push(entity);
 
                     if entity.id() == player_id {
-                        game_log.entries.push("You are paralyzed!".to_string());
+                        game_state
+                            .game_log
+                            .entries
+                            .push("You are paralyzed!".to_string());
                     } else {
-                        game_log
+                        game_state
+                            .game_log
                             .entries
                             .push(format!("{} is paralyzed!", named.name));
                     }

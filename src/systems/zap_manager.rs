@@ -41,11 +41,6 @@ impl ZapManager {
             )>();
 
             //Log all the zappings
-            let mut game_log_query = ecs_world.query::<&mut GameLog>();
-            let (_, game_log) = game_log_query
-                .iter()
-                .last()
-                .expect("Game log is not in hecs::World");
 
             let zone = game_state
                 .current_zone
@@ -66,7 +61,8 @@ impl ZapManager {
                 if wet.is_some() && is_lightning_wand {
                     target_list.push(&zapper_wrapper);
                     println!("Zap himself because is wet{:?}", zapper_wrapper);
-                    game_log
+                    game_state
+                        .game_log
                         .entries
                         .push("Using the Lightning wand while wet was a bad idea...".to_string());
                 }
@@ -133,11 +129,12 @@ impl ZapManager {
                             } else {
                                 target_damage.damage_received += damage_roll / 2;
                                 if target.id() == player_id {
-                                    game_log
+                                    game_state
+                                        .game_log
                                         .entries
                                         .push("You duck some of the blow!".to_string());
                                 } else {
-                                    game_log.entries.push(format!(
+                                    game_state.game_log.entries.push(format!(
                                         "{} ducks some of the blow!",
                                         named_target.name
                                     ));
@@ -147,23 +144,23 @@ impl ZapManager {
 
                             if zapper.id() == player_id {
                                 if target.id() == player_id {
-                                    game_log.entries.push(format!(
+                                    game_state.game_log.entries.push(format!(
                                         "You zap yourself for {} damage",
                                         damage_roll
                                     ));
                                 } else {
-                                    game_log.entries.push(format!(
+                                    game_state.game_log.entries.push(format!(
                                         "You zap the {} for {} damage",
                                         named_target.name, damage_roll
                                     ));
                                 }
                             } else if target.id() == player_id {
-                                game_log.entries.push(format!(
+                                game_state.game_log.entries.push(format!(
                                     "{} zaps you for {} damage",
                                     named_attacker.name, damage_roll
                                 ));
                             } else {
-                                game_log.entries.push(format!(
+                                game_state.game_log.entries.push(format!(
                                     "{} zaps the {} for {} damage",
                                     named_attacker.name, named_target.name, damage_roll
                                 ));

@@ -41,11 +41,6 @@ impl ItemCollection {
             let mut items_in_backpacks = ecs_world.query::<(&Item, &InBackback)>();
 
             //Log all the pick ups
-            let mut game_log_query = ecs_world.query::<&mut GameLog>();
-            let (_, game_log) = game_log_query
-                .iter()
-                .last()
-                .expect("Game log is not in hecs::World");
 
             let zone = game_state
                 .current_zone
@@ -73,7 +68,8 @@ impl ItemCollection {
                                 == MAX_ITEMS_IN_BACKPACK_FOR_SMALL)
                     {
                         if player_id == collector.id() {
-                            game_log
+                            game_state
+                                .game_log
                                 .entries
                                 .push("You cannot carry anymore!".to_string());
                             failed_pick_upper.push(collector);
@@ -96,14 +92,15 @@ impl ItemCollection {
                             ecs_world.get::<&Named>(item).expect("Entity is not Named");
 
                         if player_id == collector.id() {
-                            game_log
+                            game_state
+                                .game_log
                                 .entries
                                 .push(format!("You pick up the {}", named_item.name));
                         } else if zone.visible_tiles
                             [Zone::get_index_from_xy(&position.x, &position.y)]
                         {
                             // Log NPC  only if visible
-                            game_log.entries.push(format!(
+                            game_state.game_log.entries.push(format!(
                                 "The {} picks up the {}",
                                 named_collector.name, named_item.name
                             ));
@@ -130,14 +127,14 @@ impl ItemCollection {
                                 .expect("owner must be named and hate");
                             if let Some((hates, named_owner)) = shop_owner_query.get() {
                                 if collector.id() == player_id {
-                                    game_log.entries.push(format!(
+                                    game_state.game_log.entries.push(format!(
                                         "You stole the {}! The {} gets angry!",
                                         named_item.name, named_owner.name
                                     ));
                                 } else if zone.visible_tiles
                                     [Zone::get_index_from_xy(&position.x, &position.y)]
                                 {
-                                    game_log.entries.push(format!(
+                                    game_state.game_log.entries.push(format!(
                                         "The {} stoles the {}! The {} gets angry!",
                                         named_collector.name, named_item.name, named_owner.name
                                     ));

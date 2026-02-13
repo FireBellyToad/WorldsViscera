@@ -45,11 +45,6 @@ impl HealthManager {
                 .with::<&MyTurn>();
 
             //Log all the disease checks
-            let mut game_log_query = ecs_world.query::<&mut GameLog>();
-            let (_, game_log) = game_log_query
-                .iter()
-                .last()
-                .expect("Game log is not in hecs::World");
 
             let zone = game_state
                 .current_zone
@@ -69,7 +64,10 @@ impl HealthManager {
 
                         // TODO refactor log
                         if player_id == diseased_entity.id() {
-                            game_log.entries.push("You feel better".to_string());
+                            game_state
+                                .game_log
+                                .entries
+                                .push("You feel better".to_string());
                         }
                     }
                     // When clock is depleted, decrease disease status
@@ -99,7 +97,10 @@ impl HealthManager {
                                 ));
                                 // TODO refactor log
                                 if player_id == diseased_entity.id() {
-                                    game_log.entries.push("You feel better".to_string());
+                                    game_state
+                                        .game_log
+                                        .entries
+                                        .push("You feel better".to_string());
                                 }
                             } else {
                                 *is_improving = true;
@@ -114,11 +115,13 @@ impl HealthManager {
                                         damage.toughness_damage_received += Roll::dice(1, 3);
                                         if player_id == diseased_entity.id() {
                                             if Roll::d6() > 3 {
-                                                game_log
+                                                game_state
+                                                    .game_log
                                                     .entries
                                                     .push("You cough blood!".to_string());
                                             } else {
-                                                game_log
+                                                game_state
+                                                    .game_log
                                                     .entries
                                                     .push("Your skin peels away!".to_string());
                                             }
@@ -126,11 +129,12 @@ impl HealthManager {
                                             [Zone::get_index_from_xy(&position.x, &position.y)]
                                         {
                                             if Roll::d6() > 3 {
-                                                game_log
+                                                game_state
+                                                    .game_log
                                                     .entries
                                                     .push(format!("{} coughs blood!", named.name));
                                             } else {
-                                                game_log.entries.push(format!(
+                                                game_state.game_log.entries.push(format!(
                                                     "{}'s skin peels away!",
                                                     named.name
                                                 ));
@@ -162,11 +166,15 @@ impl HealthManager {
                                         );
 
                                         if player_id == diseased_entity.id() {
-                                            game_log.entries.push("You vomit badly!".to_string());
+                                            game_state
+                                                .game_log
+                                                .entries
+                                                .push("You vomit badly!".to_string());
                                         } else if zone.visible_tiles
                                             [Zone::get_index_from_xy(&position.x, &position.y)]
                                         {
-                                            game_log
+                                            game_state
+                                                .game_log
                                                 .entries
                                                 .push(format!("{} vomits badly!", named.name));
                                         }
@@ -177,11 +185,13 @@ impl HealthManager {
                                     if Roll::d6() > 3 {
                                         damage.damage_received += Roll::dice(2, 4);
                                         if player_id == diseased_entity.id() {
-                                            game_log
+                                            game_state
+                                                .game_log
                                                 .entries
                                                 .push("The fever makes you stumble!".to_string());
                                         } else {
-                                            game_log
+                                            game_state
+                                                .game_log
                                                 .entries
                                                 .push(format!("{} stumbles!", named.name));
                                         }
@@ -190,7 +200,7 @@ impl HealthManager {
                                     {
                                         dizzy_entities_list.push((diseased_entity, stats.speed));
                                         if player_id == diseased_entity.id() {
-                                            game_log.entries.push(
+                                            game_state.game_log.entries.push(
                                                 "The fever makes you feel dizzy for a moment!"
                                                     .to_string(),
                                             );
@@ -201,11 +211,12 @@ impl HealthManager {
                                     damage.dexterity_damage_received += Roll::dice(1, 2);
                                     if player_id == diseased_entity.id() {
                                         if Roll::d6() > 3 {
-                                            game_log
+                                            game_state
+                                                .game_log
                                                 .entries
                                                 .push("Your muscles stiffens!".to_string());
                                         } else {
-                                            game_log.entries.push(
+                                            game_state.game_log.entries.push(
                                                 "A calcified patch appears on your skin!"
                                                     .to_string(),
                                             );
@@ -214,11 +225,12 @@ impl HealthManager {
                                         [Zone::get_index_from_xy(&position.x, &position.y)]
                                     {
                                         if Roll::d6() > 3 {
-                                            game_log
+                                            game_state
+                                                .game_log
                                                 .entries
                                                 .push(format!("{}'s body stiffens!", named.name));
                                         } else {
-                                            game_log.entries.push(format!(
+                                            game_state.game_log.entries.push(format!(
                                                 "A calcified patch appears on {}'s skin!",
                                                 named.name
                                             ));

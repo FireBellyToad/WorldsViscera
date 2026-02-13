@@ -32,12 +32,6 @@ impl WetManager {
 
         // Scope for keeping borrow checker quiet
         {
-            let mut game_log_query = ecs_world.query::<&mut GameLog>();
-            let (_, game_log) = game_log_query
-                .iter()
-                .last()
-                .expect("Game log is not in hecs::World");
-
             let zone = game_state
                 .current_zone
                 .as_ref()
@@ -55,7 +49,7 @@ impl WetManager {
                         ecs_world,
                         &got_wet_entity,
                         &player_id,
-                        game_log,
+                        &mut game_state.game_log,
                         &mut entities_that_got_wet,
                         &mut entities_in_backpack_to_turn_off,
                         &mut entities_in_backpack_to_rust,
@@ -67,7 +61,7 @@ impl WetManager {
                         // Log only the first time the player gets wet
                         // Avoid multiple logs while walking in water
                         if player_id == got_wet_entity.id() {
-                            game_log.entries.push("You get wet".to_string());
+                            game_state.game_log.entries.push("You get wet".to_string());
                         }
 
                         entities_that_got_wet.push(got_wet_entity);
@@ -121,7 +115,10 @@ impl WetManager {
                         entities_that_dryed.push(got_wet_entity);
 
                         if player_id == got_wet_entity.id() {
-                            game_log.entries.push("You are no longer wet".to_string());
+                            game_state
+                                .game_log
+                                .entries
+                                .push("You are no longer wet".to_string());
                         }
                     }
                 }

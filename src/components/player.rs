@@ -68,12 +68,6 @@ impl Player {
                 .as_mut()
                 .expect("must have Some Zone");
 
-            let mut game_log_query = ecs_world.query::<&mut GameLog>();
-            let (_, game_log) = game_log_query
-                .iter()
-                .last()
-                .expect("Game log is not in hecs::World");
-
             for (player_entity, (position, viewshed, stats, suffering_damage)) in &mut players {
                 // Check if player is on slime before moving away
                 if let Some(special_tile) = zone
@@ -83,7 +77,10 @@ impl Player {
                 {
                     // Do DEX saving or slip on slime!
                     if stats.current_dexterity < Roll::d20() {
-                        game_log.entries.push("You slip on the slime!".to_string());
+                        game_state
+                            .game_log
+                            .entries
+                            .push("You slip on the slime!".to_string());
 
                         game_state.run_state = RunState::DoTick;
                         break;
@@ -122,7 +119,8 @@ impl Player {
                     if is_diggable && let Some(dig_tool) = player_dig_tool {
                         digger_target = Some((player_entity, dig_tool, potential_target));
                     } else if is_diggable {
-                        game_log
+                        game_state
+                            .game_log
                             .entries
                             .push("The crack is too tight to pass through".to_string());
                     }
@@ -147,7 +145,8 @@ impl Player {
                     {
                         // Do DEX saving or be damaged!
                         if stats.current_dexterity < Roll::d20() {
-                            game_log
+                            game_state
+                                .game_log
                                 .entries
                                 .push("You burn yourself on the acid!".to_string());
                             suffering_damage.damage_received += Roll::dice(1, 3);
@@ -407,12 +406,8 @@ impl Player {
                 game_state.run_state = RunState::DoTick;
             }
         } else {
-            let mut game_log_query = ecs_world.query::<&mut GameLog>();
-            let (_, game_log) = game_log_query
-                .iter()
-                .last()
-                .expect("Game log is not in hecs::World");
-            game_log
+            game_state
+                .game_log
                 .entries
                 .push("There is nothing here to pick up".to_string());
 
@@ -532,22 +527,23 @@ impl Player {
                 .expect("must have Some Zone");
             standing_on_tile = &zone.tiles[Zone::get_index_from_xy(&position.x, &position.y)];
 
-            let mut game_log_query = ecs_world.query::<&mut GameLog>();
-            let (_, game_log) = game_log_query
-                .iter()
-                .last()
-                .expect("Game log is not in hecs::World");
-
-            game_log
+            game_state
+                .game_log
                 .entries
                 .push("There is nothing here to pick up".to_string());
 
             //TODO skill check
             if standing_on_tile == &TileType::DownPassage {
-                game_log.entries.push("You climb down...".to_string());
+                game_state
+                    .game_log
+                    .entries
+                    .push("You climb down...".to_string());
                 game_state.run_state = RunState::GoToNextZone;
             } else {
-                game_log.entries.push("You can't go down here".to_string());
+                game_state
+                    .game_log
+                    .entries
+                    .push("You can't go down here".to_string());
             }
         }
     }
@@ -573,14 +569,9 @@ impl Player {
                     )
                     .collect();
 
-            let mut game_log_query = ecs_world.query::<&mut GameLog>();
-            let (_, game_log) = game_log_query
-                .iter()
-                .last()
-                .expect("Game log is not in hecs::World");
-
             if player_ranged_weapons.is_empty() {
-                game_log
+                game_state
+                    .game_log
                     .entries
                     .push("You don't have a ranged weapon equipped".to_string());
             } else {
@@ -600,16 +591,10 @@ impl Player {
 
                 // If no ammo available, abort without advancing to next tick
                 if weapon_stats.ammo_count_total == 0 {
-                    let mut game_log_query = ecs_world.query::<&mut GameLog>();
-                    let (_, game_log) = game_log_query
-                        .iter()
-                        .last()
-                        .expect("Game log is not in hecs::World");
-
                     let weapon_named = ecs_world
                         .get::<&Named>(weapon)
                         .expect("Entity has no Named");
-                    game_log.entries.push(format!(
+                    game_state.game_log.entries.push(format!(
                         "You don't have any ammunition for your {}",
                         weapon_named.name
                     ));
@@ -700,12 +685,6 @@ impl Player {
                 .last()
                 .expect("Player is not in hecs::World");
 
-            let mut game_log_query = ecs_world.query::<&mut GameLog>();
-            let (_, game_log) = game_log_query
-                .iter()
-                .last()
-                .expect("Game log is not in hecs::World");
-
             // Search for visibile shop owners in the visibile tiles
             for &index in &viewshed.visible_tiles {
                 for &entity in &zone.tile_content[index] {
@@ -722,7 +701,7 @@ impl Player {
                             owner_entity = Some(entity);
                             break;
                         } else {
-                            game_log.entries.push(
+                            game_state.game_log.entries.push(
                                 "You see someone who may trade, but it's too far away".to_string(),
                             );
                             //We must guarantee only one shop owner per zone
@@ -738,7 +717,8 @@ impl Player {
             }
 
             if owner_entity.is_none() {
-                game_log
+                game_state
+                    .game_log
                     .entries
                     .push("You can't see anyone willing to trade".to_string());
             }

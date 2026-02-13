@@ -31,6 +31,7 @@ pub struct GameState {
     pub run_state: RunState,
     pub current_player_entity: Option<Entity>,
     pub current_zone: Option<Zone>,
+    pub game_log: GameLog,
     pub debug_mode: bool,
 }
 

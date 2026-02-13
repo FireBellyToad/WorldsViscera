@@ -34,11 +34,6 @@ impl HiddenManager {
                 .with::<&MyTurn>();
 
             //Log
-            let mut game_log_query = ecs_world.query::<&mut GameLog>();
-            let (_, game_log) = game_log_query
-                .iter()
-                .last()
-                .expect("Game log is not in hecs::World");
 
             let zone = game_state
                 .current_zone
@@ -73,7 +68,8 @@ impl HiddenManager {
                                 if zone.visible_tiles
                                     [Zone::get_index_from_xy(&position.x, &position.y)]
                                 {
-                                    game_log
+                                    game_state
+                                        .game_log
                                         .entries
                                         .push(format!("A {} suddenly appears!", named.name));
                                 }
@@ -94,7 +90,8 @@ impl HiddenManager {
 
                             if zone.visible_tiles[Zone::get_index_from_xy(&position.x, &position.y)]
                             {
-                                game_log
+                                game_state
+                                    .game_log
                                     .entries
                                     .push(format!("The {} suddenly disappears!", named.name));
                             }

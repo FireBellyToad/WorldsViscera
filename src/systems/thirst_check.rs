@@ -55,11 +55,6 @@ impl ThirstCheck {
                 .expect("must have Some Zone");
 
             //Log all the thirst checks
-            let mut game_log_query = ecs_world.query::<&mut GameLog>();
-            let (_, game_log) = game_log_query
-                .iter()
-                .last()
-                .expect("Game log is not in hecs::World");
 
             for (thirsty_entity, (thirst, stats, position)) in &mut thirsty_entities {
                 // When clock is depleted, decrease thirst status
@@ -81,7 +76,10 @@ impl ThirstCheck {
                             thirst.current_status = ThirstStatus::Dehydrated;
 
                             if thirsty_entity.id() == player_id {
-                                game_log.entries.push("You are dehydrated!".to_string());
+                                game_state
+                                    .game_log
+                                    .entries
+                                    .push("You are dehydrated!".to_string());
                             }
                         }
                         ThirstStatus::Dehydrated => {
@@ -94,7 +92,8 @@ impl ThirstCheck {
                                     damage_starving_entity.damage_received += 1;
 
                                     if thirsty_entity.id() == player_id {
-                                        game_log
+                                        game_state
+                                            .game_log
                                             .entries
                                             .push("Dehydration wastes you away!".to_string());
                                     }
@@ -114,7 +113,7 @@ impl ThirstCheck {
                             if Roll::d20() <= stats.current_toughness {
                                 thirst.tick_counter = MAX_THIRST_TICK_COUNTER;
                                 if thirsty_entity.id() == player_id {
-                                    game_log.entries.push(
+                                    game_state.game_log.entries.push(
                                         "You drank too much and feel slightly nauseous".to_string(),
                                     );
                                 }
@@ -127,7 +126,8 @@ impl ThirstCheck {
                                     DecalType::Vomit,
                                 );
                                 if thirsty_entity.id() == player_id {
-                                    game_log
+                                    game_state
+                                        .game_log
                                         .entries
                                         .push("You drank too much and vomit!".to_string());
                                 }
@@ -142,7 +142,8 @@ impl ThirstCheck {
                         ThirstStatus::Dehydrated => {
                             thirst.current_status = ThirstStatus::Thirsty;
                             if thirsty_entity.id() == player_id {
-                                game_log
+                                game_state
+                                    .game_log
                                     .entries
                                     .push("You are no longer dehydrated".to_string());
                             }

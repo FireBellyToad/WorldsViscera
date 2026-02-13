@@ -37,12 +37,6 @@ impl MonsterApproach {
                 )>()
                 .with::<(&Monster, &MyTurn)>();
 
-            let mut game_log_query = ecs_world.query::<&mut GameLog>();
-            let (_, game_log) = game_log_query
-                .iter()
-                .last()
-                .expect("Game log is not in hecs::World");
-
             let zone = game_state
                 .current_zone
                 .as_mut()
@@ -76,7 +70,8 @@ impl MonsterApproach {
                         waiter_speed_list.push((monster_entity, stats.speed));
                         if zone.visible_tiles[Zone::get_index_from_xy(&position.x, &position.y)] {
                             // Log NPC infighting only if visible
-                            game_log
+                            game_state
+                                .game_log
                                 .entries
                                 .push(format!("The {} slips on the slime!", named.name));
                         }
@@ -127,7 +122,8 @@ impl MonsterApproach {
                             if zone.visible_tiles[Zone::get_index_from_xy(&position.x, &position.y)]
                             {
                                 // Log only if visible
-                                game_log
+                                game_state
+                                    .game_log
                                     .entries
                                     .push(format!("The {} burn itself on the acid!", named.name));
                             }

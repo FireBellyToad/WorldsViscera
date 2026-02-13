@@ -55,11 +55,6 @@ impl HungerCheck {
                 .with::<&MyTurn>();
 
             //Log all the hunger checks
-            let mut game_log_query = ecs_world.query::<&mut GameLog>();
-            let (_, game_log) = game_log_query
-                .iter()
-                .last()
-                .expect("Game log is not in hecs::World");
 
             for (hungry_entity, (hunger, stats, position)) in &mut hungry_entities {
                 // When clock is depleted, decrease fed status
@@ -80,7 +75,10 @@ impl HungerCheck {
                             hunger.current_status = HungerStatus::Starved;
 
                             if hungry_entity.id() == player_id {
-                                game_log.entries.push("You are starving!".to_string());
+                                game_state
+                                    .game_log
+                                    .entries
+                                    .push("You are starving!".to_string());
                             }
                         }
                         HungerStatus::Starved => {
@@ -93,7 +91,8 @@ impl HungerCheck {
                                     damage_starving_entity.damage_received += 1;
 
                                     if hungry_entity.id() == player_id {
-                                        game_log
+                                        game_state
+                                            .game_log
                                             .entries
                                             .push("Starvation wastes you away!".to_string());
                                     }
@@ -113,7 +112,7 @@ impl HungerCheck {
                             if Roll::d20() <= stats.current_toughness {
                                 hunger.tick_counter = MAX_HUNGER_TICK_COUNTER;
                                 if hungry_entity.id() == player_id {
-                                    game_log.entries.push(
+                                    game_state.game_log.entries.push(
                                         "You ate too much and feel slightly nauseous".to_string(),
                                     );
                                 }
@@ -125,7 +124,8 @@ impl HungerCheck {
                                     DecalType::Vomit,
                                 );
                                 if hungry_entity.id() == player_id {
-                                    game_log
+                                    game_state
+                                        .game_log
                                         .entries
                                         .push("You ate too much and vomit!".to_string());
                                 }
@@ -140,7 +140,8 @@ impl HungerCheck {
                         HungerStatus::Starved => {
                             hunger.current_status = HungerStatus::Hungry;
                             if hungry_entity.id() == player_id {
-                                game_log
+                                game_state
+                                    .game_log
                                     .entries
                                     .push("You are no longer starved".to_string());
                             }

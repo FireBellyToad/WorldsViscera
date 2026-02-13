@@ -45,12 +45,6 @@ impl FuelManager {
                 .with::<&TurnedOn>()
                 .without::<&Refiller>();
 
-            let mut game_log_query = ecs_world.query::<&mut GameLog>();
-            let (_, game_log) = game_log_query
-                .iter()
-                .last()
-                .expect("Game log is not in hecs::World");
-
             for (lighter, (fuel, named, entity_in_backpack)) in &mut turned_on_lighters {
                 // Log fuel change for lantern used by player
                 if let Some(in_backback) = entity_in_backpack {
@@ -58,12 +52,14 @@ impl FuelManager {
                     if player_entity.id() == in_backback.owner.id() {
                         match fuel.fuel_counter {
                             30 => {
-                                game_log
+                                game_state
+                                    .game_log
                                     .entries
                                     .push(format!("Your {} is flickering", named.name));
                             }
                             1 => {
-                                game_log
+                                game_state
+                                    .game_log
                                     .entries
                                     .push(format!("Your {} goes out", named.name));
                                 entities_to_turn_off.push(lighter);
@@ -106,12 +102,6 @@ impl FuelManager {
                 .filter(|(_, (_, w, _, _, _))| w.item.is_some())
                 .collect();
 
-            let mut game_log_query = ecs_world.query::<&mut GameLog>();
-            let (_, game_log) = game_log_query
-                .iter()
-                .last()
-                .expect("Game log is not in hecs::World");
-
             for (
                 refiller,
                 (named_fueler, wants_to_refill, position, fueler_stats, fueler_damage),
@@ -138,7 +128,7 @@ impl FuelManager {
                         // Bad idea to refill a lit lantern!
                         if turned_on.is_some() {
                             if player_id == refiller.id() {
-                                game_log.entries.push(format!(
+                                game_state.game_log.entries.push(format!(
                                     "The {} is lit! Flaming oil spills on your skin",
                                     named_target.name
                                 ));
@@ -158,11 +148,12 @@ impl FuelManager {
                             } else {
                                 fueler_damage.damage_received += damage_roll / 2;
                                 if target.id() == player_id {
-                                    game_log
+                                    game_state
+                                        .game_log
                                         .entries
                                         .push("You duck some of the damage!".to_string());
                                 } else {
-                                    game_log.entries.push(format!(
+                                    game_state.game_log.entries.push(format!(
                                         "{} ducks some of the damage!",
                                         named_fueler.name
                                     ));
@@ -178,12 +169,12 @@ impl FuelManager {
                                 .expect("Entity is not Named");
 
                             if player_id == refiller.id() {
-                                game_log.entries.push(format!(
+                                game_state.game_log.entries.push(format!(
                                     "You refill the {} with the {}",
                                     named_target.name, named_item_used.name
                                 ));
                             } else {
-                                game_log.entries.push(format!(
+                                game_state.game_log.entries.push(format!(
                                     "{} refills the {} with the {}",
                                     named_fueler.name, named_target.name, named_item_used.name
                                 ));
@@ -191,7 +182,8 @@ impl FuelManager {
                         }
                     }
                     None => {
-                        game_log
+                        game_state
+                            .game_log
                             .entries
                             .push("This item cannot be refilled!".to_string());
                     }

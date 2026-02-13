@@ -29,11 +29,6 @@ impl DrinkingQuaffables {
             let mut drinkers = ecs_world.query::<(&WantsToDrink, &mut Thirst, &CombatStats)>();
 
             //Log all the pick ups
-            let mut game_log_query = ecs_world.query::<&mut GameLog>();
-            let (_, game_log) = game_log_query
-                .iter()
-                .last()
-                .expect("Game log is not in hecs::World");
 
             for (drinker, (wants_to_drink, thirst, stats)) in &mut drinkers {
                 // Keep track of the drinker
@@ -51,14 +46,15 @@ impl DrinkingQuaffables {
                     .expect("Entity is not Named");
 
                 if drinker.id() == player_id {
-                    game_log
+                    game_state
+                        .game_log
                         .entries
                         .push(format!("You drank the {}", named_quaffable.name));
                 } else {
                     let named_drinker = ecs_world
                         .get::<&Named>(drinker)
                         .expect("Entity is not Named");
-                    game_log.entries.push(format!(
+                    game_state.game_log.entries.push(format!(
                         "{} drank the {}",
                         named_drinker.name, named_quaffable.name
                     ));

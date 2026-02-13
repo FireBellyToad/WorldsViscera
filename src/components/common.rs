@@ -29,6 +29,13 @@ pub struct ProduceCorpse {}
 pub struct GameLog {
     pub entries: Vec<String>,
 }
+impl GameLog {
+    pub fn new() -> Self {
+        GameLog {
+            entries: Vec::new(),
+        }
+    }
+}
 pub struct WaitingToAct {
     pub tick_countdown: i32,
 }

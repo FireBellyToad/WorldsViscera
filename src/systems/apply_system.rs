@@ -57,11 +57,6 @@ impl ApplySystem {
         {
             let ecs_world = &mut game_state.ecs_world;
             //Log all the applications
-            let mut game_log_query = ecs_world.query::<&mut GameLog>();
-            let (_, game_log) = game_log_query
-                .iter()
-                .last()
-                .expect("Game log is not in hecs::World");
 
             // List of entities that want to act
             let mut applyables_turned_on = ecs_world
@@ -90,7 +85,8 @@ impl ApplySystem {
                 );
 
                 if player_id == in_backback.owner.id() {
-                    game_log
+                    game_state
+                        .game_log
                         .entries
                         .push(format!("You turn off your {}", named.name));
                 }
@@ -105,14 +101,16 @@ impl ApplySystem {
                 if let Some(fuel) = must_be_fueled {
                     if wet.is_some() {
                         if player_id == in_backback.owner.id() {
-                            game_log
+                            game_state
+                                .game_log
                                 .entries
                                 .push(format!("Your {} is too wet to be turned on", named.name));
                         }
                         continue;
                     } else if fuel.fuel_counter < 1 {
                         if player_id == in_backback.owner.id() {
-                            game_log
+                            game_state
+                                .game_log
                                 .entries
                                 .push(format!("Your {} has no fuel", named.name));
                         }
@@ -122,7 +120,8 @@ impl ApplySystem {
 
                 entities_to_turn_on.push(turnable);
                 if player_id == in_backback.owner.id() {
-                    game_log
+                    game_state
+                        .game_log
                         .entries
                         .push(format!("You turn on your {}", named.name));
                 }
@@ -134,7 +133,8 @@ impl ApplySystem {
                 entities_cured.push((in_backback.owner, cure.diseases.clone()));
 
                 if player_id == in_backback.owner.id() {
-                    game_log
+                    game_state
+                        .game_log
                         .entries
                         .push(format!("You apply the {} on yourself", named.name));
                 } else {

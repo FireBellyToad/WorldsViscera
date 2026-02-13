@@ -1,4 +1,3 @@
-
 use crate::{
     components::{
         common::{CanListen, GameLog, Position, ProduceSound},
@@ -15,11 +14,6 @@ impl SoundSystem {
     pub fn run(game_state: &mut GameState) {
         let ecs_world = &mut game_state.ecs_world;
         //Log all the equipments
-        let mut game_log_query = ecs_world.query::<&mut GameLog>();
-        let (_, game_log) = game_log_query
-            .iter()
-            .last()
-            .expect("Game log is not in hecs::World");
 
         // Scope for keeping borrow checker quiet
         {
@@ -59,7 +53,10 @@ impl SoundSystem {
                         can_listen.listen_cache.iter_mut().enumerate()
                     {
                         if !*already_listened && index == random_sound - 1 {
-                            game_log.entries.push(format!("You hear {}", listen_log));
+                            game_state
+                                .game_log
+                                .entries
+                                .push(format!("You hear {}", listen_log));
                             *already_listened = true;
                             break;
                         }

@@ -24,11 +24,6 @@ impl SmellManager {
             let mut smellers = ecs_world.query::<(&WantsToSmell, &CanSmell, &Position)>();
 
             //Log all the smells
-            let mut game_log_query = ecs_world.query::<&mut GameLog>();
-            let (_, game_log) = game_log_query
-                .iter()
-                .last()
-                .expect("Game log is not in hecs::World");
 
             let zone = game_state
                 .current_zone
@@ -64,7 +59,7 @@ impl SmellManager {
 
                             if can_smell {
                                 have_smelled_something = true;
-                                game_log.entries.push(format!(
+                                game_state.game_log.entries.push(format!(
                                     "You smell {}",
                                     smells
                                         .smell_log
@@ -77,7 +72,8 @@ impl SmellManager {
                 }
 
                 if !have_smelled_something {
-                    game_log
+                    game_state
+                        .game_log
                         .entries
                         .push("You smell nothing strange".to_string());
                 }

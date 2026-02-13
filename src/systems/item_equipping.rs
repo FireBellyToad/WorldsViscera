@@ -32,11 +32,6 @@ impl ItemEquipping {
             let mut equipped_items = ecs_world.query::<&Equipped>();
 
             //Log all the equipments
-            let mut game_log_query = ecs_world.query::<&mut GameLog>();
-            let (_, game_log) = game_log_query
-                .iter()
-                .last()
-                .expect("Game log is not in hecs::World");
 
             let zone = game_state
                 .current_zone
@@ -55,7 +50,8 @@ impl ItemEquipping {
                     item_to_unequip_list.push((equipper, wants_to_equip.item, stats.speed));
 
                     if player_id == equipper.id() {
-                        game_log
+                        game_state
+                            .game_log
                             .entries
                             .push(format!("You unequip the {}", named_item.name));
                     }
@@ -84,7 +80,7 @@ impl ItemEquipping {
                             cleanup_equip.push(equipper);
 
                             if player_id == equipper.id() {
-                                game_log.entries.push(format!(
+                                game_state.game_log.entries.push(format!(
                                     "You must unequip the {} before equipping the {}",
                                     named_item_to_remove.name, named_item.name
                                 ));
@@ -100,13 +96,14 @@ impl ItemEquipping {
                             ));
 
                             if player_id == equipper.id() {
-                                game_log
+                                game_state
+                                    .game_log
                                     .entries
                                     .push(format!("You equip the {}", named_item.name));
                             } else if zone.visible_tiles
                                 [Zone::get_index_from_xy(&position.x, &position.y)]
                             {
-                                game_log.entries.push(format!(
+                                game_state.game_log.entries.push(format!(
                                     "{} equips the {}",
                                     named_dropper.name, named_item.name
                                 ));

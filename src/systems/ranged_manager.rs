@@ -42,11 +42,6 @@ impl RangedManager {
             let mut ammo_in_backpack = ecs_world.query::<AmmunitionInBackpack>();
 
             //Log all the shootings
-            let mut game_log_query = ecs_world.query::<&mut GameLog>();
-            let (_, game_log) = game_log_query
-                .iter()
-                .last()
-                .expect("Game log is not in hecs::World");
 
             let zone = game_state
                 .current_zone
@@ -123,7 +118,7 @@ impl RangedManager {
                         if target_opt.is_none() && zone.blocked_tiles[index] {
                             // Log only if visible
                             if zone.visible_tiles[Zone::get_index_from_xy(&x, &y)] {
-                                game_log.entries.push(
+                                game_state.game_log.entries.push(
                                     "The projectile gets stuck into something solid".to_string(),
                                 );
                             }
@@ -193,17 +188,18 @@ impl RangedManager {
 
                         if shooter.id() == player_id {
                             if target.id() == player_id {
-                                game_log
+                                game_state
+                                    .game_log
                                     .entries
                                     .push(format!("You shoot yourself for {} damage", damage_roll));
                             } else {
-                                game_log.entries.push(format!(
+                                game_state.game_log.entries.push(format!(
                                     "You shoot the {} for {} damage",
                                     named_target.name, damage_roll
                                 ));
                             }
                         } else if target.id() == player_id {
-                            game_log.entries.push(format!(
+                            game_state.game_log.entries.push(format!(
                                 "{} shoot you for {} damage",
                                 named_attacker.name, damage_roll
                             ));
@@ -211,7 +207,7 @@ impl RangedManager {
                             &wants_to_zap.target.0,
                             &wants_to_zap.target.1,
                         )] {
-                            game_log.entries.push(format!(
+                            game_state.game_log.entries.push(format!(
                                 "{} shoot the {} for {} damage",
                                 named_attacker.name, named_target.name, damage_roll
                             ));

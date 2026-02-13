@@ -104,15 +104,9 @@ impl Draw {
 
         // ------- Messages log  -----------
 
-        let mut game_log_query = game_state.ecs_world.query::<&GameLog>();
-        let (_, game_log) = game_log_query
-            .iter()
-            .last()
-            .expect("Game log is not in hecs::World");
-
         // Going backwards to get last message on top
-        for (index, message) in game_log.entries.iter().rev().enumerate() {
-            let draw_index = game_log.entries.len() - index;
+        for (index, message) in game_state.game_log.entries.iter().rev().enumerate() {
+            let draw_index = game_state.game_log.entries.len() - index;
             draw_text(
                 format!("{draw_index} - {message}"),
                 (HUD_BORDER + (UI_BORDER * 2)) as f32,

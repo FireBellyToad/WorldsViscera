@@ -25,11 +25,6 @@ impl AdvancementSystem {
             let mut experienced_entities = ecs_world.query::<(&mut Experience, &mut CombatStats)>();
 
             //Log all
-            let mut game_log_query = ecs_world.query::<&mut GameLog>();
-            let (_, game_log) = game_log_query
-                .iter()
-                .last()
-                .expect("Game log is not in hecs::World");
 
             for (exp_entity, (experience, stats)) in &mut experienced_entities {
                 // Level advancement
@@ -38,7 +33,8 @@ impl AdvancementSystem {
                     experience.value = 0;
                     experience.auto_advance_counter = AUTO_ADVANCE_EXP_COUNTER_START;
                     if exp_entity.id() == player_id {
-                        game_log
+                        game_state
+                            .game_log
                             .entries
                             .push(format!("You have reached level {}", stats.level));
                     }

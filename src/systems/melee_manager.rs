@@ -58,11 +58,6 @@ impl MeleeManager {
 
             //Log all the fights
             // TODO what about unseen fights? Something should be heard by the player
-            let mut game_log_query = ecs_world.query::<&mut GameLog>();
-            let (_, game_log) = game_log_query
-                .iter()
-                .last()
-                .expect("Game log is not in hecs::World");
 
             let zone = game_state
                 .current_zone
@@ -128,12 +123,12 @@ impl MeleeManager {
                                 target_damage.toughness_damage_received += damage_roll;
 
                                 if attacker_is_player {
-                                    game_log.entries.push(format!(
+                                    game_state.game_log.entries.push(format!(
                                         "You hit the {} for {} venomous damage",
                                         named_target.name, damage_roll
                                     ));
                                 } else if target_is_player {
-                                    game_log.entries.push(format!(
+                                    game_state.game_log.entries.push(format!(
                                         "The {} hits you for {} venomous damage",
                                         named_attacker.name, damage_roll
                                     ));
@@ -143,14 +138,14 @@ impl MeleeManager {
                                         &attacker_position.x,
                                         &attacker_position.y,
                                     )] {
-                                        game_log.entries.push(format!(
+                                        game_state.game_log.entries.push(format!(
                                             "The {} hits the {} for {} venomous damage",
                                             named_attacker.name, named_target.name, damage_roll
                                         ));
                                     }
                                 }
                             } else if target_is_player {
-                                game_log.entries.push(
+                                game_state.game_log.entries.push(
                                     "The hit makes you feel dizzy for a moment, then it passes"
                                         .to_string(),
                                 );
@@ -168,12 +163,12 @@ impl MeleeManager {
                                     );
 
                                     if attacker_is_player {
-                                        game_log.entries.push(format!(
+                                        game_state.game_log.entries.push(format!(
                                             "You sneak attack the {} for {} damage!",
                                             named_target.name, damage_roll
                                         ));
                                     } else if target_is_player {
-                                        game_log.entries.push(format!(
+                                        game_state.game_log.entries.push(format!(
                                             "The{} sneak attacks you for {} damage!",
                                             named_attacker.name, damage_roll
                                         ));
@@ -183,7 +178,7 @@ impl MeleeManager {
                                             &attacker_position.x,
                                             &attacker_position.y,
                                         )] {
-                                            game_log.entries.push(format!(
+                                            game_state.game_log.entries.push(format!(
                                                 "The {} sneak attacks the {} for {} damage!",
                                                 named_attacker.name, named_target.name, damage_roll
                                             ));
@@ -206,12 +201,12 @@ impl MeleeManager {
                                         Roll::dice(1, attacker_dice) - target_armor - erosion,
                                     );
                                     if attacker_is_player {
-                                        game_log.entries.push(format!(
+                                        game_state.game_log.entries.push(format!(
                                             "You hit the {} for {} damage",
                                             named_target.name, damage_roll
                                         ));
                                     } else if target_is_player {
-                                        game_log.entries.push(format!(
+                                        game_state.game_log.entries.push(format!(
                                             "The {} hits you for {} damage",
                                             named_attacker.name, damage_roll
                                         ));
@@ -221,7 +216,7 @@ impl MeleeManager {
                                             &attacker_position.x,
                                             &attacker_position.y,
                                         )] {
-                                            game_log.entries.push(format!(
+                                            game_state.game_log.entries.push(format!(
                                                 "{} hits the {} for {} damage",
                                                 named_attacker.name, named_target.name, damage_roll
                                             ));
@@ -256,7 +251,8 @@ impl MeleeManager {
                             // Infect the healthy target otherwise
                             infected_list.push((wants_melee.target, disease_type));
                             if player_id == wants_melee.target.id() {
-                                game_log
+                                game_state
+                                    .game_log
                                     .entries
                                     .push("You start to feel ill...".to_string());
                             }

@@ -27,11 +27,6 @@ impl DecayManager {
         // Scope for keeping borrow checker quiet
         {
             //Log all the drop downs
-            let mut game_log_query = ecs_world.query::<&mut GameLog>();
-            let (_, game_log) = game_log_query
-                .iter()
-                .last()
-                .expect("Game log is not in hecs::World");
 
             // List of perishable entities
             let mut perishables =
@@ -50,7 +45,8 @@ impl DecayManager {
                             if let Some(in_backpack) = in_backpack_option
                                 && player_id == in_backpack.owner.id()
                             {
-                                game_log
+                                game_state
+                                    .game_log
                                     .entries
                                     .push(format!("Your {} rots away", named.name));
                             }
