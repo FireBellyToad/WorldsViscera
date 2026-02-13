@@ -2,7 +2,7 @@ use crate::{
     components::common::Experience,
     maps::arena_zone_builder::ArenaZoneBuilder,
     systems::{
-        advancement_system::AdvancementSystem, debugger::Debugger, dig_manager::DigManager,
+        advancement_system::AdvancementSystem, dig_manager::DigManager,
         health_manager::HealthManager, leave_trail_system::LeaveTrailSystem,
         ranged_manager::RangedManager, trade_system::TradeSystem,
     },
@@ -93,7 +93,9 @@ async fn main() {
             // Run system only while not paused, or else wait for player input.
             // Make the whole game turn based
 
+            #[cfg(not(target_arch = "wasm32"))]
             do_tickless_logic(&mut game_state);
+
             match game_state.run_state.clone() {
                 RunState::TitleScreen => {
                     // Quit game on Q
@@ -297,8 +299,8 @@ fn do_in_tick_game_logic(game_engine: &mut GameEngine, game_state: &mut GameStat
     }
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 fn do_tickless_logic(game_state: &mut GameState) {
-    #[cfg(not(target_arch = "wasm32"))]
     {
         if is_key_pressed(KeyCode::F12) {
             game_state.debug_mode = !game_state.debug_mode;
@@ -306,6 +308,7 @@ fn do_tickless_logic(game_state: &mut GameState) {
         }
 
         if game_state.debug_mode {
+            use crate::systems::debugger::Debugger;
             Debugger::run(game_state);
             // TODO spawn what prompt
             if is_key_pressed(KeyCode::F11) {

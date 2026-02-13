@@ -50,6 +50,7 @@ impl Draw {
                 Draw::renderables(&game_state.ecs_world, assets, zone);
                 Draw::smells(&game_state.ecs_world, assets, zone);
 
+                #[cfg(not(target_arch = "wasm32"))]
                 if game_state.debug_mode {
                     Draw::debug_exit(zone);
                     Draw::debug_blocked(zone);

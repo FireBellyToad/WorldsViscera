@@ -2,7 +2,6 @@ pub mod advancement_system;
 pub mod apply_system;
 pub mod automatic_healing;
 pub mod damage_manager;
-pub mod debugger;
 pub mod decay_manager;
 pub mod dig_manager;
 pub mod drinking_quaffables;
@@ -29,3 +28,6 @@ pub mod trade_system;
 pub mod turn_checker;
 pub mod wet_manager;
 pub mod zap_manager;
+
+#[cfg(not(target_arch = "wasm32"))]
+pub mod debugger;
