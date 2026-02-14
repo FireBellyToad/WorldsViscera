@@ -8,7 +8,10 @@ use crate::{
     engine::state::GameState,
     utils::common::Utils,
 };
-use std::{cmp::max, collections::HashMap};
+use std::{
+    cmp::max,
+    collections::{HashMap, hash_map::Entry},
+};
 
 use hecs::Entity;
 
@@ -235,17 +238,17 @@ impl MeleeManager {
                         && Roll::d20() > target_stats.current_toughness
                     {
                         let disease_type = dis_bear_some.disease_type.clone();
-                        // If the target is already infected, worsen its status
+                        // If the target is already infected...
                         if let Ok(mut dis) = ecs_world.get::<&mut Diseased>(wants_melee.target) {
-                            // If the target is already infected, worsen its status
-                            if dis.tick_counters.contains_key(&disease_type) {
-                                dis.tick_counters.insert(disease_type, (0, false));
-                            } else {
-                                // Infect the healthy target otherwise
-                                dis.tick_counters.insert(
-                                    disease_type,
-                                    (MAX_DISEASE_TICK_COUNTER + Roll::d20(), false),
-                                );
+                            match dis.tick_counters.entry(disease_type) {
+                                Entry::Occupied(mut entry) => {
+                                    //worsen its status
+                                    entry.insert((0, false));
+                                }
+                                Entry::Vacant(entry) => {
+                                    // Infect the healthy target otherwise
+                                    entry.insert((MAX_DISEASE_TICK_COUNTER + Roll::d20(), false));
+                                }
                             }
                         } else {
                             // Infect the healthy target otherwise

@@ -13,7 +13,7 @@ use crate::{
 };
 
 const SIZE_DICE: i32 = 2;
-const SIZE_MODIFIER: i32 = 3;
+const SIZE_MODIFIER: i32 = 2;
 
 pub struct MushroomFieldBuilder {}
 
@@ -58,37 +58,40 @@ impl ZoneFeatureBuilder for MushroomFieldBuilder {
             field_rect = Rect::new_from_i32(x, y, size, size);
         }
 
-        //3 Fill the the field with mushrooms and owner
-        let mut counter = 0;
-        let mut owner_opt: Option<Entity> = None;
-        for &index in &tiles {
-            let (x, y) = Zone::get_xy_from_index(index);
+        // If still there is no free space, just end
+        if !tiles.is_empty() {
+            //3 Fill the the field with mushrooms and owner
+            let mut counter = 0;
+            let mut owner_opt: Option<Entity> = None;
+            for &index in &tiles {
+                let (x, y) = Zone::get_xy_from_index(index);
 
-            counter += 1;
-            if owner_opt.is_none() && (counter >= size || Roll::dice(1, 4) == 1) {
-                // Guarantee an open space in the fence
-                owner_opt = Some(Spawn::moleman_farmer(ecs_world, x, y));
-            } else {
-                let index = Zone::get_index_from_xy(&x, &y);
-                zone.tiles[index] = TileType::MushroomField;
-                // Put mushrooms!
-                if Roll::dice(1, 4) == 1 {
-                    Spawn::mushroom(ecs_world, x, y, MUSHROOM_EXCELLENT);
+                counter += 1;
+                if owner_opt.is_none() && (counter >= size || Roll::dice(1, 4) == 1) {
+                    // Guarantee an open space in the fence
+                    owner_opt = Some(Spawn::moleman_farmer(ecs_world, x, y));
+                } else {
+                    let index = Zone::get_index_from_xy(&x, &y);
+                    zone.tiles[index] = TileType::MushroomField;
+                    // Put mushrooms!
+                    if Roll::dice(1, 4) == 1 {
+                        Spawn::mushroom(ecs_world, x, y, MUSHROOM_EXCELLENT);
+                    }
                 }
             }
-        }
 
-        // Insert Mushroom field into ECS to be used as shop
-        if let Some(owner) = owner_opt {
-            let _ = ecs_world.insert_one(
-                owner,
-                ShopOwner {
-                    shop_tiles: tiles.clone(),
-                    wanted_items: vec![Tradable::Corpse, Tradable::Rotten],
-                },
-            );
-        } else {
-            panic!("Cannot create Mushroom Field without owner!");
+            // Insert Mushroom field into ECS to be used as shop
+            if let Some(owner) = owner_opt {
+                let _ = ecs_world.insert_one(
+                    owner,
+                    ShopOwner {
+                        shop_tiles: tiles.clone(),
+                        wanted_items: vec![Tradable::Corpse, Tradable::Rotten],
+                    },
+                );
+            } else {
+                panic!("Cannot create Mushroom Field without owner!");
+            }
         }
 
         tiles

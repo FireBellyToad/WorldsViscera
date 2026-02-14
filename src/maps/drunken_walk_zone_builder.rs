@@ -26,7 +26,7 @@ impl ZoneBuilder for DrunkenWalkZoneBuilder {
         let mut current_position = (MAP_WIDTH / 2, MAP_HEIGHT / 2);
         let max_iterations = max(
             DRUNKEN_WALK_MIN_ITERATIONS,
-            DRUNKEN_WALK_MAX_ITERATIONS - depth as i32,
+            DRUNKEN_WALK_MAX_ITERATIONS - 2 * depth as i32,
         );
 
         // the more deep we are, the less free space we have
@@ -76,7 +76,7 @@ impl ZoneBuilder for DrunkenWalkZoneBuilder {
             0,
             Roll::dice(1, MAX_RIVERS_IN_ZONE) + 1 - (depth as i32 / 3),
         );
-        // Render pool if no river is available
+        // Render 1x1 pool if no river is available
         let (mut try_x, mut try_y);
         if river_number == 0 {
             let mut pool = zone.tiles.len() / 2;
@@ -197,8 +197,8 @@ impl ZoneBuilder for DrunkenWalkZoneBuilder {
         let down_passage_index = first_crack_tiles[down_passage_roll];
         zone.tiles[down_passage_index] = TileType::DownPassage;
 
-        // Add random cracks
-        let cracks_number = Roll::dice(1, MAX_CRACKS_IN_ZONE) + (depth as i32 / 3);
+        // Add random cracks (the more deep we are, the more cracks we have)
+        let cracks_number = Roll::dice(1, MAX_CRACKS_IN_ZONE) + (depth as i32 / 2);
         for _ in 0..cracks_number {
             CracksBuilder::build(&mut zone, ecs_world);
         }

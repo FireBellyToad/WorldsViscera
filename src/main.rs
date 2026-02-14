@@ -78,6 +78,7 @@ async fn main() {
         current_zone: None,
         game_log: GameLog::new(),
         debug_mode: false,
+        debug_monster_vision: false,
     };
     populate_world(&mut game_state);
 
@@ -316,7 +317,7 @@ fn do_tickless_logic(game_state: &mut GameState) {
             } else if is_key_pressed(KeyCode::F10) {
                 Spawn::curing_paste(&mut game_state.ecs_world, MAP_WIDTH / 2, MAP_HEIGHT / 2);
             } else if is_key_pressed(KeyCode::F9) {
-                Spawn::calcificator(&mut game_state.ecs_world, MAP_WIDTH / 2, MAP_HEIGHT / 2);
+                Spawn::sulfuric_slug(&mut game_state.ecs_world, MAP_WIDTH / 2, MAP_HEIGHT / 2);
             } else if is_key_pressed(KeyCode::F8) {
                 use crate::components::combat::CombatStats;
 
@@ -352,6 +353,8 @@ fn do_tickless_logic(game_state: &mut GameState) {
                     game_state.current_player_entity.expect("must be some"),
                     Diseased { tick_counters },
                 );
+            } else if is_key_pressed(KeyCode::F6) {
+                game_state.debug_monster_vision = !game_state.debug_monster_vision;
             }
         }
     }

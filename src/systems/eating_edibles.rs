@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, hash_map::Entry};
 
 use hecs::Entity;
 
@@ -87,14 +87,15 @@ impl EatingEdibles {
                         // If the target is already infected, worsen its status
                         if let Ok(mut dis) = ecs_world.get::<&mut Diseased>(eater) {
                             // If the target is already infected, worsen its status
-                            if dis.tick_counters.contains_key(&disease_type) {
-                                dis.tick_counters.insert(disease_type, (0, false));
-                            } else {
-                                // Infect the healthy target otherwise
-                                dis.tick_counters.insert(
-                                    disease_type,
-                                    (MAX_DISEASE_TICK_COUNTER + Roll::d20(), false),
-                                );
+                            match dis.tick_counters.entry(disease_type) {
+                                Entry::Occupied(mut entry) => {
+                                    //worsen its status
+                                    entry.insert((0, false));
+                                }
+                                Entry::Vacant(entry) => {
+                                    // Infect the healthy target otherwise
+                                    entry.insert((MAX_DISEASE_TICK_COUNTER + Roll::d20(), false));
+                                }
                             }
                         } else {
                             // Infect the healthy target otherwise
@@ -164,30 +165,29 @@ impl EatingEdibles {
                     }
 
                     // Check if the item is being stolen from a shop
-                    if let Ok(item_pos) = ecs_world.get::<&Position>(wants_to_eat.item) {
-                        if let Some(owner) =
+                    if let Ok(item_pos) = ecs_world.get::<&Position>(wants_to_eat.item)
+                        && let Some(owner) =
                             Utils::get_item_owner_by_position(ecs_world, &item_pos.x, &item_pos.y)
-                        {
-                            let mut shop_owner_query = ecs_world
-                                .query_one::<(&mut Hates, &Named)>(owner)
-                                .expect("owner must be named and hate");
-                            if let Some((hates, named_owner)) = shop_owner_query.get() {
-                                if eater.id() == player_id {
-                                    game_state.game_log.entries.push(format!(
-                                        "You eat the stolen {}! The {} gets angry!",
-                                        named_edible.name, named_owner.name
-                                    ));
-                                } else if zone.visible_tiles
-                                    [Zone::get_index_from_xy(&item_pos.x, &item_pos.y)]
-                                {
-                                    game_state.game_log.entries.push(format!(
-                                        "The {} eats the stolen {}! The {} gets angry!",
-                                        named_eater.name, named_edible.name, named_owner.name
-                                    ));
-                                }
-
-                                hates.list.insert(eater.id());
+                    {
+                        let mut shop_owner_query = ecs_world
+                            .query_one::<(&mut Hates, &Named)>(owner)
+                            .expect("owner must be named and hate");
+                        if let Some((hates, named_owner)) = shop_owner_query.get() {
+                            if eater.id() == player_id {
+                                game_state.game_log.entries.push(format!(
+                                    "You eat the stolen {}! The {} gets angry!",
+                                    named_edible.name, named_owner.name
+                                ));
+                            } else if zone.visible_tiles
+                                [Zone::get_index_from_xy(&item_pos.x, &item_pos.y)]
+                            {
+                                game_state.game_log.entries.push(format!(
+                                    "The {} eats the stolen {}! The {} gets angry!",
+                                    named_eater.name, named_edible.name, named_owner.name
+                                ));
                             }
+
+                            hates.list.insert(eater.id());
                         }
                     }
                 } else {

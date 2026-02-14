@@ -1,1 +1,0 @@
-- sometimes the npcs moves in the player's square

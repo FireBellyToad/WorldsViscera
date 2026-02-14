@@ -33,6 +33,7 @@ pub struct GameState {
     pub current_zone: Option<Zone>,
     pub game_log: GameLog,
     pub debug_mode: bool,
+    pub debug_monster_vision: bool,
 }
 
 // State implementations

@@ -1,6 +1,6 @@
 use pathfinding::prelude::dijkstra;
 
-use crate::maps::zone::Zone;
+use crate::{constants::NEXT_TO_DISTANCE, maps::zone::Zone, utils::common::Utils};
 
 pub struct Pathfinding {}
 
@@ -30,8 +30,10 @@ impl Pathfinding {
                     .into_iter()
                     .map(|passable_tile| (passable_tile, 1))
             },
-            // Should tell when the goal is reached
-            |&position: &(i32, i32)| position.0 == goal_x && position.1 == goal_y,
+            // Should tell when the goal is reached (being to te adjacent tile is sufficient)
+            |&position: &(i32, i32)| {
+                Utils::distance(&position.0, &goal_x, &position.1, &goal_y) < NEXT_TO_DISTANCE
+            },
         )
     }
 }

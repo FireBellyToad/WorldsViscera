@@ -706,6 +706,7 @@ impl Player {
                             );
                             //We must guarantee only one shop owner per zone
                             game_state.run_state = RunState::WaitingPlayerInput;
+                            return; //abort control flow
                         }
                     }
                 }

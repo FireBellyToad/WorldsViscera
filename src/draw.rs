@@ -54,6 +54,9 @@ impl Draw {
                 if game_state.debug_mode {
                     Draw::debug_exit(zone);
                     Draw::debug_blocked(zone);
+                    if game_state.debug_monster_vision {
+                        Draw::debug_monster_viewshed(game_state);
+                    }
                 }
 
                 //Overlay (clone is needed to avoid borrow checker errors)
@@ -441,7 +444,8 @@ impl Draw {
                 );
 
                 let can_smell = player_smell_ability.intensity != SmellIntensity::None // the player cannot smell anything (common cold or other penalities)
-                        && !zone.visible_tiles[index]
+                        && !zone.visible_tiles[index] // render smell particle only if the tile is not visible
+                        && !zone.water_tiles[index] // the player cannot smell anything in water, do not render smell particle
                         && ((distance < player_smell_ability.radius / 2.0 && smell.intensity == SmellIntensity::Faint) // Faint odors can be smell from half normal distance
                             || (distance < player_smell_ability.radius
                                 && (smell.intensity == SmellIntensity::Strong // Strong odors can be smelled at double distance.
@@ -742,6 +746,29 @@ impl Draw {
                     TILE_SIZE_F32,
                     2.0,
                     BLUE,
+                );
+            }
+        }
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    fn debug_monster_viewshed(game_state: &mut GameState) {
+        //Deconstruct data into tuple
+
+        use crate::components::{common::Viewshed, monster::Monster};
+        let mut viewsheds = game_state.ecs_world.query::<&Viewshed>().with::<&Monster>();
+        //For each Entity with Components Viewshed and Position
+        for (_, viewshed) in &mut viewsheds {
+            for &index in viewshed.visible_tiles.iter() {
+                let (rounded_x, rounded_y) = Zone::get_xy_from_index(index);
+
+                draw_rectangle_lines(
+                    (UI_BORDER + (rounded_x * TILE_SIZE)) as f32,
+                    (UI_BORDER + (rounded_y * TILE_SIZE)) as f32,
+                    TILE_SIZE_F32,
+                    TILE_SIZE_F32,
+                    2.0,
+                    YELLOW,
                 );
             }
         }
