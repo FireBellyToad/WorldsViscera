@@ -27,45 +27,67 @@ impl FieldOfViewManager {
             .as_mut()
             .expect("must have Some Zone");
 
-        //Deconstruct data into tuple
-        let mut viewsheds = ecs_world.query::<(&mut Viewshed, &Position, Option<&Blind>)>();
-        //For each Entity with Components Viewshed and Position
-        for (entity, (viewshed, position, blind_opt)) in &mut viewsheds {
-            if viewshed.must_recalculate {
-                viewshed.must_recalculate = false;
-                viewshed.visible_tiles.clear();
+        let mut remove_blindness_list = Vec::new();
 
-                if let Some(_) = blind_opt {
-                    // Do not calculate FOV for blind entities
-                    if entity.id() == player_entity_id {
-                        //If player, show only the tile were is standing
+        // Scope to keep the borrow checker happy
+        {
+            //Deconstruct data into tuple
+            let mut viewsheds = ecs_world.query::<(&mut Viewshed, &Position, Option<&mut Blind>)>();
+            //For each Entity with Components Viewshed and Position
+            for (entity, (viewshed, position, blind_opt)) in &mut viewsheds {
+                let is_player = entity.id() == player_entity_id;
+
+                // Do not calculate FOV for blind entities
+                if let Some(blind) = blind_opt {
+                    // Can see only the tile were is standing
+                    let index = Zone::get_index_from_xy(&position.x, &position.y);
+                    viewshed.visible_tiles.clear();
+                    viewshed.visible_tiles.push(index);
+                    // After a while the blindness will be removed
+                    blind.tick_counter -= 1;
+                    if blind.tick_counter <= 0 {
+                        remove_blindness_list.push(entity);
+                        if is_player {
+                            game_state
+                                .game_log
+                                .entries
+                                .push("You can see again".to_string());
+                            viewshed.must_recalculate = true;
+                        }
+                    }
+                    if is_player {
+                        //Show only the tile were is standing to the player
                         zone.visible_tiles.fill(false);
-                        let index = Zone::get_index_from_xy(&position.x, &position.y);
                         zone.visible_tiles[index] = true;
                         zone.revealed_tiles[index] = true;
                     }
-                    //TODO decrease counter
-                    continue;
-                }
+                } else if viewshed.must_recalculate {
+                    viewshed.must_recalculate = false;
+                    viewshed.visible_tiles.clear();
 
-                FieldOfViewManager::compute(zone, viewshed, position.x, position.y);
+                    FieldOfViewManager::compute(zone, viewshed, position.x, position.y);
 
-                //recalculate rendered view if entity is Player
-                if entity.id() == player_entity_id {
-                    zone.visible_tiles.fill(false);
-                    for &index in viewshed.visible_tiles.iter() {
-                        let (x, y) = Zone::get_xy_from_index(index);
-                        let distance = Utils::distance(&x, &position.x, &y, &position.y);
+                    //recalculate rendered view if entity is Player
+                    if is_player {
+                        zone.visible_tiles.fill(false);
+                        for &index in viewshed.visible_tiles.iter() {
+                            let (x, y) = Zone::get_xy_from_index(index);
+                            let distance = Utils::distance(&x, &position.x, &y, &position.y);
 
-                        // if is lit, that we can show and reveal
-                        // Adiacent tiles are always visible
-                        if zone.lit_tiles[index] || distance < 2.0 {
-                            zone.revealed_tiles[index] = true;
-                            zone.visible_tiles[index] = true;
+                            // if is lit, that we can show and reveal
+                            // Adiacent tiles are always visible
+                            if zone.lit_tiles[index] || distance < 2.0 {
+                                zone.revealed_tiles[index] = true;
+                                zone.visible_tiles[index] = true;
+                            }
                         }
                     }
                 }
             }
+        }
+
+        for entity in remove_blindness_list {
+            let _ = ecs_world.remove_one::<Blind>(entity);
         }
     }
 

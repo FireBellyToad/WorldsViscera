@@ -68,18 +68,23 @@ impl GazeAttacksManager {
                         }
                     } else {
                         gazed_targets.push((wants_to_gaze.target, gaze_attack.effect.clone()));
+
+                        let effect = match gaze_attack.effect {
+                            GazeEffectEnum::Blindness => "blinds",
+                        };
+
                         //Log attack
                         if player_entity_id == wants_to_gaze.target.id() {
                             game_state
                                 .game_log
                                 .entries
-                                .push(format!("{} gazes at you", named.name));
+                                .push(format!("The {} {} you with its gaze!", named.name, effect));
                         } else if zone.visible_tiles[Zone::get_index_from_xy(&t_pos.x, &t_pos.y)]
                             && zone.visible_tiles[Zone::get_index_from_xy(&position.x, &position.y)]
                         {
                             game_state.game_log.entries.push(format!(
-                                "The {} gazes at the {}",
-                                named.name, target_name.name
+                                "The {} {} the {} with its gaze!",
+                                named.name, effect, target_name.name
                             ));
                         }
                     }
