@@ -1,8 +1,5 @@
 use crate::{
-    components::{
-        combat::WantsToGaze,
-        common::{Experience, MyTurn, Named},
-    },
+    components::common::Experience,
     maps::arena_zone_builder::ArenaZoneBuilder,
     systems::{
         advancement_system::AdvancementSystem, dig_manager::DigManager,
@@ -23,7 +20,7 @@ use inventory::Inventory;
 use macroquad::prelude::*;
 use spawning::spawner::Spawn;
 use systems::{
-    damage_manager::DamageManager, eating_edibles::EatingEdibles, fov::FieldOfView,
+    damage_manager::DamageManager, eating_edibles::EatingEdibles, fov_manager::FieldOfViewManager,
     item_collection::ItemCollection, item_dropping::ItemDropping, melee_manager::MeleeManager,
     monster_think::MonsterThink,
 };
@@ -268,7 +265,7 @@ fn do_before_tick_logic(game_state: &mut GameState) {
     AdvancementSystem::run(game_state);
     // These Systems must always be run last
     MapIndexing::run(game_state);
-    FieldOfView::calculate(game_state);
+    FieldOfViewManager::calculate(game_state);
     TurnCheck::check_for_turn_reset(game_state);
 }
 
@@ -300,7 +297,7 @@ fn do_in_tick_game_logic(game_engine: &mut GameEngine, game_state: &mut GameStat
             TradeSystem::run(game_state);
             // These Systems must always be run last
             MapIndexing::run(game_state);
-            FieldOfView::calculate(game_state);
+            FieldOfViewManager::calculate(game_state);
         }
     }
 }

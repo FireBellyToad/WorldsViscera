@@ -6,7 +6,7 @@ pub mod decay_manager;
 pub mod dig_manager;
 pub mod drinking_quaffables;
 pub mod eating_edibles;
-pub mod fov;
+pub mod fov_manager;
 pub mod fuel_manager;
 pub mod gaze_attacks_manager;
 pub mod health_manager;

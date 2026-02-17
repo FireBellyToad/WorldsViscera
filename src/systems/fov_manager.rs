@@ -1,7 +1,9 @@
+use std::ops::Index;
+
 use adam_fov_rs::{IVec2, compute_fov};
 
 use crate::{
-    components::common::*,
+    components::{common::*, health::Blind},
     constants::{MAP_HEIGHT, MAP_WIDTH},
     engine::state::GameState,
     maps::zone::Zone,
@@ -10,9 +12,9 @@ use crate::{
 
 use adam_fov_rs::GridPoint;
 
-pub struct FieldOfView {}
+pub struct FieldOfViewManager {}
 
-impl FieldOfView {
+impl FieldOfViewManager {
     pub fn calculate(game_state: &mut GameState) {
         let ecs_world = &mut game_state.ecs_world;
         let player_entity_id = game_state
@@ -26,14 +28,27 @@ impl FieldOfView {
             .expect("must have Some Zone");
 
         //Deconstruct data into tuple
-        let mut viewsheds = ecs_world.query::<(&mut Viewshed, &Position)>();
+        let mut viewsheds = ecs_world.query::<(&mut Viewshed, &Position, Option<&Blind>)>();
         //For each Entity with Components Viewshed and Position
-        for (entity, (viewshed, position)) in &mut viewsheds {
+        for (entity, (viewshed, position, blind_opt)) in &mut viewsheds {
             if viewshed.must_recalculate {
                 viewshed.must_recalculate = false;
                 viewshed.visible_tiles.clear();
 
-                FieldOfView::compute(zone, viewshed, position.x, position.y);
+                if let Some(_) = blind_opt {
+                    // Do not calculate FOV for blind entities
+                    if entity.id() == player_entity_id {
+                        //If player, show only the tile were is standing
+                        zone.visible_tiles.fill(false);
+                        let index = Zone::get_index_from_xy(&position.x, &position.y);
+                        zone.visible_tiles[index] = true;
+                        zone.revealed_tiles[index] = true;
+                    }
+                    //TODO decrease counter
+                    continue;
+                }
+
+                FieldOfViewManager::compute(zone, viewshed, position.x, position.y);
 
                 //recalculate rendered view if entity is Player
                 if entity.id() == player_entity_id {

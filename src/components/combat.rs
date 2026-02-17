@@ -1,4 +1,3 @@
-
 use hecs::Entity;
 
 pub struct CombatStats {
@@ -46,7 +45,14 @@ pub struct WantsToShoot {
     pub weapon: Entity,
 }
 
-pub struct GazeAttack {}
+pub struct GazeAttack {
+    pub effect: GazeEffectEnum,
+}
+
+#[derive(Eq, PartialEq, Debug, Clone, Hash)]
+pub enum GazeEffectEnum {
+    Blindness,
+}
 
 pub struct WantsToGaze {
     pub target: Entity,

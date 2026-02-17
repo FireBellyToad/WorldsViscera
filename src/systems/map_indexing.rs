@@ -7,7 +7,7 @@ use crate::{
     },
     engine::state::GameState,
     maps::zone::Zone,
-    systems::fov::FieldOfView,
+    systems::fov_manager::FieldOfViewManager,
 };
 
 pub struct MapIndexing {}
@@ -43,7 +43,7 @@ impl MapIndexing {
                 must_recalculate: true,
             };
 
-            FieldOfView::compute(zone, &mut viewshed, dto.x, dto.y);
+            FieldOfViewManager::compute(zone, &mut viewshed, dto.x, dto.y);
 
             for index in viewshed.visible_tiles {
                 zone.lit_tiles[index] = true;

@@ -6,7 +6,7 @@ use macroquad::math::Rect;
 use crate::{
     components::{
         actions::WantsToApply,
-        combat::{CanHide, CombatStats, GazeAttack, SufferingDamage},
+        combat::{CanHide, CombatStats, GazeAttack, GazeEffectEnum, SufferingDamage},
         common::{
             BlocksTile, Hates, Immobile, MyTurn, Named, Position, ProduceCorpse, ProduceSound,
             Renderable, SmellIntensity, Smellable, Species, SpeciesEnum, Viewshed,
@@ -964,6 +964,7 @@ impl Spawn {
         let _ = ecs_world.insert_one(
             darkling,
             GazeAttack {
+                effect: GazeEffectEnum::Blindness,
             },
         );
     }
