@@ -170,15 +170,16 @@ impl Spawn {
         match dice_roll {
             (1..=10) => match Roll::d20() {
                 (1..=5) => Spawn::giant_slug(ecs_world, x, y),
-                (6..=9) => Spawn::giant_cockroach(ecs_world, x, y),
-                (10..=13) => Spawn::deep_one(ecs_world, x, y),
-                (14..=16) => Spawn::living_filth(ecs_world, x, y),
-                (17..=19) => Spawn::refugee(ecs_world, x, y),
+                (6..=8) => Spawn::giant_cockroach(ecs_world, x, y),
+                (9..=11) => Spawn::deep_one(ecs_world, x, y),
+                (12..=14) => Spawn::living_dead(ecs_world, x, y),
+                (15..=17) => Spawn::living_filth(ecs_world, x, y),
+                (18..=19) => Spawn::refugee(ecs_world, x, y),
                 20 => Spawn::moleman(ecs_world, x, y),
                 _ => {}
             },
             (11..=18) => match Roll::d20() {
-                (1..=5) => Spawn::living_dead(ecs_world, x, y),
+                (1..=5) => Spawn::calcificator(ecs_world, x, y),
                 (6..=8) => Spawn::centipede(ecs_world, x, y),
                 (9..=11) => Spawn::gremlin(ecs_world, x, y),
                 (12..=14) => Spawn::moleman(ecs_world, x, y),

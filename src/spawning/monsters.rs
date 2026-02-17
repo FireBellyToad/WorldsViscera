@@ -6,7 +6,7 @@ use macroquad::math::Rect;
 use crate::{
     components::{
         actions::WantsToApply,
-        combat::{CanHide, CombatStats, SufferingDamage},
+        combat::{CanHide, CombatStats, GazeAttack, SufferingDamage},
         common::{
             BlocksTile, Hates, Immobile, MyTurn, Named, Position, ProduceCorpse, ProduceSound,
             Renderable, SmellIntensity, Smellable, Species, SpeciesEnum, Viewshed,
@@ -924,7 +924,7 @@ impl Spawn {
     }
 
     pub fn darkling(ecs_world: &mut World, x: i32, y: i32) {
-        let _darkling = Spawn::create_monster(
+        let darkling = Spawn::create_monster(
             ecs_world,
             (
                 "Darkling".to_string(),
@@ -961,6 +961,10 @@ impl Spawn {
             ),
         );
 
-        //TODO sleep attack
+        let _ = ecs_world.insert_one(
+            darkling,
+            GazeAttack {
+            },
+        );
     }
 }

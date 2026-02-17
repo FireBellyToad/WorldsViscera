@@ -1,10 +1,14 @@
 use crate::{
-    components::common::Experience,
+    components::{
+        combat::WantsToGaze,
+        common::{Experience, MyTurn, Named},
+    },
     maps::arena_zone_builder::ArenaZoneBuilder,
     systems::{
         advancement_system::AdvancementSystem, dig_manager::DigManager,
-        health_manager::HealthManager, leave_trail_system::LeaveTrailSystem,
-        ranged_manager::RangedManager, trade_system::TradeSystem,
+        gaze_attacks_manager::GazeAttacksManager, health_manager::HealthManager,
+        leave_trail_system::LeaveTrailSystem, ranged_manager::RangedManager,
+        trade_system::TradeSystem,
     },
 };
 use components::{common::GameLog, player::Player};
@@ -99,7 +103,7 @@ async fn main() {
 
             match game_state.run_state.clone() {
                 RunState::TitleScreen => {
-                    // Quit game on Q
+                    // Quit game on Q\
                     if is_key_pressed(KeyCode::Q) {
                         break;
                     } else if get_last_key_pressed().is_some() {
@@ -276,6 +280,7 @@ fn do_in_tick_game_logic(game_engine: &mut GameEngine, game_state: &mut GameStat
     FuelManager::do_refills(game_state);
     //If there are particles, skip everything and draw
     if !ParticleManager::check_if_animations_are_present(game_engine, game_state) {
+        GazeAttacksManager::run(game_state);
         MeleeManager::run(game_state);
         DamageManager::run(game_state);
         DamageManager::remove_dead_and_check_gameover(game_state);
@@ -317,7 +322,7 @@ fn do_tickless_logic(game_state: &mut GameState) {
             } else if is_key_pressed(KeyCode::F10) {
                 Spawn::curing_paste(&mut game_state.ecs_world, MAP_WIDTH / 2, MAP_HEIGHT / 2);
             } else if is_key_pressed(KeyCode::F9) {
-                Spawn::calcificator(&mut game_state.ecs_world, MAP_WIDTH / 2, MAP_HEIGHT / 2);
+                Spawn::darkling(&mut game_state.ecs_world, MAP_WIDTH / 2, MAP_HEIGHT / 2);
             } else if is_key_pressed(KeyCode::F8) {
                 use crate::components::combat::CombatStats;
 

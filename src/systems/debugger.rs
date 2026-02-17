@@ -1,7 +1,7 @@
 use crate::{
     components::{
-        combat::CombatStats,
-        common::Named,
+        combat::{CombatStats, WantsToGaze},
+        common::{MyTurn, Named, Position},
         health::Paralyzed,
         monster::{Monster, Smart},
         player::Player,
@@ -47,6 +47,14 @@ impl Debugger {
                 if combat_stats.current_dexterity > 0 {
                     panic!("Player {:?} has 1+ DEX but is paralyzed", e);
                 }
+            }
+
+            let mut gazers = ecs_world
+                .query::<(&WantsToGaze, &Position, &Named)>()
+                .with::<&MyTurn>();
+
+            for (e, _) in &mut gazers {
+                println!(" {:?} is gazing il bruttocane ", e);
             }
         }
     }

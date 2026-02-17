@@ -1,3 +1,4 @@
+
 use hecs::Entity;
 
 pub struct CombatStats {
@@ -45,7 +46,8 @@ pub struct WantsToShoot {
     pub weapon: Entity,
 }
 
-pub struct WantsToDig {
+pub struct GazeAttack {}
+
+pub struct WantsToGaze {
     pub target: Entity,
-    pub tool: Entity,
 }

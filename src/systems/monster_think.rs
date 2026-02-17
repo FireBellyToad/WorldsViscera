@@ -1,4 +1,6 @@
+use crate::components::combat::GazeAttack;
 use crate::components::combat::IsHidden;
+use crate::components::combat::WantsToGaze;
 use crate::components::combat::WantsToShoot;
 use crate::components::items::Equippable;
 use crate::components::items::Equipped;
@@ -81,10 +83,11 @@ impl MonsterThink {
         let mut shooter_list: Vec<(Entity, Entity, i32, i32)> = Vec::new();
         let mut eat_target_list: Vec<(Entity, Entity)> = Vec::new();
         let mut equipper_item_list: Vec<(Entity, Entity)> = Vec::new();
+        let mut gaze_at_target_list: Vec<(Entity, Entity)> = Vec::new();
 
         // Scope for keeping borrow checker quiet
         {
-            let mut named_monsters = ecs_world
+            let mut all_monsters = ecs_world
                 .query::<(
                     &Viewshed,
                     &Position,
@@ -96,6 +99,7 @@ impl MonsterThink {
                     Option<&Aquatic>,
                     Option<&WantsToApproach>,
                     Option<&Prey>,
+                    Option<&GazeAttack>,
                 )>()
                 .with::<(&Monster, &MyTurn)>();
 
@@ -118,8 +122,9 @@ impl MonsterThink {
                     aquatic,
                     wants_to_approach,
                     is_prey,
+                    gaze_attack_opt,
                 ),
-            ) in &mut named_monsters
+            ) in &mut all_monsters
             {
                 let mut items_in_backpacks_query = ecs_world.query::<ItemsInBackpack>();
                 let items_in_backpacks: Vec<(Entity, ItemsInBackpack)> =
@@ -176,8 +181,18 @@ impl MonsterThink {
                         },
                     );
 
-                    //If enemy can see target, do action relative to it
+                    // If enemy can see target, do action relative to it
                     let (action, target, target_x, target_y) = target_picked;
+
+                    // Gaze attacks are directed to the target the monster is looking at
+                    // These attacks are nasty because they are additional attacks in that turn
+                    if gaze_attack_opt.is_some()
+                        && let Some(t) = target
+                    {
+                        gaze_at_target_list.push((monster, t));
+                    }
+
+                    // Active action
                     match action {
                         MonsterAction::Move => {
                             let pathfinding_result = Pathfinding::dijkstra_wrapper(
@@ -254,6 +269,11 @@ impl MonsterThink {
                     counter,
                 },
             );
+        }
+
+        // Gaze at target
+        for (gazer, target) in gaze_at_target_list {
+            let _ = ecs_world.insert_one(gazer, WantsToGaze { target });
         }
 
         // Attack if needed
@@ -378,23 +398,6 @@ impl MonsterThink {
         ecs_world: &World,
         monster_dto: MonsterThinkData,
     ) -> MonsterTargetPick {
-        /*
-        1. Quando X vede una creatura Y
-
-            1.1 Se Y non è della sua specie e X è STARVED e X ha un livello maggiore o uguale a Y+1, X lo attaccherà
-            1.2 Se Y è di una specie al quale X è ostile e X è in buona salute e X ha un livello maggiore o uguale a Y+1, X lo attaccherà
-            1.3 Se Y è di una specie al quale X è ostile e X è in pericolo o X ha un livello minore di Y+1, X fuggirà
-            1.4 Altrimenti lo ignorerà se non per reagire ad eventuali attacchi.
-
-        1. Quando X vede un oggetto Y
-
-            2.1 Se Y è edibile e X non è sazio, X prova a mangiarlo.
-            2.2 Se Y è bevibile e X non è quenched, X prova a berlo
-            2.3 Se Y è qualcos'altro, X è astuto e ha spazio nell'inventario, X lo raccoglierà
-
-        3. Si muove casualmente nella zona
-
-        */
         // Array to put the targets found in order of priority (0 = top priority, 4 = least priority)
         let mut targets_vec: Vec<Option<MonsterTargetPick>> = vec![None; MAX_PRIORITIES_NUMBER];
 

@@ -1,5 +1,5 @@
-use crate::components::actions::WantsToTrade;
-use crate::components::combat::{SufferingDamage, WantsToDig, WantsToShoot};
+use crate::components::actions::{WantsToDig, WantsToTrade};
+use crate::components::combat::{SufferingDamage, WantsToShoot};
 use crate::components::common::{Diggable, Hates, Named};
 use crate::components::items::{DiggingTool, RangedWeapon, ShopOwner};
 use crate::constants::STANDARD_ACTION_MULTIPLIER;

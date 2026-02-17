@@ -2,7 +2,8 @@ use hecs::Entity;
 
 use crate::{
     components::{
-        combat::{CombatStats, InflictsDamage, WantsToDig},
+        actions::WantsToDig,
+        combat::{CombatStats, InflictsDamage},
         common::{Diggable, MyTurn, Position},
     },
     engine::state::GameState,

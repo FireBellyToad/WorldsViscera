@@ -45,3 +45,8 @@ pub struct WantsToTrade {
     pub target: Entity,
     pub item: Option<Entity>,
 }
+
+pub struct WantsToDig {
+    pub target: Entity,
+    pub tool: Entity,
+}
