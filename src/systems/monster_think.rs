@@ -2,7 +2,7 @@ use crate::components::combat::IsHidden;
 use crate::components::combat::WantsToShoot;
 use crate::components::items::Equippable;
 use crate::components::items::Equipped;
-use crate::components::monster::IsPrey;
+use crate::components::monster::Prey;
 use crate::constants::MAP_HEIGHT;
 use crate::constants::MAP_WIDTH;
 use crate::constants::MAX_PRIORITIES_NUMBER;
@@ -95,7 +95,7 @@ impl MonsterThink {
                     Option<&Smart>,
                     Option<&Aquatic>,
                     Option<&WantsToApproach>,
-                    Option<&IsPrey>,
+                    Option<&Prey>,
                 )>()
                 .with::<(&Monster, &MyTurn)>();
 

@@ -5,7 +5,7 @@ use hecs::Entity;
 use crate::{
     components::{
         combat::{CombatStats, SufferingDamage},
-        common::{Experience, Hates, Named, Position},
+        common::{Experience, Hates, Named, Position, Species, SpeciesEnum},
         health::{CanAutomaticallyHeal, DiseaseType, Paralyzed},
         items::{Deadly, DontLeaveCorpse, Edible},
         monster::{DiseaseBearer, Venomous},
@@ -13,7 +13,7 @@ use crate::{
     constants::{AUTO_ADVANCE_EXP_COUNTER_START, MAX_STAMINA_HEAL_TICK_COUNTER},
     engine::state::{GameState, RunState},
     maps::zone::{DecalType, Zone},
-    spawning::spawner::Spawn,
+    spawning::spawner::{CorpseSpawnData, Spawn},
     systems::item_dropping::ItemDropping,
     utils::roll::Roll,
 };
@@ -221,15 +221,36 @@ impl DamageManager {
                     }
                 }
 
-                let is_venomous = ecs_world.get::<&Venomous>(killed_entity).is_ok();
-                let deadly = ecs_world.get::<&Deadly>(killed_entity).is_ok();
+                let is_venomous = ecs_world
+                    .satisfies::<&Venomous>(killed_entity)
+                    .unwrap_or(false);
+                let is_deadly = ecs_world
+                    .satisfies::<&Deadly>(killed_entity)
+                    .unwrap_or(false);
                 let mut disease_type_opt: Option<DiseaseType> = None;
                 if let Ok(disease_bearer) = ecs_world.get::<&DiseaseBearer>(killed_entity) {
                     disease_type_opt = Some(disease_bearer.disease_type.clone());
                 };
+                let is_undead = if let Ok(species) = ecs_world.get::<&Species>(killed_entity)
+                    && species.value == SpeciesEnum::Undead
+                {
+                    true
+                } else {
+                    false
+                };
+
                 Spawn::corpse(
                     ecs_world,
-                    (x, y, name, edible, is_venomous, deadly, disease_type_opt),
+                    CorpseSpawnData {
+                        x,
+                        y,
+                        name,
+                        edible,
+                        is_venomous,
+                        is_deadly,
+                        disease_type_opt,
+                        is_undead,
+                    },
                 );
             }
 

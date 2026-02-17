@@ -8,7 +8,7 @@ use crate::components::common::{
 };
 use crate::components::health::{CanAutomaticallyHeal, DiseaseType, Hunger, Thirst};
 use crate::components::items::{
-    Corpse, Deadly, Edible, Item, Perishable, Poisonous, ProduceLight, Quaffable, TurnedOn,
+    Corpse, Deadly, Edible, Item, Perishable, Poisonous, ProduceLight, Quaffable, Rotten, TurnedOn,
 };
 use crate::components::monster::DiseaseBearer;
 use crate::components::player::Player;
@@ -21,7 +21,16 @@ use crate::utils::roll::Roll;
 use hecs::{Entity, World};
 use macroquad::math::Rect;
 
-type CorpseSpawnData = (i32, i32, String, Edible, bool, bool, Option<DiseaseType>);
+pub struct CorpseSpawnData {
+    pub x: i32,
+    pub y: i32,
+    pub name: String,
+    pub edible: Edible,
+    pub is_venomous: bool,
+    pub is_deadly: bool,
+    pub disease_type_opt: Option<DiseaseType>,
+    pub is_undead: bool,
+}
 
 /// Spawner of game entities
 pub struct Spawn {}
@@ -33,7 +42,7 @@ impl Spawn {
         let rolled_toughness = Roll::stat();
         let rolled_dexterity = Roll::stat();
         // TODO Player with Soldier background must have 5+2d3 starting stamina
-        let rolled_stamina = Roll::d6() + 5;
+        let rolled_stamina = Roll::d6() + 50;
 
         let (spawn_x, spawn_y) = Zone::get_xy_from_index(zone.player_spawn_point);
 
@@ -65,7 +74,7 @@ impl Spawn {
                 level: 1,
                 current_stamina: rolled_stamina,
                 max_stamina: rolled_stamina,
-                base_armor: 0,
+                base_armor: 20,
                 unarmed_attack_dice: 2,
                 current_toughness: rolled_toughness,
                 max_toughness: rolled_toughness,
@@ -159,17 +168,35 @@ impl Spawn {
 
         // Depth based spawn table, recursive if roll is too high
         match dice_roll {
-            (1..=5) => Spawn::giant_slug(ecs_world, x, y),
-            (6..=9) => Spawn::giant_cockroach(ecs_world, x, y),
-            (10..=12) => Spawn::deep_one(ecs_world, x, y),
-            (13..=14) => Spawn::living_filth(ecs_world, x, y),
-            15 => Spawn::calcificator(ecs_world, x, y),
-            16 => Spawn::centipede(ecs_world, x, y),
-            17 => Spawn::gremlin(ecs_world, x, y),
-            18 => Spawn::moleman(ecs_world, x, y),
-            19 => Spawn::sulfuric_slug(ecs_world, x, y),
-            20 => Spawn::abyssal_one(ecs_world, x, y),
-            (21..) => Spawn::random_terrain_monster(ecs_world, x, y, depth - 1),
+            (1..=10) => match Roll::d20() {
+                (1..=5) => Spawn::giant_slug(ecs_world, x, y),
+                (6..=9) => Spawn::giant_cockroach(ecs_world, x, y),
+                (10..=13) => Spawn::deep_one(ecs_world, x, y),
+                (14..=16) => Spawn::living_filth(ecs_world, x, y),
+                (17..=19) => Spawn::refugee(ecs_world, x, y),
+                20 => Spawn::moleman(ecs_world, x, y),
+                _ => {}
+            },
+            (11..=18) => match Roll::d20() {
+                (1..=5) => Spawn::living_dead(ecs_world, x, y),
+                (6..=8) => Spawn::centipede(ecs_world, x, y),
+                (9..=11) => Spawn::gremlin(ecs_world, x, y),
+                (12..=14) => Spawn::moleman(ecs_world, x, y),
+                (15..=17) => Spawn::sulfuric_slug(ecs_world, x, y),
+                (18..=19) => Spawn::refugee(ecs_world, x, y),
+                20 => Spawn::abyssal_one(ecs_world, x, y),
+                _ => {}
+            },
+            (19..) => match Roll::d20() {
+                (1..=5) => Spawn::gremlin(ecs_world, x, y),
+                (6..=8) => Spawn::moleman(ecs_world, x, y),
+                (9..=11) => Spawn::enthropic_gremlin(ecs_world, x, y),
+                (12..=14) => Spawn::abyssal_one(ecs_world, x, y),
+                (15..=17) => Spawn::sulfuric_slug(ecs_world, x, y),
+                (18..=19) => Spawn::refugee(ecs_world, x, y),
+                20 => Spawn::darkling(ecs_world, x, y),
+                _ => {}
+            },
             _ => {}
         }
     }
@@ -202,8 +229,12 @@ impl Spawn {
             12 | 13 => {
                 let _ = Spawn::slingshot(ecs_world, x, y);
             }
-            14 | 15 => Spawn::leather_armor(ecs_world, x, y),
-            16 | 17 => Spawn::lantern(ecs_world, x, y),
+            14 | 15 => {
+                let _ = Spawn::leather_armor(ecs_world, x, y);
+            }
+            16 | 17 => {
+                let _ = Spawn::lantern(ecs_world, x, y);
+            }
             18 | 19 => Spawn::leather_cap(ecs_world, x, y),
             20 => Spawn::flask_of_water(ecs_world, x, y),
             21 => {
@@ -233,10 +264,12 @@ impl Spawn {
 
     /// Spawn a corpse
     pub fn corpse(ecs_world: &mut World, data: CorpseSpawnData) {
-        let (x, y, name, edible, is_venomous, deadly, disease_type_opt) = data;
         let item_tile_index = (0, 0);
         let corpse = (
-            Position { x, y },
+            Position {
+                x: data.x,
+                y: data.y,
+            },
             Renderable {
                 texture_name: TextureName::Items,
                 texture_region: Rect {
@@ -248,12 +281,12 @@ impl Spawn {
                 z_index: 0,
             },
             Named {
-                name: format!("{} corpse", name),
+                name: format!("{} corpse", data.name),
             },
             Item {
                 item_tile: item_tile_index,
             },
-            edible,
+            data.edible,
             Corpse {},
             Perishable {
                 rot_counter: STARTING_ROT_COUNTER + Roll::d20(),
@@ -262,12 +295,25 @@ impl Spawn {
 
         let corpse_spawned = ecs_world.spawn(corpse);
 
-        if is_venomous {
+        if data.is_venomous {
             let _ = ecs_world.insert_one(corpse_spawned, Poisonous {});
-        } else if deadly {
+        } else if data.is_deadly {
             let _ = ecs_world.insert_one(corpse_spawned, Deadly {});
-        } else if let Some(disease_type) = disease_type_opt {
+        } else if let Some(disease_type) = data.disease_type_opt {
             let _ = ecs_world.insert_one(corpse_spawned, DiseaseBearer { disease_type });
+        }
+
+        if data.is_undead {
+            let _ = ecs_world.insert(
+                corpse_spawned,
+                (
+                    Rotten {},
+                    Smellable {
+                        intensity: SmellIntensity::Faint,
+                        smell_log: Some(format!("rotten {}", data.name)),
+                    },
+                ),
+            );
         }
     }
 

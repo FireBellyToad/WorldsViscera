@@ -212,7 +212,7 @@ impl Spawn {
         ecs_world.spawn(curing_paste);
     }
 
-    pub fn lantern(ecs_world: &mut World, x: i32, y: i32) {
+    pub fn lantern(ecs_world: &mut World, x: i32, y: i32) -> Entity {
         let item_tile_index = (3, 0);
         let lantern = (
             Position { x, y },
@@ -248,7 +248,7 @@ impl Spawn {
             },
         );
 
-        ecs_world.spawn(lantern);
+        ecs_world.spawn(lantern)
     }
 
     pub fn wand(ecs_world: &mut World, x: i32, y: i32) -> Entity {
@@ -275,8 +275,8 @@ impl Spawn {
                 invokable_type: InvokablesEnum::LightningWand,
             },
             InflictsDamage {
-                number_of_dices: 2,
-                dice_size: 4,
+                number_of_dices: 1,
+                dice_size: 12,
             },
             Smellable {
                 smell_log: Some("ozone".to_string()),
@@ -501,9 +501,9 @@ impl Spawn {
         ecs_world.spawn(pickaxe)
     }
 
-    pub fn leather_armor(ecs_world: &mut World, x: i32, y: i32) {
+    pub fn leather_armor(ecs_world: &mut World, x: i32, y: i32) -> Entity {
         let item_tile_index = (0, 3);
-        let flask_of_oil = (
+        let leather_armor = (
             Position { x, y },
             Renderable {
                 texture_name: TextureName::Items,
@@ -527,7 +527,7 @@ impl Spawn {
             Armor { value: 1 },
         );
 
-        ecs_world.spawn(flask_of_oil);
+        ecs_world.spawn(leather_armor)
     }
 
     pub fn breastplate(ecs_world: &mut World, x: i32, y: i32) {

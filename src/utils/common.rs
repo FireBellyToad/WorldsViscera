@@ -3,6 +3,11 @@ use crate::{
         common::{Position, Viewshed},
         items::{Ammo, Armor, Equippable, RangedWeapon, ShopOwner},
     },
+    constants::{
+        BUG_SPECIES_HATES, DEEPSPAWN_SPECIES_HATES, FISH_SPECIES_HATES, GASTROPOD_SPECIES_HATES,
+        GREMLIN_SPECIES_HATES, HUMAN_SPECIES_HATES, MYCONID_SPECIES_HATES, SLIME_SPECIES_HATES,
+        UNDEAD_SPECIES_HATES, UNDERGROUNDER_SPECIES_HATES,
+    },
     maps::zone::Zone,
 };
 use std::cmp::max;
@@ -101,61 +106,18 @@ impl Utils {
 
     /// Hate table by species
     //TODO change to static const!
-    pub fn what_hates(hater: &SpeciesEnum) -> Vec<SpeciesEnum> {
+    pub fn what_hates(hater: &SpeciesEnum) -> &[SpeciesEnum; 4] {
         match hater {
-            SpeciesEnum::Human => vec![
-                SpeciesEnum::Fish,
-                SpeciesEnum::Gastropod,
-                SpeciesEnum::Gremlin,
-                SpeciesEnum::Undead,
-            ],
-            SpeciesEnum::Undergrounder => vec![
-                SpeciesEnum::Bug,
-                SpeciesEnum::Gremlin,
-                SpeciesEnum::DeepSpawn,
-                SpeciesEnum::Undead,
-            ],
-            SpeciesEnum::Fish => vec![SpeciesEnum::Human, SpeciesEnum::Bug, SpeciesEnum::Gastropod],
-            SpeciesEnum::Slime => vec![
-                SpeciesEnum::Human,
-                SpeciesEnum::Undergrounder,
-                SpeciesEnum::DeepSpawn,
-            ],
-            SpeciesEnum::Gastropod => vec![
-                SpeciesEnum::Human,
-                SpeciesEnum::Myconid,
-                SpeciesEnum::DeepSpawn,
-            ],
-            SpeciesEnum::Myconid => vec![
-                SpeciesEnum::Human,
-                SpeciesEnum::Slime,
-                SpeciesEnum::Bug,
-                SpeciesEnum::Undead,
-            ],
-            SpeciesEnum::Bug => vec![
-                SpeciesEnum::Human,
-                SpeciesEnum::Bug,
-                SpeciesEnum::Fish,
-                SpeciesEnum::Gastropod,
-            ],
-            SpeciesEnum::Gremlin => vec![
-                SpeciesEnum::Human,
-                SpeciesEnum::Undergrounder,
-                SpeciesEnum::DeepSpawn,
-                SpeciesEnum::Undead,
-            ],
-            SpeciesEnum::DeepSpawn => vec![
-                SpeciesEnum::Human,
-                SpeciesEnum::Fish,
-                SpeciesEnum::Undergrounder,
-                SpeciesEnum::Undead,
-            ],
-            SpeciesEnum::Undead => vec![
-                SpeciesEnum::Human,
-                SpeciesEnum::Undergrounder,
-                SpeciesEnum::DeepSpawn,
-                SpeciesEnum::Gremlin,
-            ],
+            SpeciesEnum::Human => &HUMAN_SPECIES_HATES,
+            SpeciesEnum::Undergrounder => &UNDERGROUNDER_SPECIES_HATES,
+            SpeciesEnum::Fish => &FISH_SPECIES_HATES,
+            SpeciesEnum::Slime => &SLIME_SPECIES_HATES,
+            SpeciesEnum::Gastropod => &GASTROPOD_SPECIES_HATES,
+            SpeciesEnum::Myconid => &MYCONID_SPECIES_HATES,
+            SpeciesEnum::Bug => &BUG_SPECIES_HATES,
+            SpeciesEnum::Gremlin => &GREMLIN_SPECIES_HATES,
+            SpeciesEnum::DeepSpawn => &DEEPSPAWN_SPECIES_HATES,
+            SpeciesEnum::Undead => &UNDEAD_SPECIES_HATES,
         }
     }
 

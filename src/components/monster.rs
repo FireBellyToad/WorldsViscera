@@ -14,7 +14,7 @@ pub struct Smart {}
 
 pub struct Small {}
 
-pub struct IsPrey {}
+pub struct Prey {}
 
 pub struct LeaveTrail {
     pub of: DecalType,

@@ -172,7 +172,7 @@ impl MeleeManager {
                                         ));
                                     } else if target_is_player {
                                         game_state.game_log.entries.push(format!(
-                                            "The{} sneak attacks you for {} damage!",
+                                            "The {} sneak attacks you for {} damage!",
                                             named_attacker.name, damage_roll
                                         ));
                                     } else {

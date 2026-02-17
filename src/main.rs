@@ -317,7 +317,7 @@ fn do_tickless_logic(game_state: &mut GameState) {
             } else if is_key_pressed(KeyCode::F10) {
                 Spawn::curing_paste(&mut game_state.ecs_world, MAP_WIDTH / 2, MAP_HEIGHT / 2);
             } else if is_key_pressed(KeyCode::F9) {
-                Spawn::sulfuric_slug(&mut game_state.ecs_world, MAP_WIDTH / 2, MAP_HEIGHT / 2);
+                Spawn::calcificator(&mut game_state.ecs_world, MAP_WIDTH / 2, MAP_HEIGHT / 2);
             } else if is_key_pressed(KeyCode::F8) {
                 use crate::components::combat::CombatStats;
 
@@ -355,6 +355,15 @@ fn do_tickless_logic(game_state: &mut GameState) {
                 );
             } else if is_key_pressed(KeyCode::F6) {
                 game_state.debug_monster_vision = !game_state.debug_monster_vision;
+            } else if is_key_pressed(KeyCode::F5) {
+                use crate::utils::roll::Roll;
+
+                Spawn::random_terrain_monster(
+                    &mut game_state.ecs_world,
+                    MAP_WIDTH / 2,
+                    MAP_HEIGHT / 2,
+                    19 + Roll::d20() as u32,
+                );
             }
         }
     }

@@ -5,6 +5,7 @@ use macroquad::math::Rect;
 
 use crate::{
     components::{
+        actions::WantsToApply,
         combat::{CanHide, CombatStats, SufferingDamage},
         common::{
             BlocksTile, Hates, Immobile, MyTurn, Named, Position, ProduceCorpse, ProduceSound,
@@ -12,7 +13,7 @@ use crate::{
         },
         health::{DiseaseType, Hunger},
         items::{BodyLocation, Deadly, DontLeaveCorpse, Edible, Equipped, InBackback},
-        monster::{Aquatic, DiseaseBearer, IsPrey, LeaveTrail, Monster, Small, Smart, Venomous},
+        monster::{Aquatic, DiseaseBearer, LeaveTrail, Monster, Prey, Small, Smart, Venomous},
     },
     constants::{
         BASE_MONSTER_VIEW_RADIUS, FAST, FILTH_TRAIL_LIFETIME, MAX_HUNGER_TICK_COUNTER, NORMAL,
@@ -38,6 +39,64 @@ type MonsterData = (
 );
 
 impl Spawn {
+    /// Generic monster creation
+    pub fn create_monster(ecs_world: &mut World, monster_data: MonsterData) -> Entity {
+        let (name, species, combat_stats, edible, smells, sounds, tile_x, tile_y, x, y) =
+            monster_data;
+
+        let monster_entity = (
+            Monster {},
+            species,
+            Position { x, y },
+            Renderable {
+                texture_name: TextureName::Creatures,
+                texture_region: Rect {
+                    x: tile_x * TILE_SIZE_F32,
+                    y: tile_y * TILE_SIZE_F32,
+                    w: TILE_SIZE_F32,
+                    h: TILE_SIZE_F32,
+                },
+                z_index: 1,
+            },
+            Viewshed {
+                visible_tiles: Vec::new(),
+                range: BASE_MONSTER_VIEW_RADIUS,
+                must_recalculate: true,
+            },
+            Named { name },
+            BlocksTile {},
+            combat_stats,
+            SufferingDamage {
+                damage_received: 0,
+                toughness_damage_received: 0,
+                dexterity_damage_received: 0,
+                damager: None,
+            },
+            Hunger {
+                tick_counter: MAX_HUNGER_TICK_COUNTER,
+                current_status: HungerStatus::Normal,
+            },
+            MyTurn {},
+            smells,
+            sounds,
+            edible,
+        );
+
+        let monster_spawned = ecs_world.spawn(monster_entity);
+
+        let _ = ecs_world.insert(
+            monster_spawned,
+            (
+                ProduceCorpse {},
+                Hates {
+                    list: HashSet::new(),
+                },
+            ),
+        );
+
+        monster_spawned
+    }
+
     pub fn deep_one(ecs_world: &mut World, x: i32, y: i32) {
         Spawn::create_monster(
             ecs_world,
@@ -136,9 +195,9 @@ impl Spawn {
                 },
                 CombatStats {
                     level: 3,
-                    current_stamina: 3,
-                    max_stamina: 3,
-                    base_armor: 1,
+                    current_stamina: 4,
+                    max_stamina: 4,
+                    base_armor: 2,
                     unarmed_attack_dice: 2,
                     current_toughness: 12,
                     max_toughness: 12,
@@ -158,7 +217,7 @@ impl Spawn {
                     sound_log: "chalk scratching on floor".to_string(),
                 },
                 10.0,
-                0.0,
+                1.0,
                 x,
                 y,
             ),
@@ -305,7 +364,7 @@ impl Spawn {
             ),
         );
 
-        let _ = ecs_world.insert(water_worm, (IsPrey {}, Aquatic {}, CanHide { cooldown: 0 }));
+        let _ = ecs_world.insert(water_worm, (Prey {}, Aquatic {}, CanHide { cooldown: 0 }));
     }
 
     pub fn gremlin(ecs_world: &mut World, x: i32, y: i32) {
@@ -351,21 +410,71 @@ impl Spawn {
         if Roll::d6() > 5 {
             let wand = Spawn::wand(ecs_world, x, y);
             let _ = ecs_world.remove_one::<Position>(wand);
-            let _ = ecs_world.insert(
+            let _ = ecs_world.insert_one(
                 wand,
-                (
-                    InBackback {
-                        owner: gremlin,
-                        assigned_char: 'b',
-                    },
-                    Equipped {
-                        owner: gremlin,
-                        body_location: BodyLocation::RightHand,
-                    },
-                ),
+                InBackback {
+                    owner: gremlin,
+                    assigned_char: 'b',
+                },
             );
         } else if Roll::d6() > 3 {
             Spawn::give_slingshot_and_ammo(ecs_world, gremlin);
+        }
+    }
+
+    pub fn enthropic_gremlin(ecs_world: &mut World, x: i32, y: i32) {
+        let enthropic_gremlin = Spawn::create_monster(
+            ecs_world,
+            (
+                "Enthropic gremlin".to_string(),
+                Species {
+                    value: SpeciesEnum::Gremlin,
+                },
+                CombatStats {
+                    level: 12,
+                    current_stamina: 10,
+                    max_stamina: 10,
+                    base_armor: 0,
+                    unarmed_attack_dice: 3,
+                    current_toughness: 13,
+                    max_toughness: 13,
+                    current_dexterity: 16,
+                    max_dexterity: 16,
+                    speed: FAST,
+                },
+                Edible {
+                    nutrition_dice_number: 3,
+                    nutrition_dice_size: 6,
+                },
+                Smellable {
+                    smell_log: Some("cheap leather".to_string()),
+                    intensity: SmellIntensity::Faint,
+                },
+                ProduceSound {
+                    sound_log: "someone raving madly".to_string(),
+                },
+                3.0,
+                1.0,
+                x,
+                y,
+            ),
+        );
+
+        let _ = ecs_world.insert(
+            enthropic_gremlin,
+            (Smart {}, Small {}, CanHide { cooldown: 0 }),
+        );
+
+        for _ in 0..3 {
+            let wand = Spawn::wand(ecs_world, x, y);
+            let _ = ecs_world.remove_one::<Position>(wand);
+            let _ = ecs_world.insert_one(
+                wand,
+                InBackback {
+                    owner: enthropic_gremlin,
+                    assigned_char: 'a',
+                },
+            );
         }
     }
 
@@ -465,7 +574,7 @@ impl Spawn {
                     },
                     Equipped {
                         owner: moleman,
-                        body_location: BodyLocation::RightHand,
+                        body_location: BodyLocation::BothHands,
                     },
                 ),
             );
@@ -536,64 +645,6 @@ impl Spawn {
         moleman_farmer
     }
 
-    /// Generic monster creation
-    pub fn create_monster(ecs_world: &mut World, monster_data: MonsterData) -> Entity {
-        let (name, species, combat_stats, edible, smells, sounds, tile_x, tile_y, x, y) =
-            monster_data;
-
-        let monster_entity = (
-            Monster {},
-            species,
-            Position { x, y },
-            Renderable {
-                texture_name: TextureName::Creatures,
-                texture_region: Rect {
-                    x: tile_x * TILE_SIZE_F32,
-                    y: tile_y * TILE_SIZE_F32,
-                    w: TILE_SIZE_F32,
-                    h: TILE_SIZE_F32,
-                },
-                z_index: 1,
-            },
-            Viewshed {
-                visible_tiles: Vec::new(),
-                range: BASE_MONSTER_VIEW_RADIUS,
-                must_recalculate: true,
-            },
-            Named { name },
-            BlocksTile {},
-            combat_stats,
-            SufferingDamage {
-                damage_received: 0,
-                toughness_damage_received: 0,
-                dexterity_damage_received: 0,
-                damager: None,
-            },
-            Hunger {
-                tick_counter: MAX_HUNGER_TICK_COUNTER,
-                current_status: HungerStatus::Normal,
-            },
-            MyTurn {},
-            smells,
-            sounds,
-            edible,
-        );
-
-        let monster_spawned = ecs_world.spawn(monster_entity);
-
-        let _ = ecs_world.insert(
-            monster_spawned,
-            (
-                ProduceCorpse {},
-                Hates {
-                    list: HashSet::new(),
-                },
-            ),
-        );
-
-        monster_spawned
-    }
-
     pub fn giant_cockroach(ecs_world: &mut World, x: i32, y: i32) {
         let centipede = Spawn::create_monster(
             ecs_world,
@@ -632,7 +683,7 @@ impl Spawn {
             ),
         );
 
-        let _ = ecs_world.insert(centipede, (Small {}, IsPrey {}));
+        let _ = ecs_world.insert(centipede, (Small {}, Prey {}));
     }
 
     pub fn giant_slug(ecs_world: &mut World, x: i32, y: i32) {
@@ -678,7 +729,7 @@ impl Spawn {
             slug,
             (
                 Small {},
-                IsPrey {},
+                Prey {},
                 LeaveTrail {
                     of: DecalType::Slime,
                     trail_lifetime: SLUG_TRAIL_LIFETIME,
@@ -730,7 +781,7 @@ impl Spawn {
             slug,
             (
                 Small {},
-                IsPrey {},
+                Prey {},
                 Deadly {},
                 LeaveTrail {
                     of: DecalType::Acid,
@@ -738,5 +789,178 @@ impl Spawn {
                 },
             ),
         );
+    }
+
+    pub fn refugee(ecs_world: &mut World, x: i32, y: i32) {
+        let refugee = Spawn::create_monster(
+            ecs_world,
+            (
+                "Human refugee".to_string(),
+                Species {
+                    value: SpeciesEnum::Human,
+                },
+                CombatStats {
+                    level: 2,
+                    current_stamina: 6,
+                    max_stamina: 6,
+                    base_armor: 0,
+                    unarmed_attack_dice: 3,
+                    current_toughness: 10,
+                    max_toughness: 10,
+                    current_dexterity: 10,
+                    max_dexterity: 10,
+                    speed: NORMAL,
+                },
+                Edible {
+                    nutrition_dice_number: 5,
+                    nutrition_dice_size: 4,
+                },
+                Smellable {
+                    smell_log: Some("human sweat".to_string()),
+                    intensity: SmellIntensity::Faint,
+                },
+                ProduceSound {
+                    sound_log: "faint breathing".to_string(),
+                },
+                0.0,
+                1.0,
+                x,
+                y,
+            ),
+        );
+
+        let weapon_roll = Roll::d6();
+        if weapon_roll > 5 {
+            Spawn::give_slingshot_and_ammo(ecs_world, refugee);
+        } else if weapon_roll > 2 {
+            let lantern = Spawn::lantern(ecs_world, x, y);
+            let _ = ecs_world.remove_one::<Position>(lantern);
+            let _ = ecs_world.insert_one(
+                lantern,
+                InBackback {
+                    owner: refugee,
+                    assigned_char: 'b',
+                },
+            );
+            let _ = ecs_world.insert_one(refugee, WantsToApply { item: lantern });
+        }
+
+        // Randomize a weapon
+        let weapon_roll = Roll::d6();
+        if weapon_roll > 5 {
+            let pickaxe = Spawn::pickaxe(ecs_world, x, y);
+            let _ = ecs_world.remove_one::<Position>(pickaxe);
+            let _ = ecs_world.insert(
+                pickaxe,
+                (
+                    InBackback {
+                        owner: refugee,
+                        assigned_char: 'a',
+                    },
+                    Equipped {
+                        owner: refugee,
+                        body_location: BodyLocation::BothHands,
+                    },
+                ),
+            );
+        } else if weapon_roll > 2 {
+            let rockpick = Spawn::rockpick(ecs_world, x, y);
+            let _ = ecs_world.remove_one::<Position>(rockpick);
+            let _ = ecs_world.insert(
+                rockpick,
+                (
+                    InBackback {
+                        owner: refugee,
+                        assigned_char: 'a',
+                    },
+                    Equipped {
+                        owner: refugee,
+                        body_location: BodyLocation::RightHand,
+                    },
+                ),
+            );
+        }
+
+        let _ = ecs_world.insert_one(refugee, Smart {});
+    }
+
+    pub fn living_dead(ecs_world: &mut World, x: i32, y: i32) {
+        Spawn::create_monster(
+            ecs_world,
+            (
+                "Living dead".to_string(),
+                Species {
+                    value: SpeciesEnum::Undead,
+                },
+                CombatStats {
+                    level: 1,
+                    current_stamina: 6,
+                    max_stamina: 6,
+                    base_armor: 0,
+                    unarmed_attack_dice: 0,
+                    current_toughness: 10,
+                    max_toughness: 10,
+                    current_dexterity: 3,
+                    max_dexterity: 3,
+                    speed: SLOW,
+                },
+                Edible {
+                    nutrition_dice_number: 1,
+                    nutrition_dice_size: 1,
+                },
+                Smellable {
+                    smell_log: Some("decomposition".to_string()),
+                    intensity: SmellIntensity::Faint,
+                },
+                ProduceSound {
+                    sound_log: "dragging feet".to_string(),
+                },
+                10.0,
+                0.0,
+                x,
+                y,
+            ),
+        );
+    }
+
+    pub fn darkling(ecs_world: &mut World, x: i32, y: i32) {
+        let _darkling = Spawn::create_monster(
+            ecs_world,
+            (
+                "Darkling".to_string(),
+                Species {
+                    value: SpeciesEnum::DeepSpawn,
+                },
+                CombatStats {
+                    level: 12,
+                    current_stamina: 10,
+                    max_stamina: 10,
+                    base_armor: 1,
+                    unarmed_attack_dice: 8,
+                    current_toughness: 15,
+                    max_toughness: 15,
+                    current_dexterity: 15,
+                    max_dexterity: 15,
+                    speed: NORMAL,
+                },
+                Edible {
+                    nutrition_dice_number: 1,
+                    nutrition_dice_size: 12,
+                },
+                Smellable {
+                    smell_log: Some("nothing strange".to_string()),
+                    intensity: SmellIntensity::None,
+                },
+                ProduceSound {
+                    sound_log: "someone whispering".to_string(),
+                },
+                12.0,
+                0.0,
+                x,
+                y,
+            ),
+        );
+
+        //TODO sleep attack
     }
 }

@@ -1,3 +1,5 @@
+use crate::components::common::SpeciesEnum;
+
 /// UI related constants
 pub const UI_BORDER: i32 = 8;
 pub const UI_BORDER_F32: f32 = UI_BORDER as f32;
@@ -126,6 +128,66 @@ pub const MAX_HIDDEN_TURNS: i32 = 9;
 pub const SLUG_TRAIL_LIFETIME: u32 = 50;
 pub const FILTH_TRAIL_LIFETIME: u32 = 20;
 pub const MAX_PRIORITIES_NUMBER: usize = 5;
+pub const HUMAN_SPECIES_HATES: [SpeciesEnum; 4] = [
+    SpeciesEnum::Fish,
+    SpeciesEnum::Gastropod,
+    SpeciesEnum::Gremlin,
+    SpeciesEnum::Undead,
+];
+pub const UNDERGROUNDER_SPECIES_HATES: [SpeciesEnum; 4] = [
+    SpeciesEnum::Bug,
+    SpeciesEnum::Gremlin,
+    SpeciesEnum::DeepSpawn,
+    SpeciesEnum::Undead,
+];
+pub const SLIME_SPECIES_HATES: [SpeciesEnum; 4] = [
+    SpeciesEnum::Human,
+    SpeciesEnum::Undergrounder,
+    SpeciesEnum::DeepSpawn,
+    SpeciesEnum::Myconid,
+];
+pub const FISH_SPECIES_HATES: [SpeciesEnum; 4] = [
+    SpeciesEnum::Human,
+    SpeciesEnum::Bug,
+    SpeciesEnum::Fish,
+    SpeciesEnum::Gastropod,
+];
+pub const GASTROPOD_SPECIES_HATES: [SpeciesEnum; 4] = [
+    SpeciesEnum::Human,
+    SpeciesEnum::Undergrounder,
+    SpeciesEnum::DeepSpawn,
+    SpeciesEnum::Myconid,
+];
+pub const MYCONID_SPECIES_HATES: [SpeciesEnum; 4] = [
+    SpeciesEnum::Human,
+    SpeciesEnum::Slime,
+    SpeciesEnum::Bug,
+    SpeciesEnum::Undead,
+];
+pub const BUG_SPECIES_HATES: [SpeciesEnum; 4] = [
+    SpeciesEnum::Human,
+    SpeciesEnum::Bug,
+    SpeciesEnum::Fish,
+    SpeciesEnum::Gastropod,
+];
+pub const GREMLIN_SPECIES_HATES: [SpeciesEnum; 4] = [
+    SpeciesEnum::Human,
+    SpeciesEnum::Undergrounder,
+    SpeciesEnum::DeepSpawn,
+    SpeciesEnum::Undead,
+];
+pub const DEEPSPAWN_SPECIES_HATES: [SpeciesEnum; 4] = [
+    SpeciesEnum::Human,
+    SpeciesEnum::Fish,
+    SpeciesEnum::Undergrounder,
+    SpeciesEnum::Undead,
+];
+pub const UNDEAD_SPECIES_HATES: [SpeciesEnum; 4] = [
+    SpeciesEnum::Human,
+    SpeciesEnum::Undergrounder,
+    SpeciesEnum::DeepSpawn,
+    SpeciesEnum::Gremlin,
+];
 
 /// Saving Throw related constants
 pub const AUTOFAIL_SAVING_THROW: i32 = 999;
