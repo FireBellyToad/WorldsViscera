@@ -1,5 +1,3 @@
-use std::ops::Index;
-
 use adam_fov_rs::{IVec2, compute_fov};
 
 use crate::{

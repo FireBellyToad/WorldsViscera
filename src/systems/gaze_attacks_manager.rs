@@ -1,5 +1,4 @@
 use hecs::Entity;
-use macroquad::ui::Vertex;
 
 use crate::{
     components::{
