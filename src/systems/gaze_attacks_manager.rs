@@ -45,46 +45,62 @@ impl GazeAttacksManager {
                 {
                     // Get all target info
                     let mut target_query = ecs_world
-                        .query_one::<(&CombatStats, &Position, &Named)>(wants_to_gaze.target)
+                        .query_one::<(&CombatStats, &Position, &Named, Option<&Immunity>)>(
+                            wants_to_gaze.target,
+                        )
                         .expect("target of gaze must have components");
-                    let (target_stats, t_pos, target_name) =
+                    let (target_stats, t_pos, target_name, target_immunity_opt) =
                         target_query.get().expect("Query should get something!");
 
-                    // One save to avoid the gaze, the other to resist once the target has been gazed upon
-                    if Roll::d20() <= target_stats.current_dexterity {
+                    //Check immunity
+                    if let Some(target_immunity) = target_immunity_opt
+                        && target_immunity.to == ImmunityTypeEnum::Blindness
+                    {
                         if player_entity_id == wants_to_gaze.target.id() {
                             game_state
                                 .game_log
                                 .entries
-                                .push(format!("You avoid the {}'s gaze!", named.name));
-                        }
-                    } else if Roll::d20() <= target_stats.current_toughness {
-                        if player_entity_id == wants_to_gaze.target.id() {
-                            game_state
-                                .game_log
-                                .entries
-                                .push(format!("You resist the {}'s gaze!", named.name));
+                                .push(format!("You just ignore the {}'s gaze!", named.name));
                         }
                     } else {
-                        gazed_targets.push((wants_to_gaze.target, gaze_attack.effect.clone()));
+                        // One save to avoid the gaze, the other to resist once the target has been gazed upon
+                        if Roll::d20() <= target_stats.current_dexterity {
+                            if player_entity_id == wants_to_gaze.target.id() {
+                                game_state
+                                    .game_log
+                                    .entries
+                                    .push(format!("You avoid the {}'s gaze!", named.name));
+                            }
+                        } else if Roll::d20() <= target_stats.current_toughness {
+                            if player_entity_id == wants_to_gaze.target.id() {
+                                game_state
+                                    .game_log
+                                    .entries
+                                    .push(format!("You resist the {}'s gaze!", named.name));
+                            }
+                        } else {
+                            gazed_targets.push((wants_to_gaze.target, gaze_attack.effect.clone()));
 
-                        let effect = match gaze_attack.effect {
-                            GazeEffectEnum::Blindness => "blinds",
-                        };
+                            let effect = match gaze_attack.effect {
+                                GazeEffectEnum::Blindness => "blinds",
+                            };
 
-                        //Log attack
-                        if player_entity_id == wants_to_gaze.target.id() {
-                            game_state
-                                .game_log
-                                .entries
-                                .push(format!("The {} {} you with its gaze!", named.name, effect));
-                        } else if zone.visible_tiles[Zone::get_index_from_xy(&t_pos.x, &t_pos.y)]
-                            && zone.visible_tiles[Zone::get_index_from_xy(&position.x, &position.y)]
-                        {
-                            game_state.game_log.entries.push(format!(
-                                "The {} {} the {} with its gaze!",
-                                named.name, effect, target_name.name
-                            ));
+                            //Log attack
+                            if player_entity_id == wants_to_gaze.target.id() {
+                                game_state.game_log.entries.push(format!(
+                                    "The {} {} you with its gaze!",
+                                    named.name, effect
+                                ));
+                            } else if zone.visible_tiles
+                                [Zone::get_index_from_xy(&t_pos.x, &t_pos.y)]
+                                && zone.visible_tiles
+                                    [Zone::get_index_from_xy(&position.x, &position.y)]
+                            {
+                                game_state.game_log.entries.push(format!(
+                                    "The {} {} the {} with its gaze!",
+                                    named.name, effect, target_name.name
+                                ));
+                            }
                         }
                     }
                 }

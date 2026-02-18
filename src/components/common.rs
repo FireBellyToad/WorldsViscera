@@ -104,3 +104,12 @@ pub enum SpeciesEnum {
 pub struct Diggable {
     pub dig_points: i32,
 }
+
+pub struct Immunity {
+    pub to: ImmunityTypeEnum,
+}
+
+#[derive(PartialEq, Debug)]
+pub enum ImmunityTypeEnum {
+    Blindness,
+}
