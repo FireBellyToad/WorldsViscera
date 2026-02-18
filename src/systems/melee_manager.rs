@@ -1,7 +1,7 @@
 use crate::{
     components::{
         combat::InflictsDamage,
-        health::{DiseaseType, Diseased},
+        health::{Blind, DiseaseType, Diseased},
         monster::DiseaseBearer,
     },
     constants::MAX_DISEASE_TICK_COUNTER,
@@ -87,14 +87,13 @@ impl MeleeManager {
                 if let Ok(mut target_damage) =
                     ecs_world.get::<&mut SufferingDamage>(wants_melee.target)
                 {
-                    let target_stats = ecs_world
-                        .get::<&CombatStats>(wants_melee.target)
-                        .expect("Entity does not have CombatStats");
+                    let mut target_query = ecs_world
+                        .query_one::<(&CombatStats, &Named, Option<&Blind>)>(wants_melee.target)
+                        .expect("Must have one");
 
                     // Show appropriate log messages
-                    let named_target = ecs_world
-                        .get::<&Named>(wants_melee.target)
-                        .expect("Entity is not Named");
+                    let (target_stats, named_target, target_is_blind) =
+                        target_query.get().expect("Entity is not Named");
                     let (attacker_dice_number, attacker_dice, erosion) =
                         MeleeManager::get_damage_dices(
                             attacker_stats.unarmed_attack_dice,
@@ -156,39 +155,39 @@ impl MeleeManager {
                         }
                         None => {
                             // Sneak attack doubles damage
-                            match hidden {
-                                Some(_) => {
-                                    damage_roll = max(
-                                        0,
-                                        Roll::dice(attacker_dice_number * 2, attacker_dice)
-                                            - target_armor
-                                            - erosion,
-                                    );
+                            // Can sneak attack if hidden or target is blind
+                            if hidden.is_some() || target_is_blind.is_some() {
+                                damage_roll = max(
+                                    0,
+                                    Roll::dice(attacker_dice_number * 2, attacker_dice)
+                                        - target_armor
+                                        - erosion,
+                                );
 
-                                    if attacker_is_player {
+                                if attacker_is_player {
+                                    game_state.game_log.entries.push(format!(
+                                        "You sneak attack the {} for {} damage!",
+                                        named_target.name, damage_roll
+                                    ));
+                                } else if target_is_player {
+                                    game_state.game_log.entries.push(format!(
+                                        "The {} sneak attacks you for {} damage!",
+                                        named_attacker.name, damage_roll
+                                    ));
+                                } else {
+                                    // Log NPC infighting only if visible
+                                    if zone.visible_tiles[Zone::get_index_from_xy(
+                                        &attacker_position.x,
+                                        &attacker_position.y,
+                                    )] {
                                         game_state.game_log.entries.push(format!(
-                                            "You sneak attack the {} for {} damage!",
-                                            named_target.name, damage_roll
+                                            "The {} sneak attacks the {} for {} damage!",
+                                            named_attacker.name, named_target.name, damage_roll
                                         ));
-                                    } else if target_is_player {
-                                        game_state.game_log.entries.push(format!(
-                                            "The {} sneak attacks you for {} damage!",
-                                            named_attacker.name, damage_roll
-                                        ));
-                                    } else {
-                                        // Log NPC infighting only if visible
-                                        if zone.visible_tiles[Zone::get_index_from_xy(
-                                            &attacker_position.x,
-                                            &attacker_position.y,
-                                        )] {
-                                            game_state.game_log.entries.push(format!(
-                                                "The {} sneak attacks the {} for {} damage!",
-                                                named_attacker.name, named_target.name, damage_roll
-                                            ));
-                                        }
                                     }
+                                }
+                                if hidden.is_some() {
                                     hidden_list.push(attacker);
-
                                     // Cannot hide again for 9 - (stats.current_dexterity / 3) turns
                                     let mut can_hide = ecs_world
                                         .get::<&mut CanHide>(attacker)
@@ -197,36 +196,34 @@ impl MeleeManager {
                                         - (attacker_stats.current_dexterity / 3))
                                         * attacker_stats.speed;
                                 }
-                                None => {
-                                    // Standard attack
-                                    damage_roll = max(
-                                        0,
-                                        Roll::dice(1, attacker_dice) - target_armor - erosion,
-                                    );
-                                    if attacker_is_player {
+                            } else {
+                                // Standard attack
+                                damage_roll =
+                                    max(0, Roll::dice(1, attacker_dice) - target_armor - erosion);
+                                if attacker_is_player {
+                                    game_state.game_log.entries.push(format!(
+                                        "You hit the {} for {} damage",
+                                        named_target.name, damage_roll
+                                    ));
+                                } else if target_is_player {
+                                    game_state.game_log.entries.push(format!(
+                                        "The {} hits you for {} damage",
+                                        named_attacker.name, damage_roll
+                                    ));
+                                } else {
+                                    // Log NPC infighting only if visible
+                                    if zone.visible_tiles[Zone::get_index_from_xy(
+                                        &attacker_position.x,
+                                        &attacker_position.y,
+                                    )] {
                                         game_state.game_log.entries.push(format!(
-                                            "You hit the {} for {} damage",
-                                            named_target.name, damage_roll
+                                            "{} hits the {} for {} damage",
+                                            named_attacker.name, named_target.name, damage_roll
                                         ));
-                                    } else if target_is_player {
-                                        game_state.game_log.entries.push(format!(
-                                            "The {} hits you for {} damage",
-                                            named_attacker.name, damage_roll
-                                        ));
-                                    } else {
-                                        // Log NPC infighting only if visible
-                                        if zone.visible_tiles[Zone::get_index_from_xy(
-                                            &attacker_position.x,
-                                            &attacker_position.y,
-                                        )] {
-                                            game_state.game_log.entries.push(format!(
-                                                "{} hits the {} for {} damage",
-                                                named_attacker.name, named_target.name, damage_roll
-                                            ));
-                                        }
                                     }
                                 }
                             }
+
                             target_damage.damage_received += damage_roll;
                             target_damage.damager = Some(attacker);
                         }
@@ -273,7 +270,7 @@ impl MeleeManager {
             Utils::wait_after_action(ecs_world, attacker, speed);
         }
 
-        //No longer hidden
+        // No longer hidden after attack
         for attacker in hidden_list {
             let _ = ecs_world.remove_one::<IsHidden>(attacker);
         }
