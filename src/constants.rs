@@ -80,7 +80,7 @@ pub const MAX_THIRST_TICK_COUNTER: i32 = 151;
 pub const MAX_DISEASE_TICK_COUNTER: i32 = 10;
 pub const PLAYER_SMELL_RADIUS: f32 = 16.0;
 pub const PLAYER_LISTEN_RADIUS: f32 = 20.0;
-pub const AUTO_ADVANCE_EXP_COUNTER_START: u32 = 500;
+pub const AUTO_ADVANCE_EXP_COUNTER_START: u32 = 300;
 
 /// Drunken Walk related constants
 pub const DRUNKEN_WALK_LIFE_MAX: i32 = 50;

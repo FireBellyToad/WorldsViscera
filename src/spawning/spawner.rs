@@ -42,7 +42,7 @@ impl Spawn {
         let rolled_toughness = Roll::stat();
         let rolled_dexterity = Roll::stat();
         // TODO Player with Soldier background must have 5+2d3 starting stamina
-        let rolled_stamina = Roll::d6() + 50;
+        let rolled_stamina = Roll::d6() + 5;
 
         let (spawn_x, spawn_y) = Zone::get_xy_from_index(zone.player_spawn_point);
 
@@ -74,7 +74,7 @@ impl Spawn {
                 level: 1,
                 current_stamina: rolled_stamina,
                 max_stamina: rolled_stamina,
-                base_armor: 20,
+                base_armor: 0,
                 unarmed_attack_dice: 2,
                 current_toughness: rolled_toughness,
                 max_toughness: rolled_toughness,
@@ -164,7 +164,7 @@ impl Spawn {
 
     /// Spawn a random terrainmonster
     pub fn random_terrain_monster(ecs_world: &mut World, x: i32, y: i32, depth: u32) {
-        let dice_roll = max(1, Roll::dice(1, 10) + depth as i32);
+        let dice_roll = max(1, Roll::dice(1, 8) + depth as i32);
 
         // Depth based spawn table, recursive if roll is too high
         match dice_roll {

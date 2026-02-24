@@ -1,8 +1,5 @@
 use crate::{
-    components::{
-        combat::CombatStats,
-        common::Experience,
-    },
+    components::{combat::CombatStats, common::Experience},
     constants::AUTO_ADVANCE_EXP_COUNTER_START,
     engine::state::GameState,
     utils::roll::Roll,
@@ -40,18 +37,18 @@ impl AdvancementSystem {
                     }
 
                     // Increase stats and Stamina
-                    // TODO if soldier, increase is 2d3
-                    let stamina_increase = Roll::dice(1, 3);
+                    // TODO if soldier, increase is 2d6
+                    let stamina_increase = Roll::dice(1, 6);
                     stats.max_stamina += stamina_increase;
                     stats.current_stamina += stamina_increase;
 
-                    let new_toughness = Roll::stat() + 1;
+                    let new_toughness = Roll::d20() - 1;
                     if new_toughness > stats.max_toughness {
                         stats.max_toughness += 1;
                         stats.current_toughness += 1;
                     }
 
-                    let new_dexterity = Roll::stat() + 1;
+                    let new_dexterity = Roll::d20() - 1;
                     if new_dexterity > stats.max_dexterity {
                         stats.max_dexterity += 1;
                         stats.current_dexterity += 1;

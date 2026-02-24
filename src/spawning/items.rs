@@ -212,6 +212,39 @@ impl Spawn {
         ecs_world.spawn(curing_paste);
     }
 
+    pub fn ration(ecs_world: &mut World, x: i32, y: i32) {
+        let item_tile_index = (9, 0);
+        let ration = (
+            Position { x, y },
+            Renderable {
+                texture_name: TextureName::Items,
+                texture_region: Rect {
+                    x: (item_tile_index.0 * TILE_SIZE) as f32,
+                    y: (item_tile_index.1 * TILE_SIZE) as f32,
+                    w: TILE_SIZE_F32,
+                    h: TILE_SIZE_F32,
+                },
+                z_index: 0,
+            },
+            Named {
+                name: "ration".to_string(),
+            },
+            Item {
+                item_tile: item_tile_index,
+            },
+            Smellable {
+                smell_log: Some("dry meat".to_string()),
+                intensity: SmellIntensity::Faint,
+            },
+            Edible {
+                nutrition_dice_number: 5,
+                nutrition_dice_size: 20,
+            },
+        );
+
+        ecs_world.spawn(ration);
+    }
+
     pub fn lantern(ecs_world: &mut World, x: i32, y: i32) -> Entity {
         let item_tile_index = (3, 0);
         let lantern = (

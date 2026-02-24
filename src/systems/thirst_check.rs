@@ -3,7 +3,7 @@ use std::cmp::{max, min};
 use crate::{
     components::{
         combat::{CombatStats, SufferingDamage},
-        common::{MyTurn, Position},
+        common::{MyTurn, Position, Species, SpeciesEnum},
         health::Thirst,
     },
     constants::MAX_THIRST_TICK_COUNTER,
@@ -46,7 +46,7 @@ impl ThirstCheck {
         {
             // List of entities that has stats
             let mut thirsty_entities = ecs_world
-                .query::<(&mut Thirst, &CombatStats, &Position)>()
+                .query::<(&mut Thirst, &CombatStats, &Position, &Species)>()
                 .with::<&MyTurn>();
 
             let zone = game_state
@@ -56,7 +56,7 @@ impl ThirstCheck {
 
             //Log all the thirst checks
 
-            for (thirsty_entity, (thirst, stats, position)) in &mut thirsty_entities {
+            for (thirsty_entity, (thirst, stats, position, species)) in &mut thirsty_entities {
                 // When clock is depleted, decrease thirst status
                 // TODO Calculate penalties
                 thirst.tick_counter = max(0, thirst.tick_counter - 1);
@@ -84,7 +84,8 @@ impl ThirstCheck {
                         }
                         ThirstStatus::Dehydrated => {
                             // 33% of chance to be damaged by thirst
-                            if Roll::d6() <= 2 {
+                            // Undead feel hunger but are immune to starvation damage
+                            if species.value != SpeciesEnum::Undead && Roll::d6() <= 2 {
                                 // if can starve and be damaged, damage the entity
                                 if let Ok(mut damage_starving_entity) =
                                     ecs_world.get::<&mut SufferingDamage>(thirsty_entity)
