@@ -54,7 +54,7 @@ impl GazeAttacksManager {
 
                     //Check immunity
                     if let Some(target_immunity) = target_immunity_opt
-                        && target_immunity.to == ImmunityTypeEnum::Blindness
+                        && target_immunity.to.contains(&ImmunityTypeEnum::Blindness)
                     {
                         if player_entity_id == wants_to_gaze.target.id() {
                             game_state

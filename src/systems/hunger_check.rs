@@ -3,7 +3,7 @@ use std::cmp::{max, min};
 use crate::{
     components::{
         combat::{CombatStats, SufferingDamage},
-        common::{MyTurn, Position},
+        common::{MyTurn, Position, Species, SpeciesEnum},
         health::Hunger,
     },
     constants::MAX_HUNGER_TICK_COUNTER,
@@ -51,12 +51,12 @@ impl HungerCheck {
         {
             // List of entities that has stats
             let mut hungry_entities = ecs_world
-                .query::<(&mut Hunger, &CombatStats, &Position)>()
+                .query::<(&mut Hunger, &CombatStats, &Position, &Species)>()
                 .with::<&MyTurn>();
 
             //Log all the hunger checks
 
-            for (hungry_entity, (hunger, stats, position)) in &mut hungry_entities {
+            for (hungry_entity, (hunger, stats, position, species)) in &mut hungry_entities {
                 // When clock is depleted, decrease fed status
                 // TODO Calculate penalties
                 hunger.tick_counter = max(0, hunger.tick_counter - 1);
@@ -83,7 +83,8 @@ impl HungerCheck {
                         }
                         HungerStatus::Starved => {
                             // 33% of chance to be damaged by hunger
-                            if Roll::d6() <= 2 {
+                            // Undead feel hunger but are immune to starvation damage
+                            if species.value != SpeciesEnum::Undead && Roll::d6() <= 2 {
                                 // if can starve and can be damaged, damage the entity
                                 if let Ok(mut damage_starving_entity) =
                                     ecs_world.get::<&mut SufferingDamage>(hungry_entity)

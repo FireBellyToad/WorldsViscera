@@ -106,7 +106,7 @@ pub struct Diggable {
 }
 
 pub struct Immunity {
-    pub to: ImmunityTypeEnum,
+    pub to: Vec<ImmunityTypeEnum>,
 }
 
 #[derive(PartialEq, Debug)]
