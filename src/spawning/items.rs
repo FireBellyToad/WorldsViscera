@@ -212,8 +212,8 @@ impl Spawn {
         ecs_world.spawn(curing_paste);
     }
 
-    pub fn ration(ecs_world: &mut World, x: i32, y: i32) {
-        let item_tile_index = (9, 0);
+    pub fn ration(ecs_world: &mut World, x: i32, y: i32) -> Entity {
+        let item_tile_index = (7, 0);
         let ration = (
             Position { x, y },
             Renderable {
@@ -242,7 +242,7 @@ impl Spawn {
             },
         );
 
-        ecs_world.spawn(ration);
+        ecs_world.spawn(ration)
     }
 
     pub fn lantern(ecs_world: &mut World, x: i32, y: i32) -> Entity {

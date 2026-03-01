@@ -639,8 +639,18 @@ impl Spawn {
 
         Spawn::moleman_chain(ecs_world, moleman_farmer);
         Spawn::give_crossbow_and_ammo(ecs_world, moleman_farmer);
-        // TODO Farmer cannot be hungry
-        // let _ = ecs_world.remove_one::<Hunger>(moleman_farmer);
+
+        // Moleman farmer has a ration
+        let ration = Spawn::ration(ecs_world, x, y);
+        let _ = ecs_world.remove_one::<Position>(ration);
+        let _ = ecs_world.insert_one(
+            ration,
+            InBackback {
+                owner: moleman_farmer,
+                assigned_char: 'd',
+            },
+        );
+
         let _ = ecs_world.insert(moleman_farmer, (Smart {}, Immobile {}));
         moleman_farmer
     }
@@ -845,41 +855,16 @@ impl Spawn {
             let _ = ecs_world.insert_one(refugee, WantsToApply { item: lantern });
         }
 
-        // Randomize a weapon
-        let weapon_roll = Roll::d6();
-        if weapon_roll > 5 {
-            let pickaxe = Spawn::pickaxe(ecs_world, x, y);
-            let _ = ecs_world.remove_one::<Position>(pickaxe);
-            let _ = ecs_world.insert(
-                pickaxe,
-                (
-                    InBackback {
-                        owner: refugee,
-                        assigned_char: 'a',
-                    },
-                    Equipped {
-                        owner: refugee,
-                        body_location: BodyLocation::BothHands,
-                    },
-                ),
-            );
-        } else if weapon_roll > 2 {
-            let rockpick = Spawn::rockpick(ecs_world, x, y);
-            let _ = ecs_world.remove_one::<Position>(rockpick);
-            let _ = ecs_world.insert(
-                rockpick,
-                (
-                    InBackback {
-                        owner: refugee,
-                        assigned_char: 'a',
-                    },
-                    Equipped {
-                        owner: refugee,
-                        body_location: BodyLocation::RightHand,
-                    },
-                ),
-            );
-        }
+        // Refugee has a ration
+        let ration = Spawn::ration(ecs_world, x, y);
+        let _ = ecs_world.remove_one::<Position>(ration);
+        let _ = ecs_world.insert_one(
+            ration,
+            InBackback {
+                owner: refugee,
+                assigned_char: 'c',
+            },
+        );
 
         let _ = ecs_world.insert_one(refugee, Smart {});
     }
