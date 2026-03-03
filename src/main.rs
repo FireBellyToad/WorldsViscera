@@ -96,7 +96,7 @@ async fn main() {
             // Make the whole game turn based
 
             #[cfg(not(target_arch = "wasm32"))]
-            do_tickless_logic(&mut game_state);
+            do_debug_logic(&mut game_state);
 
             match game_state.run_state.clone() {
                 RunState::TitleScreen => {
@@ -303,7 +303,7 @@ fn do_in_tick_game_logic(game_engine: &mut GameEngine, game_state: &mut GameStat
 }
 
 #[cfg(not(target_arch = "wasm32"))]
-fn do_tickless_logic(game_state: &mut GameState) {
+fn do_debug_logic(game_state: &mut GameState) {
     {
         if is_key_pressed(KeyCode::F12) {
             game_state.debug_mode = !game_state.debug_mode;
@@ -320,7 +320,7 @@ fn do_tickless_logic(game_state: &mut GameState) {
                 Spawn::ration(&mut game_state.ecs_world, MAP_WIDTH / 2, MAP_HEIGHT / 2);
                 Spawn::flask_of_water(&mut game_state.ecs_world, MAP_WIDTH / 2, MAP_HEIGHT / 2);
             } else if is_key_pressed(KeyCode::F9) {
-                Spawn::refugee(&mut game_state.ecs_world, MAP_WIDTH / 2, MAP_HEIGHT / 2);
+                Spawn::colossal_worm(&mut game_state.ecs_world, MAP_WIDTH / 2, MAP_HEIGHT / 2);
             } else if is_key_pressed(KeyCode::F8) {
                 use crate::components::combat::CombatStats;
 

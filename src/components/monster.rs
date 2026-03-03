@@ -1,3 +1,7 @@
+use std::collections::LinkedList;
+
+use hecs::Entity;
+
 use crate::{components::health::DiseaseType, maps::zone::DecalType};
 
 pub struct Monster {}
@@ -29,4 +33,13 @@ pub struct WantsToApproach {
     pub target_x: i32,
     pub target_y: i32,
     pub counter: u32,
+}
+
+pub struct SnakeHead {
+    pub body: LinkedList<Entity>,
+    pub is_single_creature: bool,
+}
+
+pub struct SnakeBody {
+    pub head: Entity,
 }

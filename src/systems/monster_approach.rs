@@ -4,7 +4,7 @@ use crate::{
     components::{
         combat::{CombatStats, SufferingDamage},
         common::*,
-        monster::{Aquatic, LeaveTrail, Monster, WantsToApproach},
+        monster::{Aquatic, LeaveTrail, Monster, SnakeHead, WantsToApproach},
     },
     engine::state::GameState,
     maps::zone::{DecalType, Zone},
@@ -34,6 +34,7 @@ impl MonsterApproach {
                     &mut WantsToApproach,
                     Option<&LeaveTrail>,
                     Option<&Immobile>,
+                    Option<&SnakeHead>,
                 )>()
                 .with::<(&Monster, &MyTurn)>();
 
@@ -55,13 +56,14 @@ impl MonsterApproach {
                     wants_to_approach,
                     leave_trail,
                     immobile,
+                    snake_head,
                 ),
             ) in &mut named_monsters
             {
                 let current_pos_index = Zone::get_index_from_xy(&position.x, &position.y);
 
                 // Checking if could slip on slime before moving away
-                if leave_trail.is_none()
+                if leave_trail.is_none() && snake_head.is_none() // Snake monsters cannot slip (TODO really?)
                     && let Some(special_tile) = zone.decals_tiles.get(&current_pos_index)
                     && let DecalType::Slime = special_tile
                 {
@@ -107,6 +109,32 @@ impl MonsterApproach {
 
                     // Avoid overlap with other monsters and player
                     zone.blocked_tiles[Zone::get_index_from_xy(&position.x, &position.y)] = false;
+
+                    // Shift snake body parts to previous part position
+                    // .......    .......
+                    // ..<000. => .<000..
+                    // .......    .......
+                    if let Some(snake) = snake_head {
+                        let mut new_x = position.x;
+                        let mut new_y = position.y;
+                        let mut previous_x;
+                        let mut previous_y;
+                        for &body_part in snake.body.iter() {
+                            if let Ok(mut part_pos) = ecs_world.get::<&mut Position>(body_part) {
+                                // Shift each part of snake body
+                                previous_x = part_pos.x;
+                                previous_y = part_pos.y;
+                                part_pos.x = new_x;
+                                part_pos.y = new_y;
+                                new_x = previous_x;
+                                new_y = previous_y;
+                            } else {
+                                panic!("Why snake body part do not have Position?")
+                            }
+                        }
+                    }
+
+                    //Move monster (or head)
                     position.x = path[1].0;
                     position.y = path[1].1;
                     zone.blocked_tiles[Zone::get_index_from_xy(&position.x, &position.y)] = true;

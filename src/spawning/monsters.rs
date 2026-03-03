@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::collections::{HashSet, LinkedList};
 
 use hecs::{Entity, World};
 use macroquad::math::Rect;
@@ -13,7 +13,10 @@ use crate::{
         },
         health::{DiseaseType, Hunger},
         items::{BodyLocation, Deadly, DontLeaveCorpse, Edible, Equipped, InBackback},
-        monster::{Aquatic, DiseaseBearer, LeaveTrail, Monster, Prey, Small, Smart, Venomous},
+        monster::{
+            Aquatic, DiseaseBearer, LeaveTrail, Monster, Prey, Small, Smart, SnakeBody, SnakeHead,
+            Venomous,
+        },
     },
     constants::{
         BASE_MONSTER_VIEW_RADIUS, FAST, FILTH_TRAIL_LIFETIME, MAX_HUNGER_TICK_COUNTER, NORMAL,
@@ -950,6 +953,95 @@ impl Spawn {
             darkling,
             GazeAttack {
                 effect: GazeEffectEnum::Blindness,
+            },
+        );
+    }
+
+    pub fn colossal_worm(ecs_world: &mut World, x: i32, y: i32) {
+        let colossal_worm = Spawn::create_monster(
+            ecs_world,
+            (
+                "Colossal Worm".to_string(),
+                Species {
+                    value: SpeciesEnum::Gastropod,
+                },
+                CombatStats {
+                    level: 15,
+                    current_stamina: 20,
+                    max_stamina: 20,
+                    base_armor: 2,
+                    unarmed_attack_dice: 12,
+                    current_toughness: 18,
+                    max_toughness: 18,
+                    current_dexterity: 10,
+                    max_dexterity: 10,
+                    speed: NORMAL,
+                },
+                Edible {
+                    nutrition_dice_number: 6,
+                    nutrition_dice_size: 20,
+                },
+                Smellable {
+                    smell_log: Some("stomach acid and stone dust".to_string()),
+                    intensity: SmellIntensity::Strong,
+                },
+                ProduceSound {
+                    sound_log: "cave rumbling".to_string(),
+                },
+                13.0,
+                0.0,
+                x,
+                y,
+            ),
+        );
+
+        //Generate body
+        let mut body = LinkedList::new();
+        let worm_size = Roll::dice(1, 3) + 1;
+        for it in 0..worm_size {
+            //TODO search for free space
+            let free_x = x;
+            let free_y = y + it;
+
+            let tile_y = if it == worm_size - 1 { 2.0 } else { 1.0 };
+
+            let body_part = ecs_world.spawn((
+                Monster {},
+                Renderable {
+                    texture_name: TextureName::Creatures,
+                    texture_region: Rect {
+                        x: 13.0 * TILE_SIZE_F32,
+                        y: tile_y * TILE_SIZE_F32,
+                        w: TILE_SIZE_F32,
+                        h: TILE_SIZE_F32,
+                    },
+                    z_index: 1,
+                },
+                Species {
+                    value: SpeciesEnum::Gastropod,
+                },
+                SnakeBody {
+                    head: colossal_worm,
+                },
+                Position {
+                    x: free_x,
+                    y: free_y,
+                },
+                Smellable {
+                    smell_log: Some("stomach acid and stone dust".to_string()),
+                    intensity: SmellIntensity::Strong,
+                },
+                BlocksTile {},
+            ));
+            body.push_back(body_part);
+        }
+
+        //Join head and body
+        let _ = ecs_world.insert_one(
+            colossal_worm,
+            SnakeHead {
+                body,
+                is_single_creature: true,
             },
         );
     }
