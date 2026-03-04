@@ -14,8 +14,8 @@ use crate::{
         health::{DiseaseType, Hunger},
         items::{BodyLocation, Deadly, DontLeaveCorpse, Edible, Equipped, InBackback},
         monster::{
-            Aquatic, DiseaseBearer, LeaveTrail, Monster, Prey, Small, Smart, SnakeBody, SnakeHead,
-            Venomous,
+            Aquatic, DiseaseBearer, LeaveTrail, Monster, Prey, SingleSnakeCreature, Small, Smart,
+            SnakeBody, SnakeHead, Venomous,
         },
     },
     constants::{
@@ -967,9 +967,9 @@ impl Spawn {
                 },
                 CombatStats {
                     level: 15,
-                    current_stamina: 20,
-                    max_stamina: 20,
-                    base_armor: 2,
+                    current_stamina: 2,
+                    max_stamina: 2,
+                    base_armor: 0,
                     unarmed_attack_dice: 12,
                     current_toughness: 18,
                     max_toughness: 18,
@@ -1007,6 +1007,9 @@ impl Spawn {
 
             let body_part = ecs_world.spawn((
                 Monster {},
+                Named {
+                    name: "Colossal Worm's body".to_string(),
+                },
                 Renderable {
                     texture_name: TextureName::Creatures,
                     texture_region: Rect {
@@ -1031,18 +1034,19 @@ impl Spawn {
                     smell_log: Some("stomach acid and stone dust".to_string()),
                     intensity: SmellIntensity::Strong,
                 },
+                SufferingDamage {
+                    damage_received: 0,
+                    toughness_damage_received: 0,
+                    dexterity_damage_received: 0,
+                    damager: None,
+                },
                 BlocksTile {},
+                SingleSnakeCreature {},
             ));
             body.push_back(body_part);
         }
 
         //Join head and body
-        let _ = ecs_world.insert_one(
-            colossal_worm,
-            SnakeHead {
-                body,
-                is_single_creature: true,
-            },
-        );
+        let _ = ecs_world.insert(colossal_worm, (SnakeHead { body }, SingleSnakeCreature {}));
     }
 }

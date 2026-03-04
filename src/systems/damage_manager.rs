@@ -8,7 +8,7 @@ use crate::{
         common::{Experience, Hates, Named, Position, Species, SpeciesEnum},
         health::{CanAutomaticallyHeal, DiseaseType, Paralyzed},
         items::{Deadly, DontLeaveCorpse, Edible},
-        monster::{DiseaseBearer, Venomous},
+        monster::{DiseaseBearer, SingleSnakeCreature, SnakeBody, SnakeHead, Venomous},
     },
     constants::{AUTO_ADVANCE_EXP_COUNTER_START, MAX_STAMINA_HEAL_TICK_COUNTER},
     engine::state::{GameState, RunState},
@@ -26,13 +26,50 @@ pub struct DamageManager {}
 impl DamageManager {
     pub fn run(game_state: &mut GameState) {
         let ecs_world = &mut game_state.ecs_world;
-        let mut damageables =
-            ecs_world.query::<(&mut SufferingDamage, &mut CombatStats, &Position)>();
 
         let zone = game_state
             .current_zone
             .as_mut()
             .expect("must have Some Zone");
+
+        // Transfer the SufferingDamage data of a SnakeBody to the head
+        // After that, do normal damage system cycle.
+        let mut damageable_snake_bodies = ecs_world
+            .query::<(&mut SufferingDamage, &SnakeBody, &Position)>()
+            .with::<&SingleSnakeCreature>();
+
+        if damageable_snake_bodies.iter().len() > 0 {
+            for (_, (damageable, snake_body, position)) in &mut damageable_snake_bodies {
+                let mut head_damage = ecs_world
+                    .get::<&mut SufferingDamage>(snake_body.head)
+                    .expect("Head must have SufferingDamage");
+
+                if damageable.damage_received > 0 {
+                    head_damage.damage_received += damageable.damage_received;
+                    damageable.damage_received = 0;
+                    //Drench the tile with blood
+                    zone.decals_tiles.insert(
+                        Zone::get_index_from_xy(&position.x, &position.y),
+                        DecalType::Blood,
+                    );
+                }
+
+                // Venomous hits
+                if damageable.toughness_damage_received > 0 {
+                    head_damage.toughness_damage_received += damageable.toughness_damage_received;
+                    damageable.toughness_damage_received = 0;
+                }
+
+                // Disease hits on dexterity
+                if damageable.dexterity_damage_received > 0 {
+                    head_damage.dexterity_damage_received += damageable.dexterity_damage_received;
+                    damageable.dexterity_damage_received = 0;
+                }
+            }
+        }
+
+        let mut damageables =
+            ecs_world.query::<(&mut SufferingDamage, &mut CombatStats, &Position)>();
 
         for (damaged_entity, (damageable, stats, position)) in &mut damageables {
             if damageable.damage_received > 0 {
@@ -92,16 +129,15 @@ impl DamageManager {
             .current_player_entity
             .expect("Player id should be set")
             .id();
+        let zone = game_state
+            .current_zone
+            .as_mut()
+            .expect("must have Some Zone");
         let mut dead_entities: Vec<DeadEntityData> = Vec::new();
         let mut paralyzed_entities: Vec<Entity> = Vec::new();
 
         // Scope for keeping borrow checker quiet
         {
-            let zone = game_state
-                .current_zone
-                .as_ref()
-                .expect("must have Some Zone");
-
             let mut damageables = ecs_world.query::<(
                 &CombatStats,
                 &Named,
@@ -197,6 +233,25 @@ impl DamageManager {
 
                 experience.value += victim_level.pow(2);
                 experience.auto_advance_counter += AUTO_ADVANCE_EXP_COUNTER_START;
+            }
+
+            // Despawn snake body entities
+            let mut body_temp_vec: Vec<Entity> = Vec::new();
+            if let Ok(head) = ecs_world.get::<&SnakeHead>(killed_entity) {
+                for &body_entity in head.body.iter() {
+                    body_temp_vec.push(body_entity);
+                    let position = ecs_world
+                        .get::<&Position>(body_entity)
+                        .expect("Snake body should have position");
+                    //Drench the tile of the body with blood
+                    zone.decals_tiles.insert(
+                        Zone::get_index_from_xy(&position.x, &position.y),
+                        DecalType::Blood,
+                    );
+                }
+            }
+            for body_entity in body_temp_vec {
+                let _ = ecs_world.despawn(body_entity);
             }
 
             ItemDropping::drop_all_of(killed_entity, ecs_world, x, y);

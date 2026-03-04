@@ -154,9 +154,7 @@ impl RangedManager {
 
                     //Sum damage, keeping in mind that could not have SufferingDamage component
                     if let Ok(mut target_damage) = ecs_world.get::<&mut SufferingDamage>(target) {
-                        let target_stats = ecs_world
-                            .get::<&CombatStats>(target)
-                            .expect("Entity has no CombatStats");
+                        let target_stats = Utils::get_target_stats(ecs_world, target);
 
                         // Show appropriate log messages
                         let named_attacker = ecs_world

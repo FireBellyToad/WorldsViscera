@@ -37,9 +37,12 @@ pub struct WantsToApproach {
 
 pub struct SnakeHead {
     pub body: LinkedList<Entity>,
-    pub is_single_creature: bool,
 }
 
 pub struct SnakeBody {
     pub head: Entity,
 }
+// Thos component is used to explicitate the fact that
+//  both a SnakeHead and some SnakeBodies are in fact
+//  parts of the same creature, should not be used by itself!
+pub struct SingleSnakeCreature {}

@@ -1,7 +1,9 @@
 use crate::{
     components::{
+        combat::CombatStats,
         common::{Position, Viewshed},
         items::{Ammo, Armor, Equippable, RangedWeapon, ShopOwner},
+        monster::{SingleSnakeCreature, SnakeBody},
     },
     constants::{
         BUG_SPECIES_HATES, DEEPSPAWN_SPECIES_HATES, FISH_SPECIES_HATES, GASTROPOD_SPECIES_HATES,
@@ -176,5 +178,25 @@ impl Utils {
         }
 
         found
+    }
+
+    /// Handles getting the target's CombatStats, whether it's a SingleSnakeCreature or not.
+    /// If the target is a SnakeBody of a SingleSnakeCreature, returns the stats of its head.
+    /// panics if the target has no CombatStats and is not a SnakeBody of a SingleSnakeCreature.
+    pub fn get_target_stats(ecs_world: &World, target: Entity) -> hecs::Ref<'_, CombatStats> {
+        let target_stats = if let Ok(stats) = ecs_world.get::<&CombatStats>(target) {
+            stats
+        } else if ecs_world
+            .satisfies::<&SingleSnakeCreature>(target)
+            .unwrap_or(false)
+            && let Ok(snake) = ecs_world.get::<&SnakeBody>(target)
+        {
+            ecs_world
+                .get::<&CombatStats>(snake.head)
+                .expect("Snake has no CombatStats")
+        } else {
+            panic!("Target has no CombatStats and is not a snake");
+        };
+        target_stats
     }
 }
