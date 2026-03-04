@@ -967,9 +967,9 @@ impl Spawn {
                 },
                 CombatStats {
                     level: 15,
-                    current_stamina: 2,
-                    max_stamina: 2,
-                    base_armor: 0,
+                    current_stamina: 20,
+                    max_stamina: 20,
+                    base_armor: 2,
                     unarmed_attack_dice: 12,
                     current_toughness: 18,
                     max_toughness: 18,
