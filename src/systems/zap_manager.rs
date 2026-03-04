@@ -1,6 +1,5 @@
-use std::panic;
 
-use hecs::{Entity, World};
+use hecs::Entity;
 
 use crate::{
     components::{
@@ -8,7 +7,6 @@ use crate::{
         combat::{CombatStats, InflictsDamage, SufferingDamage, WantsToZap},
         common::{Named, Position, Wet},
         items::{Invokable, InvokablesEnum},
-        monster::{SingleSnakeCreature, SnakeBody},
     },
     constants::{AUTOFAIL_SAVING_THROW, LIGHTING_PARTICLE_TYPE},
     engine::state::GameState,

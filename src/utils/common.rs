@@ -184,7 +184,7 @@ impl Utils {
     /// If the target is a SnakeBody of a SingleSnakeCreature, returns the stats of its head.
     /// panics if the target has no CombatStats and is not a SnakeBody of a SingleSnakeCreature.
     pub fn get_target_stats(ecs_world: &World, target: Entity) -> hecs::Ref<'_, CombatStats> {
-        let target_stats = if let Ok(stats) = ecs_world.get::<&CombatStats>(target) {
+        if let Ok(stats) = ecs_world.get::<&CombatStats>(target) {
             stats
         } else if ecs_world
             .satisfies::<&SingleSnakeCreature>(target)
@@ -196,7 +196,6 @@ impl Utils {
                 .expect("Snake has no CombatStats")
         } else {
             panic!("Target has no CombatStats and is not a snake");
-        };
-        target_stats
+        }
     }
 }
