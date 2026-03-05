@@ -320,7 +320,15 @@ fn do_debug_logic(game_state: &mut GameState) {
                 Spawn::ration(&mut game_state.ecs_world, MAP_WIDTH / 2, MAP_HEIGHT / 2);
                 Spawn::flask_of_water(&mut game_state.ecs_world, MAP_WIDTH / 2, MAP_HEIGHT / 2);
             } else if is_key_pressed(KeyCode::F9) {
-                Spawn::colossal_worm(&mut game_state.ecs_world, MAP_WIDTH / 2, MAP_HEIGHT / 2);
+                Spawn::colossal_worm(
+                    &mut game_state.ecs_world,
+                    MAP_WIDTH / 2,
+                    MAP_HEIGHT / 2,
+                    game_state
+                        .current_zone
+                        .as_ref()
+                        .expect("Must have Some Zone"),
+                );
             } else if is_key_pressed(KeyCode::F8) {
                 use crate::components::combat::CombatStats;
 
@@ -359,13 +367,14 @@ fn do_debug_logic(game_state: &mut GameState) {
             } else if is_key_pressed(KeyCode::F6) {
                 game_state.debug_monster_vision = !game_state.debug_monster_vision;
             } else if is_key_pressed(KeyCode::F5) {
-                use crate::utils::roll::Roll;
-
                 Spawn::random_terrain_monster(
                     &mut game_state.ecs_world,
                     MAP_WIDTH / 2,
                     MAP_HEIGHT / 2,
-                    19 + Roll::d20() as u32,
+                    game_state
+                        .current_zone
+                        .as_ref()
+                        .expect("Must have Some Zone"),
                 );
             }
         }

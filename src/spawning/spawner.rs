@@ -141,7 +141,7 @@ impl Spawn {
             if zone.water_tiles[index] {
                 Spawn::random_water_monster(ecs_world, x, y, zone.depth);
             } else {
-                Spawn::random_terrain_monster(ecs_world, x, y, zone.depth);
+                Spawn::random_terrain_monster(ecs_world, x, y, zone);
             }
         }
         // Actually spawn the items
@@ -163,8 +163,8 @@ impl Spawn {
     }
 
     /// Spawn a random terrainmonster
-    pub fn random_terrain_monster(ecs_world: &mut World, x: i32, y: i32, depth: u32) {
-        let dice_roll = max(1, Roll::dice(1, 8) + depth as i32);
+    pub fn random_terrain_monster(ecs_world: &mut World, x: i32, y: i32, zone: &Zone) {
+        let dice_roll = max(1, Roll::dice(1, 8) + zone.depth as i32);
 
         // Depth based spawn table, recursive if roll is too high
         match dice_roll {
@@ -189,12 +189,13 @@ impl Spawn {
                 _ => {}
             },
             (19..) => match Roll::d20() {
-                (1..=5) => Spawn::gremlin(ecs_world, x, y),
-                (6..=8) => Spawn::moleman(ecs_world, x, y),
-                (9..=11) => Spawn::enthropic_gremlin(ecs_world, x, y),
-                (12..=14) => Spawn::abyssal_one(ecs_world, x, y),
-                (15..=17) => Spawn::sulfuric_slug(ecs_world, x, y),
-                (18..=19) => Spawn::refugee(ecs_world, x, y),
+                (1..=4) => Spawn::gremlin(ecs_world, x, y),
+                (5..=7) => Spawn::moleman(ecs_world, x, y),
+                (8..=10) => Spawn::enthropic_gremlin(ecs_world, x, y),
+                (11..=13) => Spawn::abyssal_one(ecs_world, x, y),
+                (14..=16) => Spawn::sulfuric_slug(ecs_world, x, y),
+                (17..=18) => Spawn::refugee(ecs_world, x, y),
+                19 => Spawn::colossal_worm(ecs_world, x, y, &zone),
                 20 => Spawn::darkling(ecs_world, x, y),
                 _ => {}
             },

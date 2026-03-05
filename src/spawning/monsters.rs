@@ -22,7 +22,7 @@ use crate::{
         BASE_MONSTER_VIEW_RADIUS, FAST, FILTH_TRAIL_LIFETIME, MAX_HUNGER_TICK_COUNTER, NORMAL,
         SLOW, SLUG_TRAIL_LIFETIME, TILE_SIZE_F32,
     },
-    maps::zone::DecalType,
+    maps::zone::{DecalType, Zone},
     spawning::spawner::Spawn,
     systems::hunger_check::HungerStatus,
     utils::{assets::TextureName, roll::Roll},
@@ -957,7 +957,7 @@ impl Spawn {
         );
     }
 
-    pub fn colossal_worm(ecs_world: &mut World, x: i32, y: i32) {
+    pub fn colossal_worm(ecs_world: &mut World, x: i32, y: i32, zone: &Zone) {
         let colossal_worm = Spawn::create_monster(
             ecs_world,
             (
@@ -998,10 +998,32 @@ impl Spawn {
         //Generate body
         let mut body = LinkedList::new();
         let worm_size = Roll::dice(1, 3) + 1;
+        let mut free_x = x - 1;
+        let mut free_y = y - 1;
         for it in 0..worm_size {
-            //TODO search for free space
-            let free_x = x;
-            let free_y = y + it;
+            // Search for free space. If worm is too big, it cannot fit and we despawn it
+            let mut nothing_is_free = true;
+            for _ in 0..2 {
+                for _ in 0..2 {
+                    free_y += 1;
+                    if !zone.blocked_tiles[Zone::get_index_from_xy(&free_x, &free_y)] {
+                        nothing_is_free = false;
+                        break;
+                    }
+                }
+                if !zone.blocked_tiles[Zone::get_index_from_xy(&free_x, &free_y)] {
+                    nothing_is_free = false;
+                    break;
+                }
+                free_y = y - 1;
+                free_x += 1;
+            }
+
+            if nothing_is_free {
+                //Cannot place worm body here, despawn and exit
+                let _ = ecs_world.despawn(colossal_worm);
+                return;
+            }
 
             let tile_y = if it == worm_size - 1 { 2.0 } else { 1.0 };
 
