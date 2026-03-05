@@ -1021,6 +1021,7 @@ impl Spawn {
 
             if nothing_is_free {
                 //Cannot place worm body here, despawn and exit
+                println!("Cannot fit colossal worm!");
                 let _ = ecs_world.despawn(colossal_worm);
                 return;
             }
