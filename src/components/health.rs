@@ -32,6 +32,10 @@ pub enum DiseaseType {
 }
 
 pub struct Paralyzed {}
+// Same as Paralyzed but with a tick counter
+pub struct Stunned {
+    pub tick_counter: i32,
+}
 
 pub struct Blind {
     pub tick_counter: i32,

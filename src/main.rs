@@ -315,8 +315,14 @@ fn do_debug_logic(game_state: &mut GameState) {
             Debugger::run(game_state);
             // TODO spawn what prompt
             if is_key_pressed(KeyCode::F11) {
-                Spawn::wand(&mut game_state.ecs_world, MAP_WIDTH / 2, MAP_HEIGHT / 2);
+                use crate::components::health::Stunned;
+
+                let _ = game_state.ecs_world.insert_one(
+                    game_state.current_player_entity.expect("must be some"),
+                    Stunned { tick_counter: 3 },
+                );
             } else if is_key_pressed(KeyCode::F10) {
+                Spawn::wand(&mut game_state.ecs_world, MAP_WIDTH / 2, MAP_HEIGHT / 2);
                 Spawn::ration(&mut game_state.ecs_world, MAP_WIDTH / 2, MAP_HEIGHT / 2);
                 Spawn::flask_of_water(&mut game_state.ecs_world, MAP_WIDTH / 2, MAP_HEIGHT / 2);
             } else if is_key_pressed(KeyCode::F9) {

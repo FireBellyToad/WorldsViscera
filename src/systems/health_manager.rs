@@ -1,12 +1,12 @@
 use std::cmp::max;
 
-use hecs::Entity;
+use hecs::{Entity, World};
 
 use crate::{
     components::{
         combat::{CombatStats, SufferingDamage},
-        common::{MyTurn, Named, Position},
-        health::{Cured, DiseaseType, Diseased, Hunger},
+        common::{GameLog, MyTurn, Named, Position},
+        health::{Cured, DiseaseType, Diseased, Hunger, Stunned},
     },
     constants::{MAX_DISEASE_TICK_COUNTER, VERY_LONG_ACTION_MULTIPLIER},
     engine::state::GameState,
@@ -26,6 +26,21 @@ impl HealthManager {
             .expect("Player id should be set")
             .id();
 
+        let zone = game_state
+            .current_zone
+            .as_mut()
+            .expect("must have Some Zone");
+
+        HealthManager::handle_diseases(ecs_world, player_id, zone, &mut game_state.game_log);
+        HealthManager::handle_stun(ecs_world, player_id, &mut game_state.game_log);
+    }
+
+    pub fn handle_diseases(
+        ecs_world: &mut World,
+        player_id: u32,
+        zone: &mut Zone,
+        game_log: &mut GameLog,
+    ) {
         let mut healed_entities: Vec<(Entity, DiseaseType, bool)> = Vec::new();
         let mut dizzy_entities_list: Vec<(Entity, i32)> = Vec::new();
 
@@ -46,11 +61,6 @@ impl HealthManager {
 
             //Log all the disease checks
 
-            let zone = game_state
-                .current_zone
-                .as_mut()
-                .expect("must have Some Zone");
-
             for (diseased_entity, (disease, stats, damage, hunger, named, position, cured_opt)) in
                 &mut diseased_entities
             {
@@ -64,10 +74,7 @@ impl HealthManager {
 
                         // TODO refactor log
                         if player_id == diseased_entity.id() {
-                            game_state
-                                .game_log
-                                .entries
-                                .push("You feel better".to_string());
+                            game_log.entries.push("You feel better".to_string());
                         }
                     }
                     // When clock is depleted, decrease disease status
@@ -97,10 +104,7 @@ impl HealthManager {
                                 ));
                                 // TODO refactor log
                                 if player_id == diseased_entity.id() {
-                                    game_state
-                                        .game_log
-                                        .entries
-                                        .push("You feel better".to_string());
+                                    game_log.entries.push("You feel better".to_string());
                                 }
                             } else {
                                 *is_improving = true;
@@ -115,13 +119,11 @@ impl HealthManager {
                                         damage.toughness_damage_received += Roll::dice(1, 3);
                                         if player_id == diseased_entity.id() {
                                             if Roll::d6() > 3 {
-                                                game_state
-                                                    .game_log
+                                                game_log
                                                     .entries
                                                     .push("You cough blood!".to_string());
                                             } else {
-                                                game_state
-                                                    .game_log
+                                                game_log
                                                     .entries
                                                     .push("Your skin peels away!".to_string());
                                             }
@@ -129,12 +131,11 @@ impl HealthManager {
                                             [Zone::get_index_from_xy(&position.x, &position.y)]
                                         {
                                             if Roll::d6() > 3 {
-                                                game_state
-                                                    .game_log
+                                                game_log
                                                     .entries
                                                     .push(format!("{} coughs blood!", named.name));
                                             } else {
-                                                game_state.game_log.entries.push(format!(
+                                                game_log.entries.push(format!(
                                                     "{}'s skin peels away!",
                                                     named.name
                                                 ));
@@ -166,15 +167,11 @@ impl HealthManager {
                                         );
 
                                         if player_id == diseased_entity.id() {
-                                            game_state
-                                                .game_log
-                                                .entries
-                                                .push("You vomit badly!".to_string());
+                                            game_log.entries.push("You vomit badly!".to_string());
                                         } else if zone.visible_tiles
                                             [Zone::get_index_from_xy(&position.x, &position.y)]
                                         {
-                                            game_state
-                                                .game_log
+                                            game_log
                                                 .entries
                                                 .push(format!("{} vomits badly!", named.name));
                                         }
@@ -185,13 +182,11 @@ impl HealthManager {
                                     if Roll::d6() > 3 {
                                         damage.damage_received += Roll::dice(2, 4);
                                         if player_id == diseased_entity.id() {
-                                            game_state
-                                                .game_log
+                                            game_log
                                                 .entries
                                                 .push("The fever makes you stumble!".to_string());
                                         } else {
-                                            game_state
-                                                .game_log
+                                            game_log
                                                 .entries
                                                 .push(format!("{} stumbles!", named.name));
                                         }
@@ -200,7 +195,7 @@ impl HealthManager {
                                     {
                                         dizzy_entities_list.push((diseased_entity, stats.speed));
                                         if player_id == diseased_entity.id() {
-                                            game_state.game_log.entries.push(
+                                            game_log.entries.push(
                                                 "The fever makes you feel dizzy for a moment!"
                                                     .to_string(),
                                             );
@@ -211,12 +206,11 @@ impl HealthManager {
                                     damage.dexterity_damage_received += Roll::dice(1, 2);
                                     if player_id == diseased_entity.id() {
                                         if Roll::d6() > 3 {
-                                            game_state
-                                                .game_log
+                                            game_log
                                                 .entries
                                                 .push("Your muscles stiffens!".to_string());
                                         } else {
-                                            game_state.game_log.entries.push(
+                                            game_log.entries.push(
                                                 "A calcified patch appears on your skin!"
                                                     .to_string(),
                                             );
@@ -225,12 +219,11 @@ impl HealthManager {
                                         [Zone::get_index_from_xy(&position.x, &position.y)]
                                     {
                                         if Roll::d6() > 3 {
-                                            game_state
-                                                .game_log
+                                            game_log
                                                 .entries
                                                 .push(format!("{}'s body stiffens!", named.name));
                                         } else {
-                                            game_state.game_log.entries.push(format!(
+                                            game_log.entries.push(format!(
                                                 "A calcified patch appears on {}'s skin!",
                                                 named.name
                                             ));
@@ -267,6 +260,39 @@ impl HealthManager {
         // Makes entities waiting for a while
         for (waiter, speed) in dizzy_entities_list {
             Utils::wait_after_action(ecs_world, waiter, speed * VERY_LONG_ACTION_MULTIPLIER);
+        }
+    }
+
+    pub fn handle_stun(ecs_world: &mut World, player_id: u32, game_log: &mut GameLog) {
+        let mut unstunned_entities: Vec<Entity> = Vec::new();
+
+        // Scope for keeping borrow checker quiet
+        {
+            // List of perishable entities
+            let mut stunned = ecs_world.query::<&mut Stunned>().with::<&MyTurn>();
+
+            for (entity, stunned) in &mut stunned {
+                if stunned.tick_counter > 0 {
+                    stunned.tick_counter -= 1;
+                    println!(
+                        "entity {} stunned.tick_counter {}",
+                        entity.id(),
+                        stunned.tick_counter
+                    );
+                } else {
+                    if entity.id() == player_id {
+                        game_log
+                            .entries
+                            .push("You are not stunned anymore".to_string());
+                    }
+                    unstunned_entities.push(entity);
+                }
+            }
+        }
+
+        // Despawn completely rotted edibles
+        for entity in unstunned_entities {
+            let _ = ecs_world.remove_one::<Stunned>(entity);
         }
     }
 }

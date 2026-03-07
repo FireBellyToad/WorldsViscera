@@ -4,7 +4,7 @@ use crate::{
     components::{
         combat::CombatStats,
         common::{MyTurn, WaitingToAct},
-        health::Paralyzed,
+        health::{Paralyzed, Stunned},
     },
     engine::state::GameState,
     utils::common::Utils,
@@ -64,11 +64,13 @@ impl TurnCheck {
         // Scope for keeping borrow checker quiet
         {
             let mut actors = ecs_world
-                .query::<&CombatStats>()
-                .with::<(&MyTurn, &Paralyzed)>();
+                .query::<(&CombatStats, Option<&Paralyzed>, Option<&Stunned>)>()
+                .with::<&MyTurn>();
 
-            for (actor, stats) in &mut actors {
-                entities_resetting_turn.push((actor, stats.speed));
+            for (actor, (stats, paralyzed_opt, stunned_opt)) in &mut actors {
+                if paralyzed_opt.is_some() || stunned_opt.is_some() {
+                    entities_resetting_turn.push((actor, stats.speed));
+                }
             }
         }
         // Reset turn for entities that are paralyzed
