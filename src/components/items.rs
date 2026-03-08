@@ -2,7 +2,7 @@ use hecs::Entity;
 
 use crate::{
     components::health::DiseaseType,
-    constants::{BOLT_PARTICLE_TYPE, STONE_PARTICLE_TYPE},
+    constants::{BOLT_PARTICLE_TYPE, DAZE_PARTICLE_TYPE, STONE_PARTICLE_TYPE},
 };
 
 pub struct Item {
@@ -91,6 +91,7 @@ pub struct MeleeWeapon {}
 pub struct RangedWeapon {
     pub ammo_type: AmmoType,
     pub ammo_count_total: u32, // this is used in readonly. Real ammo count update is done by the Ammo component
+    pub spell_countdown: u32,  // this is used only if AmmoType is Spell
 }
 
 pub struct Ammo {
@@ -100,6 +101,7 @@ pub struct Ammo {
 
 #[derive(PartialEq, Debug)]
 pub enum AmmoType {
+    Spell,
     Crossbow,
     Slingshot,
 }
@@ -109,6 +111,7 @@ impl AmmoType {
         match *self {
             AmmoType::Crossbow => BOLT_PARTICLE_TYPE,
             AmmoType::Slingshot => STONE_PARTICLE_TYPE,
+            AmmoType::Spell => DAZE_PARTICLE_TYPE, // TODO: different spells must have different particle types
         }
     }
 }

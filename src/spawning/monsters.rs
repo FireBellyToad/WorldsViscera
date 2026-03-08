@@ -872,6 +872,63 @@ impl Spawn {
         let _ = ecs_world.insert_one(refugee, Smart {});
     }
 
+    pub fn stonedust_cultist(ecs_world: &mut World, x: i32, y: i32) {
+        let stonedust_cultist = Spawn::create_monster(
+            ecs_world,
+            (
+                "Stonedust cultist".to_string(),
+                Species {
+                    value: SpeciesEnum::DeepSpawn, // TODO change to Human
+                },
+                CombatStats {
+                    level: 6,
+                    current_stamina: 8,
+                    max_stamina: 8,
+                    base_armor: 0,
+                    unarmed_attack_dice: 3,
+                    current_toughness: 11,
+                    max_toughness: 11,
+                    current_dexterity: 13,
+                    max_dexterity: 13,
+                    speed: NORMAL,
+                },
+                Edible {
+                    nutrition_dice_number: 5,
+                    nutrition_dice_size: 4,
+                },
+                Smellable {
+                    smell_log: Some("stone dust".to_string()),
+                    intensity: SmellIntensity::Faint,
+                },
+                ProduceSound {
+                    sound_log: "rythmic chanting".to_string(),
+                },
+                14.0,
+                0.0,
+                x,
+                y,
+            ),
+        );
+
+        // Stonedust cultist has dazing spell
+        let daze_spell = Spawn::daze(ecs_world);
+        let _ = ecs_world.insert(
+            daze_spell,
+            (
+                InBackback {
+                    owner: stonedust_cultist,
+                    assigned_char: 'c',
+                },
+                Equipped {
+                    owner: stonedust_cultist,
+                    body_location: BodyLocation::BothHands,
+                },
+            ),
+        );
+
+        let _ = ecs_world.insert_one(stonedust_cultist, Smart {});
+    }
+
     pub fn living_dead(ecs_world: &mut World, x: i32, y: i32) {
         Spawn::create_monster(
             ecs_world,

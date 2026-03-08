@@ -33,6 +33,7 @@ pub enum DiseaseType {
 
 pub struct Paralyzed {}
 // Same as Paralyzed but with a tick counter
+#[derive(Clone)]
 pub struct Stunned {
     pub tick_counter: i32,
 }

@@ -346,6 +346,7 @@ impl Spawn {
             RangedWeapon {
                 ammo_type: AmmoType::Crossbow,
                 ammo_count_total: 0,
+                spell_countdown: 0,
             },
             InflictsDamage {
                 number_of_dices: 1,
@@ -383,6 +384,7 @@ impl Spawn {
             RangedWeapon {
                 ammo_type: AmmoType::Slingshot,
                 ammo_count_total: 0,
+                spell_countdown: 0,
             },
             InflictsDamage {
                 number_of_dices: 1,

@@ -2,6 +2,7 @@ use crate::components::combat::GazeAttack;
 use crate::components::combat::IsHidden;
 use crate::components::combat::WantsToGaze;
 use crate::components::combat::WantsToShoot;
+use crate::components::items::AmmoType;
 use crate::components::items::Equippable;
 use crate::components::items::Equipped;
 use crate::components::monster::Prey;
@@ -548,9 +549,12 @@ impl MonsterThink {
             &equipped_ranged_weapons
         {
             // If the monsters has the ammo for at least one equipped ranged weapon, it can shoot!
+            // If instead the weapon is a spell, it can shoot if the countdown is 0
             // Most of the time all ranged weapons occupy BothHands BodyLocation
             if let Some(ranged_weapon) = ranged_weapon_opt
-                && ranged_weapon.ammo_count_total > 0
+                && (ranged_weapon.ammo_count_total > 0
+                    || (ranged_weapon.ammo_type == AmmoType::Spell
+                        && ranged_weapon.spell_countdown == 0))
             {
                 return (true, Some(*weapon_entity));
             }
