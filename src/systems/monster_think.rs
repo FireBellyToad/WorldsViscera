@@ -5,7 +5,6 @@ use crate::components::combat::WantsToGaze;
 use crate::components::combat::WantsToShoot;
 use crate::components::items::Equippable;
 use crate::components::items::Equipped;
-use crate::components::items::InBackback;
 use crate::components::items::Spell;
 use crate::components::monster::Prey;
 use crate::constants::MAP_HEIGHT;
