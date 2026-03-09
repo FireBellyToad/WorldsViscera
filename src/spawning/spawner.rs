@@ -195,7 +195,7 @@ impl Spawn {
                 (11..=13) => Spawn::abyssal_one(ecs_world, x, y),
                 (14..=16) => Spawn::sulfuric_slug(ecs_world, x, y),
                 (17..=18) => Spawn::refugee(ecs_world, x, y),
-                19 => Spawn::colossal_worm(ecs_world, x, y, &zone),
+                19 => Spawn::colossal_worm(ecs_world, x, y, zone),
                 20 => Spawn::darkling(ecs_world, x, y),
                 _ => {}
             },

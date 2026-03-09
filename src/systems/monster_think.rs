@@ -247,9 +247,8 @@ impl MonsterThink {
                         }
                         MonsterAction::Cast => {
                             if target.is_some()
-                                && let Some(&spell_to_cast) = castable_spells_list.iter().next()
+                                && let Some(&spell_to_cast) = castable_spells_list.first()
                             {
-                                println!("SPELL - ready to cast {:?}", spell_to_cast);
                                 caster_list.push((monster, spell_to_cast, target_x, target_y));
                             }
                         }

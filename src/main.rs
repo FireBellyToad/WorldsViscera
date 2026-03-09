@@ -18,7 +18,6 @@ use engine::{
 use hecs::World;
 use inventory::Inventory;
 use macroquad::prelude::*;
-use pathfinding::matrix::directions::S;
 use spawning::spawner::Spawn;
 use systems::{
     damage_manager::DamageManager, eating_edibles::EatingEdibles, fov_manager::FieldOfViewManager,

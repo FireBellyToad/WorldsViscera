@@ -878,7 +878,7 @@ impl Spawn {
             (
                 "Stonedust cultist".to_string(),
                 Species {
-                    value: SpeciesEnum::DeepSpawn, // TODO change to Human
+                    value: SpeciesEnum::Human,
                 },
                 CombatStats {
                     level: 6,
@@ -912,7 +912,6 @@ impl Spawn {
 
         // Stonedust cultist has dazing spell
         let daze_spell = Spawn::daze(ecs_world);
-        println!("SPELL - spawn {:?}", daze_spell);
         let _ = ecs_world.insert_one(
             stonedust_cultist,
             SpellList {

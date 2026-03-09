@@ -3,12 +3,11 @@ use crate::{
         combat::{InflictsDamage, WantsToCast},
         common::{MyTurn, SpellList},
         health::Stunned,
-        items::{AmmoType, InBackback, Spell},
+        items::Spell,
     },
     engine::state::GameState,
-    utils::common::AmmunitionInBackpack,
 };
-use std::{cmp::max, panic};
+use std::cmp::max;
 
 use hecs::Entity;
 

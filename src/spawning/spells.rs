@@ -12,7 +12,6 @@ use crate::{
 /// Spells are ranged weapons that do not need ammo.
 /// They are are monster only abilities.
 /// Player can use them only through items.
-
 impl Spawn {
     pub fn daze(ecs_world: &mut World) -> Entity {
         let daze_spell = (
