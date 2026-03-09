@@ -30,9 +30,10 @@ impl FieldOfViewManager {
         // Scope to keep the borrow checker happy
         {
             //Deconstruct data into tuple
-            let mut viewsheds = ecs_world.query::<(&mut Viewshed, &Position, Option<&mut Blind>)>();
+            let mut viewsheds =
+                ecs_world.query::<(&mut Viewshed, &Position, &Species, Option<&mut Blind>)>();
             //For each Entity with Components Viewshed and Position
-            for (entity, (viewshed, position, blind_opt)) in &mut viewsheds {
+            for (entity, (viewshed, position, species, blind_opt)) in &mut viewsheds {
                 let is_player = entity.id() == player_entity_id;
 
                 // Do not calculate FOV for blind entities
@@ -79,6 +80,14 @@ impl FieldOfViewManager {
                                 zone.visible_tiles[index] = true;
                             }
                         }
+                    } else if species.value == SpeciesEnum::Human {
+                        // Human vision: only lit or adjacent tiles are visible
+                        // This emulates the player's field of view on NPCs
+                        viewshed.visible_tiles.retain(|&index| {
+                            let (x, y) = Zone::get_xy_from_index(index);
+                            let distance = Utils::distance(&x, &position.x, &y, &position.y);
+                            zone.lit_tiles[index] || distance < 2.0
+                        });
                     }
                 }
             }

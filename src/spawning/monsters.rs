@@ -19,8 +19,8 @@ use crate::{
         },
     },
     constants::{
-        BASE_MONSTER_VIEW_RADIUS, FAST, FILTH_TRAIL_LIFETIME, MAX_HUNGER_TICK_COUNTER, NORMAL,
-        SLOW, SLUG_TRAIL_LIFETIME, TILE_SIZE_F32,
+        BASE_MONSTER_VIEW_RADIUS, BASE_VIEW_RADIUS, FAST, FILTH_TRAIL_LIFETIME,
+        MAX_HUNGER_TICK_COUNTER, NORMAL, SLOW, SLUG_TRAIL_LIFETIME, TILE_SIZE_F32,
     },
     maps::zone::{DecalType, Zone},
     spawning::spawner::Spawn,
@@ -32,6 +32,7 @@ type MonsterSpawnData = (
     String,
     Species,
     CombatStats,
+    i32,
     Edible,
     Smellable,
     ProduceSound,
@@ -44,7 +45,7 @@ type MonsterSpawnData = (
 impl Spawn {
     /// Generic monster creation
     pub fn create_monster(ecs_world: &mut World, monster_data: MonsterSpawnData) -> Entity {
-        let (name, species, combat_stats, edible, smells, sounds, tile_x, tile_y, x, y) =
+        let (name, species, combat_stats, view_range, edible, smells, sounds, tile_x, tile_y, x, y) =
             monster_data;
 
         let monster_entity = (
@@ -63,7 +64,7 @@ impl Spawn {
             },
             Viewshed {
                 visible_tiles: Vec::new(),
-                range: BASE_MONSTER_VIEW_RADIUS,
+                range: view_range,
                 must_recalculate: true,
             },
             Named { name },
@@ -120,6 +121,7 @@ impl Spawn {
                     max_dexterity: 10,
                     speed: NORMAL,
                 },
+                BASE_MONSTER_VIEW_RADIUS,
                 Edible {
                     nutrition_dice_number: 5,
                     nutrition_dice_size: 6,
@@ -159,6 +161,7 @@ impl Spawn {
                     max_dexterity: 14,
                     speed: NORMAL,
                 },
+                BASE_MONSTER_VIEW_RADIUS,
                 Edible {
                     nutrition_dice_number: 4,
                     nutrition_dice_size: 6,
@@ -208,6 +211,7 @@ impl Spawn {
                     max_dexterity: 6,
                     speed: SLOW,
                 },
+                BASE_MONSTER_VIEW_RADIUS,
                 Edible {
                     nutrition_dice_number: 1,
                     nutrition_dice_size: 1,
@@ -254,6 +258,7 @@ impl Spawn {
                     max_dexterity: 5,
                     speed: SLOW,
                 },
+                BASE_MONSTER_VIEW_RADIUS,
                 Edible {
                     nutrition_dice_number: 1,
                     nutrition_dice_size: 1,
@@ -308,6 +313,7 @@ impl Spawn {
                     max_dexterity: 14,
                     speed: NORMAL,
                 },
+                BASE_MONSTER_VIEW_RADIUS,
                 Edible {
                     nutrition_dice_number: 3,
                     nutrition_dice_size: 6,
@@ -349,6 +355,7 @@ impl Spawn {
                     max_dexterity: 4,
                     speed: SLOW,
                 },
+                BASE_MONSTER_VIEW_RADIUS,
                 Edible {
                     nutrition_dice_number: 2,
                     nutrition_dice_size: 6,
@@ -390,6 +397,7 @@ impl Spawn {
                     max_dexterity: 14,
                     speed: FAST,
                 },
+                BASE_MONSTER_VIEW_RADIUS,
                 Edible {
                     nutrition_dice_number: 3,
                     nutrition_dice_size: 6,
@@ -445,6 +453,7 @@ impl Spawn {
                     max_dexterity: 16,
                     speed: FAST,
                 },
+                BASE_MONSTER_VIEW_RADIUS,
                 Edible {
                     nutrition_dice_number: 3,
                     nutrition_dice_size: 6,
@@ -501,6 +510,7 @@ impl Spawn {
                     max_dexterity: 14,
                     speed: NORMAL,
                 },
+                BASE_MONSTER_VIEW_RADIUS,
                 Edible {
                     nutrition_dice_number: 2,
                     nutrition_dice_size: 8,
@@ -542,6 +552,7 @@ impl Spawn {
                     max_dexterity: 8,
                     speed: SLOW,
                 },
+                BASE_MONSTER_VIEW_RADIUS,
                 Edible {
                     nutrition_dice_number: 4,
                     nutrition_dice_size: 6,
@@ -622,6 +633,7 @@ impl Spawn {
                     max_dexterity: 8,
                     speed: SLOW,
                 },
+                BASE_MONSTER_VIEW_RADIUS,
                 Edible {
                     nutrition_dice_number: 4,
                     nutrition_dice_size: 6,
@@ -678,6 +690,7 @@ impl Spawn {
                     max_dexterity: 10,
                     speed: NORMAL,
                 },
+                BASE_MONSTER_VIEW_RADIUS,
                 Edible {
                     nutrition_dice_number: 4,
                     nutrition_dice_size: 6,
@@ -719,6 +732,7 @@ impl Spawn {
                     max_dexterity: 10,
                     speed: NORMAL,
                 },
+                BASE_MONSTER_VIEW_RADIUS,
                 Edible {
                     nutrition_dice_number: 4,
                     nutrition_dice_size: 6,
@@ -769,6 +783,7 @@ impl Spawn {
                     max_dexterity: 3,
                     speed: SLOW,
                 },
+                BASE_MONSTER_VIEW_RADIUS,
                 Edible {
                     nutrition_dice_number: 6,
                     nutrition_dice_size: 6,
@@ -821,6 +836,7 @@ impl Spawn {
                     max_dexterity: 3,
                     speed: SLOW,
                 },
+                BASE_MONSTER_VIEW_RADIUS,
                 Edible {
                     nutrition_dice_number: 6,
                     nutrition_dice_size: 6,
@@ -874,6 +890,7 @@ impl Spawn {
                     max_dexterity: 10,
                     speed: NORMAL,
                 },
+                BASE_VIEW_RADIUS,
                 Edible {
                     nutrition_dice_number: 5,
                     nutrition_dice_size: 4,
@@ -942,6 +959,7 @@ impl Spawn {
                     max_dexterity: 13,
                     speed: NORMAL,
                 },
+                BASE_VIEW_RADIUS,
                 Edible {
                     nutrition_dice_number: 5,
                     nutrition_dice_size: 4,
@@ -969,7 +987,22 @@ impl Spawn {
             },
         );
 
-        let _ = ecs_world.insert_one(stonedust_cultist, Smart {});
+        // Stonedust cultist has lantern
+        let lantern = Spawn::lantern(ecs_world, x, y);
+        let _ = ecs_world.remove_one::<Position>(lantern);
+        let _ = ecs_world.insert_one(
+            lantern,
+            InBackback {
+                owner: stonedust_cultist,
+                assigned_char: 'a',
+            },
+        );
+
+        // turn on lantern
+        let _ = ecs_world.insert(
+            stonedust_cultist,
+            (WantsToApply { item: lantern }, Smart {}),
+        );
     }
 
     pub fn living_dead(ecs_world: &mut World, x: i32, y: i32) {
@@ -992,6 +1025,7 @@ impl Spawn {
                     max_dexterity: 3,
                     speed: SLOW,
                 },
+                BASE_MONSTER_VIEW_RADIUS,
                 Edible {
                     nutrition_dice_number: 1,
                     nutrition_dice_size: 1,
@@ -1031,6 +1065,7 @@ impl Spawn {
                     max_dexterity: 15,
                     speed: NORMAL,
                 },
+                BASE_MONSTER_VIEW_RADIUS,
                 Edible {
                     nutrition_dice_number: 1,
                     nutrition_dice_size: 12,
@@ -1077,6 +1112,7 @@ impl Spawn {
                     max_dexterity: 10,
                     speed: NORMAL,
                 },
+                BASE_MONSTER_VIEW_RADIUS,
                 Edible {
                     nutrition_dice_number: 6,
                     nutrition_dice_size: 20,
