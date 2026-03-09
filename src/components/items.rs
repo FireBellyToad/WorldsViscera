@@ -152,12 +152,14 @@ pub struct Spell {
 #[derive(PartialEq, Debug)]
 pub enum SpellType {
     Daze,
+    BurningSpray,
 }
 
 impl SpellType {
     pub fn particle(&self) -> u32 {
         match *self {
             SpellType::Daze => DAZE_PARTICLE_TYPE,
+            SpellType::BurningSpray => STONE_PARTICLE_TYPE,
         }
     }
 }

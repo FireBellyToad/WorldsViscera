@@ -699,6 +699,56 @@ impl Spawn {
         let _ = ecs_world.insert(centipede, (Small {}, Prey {}));
     }
 
+    pub fn bombardier_bettle(ecs_world: &mut World, x: i32, y: i32) {
+        let bombardier_bettle = Spawn::create_monster(
+            ecs_world,
+            (
+                "Bombardier beetle".to_string(),
+                Species {
+                    value: SpeciesEnum::Bug,
+                },
+                CombatStats {
+                    level: 3,
+                    current_stamina: 5,
+                    max_stamina: 5,
+                    base_armor: 0,
+                    unarmed_attack_dice: 2,
+                    current_toughness: 7,
+                    max_toughness: 7,
+                    current_dexterity: 10,
+                    max_dexterity: 10,
+                    speed: NORMAL,
+                },
+                Edible {
+                    nutrition_dice_number: 4,
+                    nutrition_dice_size: 6,
+                },
+                Smellable {
+                    smell_log: Some("burnt cupboard dust".to_string()),
+                    intensity: SmellIntensity::Faint,
+                },
+                ProduceSound {
+                    sound_log: "faint pop".to_string(),
+                },
+                6.0,
+                1.0,
+                x,
+                y,
+            ),
+        );
+
+        // Bombardier bettle proyectile
+        let burning_spray_spell = Spawn::burning_spray(ecs_world);
+        let _ = ecs_world.insert_one(
+            bombardier_bettle,
+            SpellList {
+                spells: vec![burning_spray_spell],
+            },
+        );
+
+        let _ = ecs_world.insert(bombardier_bettle, (Small {},));
+    }
+
     pub fn giant_slug(ecs_world: &mut World, x: i32, y: i32) {
         let slug = Spawn::create_monster(
             ecs_world,
