@@ -2,7 +2,7 @@ use crate::{
     components::{
         combat::CombatStats,
         common::{Position, Viewshed},
-        items::{Ammo, Armor, Equippable, RangedWeapon, ShopOwner},
+        items::{Ammo, Armor, Edible, Equippable, RangedWeapon, ShopOwner},
         monster::{SingleSnakeCreature, SnakeBody},
     },
     constants::{
@@ -37,6 +37,8 @@ pub type ItemsInBackpack<'a> = (
 );
 
 pub type AmmunitionInBackpack<'a> = (&'a InBackback, &'a mut Ammo);
+
+pub type EdibleInBackpack<'a> = (&'a InBackback, &'a Edible);
 
 pub struct Utils {}
 

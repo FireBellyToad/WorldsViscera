@@ -5,12 +5,14 @@ use crate::components::combat::WantsToGaze;
 use crate::components::combat::WantsToShoot;
 use crate::components::items::Equippable;
 use crate::components::items::Equipped;
+use crate::components::items::InBackback;
 use crate::components::items::Spell;
 use crate::components::monster::Prey;
 use crate::constants::MAP_HEIGHT;
 use crate::constants::MAP_WIDTH;
 use crate::constants::MAX_PRIORITIES_NUMBER;
 use crate::engine::state::GameState;
+use crate::utils::common::EdibleInBackpack;
 use crate::utils::roll::Roll;
 use std::collections::HashSet;
 
@@ -135,24 +137,41 @@ impl MonsterThink {
                 let items_in_backpacks: Vec<(Entity, ItemsInBackpack)> =
                     items_in_backpacks_query.iter().collect();
 
-                let castable_spells_list = MonsterThink::get_castable_spells(ecs_world, monster);
+                let mut edible_in_backpacks_query = ecs_world.query::<EdibleInBackpack>();
+                let edible_in_backpacks: Vec<(Entity, EdibleInBackpack)> =
+                    edible_in_backpacks_query.iter().collect();
 
-                // if smart, try to equip potential items
-                let mut item_to_equip_found = false;
+                let mut has_equipped_item_in_backpack = false;
+                let mut has_eaten_edible_in_backpack = false;
                 if smart.is_some() {
-                    item_to_equip_found = match MonsterThink::has_nothing_to_equip(
+                    // if smart, try to equip potential items
+                    has_equipped_item_in_backpack = match MonsterThink::handle_npc_equipment(
                         &mut equipper_item_list,
                         monster,
                         &items_in_backpacks,
                     ) {
                         Some(result) => result,
-                        None => continue,
+                        None => false,
                     };
+
+                    // If smart, can eat something from backpack when not satiated
+                    has_eaten_edible_in_backpack = MonsterThink::handle_edibles_in_backpack(
+                        &mut eat_target_list,
+                        monster,
+                        hunger,
+                        edible_in_backpacks,
+                    );
                 }
 
-                if !item_to_equip_found {
+                // if has not equipped an item or eaten, try to cast a spell or invoke an item
+                if !has_equipped_item_in_backpack || !has_eaten_edible_in_backpack {
                     let total_items = items_in_backpacks.iter().len();
 
+                    // Get castable spells
+                    let castable_spells_list =
+                        MonsterThink::get_castable_spells(ecs_world, monster);
+
+                    // Get invokables
                     let invokables: Vec<&(Entity, ItemsInBackpack)> = items_in_backpacks
                         .iter()
                         .filter(|(_, (_, in_backpack, invokable, _, _, _, _, _, _, _))| {
@@ -355,9 +374,10 @@ impl MonsterThink {
         }
     }
 
-    /// Check if the monster has nothing that can equip.
-    /// Will also check if the monster has equippables that overlaps on a body location which is already equipped with something else
-    fn has_nothing_to_equip(
+    /// Check if the monster has nothing that can equip and do it if is the case.
+    /// Will also check if the monster has equippables that overlaps on a body location which is already equipped with something else.
+    /// Will return None if the monster has nothing to equip or Some Item that has been equipped.
+    fn handle_npc_equipment(
         equipper_item_list: &mut Vec<(Entity, Entity)>,
         monster: Entity,
         items_of_monster: &Vec<(Entity, ItemsInBackpack)>,
@@ -616,5 +636,27 @@ impl MonsterThink {
             }
         }
         castable_spells_list
+    }
+
+    /// Handles edible items in the monster's backpack.
+    /// If there is at least one edible item in the backpack of a monster, he will eat it when not satiated.
+    fn handle_edibles_in_backpack(
+        eat_target_list: &mut Vec<(Entity, Entity)>,
+        monster: Entity,
+        hunger: &Hunger,
+        edible_in_backpacks: Vec<(Entity, EdibleInBackpack)>,
+    ) -> bool {
+        if hunger.current_status != HungerStatus::Satiated {
+            let edibles_of_monster: Vec<&Entity> = edible_in_backpacks
+                .iter()
+                .filter(|(_, (in_back, _))| in_back.owner.id() == monster.id())
+                .map(|(e, _)| e)
+                .collect();
+            if let Some(&edible_to_eat) = edibles_of_monster.first() {
+                eat_target_list.push((monster, *edible_to_eat));
+                return true;
+            }
+        }
+        false
     }
 }

@@ -77,8 +77,8 @@ impl Spawn {
                 damager: None,
             },
             Hunger {
-                tick_counter: MAX_HUNGER_TICK_COUNTER,
-                current_status: HungerStatus::Normal,
+                tick_counter: Roll::dice(1, MAX_HUNGER_TICK_COUNTER),
+                current_status: HungerStatus::Satiated,
             },
             MyTurn {},
             smells,
