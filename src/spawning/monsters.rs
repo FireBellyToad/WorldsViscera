@@ -746,7 +746,7 @@ impl Spawn {
             },
         );
 
-        let _ = ecs_world.insert(bombardier_bettle, (Small {},));
+        let _ = ecs_world.insert(bombardier_bettle, (Small {}, Prey {}));
     }
 
     pub fn giant_slug(ecs_world: &mut World, x: i32, y: i32) {
@@ -919,7 +919,7 @@ impl Spawn {
             },
         );
 
-        let _ = ecs_world.insert_one(refugee, Smart {});
+        let _ = ecs_world.insert(refugee, (Smart {}, Prey {}));
     }
 
     pub fn stonedust_cultist(ecs_world: &mut World, x: i32, y: i32) {

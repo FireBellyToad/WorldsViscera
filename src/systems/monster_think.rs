@@ -44,7 +44,7 @@ pub enum MonsterAction {
     Attack,
     Shoot,
     PickUp,
-    Zap,
+    Invoke,
     Cast,
 }
 
@@ -240,7 +240,7 @@ impl MonsterThink {
                                 attacker_target_list.push((monster, t));
                             }
                         }
-                        MonsterAction::Zap => {
+                        MonsterAction::Invoke => {
                             if target.is_some() {
                                 zapper_list.push((monster, invokables[0].0, target_x, target_y));
                             }
@@ -447,7 +447,7 @@ impl MonsterThink {
                             action = MonsterAction::Cast;
                         } else if monster_dto.is_smart && monster_dto.can_invoke {
                             // Zap if far away and is smart. Prey could also zap predators
-                            action = MonsterAction::Zap;
+                            action = MonsterAction::Invoke;
                         } else if monster_dto.is_smart && monster_dto.can_shoot {
                             // Shoot if far away and is smart. Prey could also shoot predators
                             action = MonsterAction::Shoot;
@@ -473,15 +473,24 @@ impl MonsterThink {
 
                             if is_enemy {
                                 //Enemy target is far away, try to approach it. Unless it's prey, than it should escape
-                                if monster_dto.is_prey && targets_vec[0].is_none() {
-                                    let (target_x, target_y) =
-                                        Utils::calculate_farthest_visible_point(
-                                            &x,
-                                            &y,
-                                            monster_dto.viewshed,
-                                        );
-                                    targets_vec[0] =
-                                        Some((action, Some(entity), target_x, target_y));
+                                if monster_dto.is_prey && is_enemy && targets_vec[0].is_none() {
+                                    // If prey but can somehow do a ranged attack, just attack
+                                    if action == MonsterAction::Invoke
+                                        || action == MonsterAction::Cast
+                                        || action == MonsterAction::Shoot
+                                    {
+                                        targets_vec[1] = Some((action, Some(entity), x, y));
+                                    } else {
+                                        // Escape the enemy!
+                                        let (target_x, target_y) =
+                                            Utils::calculate_farthest_visible_point(
+                                                &x,
+                                                &y,
+                                                monster_dto.viewshed,
+                                            );
+                                        targets_vec[0] =
+                                            Some((action, Some(entity), target_x, target_y));
+                                    }
                                 } else if targets_vec[1].is_none() {
                                     targets_vec[1] = Some((action, Some(entity), x, y));
                                 }

@@ -33,10 +33,10 @@ use crate::{
         apply_system::ApplySystem, automatic_healing::AutomaticHealing,
         decay_manager::DecayManager, drinking_quaffables::DrinkingQuaffables,
         fuel_manager::FuelManager, hidden_manager::HiddenManager, hunger_check::HungerCheck,
-        item_equipping::ItemEquipping, map_indexing::MapIndexing,
+        invoke_manager::InvokeManager, item_equipping::ItemEquipping, map_indexing::MapIndexing,
         monster_approach::MonsterApproach, particle_manager::ParticleManager,
         smell_manager::SmellManager, sound_system::SoundSystem, thirst_check::ThirstCheck,
-        turn_checker::TurnCheck, wet_manager::WetManager, zap_manager::ZapManager,
+        turn_checker::TurnCheck, wet_manager::WetManager,
     },
     utils::assets::Load,
 };
@@ -276,7 +276,7 @@ fn do_in_tick_game_logic(game_engine: &mut GameEngine, game_state: &mut GameStat
     SpellManager::run(game_state);
     RangedManager::run(game_state);
     FuelManager::do_refills(game_state);
-    ZapManager::run(game_state);
+    InvokeManager::run(game_state);
     //If there are particles, skip everything and draw
     if !ParticleManager::check_if_animations_are_present(game_engine, game_state) {
         GazeAttacksManager::run(game_state);

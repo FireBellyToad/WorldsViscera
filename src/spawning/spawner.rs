@@ -178,25 +178,27 @@ impl Spawn {
                 20 => Spawn::moleman(ecs_world, x, y),
                 _ => {}
             },
-            (11..=18) => match Roll::d20() {
+            (11..=18) => match Roll::dice(1, 24) {
                 (1..=5) => Spawn::calcificator(ecs_world, x, y),
                 (6..=8) => Spawn::centipede(ecs_world, x, y),
                 (9..=11) => Spawn::gremlin(ecs_world, x, y),
                 (12..=14) => Spawn::moleman(ecs_world, x, y),
                 (15..=17) => Spawn::sulfuric_slug(ecs_world, x, y),
                 (18..=19) => Spawn::refugee(ecs_world, x, y),
-                20 => Spawn::abyssal_one(ecs_world, x, y),
+                (20..=21) => Spawn::bombardier_bettle(ecs_world, x, y),
+                (22..=24) => Spawn::stonedust_cultist(ecs_world, x, y),
                 _ => {}
             },
-            (19..) => match Roll::d20() {
+            (19..) => match Roll::dice(1, 24) {
                 (1..=4) => Spawn::gremlin(ecs_world, x, y),
                 (5..=7) => Spawn::moleman(ecs_world, x, y),
-                (8..=10) => Spawn::enthropic_gremlin(ecs_world, x, y),
-                (11..=13) => Spawn::abyssal_one(ecs_world, x, y),
-                (14..=16) => Spawn::sulfuric_slug(ecs_world, x, y),
-                (17..=18) => Spawn::refugee(ecs_world, x, y),
-                19 => Spawn::colossal_worm(ecs_world, x, y, zone),
-                20 => Spawn::darkling(ecs_world, x, y),
+                (8..=11) => Spawn::stonedust_cultist(ecs_world, x, y),
+                (12..=14) => Spawn::enthropic_gremlin(ecs_world, x, y),
+                (15..=17) => Spawn::abyssal_one(ecs_world, x, y),
+                (18..=20) => Spawn::sulfuric_slug(ecs_world, x, y),
+                (21..=22) => Spawn::refugee(ecs_world, x, y),
+                23 => Spawn::colossal_worm(ecs_world, x, y, zone),
+                24 => Spawn::darkling(ecs_world, x, y),
                 _ => {}
             },
             _ => {}

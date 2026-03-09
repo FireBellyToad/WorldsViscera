@@ -176,18 +176,18 @@ impl SpellManager {
                                 if caster.id() == player_id {
                                     if target.id() == player_id {
                                         game_state.game_log.entries.push(format!(
-                                            "You cast a spell on yourself for {} damage",
+                                            "You burn yourself for {} damage",
                                             damage_roll
                                         ));
                                     } else {
                                         game_state.game_log.entries.push(format!(
-                                            "You cast a spell on the {} for {} damage",
+                                            "You burn the {} for {} damage",
                                             named_target.name, damage_roll
                                         ));
                                     }
                                 } else if target.id() == player_id {
                                     game_state.game_log.entries.push(format!(
-                                        "{} cast a spell on you for {} damage",
+                                        "{} burns you for {} damage",
                                         named_attacker.name, damage_roll
                                     ));
                                 } else if zone.visible_tiles[Zone::get_index_from_xy(
@@ -195,7 +195,7 @@ impl SpellManager {
                                     &wants_to_zap.target.1,
                                 )] {
                                     game_state.game_log.entries.push(format!(
-                                        "{} cast a spell on the {} for {} damage",
+                                        "{} burns the {} for {} damage",
                                         named_attacker.name, named_target.name, damage_roll
                                     ));
                                 }

@@ -12,6 +12,7 @@ pub mod gaze_attacks_manager;
 pub mod health_manager;
 pub mod hidden_manager;
 pub mod hunger_check;
+pub mod invoke_manager;
 pub mod item_collection;
 pub mod item_dropping;
 pub mod item_equipping;
@@ -29,7 +30,6 @@ pub mod thirst_check;
 pub mod trade_system;
 pub mod turn_checker;
 pub mod wet_manager;
-pub mod zap_manager;
 
 #[cfg(not(target_arch = "wasm32"))]
 pub mod debugger;

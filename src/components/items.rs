@@ -2,7 +2,9 @@ use hecs::Entity;
 
 use crate::{
     components::health::DiseaseType,
-    constants::{BOLT_PARTICLE_TYPE, DAZE_PARTICLE_TYPE, STONE_PARTICLE_TYPE},
+    constants::{
+        BOLT_PARTICLE_TYPE, BURNING_PARTICLE_TYPE, DAZE_PARTICLE_TYPE, STONE_PARTICLE_TYPE,
+    },
 };
 
 pub struct Item {
@@ -159,7 +161,7 @@ impl SpellType {
     pub fn particle(&self) -> u32 {
         match *self {
             SpellType::Daze => DAZE_PARTICLE_TYPE,
-            SpellType::BurningSpray => STONE_PARTICLE_TYPE,
+            SpellType::BurningSpray => BURNING_PARTICLE_TYPE,
         }
     }
 }

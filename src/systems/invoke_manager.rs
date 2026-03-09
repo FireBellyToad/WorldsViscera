@@ -1,4 +1,3 @@
-
 use hecs::Entity;
 
 use crate::{
@@ -17,9 +16,9 @@ use crate::{
     },
 };
 
-pub struct ZapManager {}
+pub struct InvokeManager {}
 
-impl ZapManager {
+impl InvokeManager {
     pub fn run(game_state: &mut GameState) {
         let ecs_world = &mut game_state.ecs_world;
         let player_id = game_state
