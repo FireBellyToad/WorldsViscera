@@ -57,3 +57,7 @@ pub enum GazeEffectEnum {
 pub struct WantsToGaze {
     pub target: Entity,
 }
+
+pub struct WantsToCast {
+    pub spell: Entity,
+}

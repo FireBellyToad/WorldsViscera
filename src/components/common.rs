@@ -113,3 +113,7 @@ pub struct Immunity {
 pub enum ImmunityTypeEnum {
     Blindness,
 }
+
+pub struct SpellList {
+    pub spells: Vec<Entity>,
+}

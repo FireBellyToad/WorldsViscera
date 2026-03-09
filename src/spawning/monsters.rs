@@ -9,7 +9,7 @@ use crate::{
         combat::{CanHide, CombatStats, GazeAttack, GazeEffectEnum, SufferingDamage},
         common::{
             BlocksTile, Hates, Immobile, MyTurn, Named, Position, ProduceCorpse, ProduceSound,
-            Renderable, SmellIntensity, Smellable, Species, SpeciesEnum, Viewshed,
+            Renderable, SmellIntensity, Smellable, Species, SpeciesEnum, SpellList, Viewshed,
         },
         health::{DiseaseType, Hunger},
         items::{BodyLocation, Deadly, DontLeaveCorpse, Edible, Equipped, InBackback},
@@ -28,7 +28,7 @@ use crate::{
     utils::{assets::TextureName, roll::Roll},
 };
 
-type MonsterData = (
+type MonsterSpawnData = (
     String,
     Species,
     CombatStats,
@@ -43,7 +43,7 @@ type MonsterData = (
 
 impl Spawn {
     /// Generic monster creation
-    pub fn create_monster(ecs_world: &mut World, monster_data: MonsterData) -> Entity {
+    pub fn create_monster(ecs_world: &mut World, monster_data: MonsterSpawnData) -> Entity {
         let (name, species, combat_stats, edible, smells, sounds, tile_x, tile_y, x, y) =
             monster_data;
 
@@ -912,18 +912,12 @@ impl Spawn {
 
         // Stonedust cultist has dazing spell
         let daze_spell = Spawn::daze(ecs_world);
-        let _ = ecs_world.insert(
-            daze_spell,
-            (
-                InBackback {
-                    owner: stonedust_cultist,
-                    assigned_char: 'c',
-                },
-                Equipped {
-                    owner: stonedust_cultist,
-                    body_location: BodyLocation::BothHands,
-                },
-            ),
+        println!("SPELL - spawn {:?}", daze_spell);
+        let _ = ecs_world.insert_one(
+            stonedust_cultist,
+            SpellList {
+                spells: vec![daze_spell],
+            },
         );
 
         let _ = ecs_world.insert_one(stonedust_cultist, Smart {});

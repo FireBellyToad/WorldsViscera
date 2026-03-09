@@ -4,7 +4,7 @@ use crate::{
     components::{
         common::Named,
         health::Stunned,
-        items::{AmmoType, RangedWeapon},
+        items::{Spell, SpellType},
     },
     spawning::spawner::Spawn,
 };
@@ -15,18 +15,17 @@ use crate::{
 
 impl Spawn {
     pub fn daze(ecs_world: &mut World) -> Entity {
-        let stun_spell = (
+        let daze_spell = (
             Named {
                 name: "Daze".to_string(),
             },
-            RangedWeapon {
-                ammo_type: AmmoType::Spell,
-                ammo_count_total: 0,
-                spell_countdown: 0,
+            Spell {
+                spell_type: SpellType::Daze,
+                spell_cooldown: 0,
             },
             Stunned { tick_counter: 3 },
         );
 
-        ecs_world.spawn(stun_spell)
+        ecs_world.spawn(daze_spell)
     }
 }

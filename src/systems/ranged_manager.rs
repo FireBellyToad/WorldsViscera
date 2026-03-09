@@ -1,9 +1,5 @@
 use crate::{
-    components::{
-        combat::InflictsDamage,
-        health::Stunned,
-        items::{AmmoType, InBackback},
-    },
+    components::{combat::InflictsDamage, items::InBackback},
     engine::state::GameState,
     utils::common::AmmunitionInBackpack,
 };
@@ -35,7 +31,6 @@ impl RangedManager {
             .id();
 
         let mut wants_to_shoot_list: Vec<(Entity, i32)> = Vec::new();
-        let mut stunned_list: Vec<(Entity, i32)> = Vec::new();
         let mut particle_animations: Vec<ParticleAnimation> = Vec::new();
 
         // Scope for keeping borrow checker quiet
@@ -57,17 +52,13 @@ impl RangedManager {
             for (shooter, (wants_to_zap, wants_to_shoot, shooter_position, stats)) in &mut shooters
             {
                 let mut weapon_stats_query = ecs_world
-                    .query_one::<(
-                        &mut RangedWeapon,
-                        Option<&InflictsDamage>,
-                        Option<&Eroded>,
-                        Option<&Stunned>,
-                    )>(wants_to_shoot.weapon)
+                    .query_one::<(&RangedWeapon, &InflictsDamage, Option<&Eroded>)>(
+                        wants_to_shoot.weapon,
+                    )
                     .expect("Entity must be RangedWeapon and could InflictDamage");
-                let (weapon_stats, inflicts_damage_opt, eroded_opt, stunned_opt) =
-                    weapon_stats_query
-                        .get()
-                        .expect("weapon_stats_query should have result"); // TODO maybe refactor this with InflictsDamage component;
+                let (weapon_stats, inflicts_damage, eroded_opt) = weapon_stats_query
+                    .get()
+                    .expect("weapon_stats_query should have result"); // TODO maybe refactor this with InflictsDamage component;
 
                 // If the shooter has the ammo for at least one equipped ranged weapon, it can shoot!
                 let ammo: Vec<(Entity, AmmunitionInBackpack)> = ammo_in_backpack
@@ -78,11 +69,8 @@ impl RangedManager {
                     })
                     .collect();
 
-                // If not a spell, weapon should have ammo in this place
-                if ammo.is_empty() && weapon_stats.ammo_type != AmmoType::Spell {
+                if ammo.is_empty() {
                     panic!("No ammo for weapon, why are we trying to shoot?");
-                } else if weapon_stats.ammo_type == AmmoType::Spell {
-                    weapon_stats.spell_countdown = (10 + Roll::d6()) as u32;
                 } else {
                     // Decrease ammo count
                     if let Some((_, (_, ammo_count))) = ammo.into_iter().next() {
@@ -187,77 +175,40 @@ impl RangedManager {
                         if let Some(eroded) = eroded_opt {
                             erosion_malus = eroded.value as i32;
                         }
+                        let damage_roll = max(
+                            0,
+                            Roll::dice(inflicts_damage.number_of_dices, inflicts_damage.dice_size)
+                                - target_armor
+                                - erosion_malus,
+                        );
+                        target_damage.damage_received += damage_roll;
+                        target_damage.damager = Some(shooter);
 
-                        // If the weapon inflicts damage, calculate it
-                        if let Some(inflicts_damage) = inflicts_damage_opt {
-                            let damage_roll = max(
-                                0,
-                                Roll::dice(
-                                    inflicts_damage.number_of_dices,
-                                    inflicts_damage.dice_size,
-                                ) - target_armor
-                                    - erosion_malus,
-                            );
-                            target_damage.damage_received += damage_roll;
-                            target_damage.damager = Some(shooter);
-
-                            if shooter.id() == player_id {
-                                if target.id() == player_id {
-                                    game_state.game_log.entries.push(format!(
-                                        "You shoot yourself for {} damage",
-                                        damage_roll
-                                    ));
-                                } else {
-                                    game_state.game_log.entries.push(format!(
-                                        "You shoot the {} for {} damage",
-                                        named_target.name, damage_roll
-                                    ));
-                                }
-                            } else if target.id() == player_id {
-                                game_state.game_log.entries.push(format!(
-                                    "{} shoot you for {} damage",
-                                    named_attacker.name, damage_roll
-                                ));
-                            } else if zone.visible_tiles[Zone::get_index_from_xy(
-                                &wants_to_zap.target.0,
-                                &wants_to_zap.target.1,
-                            )] {
-                                game_state.game_log.entries.push(format!(
-                                    "{} shoot the {} for {} damage",
-                                    named_attacker.name, named_target.name, damage_roll
-                                ));
-                            }
-                        }
-
-                        //Stunning through spell
-                        if let Some(stun) = stunned_opt {
-                            stunned_list.push((target, stun.tick_counter));
-                            if shooter.id() == player_id {
-                                if target.id() == player_id {
-                                    game_state
-                                        .game_log
-                                        .entries
-                                        .push("You stun yourself".to_string());
-                                } else {
-                                    game_state
-                                        .game_log
-                                        .entries
-                                        .push(format!("You stun the {}", named_target.name));
-                                }
-                            } else if target.id() == player_id {
+                        if shooter.id() == player_id {
+                            if target.id() == player_id {
                                 game_state
                                     .game_log
                                     .entries
-                                    .push(format!("{} stuns you", named_attacker.name));
-                            } else if zone.visible_tiles[Zone::get_index_from_xy(
-                                &wants_to_zap.target.0,
-                                &wants_to_zap.target.1,
-                            )] {
+                                    .push(format!("You shoot yourself for {} damage", damage_roll));
+                            } else {
                                 game_state.game_log.entries.push(format!(
-                                    "{} stun the {}",
-                                    named_attacker.name, named_target.name
+                                    "You shoot the {} for {} damage",
+                                    named_target.name, damage_roll
                                 ));
                             }
+                        } else if target.id() == player_id {
+                            game_state.game_log.entries.push(format!(
+                                "{} shoot you for {} damage",
+                                named_attacker.name, damage_roll
+                            ));
+                        } else if zone.visible_tiles[Zone::get_index_from_xy(
+                            &wants_to_zap.target.0,
+                            &wants_to_zap.target.1,
+                        )] {
+                            game_state.game_log.entries.push(format!(
+                                "{} shoot the {} for {} damage",
+                                named_attacker.name, named_target.name, damage_roll
+                            ));
                         }
                     };
                 }
@@ -275,10 +226,6 @@ impl RangedManager {
 
         for particle in particle_animations {
             let _ = ecs_world.spawn((true, particle));
-        }
-
-        for (target, tick_counter) in stunned_list {
-            let _ = ecs_world.insert_one(target, Stunned { tick_counter });
         }
     }
 

@@ -5,7 +5,7 @@ use crate::{
         advancement_system::AdvancementSystem, dig_manager::DigManager,
         gaze_attacks_manager::GazeAttacksManager, health_manager::HealthManager,
         leave_trail_system::LeaveTrailSystem, ranged_manager::RangedManager,
-        trade_system::TradeSystem,
+        spell_manager::SpellManager, trade_system::TradeSystem,
     },
 };
 use components::{common::GameLog, player::Player};
@@ -18,6 +18,7 @@ use engine::{
 use hecs::World;
 use inventory::Inventory;
 use macroquad::prelude::*;
+use pathfinding::matrix::directions::S;
 use spawning::spawner::Spawn;
 use systems::{
     damage_manager::DamageManager, eating_edibles::EatingEdibles, fov_manager::FieldOfViewManager,
@@ -194,7 +195,7 @@ fn populate_world(game_state: &mut GameState) {
         },
     ));
 
-    let zone = ArenaZoneBuilder::build(1, &mut game_state.ecs_world);
+    let zone = ArenaZoneBuilder::build(9, &mut game_state.ecs_world);
 
     game_state.current_player_entity = Some(Spawn::player(&mut game_state.ecs_world, &zone));
     Spawn::everyhing_in_map(&mut game_state.ecs_world, &zone);
@@ -263,6 +264,7 @@ fn do_before_tick_logic(game_state: &mut GameState) {
     MonsterThink::run(game_state);
     LeaveTrailSystem::handle_spawned_trail(game_state);
     AdvancementSystem::run(game_state);
+    SpellManager::decrease_cooldowns(game_state);
     // These Systems must always be run last
     MapIndexing::run(game_state);
     FieldOfViewManager::calculate(game_state);
@@ -272,9 +274,10 @@ fn do_before_tick_logic(game_state: &mut GameState) {
 fn do_in_tick_game_logic(game_engine: &mut GameEngine, game_state: &mut GameState) {
     // Every System that could produce particle animations should be run before the particle manager check
     // This makes sure that the particle animations will not be executed after the Entity has been killed
-    ZapManager::run(game_state);
+    SpellManager::run(game_state);
     RangedManager::run(game_state);
     FuelManager::do_refills(game_state);
+    ZapManager::run(game_state);
     //If there are particles, skip everything and draw
     if !ParticleManager::check_if_animations_are_present(game_engine, game_state) {
         GazeAttacksManager::run(game_state);

@@ -1,10 +1,11 @@
 use crate::components::combat::GazeAttack;
 use crate::components::combat::IsHidden;
+use crate::components::combat::WantsToCast;
 use crate::components::combat::WantsToGaze;
 use crate::components::combat::WantsToShoot;
-use crate::components::items::AmmoType;
 use crate::components::items::Equippable;
 use crate::components::items::Equipped;
+use crate::components::items::Spell;
 use crate::components::monster::Prey;
 use crate::constants::MAP_HEIGHT;
 use crate::constants::MAP_WIDTH;
@@ -44,6 +45,7 @@ pub enum MonsterAction {
     Shoot,
     PickUp,
     Zap,
+    Cast,
 }
 
 struct MonsterThinkData<'a> {
@@ -61,6 +63,7 @@ struct MonsterThinkData<'a> {
     pub hates: &'a HashSet<u32>,
     pub backpack_is_not_full: bool,
     pub is_prey: bool,
+    pub can_cast: bool,
 }
 
 type MonsterTargetPick = (MonsterAction, Option<Entity>, i32, i32);
@@ -80,6 +83,7 @@ impl MonsterThink {
         let mut approacher_list: Vec<(Entity, i32, i32, u32)> = Vec::new();
         let mut pickup_list: Vec<(Entity, Entity)> = Vec::new();
         let mut attacker_target_list: Vec<(Entity, Entity)> = Vec::new();
+        let mut caster_list: Vec<(Entity, Entity, i32, i32)> = Vec::new();
         let mut zapper_list: Vec<(Entity, Entity, i32, i32)> = Vec::new();
         let mut shooter_list: Vec<(Entity, Entity, i32, i32)> = Vec::new();
         let mut eat_target_list: Vec<(Entity, Entity)> = Vec::new();
@@ -131,6 +135,8 @@ impl MonsterThink {
                 let items_in_backpacks: Vec<(Entity, ItemsInBackpack)> =
                     items_in_backpacks_query.iter().collect();
 
+                let castable_spells_list = MonsterThink::get_castable_spells(ecs_world, monster);
+
                 // if smart, try to equip potential items
                 let mut item_to_equip_found = false;
                 if smart.is_some() {
@@ -179,6 +185,7 @@ impl MonsterThink {
                                 || (small.is_some()
                                     && total_items < MAX_ITEMS_IN_BACKPACK_FOR_SMALL),
                             is_prey: is_prey.is_some(),
+                            can_cast: !castable_spells_list.is_empty(),
                         },
                     );
 
@@ -236,6 +243,14 @@ impl MonsterThink {
                         MonsterAction::Zap => {
                             if target.is_some() {
                                 zapper_list.push((monster, invokables[0].0, target_x, target_y));
+                            }
+                        }
+                        MonsterAction::Cast => {
+                            if target.is_some()
+                                && let Some(&spell_to_cast) = castable_spells_list.iter().next()
+                            {
+                                println!("SPELL - ready to cast {:?}", spell_to_cast);
+                                caster_list.push((monster, spell_to_cast, target_x, target_y));
                             }
                         }
                         MonsterAction::Shoot => {
@@ -310,6 +325,14 @@ impl MonsterThink {
             let _ = ecs_world.insert(
                 shooter,
                 (WantsToShoot { weapon }, WantsToZap { target: (x, y) }),
+            );
+        }
+
+        // Cast spell
+        for (caster, spell, x, y) in caster_list {
+            let _ = ecs_world.insert(
+                caster,
+                (WantsToCast { spell }, WantsToZap { target: (x, y) }),
             );
         }
 
@@ -420,6 +443,9 @@ impl MonsterThink {
                         // Attack if next to it and is not prey
                         if distance < NEXT_TO_DISTANCE && !monster_dto.is_prey {
                             action = MonsterAction::Attack;
+                        } else if monster_dto.can_cast {
+                            // Cast if far away and has spells. Prey could also shoot predators
+                            action = MonsterAction::Cast;
                         } else if monster_dto.is_smart && monster_dto.can_invoke {
                             // Zap if far away and is smart. Prey could also zap predators
                             action = MonsterAction::Zap;
@@ -549,17 +575,38 @@ impl MonsterThink {
             &equipped_ranged_weapons
         {
             // If the monsters has the ammo for at least one equipped ranged weapon, it can shoot!
-            // If instead the weapon is a spell, it can shoot if the countdown is 0
             // Most of the time all ranged weapons occupy BothHands BodyLocation
             if let Some(ranged_weapon) = ranged_weapon_opt
-                && (ranged_weapon.ammo_count_total > 0
-                    || (ranged_weapon.ammo_type == AmmoType::Spell
-                        && ranged_weapon.spell_countdown == 0))
+                && ranged_weapon.ammo_count_total > 0
             {
                 return (true, Some(*weapon_entity));
             }
         }
 
         (false, None)
+    }
+
+    /// Get monster's castable spells, confronting its spell list and all the spells with cooldown < 1
+    fn get_castable_spells(ecs_world: &World, monster: Entity) -> Vec<Entity> {
+        let mut ready_spells_query = ecs_world.query::<&Spell>();
+        let ready_spells: Vec<Entity> = ready_spells_query
+            .iter()
+            .filter(|(_, s)| s.spell_cooldown < 1)
+            .map(|(e, _)| e)
+            .collect();
+        //Get monster spell list and filter castable spells
+        let mut spells_list_query = ecs_world.query::<&SpellList>();
+        let mut castable_spells_list: Vec<Entity> = Vec::new();
+        for (e, list) in &mut spells_list_query {
+            if e.id() == monster.id() {
+                //Get monster spell list and get castable spells in it
+                for s in &list.spells {
+                    if ready_spells.contains(s) {
+                        castable_spells_list.push(*s);
+                    }
+                }
+            }
+        }
+        castable_spells_list
     }
 }
