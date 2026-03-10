@@ -139,7 +139,6 @@ pub struct Corpse {}
 
 pub enum Tradable {
     Corpse,
-    Rotten,
     RawGold,
 }
 

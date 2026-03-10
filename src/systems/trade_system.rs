@@ -1,14 +1,13 @@
-use hecs::{Entity, World};
-
 use crate::{
     components::{
         actions::{WantsItem, WantsToTrade},
         common::{DigProductEnum, Named},
-        items::{Corpse, Item, Rotten, ShopOwner, Tradable},
+        items::{Corpse, Item, ShopOwner, Tradable},
     },
     dialog::DialogAction,
     engine::state::{GameState, RunState},
 };
+use hecs::{Entity, World};
 
 pub type TradeDtt = (Entity, Entity, Entity, Vec<Entity>);
 
@@ -42,11 +41,6 @@ impl TradeSystem {
                         match wanted {
                             Tradable::Corpse => {
                                 if ecs_world.satisfies::<&Corpse>(traded_item).unwrap_or(false) {
-                                    item_selling_cost += 1;
-                                }
-                            }
-                            Tradable::Rotten => {
-                                if ecs_world.satisfies::<&Rotten>(traded_item).unwrap_or(false) {
                                     item_selling_cost += 1;
                                 }
                             }
