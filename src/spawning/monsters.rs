@@ -1134,32 +1134,19 @@ impl Spawn {
         //Generate body
         let mut body = LinkedList::new();
         let worm_size = Roll::dice(1, 3) + 1;
-        let mut free_x = x - 1;
-        let mut free_y = y - 1;
+        let mut free_x = x;
+        let mut free_y = y;
         for it in 0..worm_size {
             // Search for free space. If worm is too big, it cannot fit and we despawn it
-            let mut nothing_is_free = true;
-            for _ in 0..2 {
-                for _ in 0..2 {
-                    free_y += 1;
-                    if !zone.blocked_tiles[Zone::get_index_from_xy(&free_x, &free_y)] {
-                        nothing_is_free = false;
-                        break;
-                    }
-                }
-                if !zone.blocked_tiles[Zone::get_index_from_xy(&free_x, &free_y)] {
-                    nothing_is_free = false;
-                    break;
-                }
-                free_y = y - 1;
-                free_x += 1;
-            }
-
-            if nothing_is_free {
+            let adjacent_tiles = zone.get_adjacent_passable_tiles(free_x, free_y, true, false);
+            if adjacent_tiles.is_empty() {
                 //Cannot place worm body here, despawn and exit
                 println!("Cannot fit colossal worm!");
                 let _ = ecs_world.despawn(colossal_worm);
                 return;
+            } else {
+                free_x = adjacent_tiles[0].0;
+                free_y = adjacent_tiles[0].1;
             }
 
             let tile_y = if it == worm_size - 1 { 2.0 } else { 1.0 };
