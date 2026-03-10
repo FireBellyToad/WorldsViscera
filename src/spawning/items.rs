@@ -1,5 +1,6 @@
 use crate::{
     components::{
+        common::DigProductEnum,
         health::DiseaseType,
         items::{Ammo, AmmoType, Cure, DiggingTool, RangedWeapon},
     },
@@ -811,5 +812,31 @@ impl Spawn {
                 },),
             );
         }
+    }
+
+    pub fn raw_gold(ecs_world: &mut World, x: i32, y: i32) -> Entity {
+        let item_tile_index = (0, 5);
+        let raw_gold = (
+            Position { x, y },
+            Renderable {
+                texture_name: TextureName::Items,
+                texture_region: Rect {
+                    x: (item_tile_index.0 * TILE_SIZE) as f32,
+                    y: (item_tile_index.1 * TILE_SIZE) as f32,
+                    w: TILE_SIZE_F32,
+                    h: TILE_SIZE_F32,
+                },
+                z_index: 0,
+            },
+            Named {
+                name: "raw gold".to_string(),
+            },
+            Item {
+                item_tile: item_tile_index,
+            },
+            DigProductEnum::Gold,
+        );
+
+        ecs_world.spawn(raw_gold)
     }
 }

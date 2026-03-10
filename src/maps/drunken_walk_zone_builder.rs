@@ -7,6 +7,7 @@ use crate::{
     maps::{
         ZoneBuilder, ZoneFeatureBuilder,
         cracks_builder::CracksBuilder,
+        gold_mine_builder::GoldMineBuilder,
         mushroom_field_builder::MushroomFieldBuilder,
         river_builder::RiverBuilder,
         zone::{TileType, Zone},
@@ -202,6 +203,9 @@ impl ZoneBuilder for DrunkenWalkZoneBuilder {
         for _ in 0..cracks_number {
             CracksBuilder::build(&mut zone, ecs_world);
         }
+
+        // Add random gold mine
+        GoldMineBuilder::build(&mut zone, ecs_world);
 
         zone
     }

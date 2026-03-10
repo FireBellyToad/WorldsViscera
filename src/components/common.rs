@@ -103,6 +103,13 @@ pub enum SpeciesEnum {
 
 pub struct Diggable {
     pub dig_points: i32,
+    pub produces: DigProductEnum,
+}
+
+#[derive(PartialEq, Debug, Clone)]
+pub enum DigProductEnum {
+    Gold,
+    Stone,
 }
 
 pub struct Immunity {

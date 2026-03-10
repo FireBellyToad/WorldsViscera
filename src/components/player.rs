@@ -122,7 +122,7 @@ impl Player {
                         game_state
                             .game_log
                             .entries
-                            .push("The crack is too tight to pass through".to_string());
+                            .push("You have no digging tool to use on this wall".to_string());
                     }
                 }
 

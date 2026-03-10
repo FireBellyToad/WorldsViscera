@@ -3,8 +3,8 @@ use std::collections::HashMap;
 
 use crate::components::combat::{CombatStats, SufferingDamage};
 use crate::components::common::{
-    BlocksTile, CanListen, CanSmell, Diggable, Experience, MyTurn, Named, Position, ProduceSound,
-    Renderable, SmellIntensity, Smellable, Species, SpeciesEnum, Viewshed,
+    BlocksTile, CanListen, CanSmell, DigProductEnum, Diggable, Experience, MyTurn, Named, Position,
+    ProduceSound, Renderable, SmellIntensity, Smellable, Species, SpeciesEnum, Viewshed,
 };
 use crate::components::health::{CanAutomaticallyHeal, DiseaseType, Hunger, Thirst};
 use crate::components::items::{
@@ -354,6 +354,16 @@ impl Spawn {
                     Position { x, y },
                     Diggable {
                         dig_points: Roll::dice(4, 10),
+                        produces: DigProductEnum::Stone,
+                    },
+                ));
+            }
+            TileType::GoldMine => {
+                ecs_world.spawn((
+                    Position { x, y },
+                    Diggable {
+                        dig_points: Roll::dice(2, 20),
+                        produces: DigProductEnum::Gold,
                     },
                 ));
             }

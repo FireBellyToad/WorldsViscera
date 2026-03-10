@@ -140,6 +140,7 @@ pub struct Corpse {}
 pub enum Tradable {
     Corpse,
     Rotten,
+    RawGold,
 }
 
 pub struct Cure {

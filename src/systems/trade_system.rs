@@ -3,7 +3,7 @@ use hecs::{Entity, World};
 use crate::{
     components::{
         actions::{WantsItem, WantsToTrade},
-        common::Named,
+        common::{DigProductEnum, Named},
         items::{Corpse, Item, Rotten, ShopOwner, Tradable},
     },
     dialog::DialogAction,
@@ -47,6 +47,14 @@ impl TradeSystem {
                             }
                             Tradable::Rotten => {
                                 if ecs_world.satisfies::<&Rotten>(traded_item).unwrap_or(false) {
+                                    item_selling_cost += 1;
+                                }
+                            }
+                            Tradable::RawGold => {
+                                if let Ok(dig_product) =
+                                    ecs_world.get::<&DigProductEnum>(traded_item)
+                                    && dig_product.eq(&DigProductEnum::Gold)
+                                {
                                     item_selling_cost += 1;
                                 }
                             }

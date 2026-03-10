@@ -4,10 +4,11 @@ use crate::{
     components::{
         actions::WantsToDig,
         combat::{CombatStats, InflictsDamage},
-        common::{Diggable, MyTurn, Position},
+        common::{DigProductEnum, Diggable, MyTurn, Position},
     },
     engine::state::GameState,
     maps::zone::{TileType, Zone},
+    spawning::spawner::Spawn,
     utils::{common::Utils, roll::Roll},
 };
 
@@ -22,6 +23,7 @@ impl DigManager {
             .id();
         let mut diggers_list: Vec<(Entity, i32)> = Vec::new();
         let mut digged_list: Vec<Entity> = Vec::new();
+        let mut produced_list: Vec<(i32, i32, DigProductEnum)> = Vec::new();
 
         // Scope for keeping borrow checker quiet
         {
@@ -38,13 +40,16 @@ impl DigManager {
             //Log all the pick ups
 
             for (digger, (wants_to_dig, stats)) in &mut collectors {
-                let mut diggable = ecs_world
-                    .get::<&mut Diggable>(wants_to_dig.target)
-                    .expect("must be diggable!");
+                let mut diggable_query = ecs_world
+                    .query_one::<(&mut Diggable, &Position)>(wants_to_dig.target)
+                    .expect("target must be diggable in a position!");
                 let dig_tool_dice = ecs_world
                     .get::<&InflictsDamage>(wants_to_dig.tool)
                     .expect("must be diggable!");
 
+                let (diggable, pos) = diggable_query
+                    .get()
+                    .expect("must have Some diggable in a position!");
                 // Subtract dig points and log
                 diggable.dig_points -=
                     Roll::dice(dig_tool_dice.number_of_dices, dig_tool_dice.dice_size);
@@ -54,7 +59,7 @@ impl DigManager {
                     game_state
                         .game_log
                         .entries
-                        .push("You dig the crack in the stone wall".to_string());
+                        .push("You dig the cracked stone wall".to_string());
                 }
 
                 // Clear path if digged enough
@@ -64,14 +69,21 @@ impl DigManager {
                         .entries
                         .push("The cracked wall opens!".to_string());
 
-                    let pos = ecs_world
-                        .get::<&Position>(wants_to_dig.target)
-                        .expect("must have Position!");
-
-                    // TODO drop stones!
                     zone.tiles[Zone::get_index_from_xy(&pos.x, &pos.y)] = TileType::Floor;
 
                     digged_list.push(wants_to_dig.target);
+
+                    match diggable.produces {
+                        DigProductEnum::Gold => {
+                            produced_list.push((pos.x, pos.y, diggable.produces.clone()));
+                        }
+                        _ => {
+                            // Could randomly produce the diggable's product (usually stone)
+                            if Roll::d6() == 1 {
+                                produced_list.push((pos.x, pos.y, diggable.produces.clone()));
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -84,6 +96,17 @@ impl DigManager {
 
         for target in digged_list {
             let _ = ecs_world.despawn(target);
+        }
+
+        for (x, y, product) in produced_list {
+            match product {
+                DigProductEnum::Gold => {
+                    let _ = Spawn::raw_gold(ecs_world, x, y);
+                }
+                DigProductEnum::Stone => {
+                    let _ = Spawn::slingshot_ammo(ecs_world, x, y);
+                }
+            }
         }
     }
 }

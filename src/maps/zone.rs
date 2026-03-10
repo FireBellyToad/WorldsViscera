@@ -15,6 +15,7 @@ pub enum TileType {
     CrackedWall,
     MushroomField,
     FieldFence,
+    GoldMine,
 }
 #[derive(Clone, Debug, PartialEq)]
 pub enum DecalType {
@@ -138,6 +139,7 @@ impl Zone {
             TileType::CrackedWall => (1.0, 1.0),
             TileType::MushroomField => (2.0, 1.0),
             TileType::FieldFence => (3.0, 1.0),
+            TileType::GoldMine => (1.0, 2.0),
         }
     }
 

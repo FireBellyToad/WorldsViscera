@@ -4,6 +4,7 @@ use crate::{
     constants::*,
     maps::{
         ZoneBuilder, ZoneFeatureBuilder,
+        gold_mine_builder::GoldMineBuilder,
         mushroom_field_builder::MushroomFieldBuilder,
         zone::{TileType, Zone},
     },
@@ -96,6 +97,9 @@ impl ZoneBuilder for TestZoneBuilder {
                 }
             }
         }
+
+        // Add random gold mine
+        GoldMineBuilder::build(&mut zone, ecs_world);
 
         zone
     }
