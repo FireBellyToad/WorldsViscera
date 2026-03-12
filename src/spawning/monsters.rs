@@ -939,7 +939,7 @@ impl Spawn {
         let _ = ecs_world.insert(refugee, (Smart {}, Prey {}));
     }
 
-    pub fn stonedust_cultist(ecs_world: &mut World, x: i32, y: i32) {
+    pub fn stonedust_cultist(ecs_world: &mut World, x: i32, y: i32) -> Entity {
         let stonedust_cultist = Spawn::create_monster(
             ecs_world,
             (
@@ -1003,6 +1003,77 @@ impl Spawn {
             stonedust_cultist,
             (WantsToApply { item: lantern }, Smart {}),
         );
+
+        stonedust_cultist
+    }
+
+    pub fn stonedust_acolyte(ecs_world: &mut World, x: i32, y: i32) -> Entity {
+        let stonedust_acolyte = Spawn::create_monster(
+            ecs_world,
+            (
+                "Stonedust acolyte".to_string(),
+                Species {
+                    value: SpeciesEnum::Human,
+                },
+                CombatStats {
+                    level: 8,
+                    current_stamina: 10,
+                    max_stamina: 10,
+                    base_armor: 0,
+                    unarmed_attack_dice: 3,
+                    current_toughness: 13,
+                    max_toughness: 13,
+                    current_dexterity: 13,
+                    max_dexterity: 13,
+                    speed: NORMAL,
+                },
+                BASE_VIEW_RADIUS,
+                Edible {
+                    nutrition_dice_number: 5,
+                    nutrition_dice_size: 4,
+                },
+                Smellable {
+                    smell_log: Some("stone dust".to_string()),
+                    intensity: SmellIntensity::Faint,
+                },
+                ProduceSound {
+                    sound_log: "rythmic preaching".to_string(),
+                },
+                14.0,
+                1.0,
+                x,
+                y,
+            ),
+        );
+
+        // Stonedust cultist has dazing spell
+        let daze_spell = Spawn::daze(ecs_world);
+        let magic_stone = Spawn::magic_stone(ecs_world);
+        let _ = ecs_world.insert_one(
+            stonedust_acolyte,
+            SpellList {
+                spells: vec![daze_spell, magic_stone],
+            },
+        );
+
+        // Stonedust cultist has lantern
+        let lantern = Spawn::lantern(ecs_world, x, y);
+        let _ = ecs_world.remove_one::<Position>(lantern);
+        let _ = ecs_world.insert_one(
+            lantern,
+            InBackback {
+                owner: stonedust_acolyte,
+                assigned_char: 'a',
+            },
+        );
+
+        // turn on lantern
+        let _ = ecs_world.insert(
+            stonedust_acolyte,
+            (WantsToApply { item: lantern }, Smart {}),
+        );
+
+        stonedust_acolyte
     }
 
     pub fn living_dead(ecs_world: &mut World, x: i32, y: i32) {

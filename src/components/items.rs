@@ -155,6 +155,7 @@ pub struct Spell {
 pub enum SpellType {
     Daze,
     BurningSpray,
+    MagicStone,
 }
 
 impl SpellType {
@@ -162,6 +163,7 @@ impl SpellType {
         match *self {
             SpellType::Daze => DAZE_PARTICLE_TYPE,
             SpellType::BurningSpray => BURNING_PARTICLE_TYPE,
+            SpellType::MagicStone => STONE_PARTICLE_TYPE,
         }
     }
 }

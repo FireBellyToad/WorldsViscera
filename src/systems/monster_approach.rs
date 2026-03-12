@@ -4,7 +4,7 @@ use crate::{
     components::{
         combat::{CombatStats, SufferingDamage},
         common::*,
-        monster::{Aquatic, LeaveTrail, Monster, SnakeHead, WantsToApproach},
+        monster::{Aquatic, LeaveTrail, Monster, SnakeBody, SnakeHead, WantsToApproach},
     },
     engine::state::GameState,
     maps::zone::{DecalType, Zone},
@@ -36,7 +36,8 @@ impl MonsterApproach {
                     Option<&Immobile>,
                     Option<&SnakeHead>,
                 )>()
-                .with::<(&Monster, &MyTurn)>();
+                .with::<(&Monster, &MyTurn)>()
+                .without::<&SnakeBody>();
 
             let zone = game_state
                 .current_zone
@@ -52,18 +53,18 @@ impl MonsterApproach {
                     named,
                     stats,
                     suffering_damage,
-                    aquatic,
+                    aquatic_opt,
                     wants_to_approach,
-                    leave_trail,
-                    immobile,
-                    snake_head,
+                    leave_trail_opt,
+                    immobile_opt,
+                    snake_head_opt,
                 ),
             ) in &mut named_monsters
             {
                 let current_pos_index = Zone::get_index_from_xy(&position.x, &position.y);
 
                 // Checking if could slip on slime before moving away
-                if leave_trail.is_none() && snake_head.is_none() // Snake monsters cannot slip (TODO really?)
+                if leave_trail_opt.is_none() && snake_head_opt.is_none() // Snake monsters cannot slip (TODO really?)
                     && let Some(special_tile) = zone.decals_tiles.get(&current_pos_index)
                     && let DecalType::Slime = special_tile
                 {
@@ -85,7 +86,7 @@ impl MonsterApproach {
                 waiter_speed_list.push((monster_entity, stats.speed));
 
                 // Do not do anything if the monster is immobile
-                if immobile.is_some() {
+                if immobile_opt.is_some() {
                     approacher_list.push(monster_entity);
                     continue;
                 }
@@ -97,7 +98,7 @@ impl MonsterApproach {
                     wants_to_approach.target_y,
                     zone,
                     true,
-                    aquatic.is_some(),
+                    aquatic_opt.is_some(),
                 );
 
                 //If can actually reach the new position, do it or else stay still
@@ -114,7 +115,7 @@ impl MonsterApproach {
                     // .......    .......
                     // ..<000. => .<000..
                     // .......    .......
-                    if let Some(snake) = snake_head {
+                    if let Some(snake) = snake_head_opt {
                         let mut new_x = position.x;
                         let mut new_y = position.y;
                         let mut previous_x;
@@ -140,7 +141,7 @@ impl MonsterApproach {
                     zone.blocked_tiles[Zone::get_index_from_xy(&position.x, &position.y)] = true;
 
                     // Checking if could step on acid after moving
-                    if leave_trail.is_none()
+                    if leave_trail_opt.is_none()
                         && let Some(special_tile) = zone.decals_tiles.get(&current_pos_index)
                         && let DecalType::Acid = special_tile
                     {

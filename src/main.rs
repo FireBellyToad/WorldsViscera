@@ -1,6 +1,6 @@
 use crate::{
     components::common::Experience,
-    maps::arena_zone_builder::ArenaZoneBuilder,
+    maps::{arena_zone_builder::ArenaZoneBuilder, test_zone_builder::TestZoneBuilder},
     systems::{
         advancement_system::AdvancementSystem, dig_manager::DigManager,
         gaze_attacks_manager::GazeAttacksManager, health_manager::HealthManager,
@@ -194,7 +194,7 @@ fn populate_world(game_state: &mut GameState) {
         },
     ));
 
-    let zone = ArenaZoneBuilder::build(1, &mut game_state.ecs_world);
+    let zone = TestZoneBuilder::build(1, &mut game_state.ecs_world);
 
     game_state.current_player_entity = Some(Spawn::player(&mut game_state.ecs_world, &zone));
     Spawn::everyhing_in_map(&mut game_state.ecs_world, &zone);

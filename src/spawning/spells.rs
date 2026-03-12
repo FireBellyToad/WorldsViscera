@@ -46,4 +46,22 @@ impl Spawn {
 
         ecs_world.spawn(daze_spell)
     }
+
+    pub fn magic_stone(ecs_world: &mut World) -> Entity {
+        let magic_stone = (
+            Named {
+                name: "Magic stone".to_string(),
+            },
+            Spell {
+                spell_type: SpellType::MagicStone,
+                spell_cooldown: 0,
+            },
+            InflictsDamage {
+                number_of_dices: 1,
+                dice_size: 8,
+            },
+        );
+
+        ecs_world.spawn(magic_stone)
+    }
 }

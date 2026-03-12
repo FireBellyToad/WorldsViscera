@@ -186,13 +186,17 @@ impl Spawn {
                 (15..=17) => Spawn::sulfuric_slug(ecs_world, x, y),
                 (18..=19) => Spawn::refugee(ecs_world, x, y),
                 (20..=21) => Spawn::bombardier_bettle(ecs_world, x, y),
-                (22..=24) => Spawn::stonedust_cultist(ecs_world, x, y),
+                (22..=24) => {
+                    let _ = Spawn::stonedust_cultist(ecs_world, x, y);
+                }
                 _ => {}
             },
             (19..) => match Roll::dice(1, 24) {
                 (1..=4) => Spawn::gremlin(ecs_world, x, y),
                 (5..=7) => Spawn::moleman(ecs_world, x, y),
-                (8..=11) => Spawn::stonedust_cultist(ecs_world, x, y),
+                (8..=11) => {
+                    let _ = Spawn::stonedust_acolyte(ecs_world, x, y);
+                }
                 (12..=14) => Spawn::enthropic_gremlin(ecs_world, x, y),
                 (15..=17) => Spawn::abyssal_one(ecs_world, x, y),
                 (18..=20) => Spawn::sulfuric_slug(ecs_world, x, y),

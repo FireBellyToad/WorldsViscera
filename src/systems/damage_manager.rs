@@ -235,24 +235,7 @@ impl DamageManager {
                 experience.auto_advance_counter += AUTO_ADVANCE_EXP_COUNTER_START;
             }
 
-            // Despawn snake body entities
-            let mut body_temp_vec: Vec<Entity> = Vec::new();
-            if let Ok(head) = ecs_world.get::<&SnakeHead>(killed_entity) {
-                for &body_entity in head.body.iter() {
-                    body_temp_vec.push(body_entity);
-                    let position = ecs_world
-                        .get::<&Position>(body_entity)
-                        .expect("Snake body should have position");
-                    //Drench the tile of the body with blood
-                    zone.decals_tiles.insert(
-                        Zone::get_index_from_xy(&position.x, &position.y),
-                        DecalType::Blood,
-                    );
-                }
-            }
-            for body_entity in body_temp_vec {
-                let _ = ecs_world.despawn(body_entity);
-            }
+            DamageManager::handle_snake_entity_death(ecs_world, zone, killed_entity, damager_opt);
 
             ItemDropping::drop_all_of(killed_entity, ecs_world, x, y);
 
@@ -321,5 +304,62 @@ impl DamageManager {
         }
 
         false
+    }
+
+    /// Handle snake entity death.
+    /// Is is SingleSnakeCreature, kill head and despawn body parts..
+    /// Else, is a moltitude of creatures (like a Stonedust cultist procession):
+    /// just free them all and let them act normally (will hate the killer, though)
+    fn handle_snake_entity_death(
+        ecs_world: &mut hecs::World,
+        zone: &mut Zone,
+        killed_entity: Entity,
+        damager_opt: Option<Entity>,
+    ) {
+        let mut body_temp_vec: Vec<(Entity, bool, bool)> = Vec::new();
+        let is_single_creature = ecs_world
+            .satisfies::<&SingleSnakeCreature>(killed_entity)
+            .unwrap_or(false);
+        if let Ok(head) = ecs_world.get::<&SnakeHead>(killed_entity) {
+            for &body_entity in head.body.iter() {
+                body_temp_vec.push((body_entity, is_single_creature, true));
+                let position = ecs_world
+                    .get::<&Position>(body_entity)
+                    .expect("Snake body should have position");
+                //Drench the tile of the body with blood
+                zone.decals_tiles.insert(
+                    Zone::get_index_from_xy(&position.x, &position.y),
+                    DecalType::Blood,
+                );
+            }
+        } else if !is_single_creature
+            && let Ok(body) = ecs_world.get::<&SnakeBody>(killed_entity)
+            && let Ok(head) = ecs_world.get::<&SnakeHead>(body.head)
+        {
+            for &body_entity in head.body.iter() {
+                body_temp_vec.push((body_entity, is_single_creature, true));
+            }
+            body_temp_vec.push((body.head, is_single_creature, false));
+        }
+
+        for (snake_entity, is_single_creature, is_body_part) in body_temp_vec {
+            if is_single_creature {
+                // Despawn the snake body parts if is just a single creature
+                let _ = ecs_world.despawn(snake_entity);
+            } else {
+                // Other members of the snake will now hate the damager
+                if let Some(damager) = damager_opt
+                    && let Ok(mut target_hates) = ecs_world.get::<&mut Hates>(snake_entity)
+                {
+                    target_hates.list.insert(damager.id());
+                }
+                // And they will be free to act by themselves
+                if is_body_part {
+                    let _ = ecs_world.remove_one::<SnakeBody>(snake_entity);
+                } else {
+                    let _ = ecs_world.remove_one::<SnakeHead>(snake_entity);
+                }
+            }
+        }
     }
 }

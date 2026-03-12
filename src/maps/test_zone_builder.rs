@@ -6,6 +6,7 @@ use crate::{
         ZoneBuilder, ZoneFeatureBuilder,
         gold_mine_builder::GoldMineBuilder,
         mushroom_field_builder::MushroomFieldBuilder,
+        stonedust_procession_builder::StonedustProcessionBuilder,
         zone::{TileType, Zone},
     },
     utils::{common::Utils, roll::Roll},
@@ -100,6 +101,8 @@ impl ZoneBuilder for TestZoneBuilder {
 
         // Add random gold mine
         GoldMineBuilder::build(&mut zone, ecs_world);
+
+        StonedustProcessionBuilder::build(&mut zone, ecs_world);
 
         zone
     }
