@@ -10,6 +10,8 @@ use crate::{
         gold_mine_builder::GoldMineBuilder,
         mushroom_field_builder::MushroomFieldBuilder,
         river_builder::RiverBuilder,
+        stonedust_procession_builder::StonedustProcessionBuilder,
+        stonedust_shrine_builder::StonedustShrineBuilder,
         zone::{TileType, Zone},
     },
     utils::roll::Roll,
@@ -93,8 +95,13 @@ impl ZoneBuilder for DrunkenWalkZoneBuilder {
             }
         }
         //Mushroom Field
-        if depth.is_multiple_of(MUSHROOM_FIELD_LEVEL) {
-            MushroomFieldBuilder::build(&mut zone, ecs_world);
+        if depth.is_multiple_of(SPECIAL_ROOM_LEVEL) {
+            let _ = match Roll::dice(1, 3) {
+                1 => MushroomFieldBuilder::build(&mut zone, ecs_world),
+                2 => StonedustProcessionBuilder::build(&mut zone, ecs_world),
+                3 => StonedustShrineBuilder::build(&mut zone, ecs_world),
+                _ => panic!("Invalid special room"),
+            };
         }
 
         // Populate water and blocked tiles here, needed for correct spawning

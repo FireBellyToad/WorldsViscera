@@ -17,7 +17,7 @@ pub struct GoldMineBuilder {}
 impl ZoneFeatureBuilder for GoldMineBuilder {
     fn build(zone: &mut Zone, _: &mut World) -> Vec<usize> {
         let mut gold_mine_tiles = Vec::new();
-        let gold_mines_number = max(0, Roll::dice(1, MAX_GOLD_IN_ZONE) - 20);
+        let gold_mines_number = max(0, Roll::dice(1, MAX_GOLD_IN_ZONE) - 3);
 
         for _ in 0..gold_mines_number {
             let random_x = Roll::dice(1, MAP_WIDTH - 1);

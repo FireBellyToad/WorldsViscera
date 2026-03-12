@@ -143,15 +143,13 @@ impl MonsterThink {
                 let mut has_equipped_item_in_backpack = false;
                 let mut has_eaten_edible_in_backpack = false;
                 if smart.is_some() {
-                    // if smart, try to equip potential items
-                    has_equipped_item_in_backpack = match MonsterThink::handle_npc_equipment(
+                    // if smart, try to equip potential items (default is None)
+                    has_equipped_item_in_backpack = MonsterThink::handle_npc_equipment(
                         &mut equipper_item_list,
                         monster,
                         &items_in_backpacks,
-                    ) {
-                        Some(result) => result,
-                        None => false,
-                    };
+                    )
+                    .unwrap_or_default();
 
                     // If smart, can eat something from backpack when not satiated
                     has_eaten_edible_in_backpack = MonsterThink::handle_edibles_in_backpack(

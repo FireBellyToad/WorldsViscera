@@ -19,7 +19,7 @@ pub const BRAZIER_RADIUS: i32 = 20;
 pub const MAX_BRAZIER_IN_ZONE: i32 = 6;
 pub const MAX_RIVERS_IN_ZONE: i32 = 4;
 pub const MAX_CRACKS_IN_ZONE: i32 = 4;
-pub const MAX_GOLD_IN_ZONE: i32 = 40;
+pub const MAX_GOLD_IN_ZONE: i32 = 10;
 
 /// Hud related constants
 pub const HUD_WIDTH: i32 = MAP_WIDTH * TILE_SIZE;
@@ -70,7 +70,7 @@ pub const VERY_LONG_ACTION_MULTIPLIER: i32 = 3;
 pub const MAX_MONSTERS_IN_ZONE: i32 = 5;
 pub const MAX_ITEMS_IN_ZONE: i32 = 10;
 pub const MAX_SPAWN_TENTATIVES: i32 = 20;
-pub const MUSHROOM_FIELD_LEVEL: u32 = 3;
+pub const SPECIAL_ROOM_LEVEL: u32 = 3;
 
 /// Player related constants
 pub const BASE_VIEW_RADIUS: i32 = 6;

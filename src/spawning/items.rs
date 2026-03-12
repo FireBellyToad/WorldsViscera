@@ -801,7 +801,7 @@ impl Spawn {
         );
 
         // Give the farmer some ammo
-        for _ in 0..3 {
+        for _ in 0..2 {
             let slingshot_ammo = Spawn::slingshot_ammo(ecs_world, 0, 0);
             let _ = ecs_world.remove_one::<Position>(slingshot_ammo);
             let _ = ecs_world.insert(

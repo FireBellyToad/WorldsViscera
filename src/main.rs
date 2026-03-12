@@ -1,6 +1,6 @@
 use crate::{
     components::common::Experience,
-    maps::test_zone_builder::TestZoneBuilder,
+    maps::arena_zone_builder::ArenaZoneBuilder,
     systems::{
         advancement_system::AdvancementSystem, dig_manager::DigManager,
         gaze_attacks_manager::GazeAttacksManager, health_manager::HealthManager,
@@ -194,7 +194,7 @@ fn populate_world(game_state: &mut GameState) {
         },
     ));
 
-    let zone = TestZoneBuilder::build(1, &mut game_state.ecs_world);
+    let zone = ArenaZoneBuilder::build(1, &mut game_state.ecs_world);
 
     game_state.current_player_entity = Some(Spawn::player(&mut game_state.ecs_world, &zone));
     Spawn::everyhing_in_map(&mut game_state.ecs_world, &zone);
@@ -332,7 +332,7 @@ fn do_debug_logic(game_state: &mut GameState) {
                     &mut game_state.ecs_world,
                     MAP_WIDTH / 2,
                     MAP_HEIGHT / 2,
-                    &game_state.current_zone.as_ref().unwrap(),
+                    game_state.current_zone.as_ref().unwrap(),
                 );
             } else if is_key_pressed(KeyCode::F8) {
                 use crate::components::combat::CombatStats;

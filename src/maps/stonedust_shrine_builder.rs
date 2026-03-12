@@ -6,7 +6,7 @@ use crate::{
         common::Immobile,
         items::{ShopOwner, Tradable},
     },
-    constants::{MAP_HEIGHT, MAP_WIDTH, MUSHROOM_EXCELLENT},
+    constants::{MAP_HEIGHT, MAP_WIDTH},
     maps::{
         ZoneFeatureBuilder,
         zone::{TileType, Zone},
