@@ -10,6 +10,7 @@ pub mod gold_mine_builder;
 pub mod mushroom_field_builder;
 pub mod river_builder;
 pub mod stonedust_procession_builder;
+pub mod stonedust_shrine_builder;
 pub mod test_zone_builder;
 pub mod zone;
 

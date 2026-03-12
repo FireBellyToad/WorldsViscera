@@ -16,6 +16,8 @@ pub enum TileType {
     MushroomField,
     FieldFence,
     GoldMine,
+    BrickWall,
+    StoneFloor,
 }
 #[derive(Clone, Debug, PartialEq)]
 pub enum DecalType {
@@ -118,7 +120,9 @@ impl Zone {
     /// Return true if cannot see through a tile
     pub fn is_tile_opaque(&self, x: &i32, y: &i32) -> bool {
         let index = Self::get_index_from_xy(x, y);
-        self.tiles[index] == TileType::Wall || self.tiles[index] == TileType::CrackedWall
+        self.tiles[index] == TileType::Wall
+            || self.tiles[index] == TileType::CrackedWall
+            || self.tiles[index] == TileType::BrickWall
     }
 
     /// Clears content index for this zone
@@ -140,6 +144,8 @@ impl Zone {
             TileType::MushroomField => (2.0, 1.0),
             TileType::FieldFence => (3.0, 1.0),
             TileType::GoldMine => (1.0, 2.0),
+            TileType::BrickWall => (2.0, 2.0),
+            TileType::StoneFloor => (3.0, 2.0),
         }
     }
 
