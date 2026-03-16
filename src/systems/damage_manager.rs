@@ -1,10 +1,10 @@
 use std::cmp::max;
 
-use hecs::Entity;
+use hecs::{Entity, World};
 
 use crate::{
     components::{
-        combat::{CombatStats, SufferingDamage},
+        combat::{CombatStats, Grappled, SufferingDamage},
         common::{Experience, Hates, Named, Position, Species, SpeciesEnum},
         health::{CanAutomaticallyHeal, DiseaseType, Paralyzed},
         items::{Deadly, DontLeaveCorpse, Edible},
@@ -236,6 +236,7 @@ impl DamageManager {
             }
 
             DamageManager::handle_snake_entity_death(ecs_world, zone, killed_entity, damager_opt);
+            DamageManager::handle_grappler_death(ecs_world, killed_entity);
 
             ItemDropping::drop_all_of(killed_entity, ecs_world, x, y);
 
@@ -360,6 +361,25 @@ impl DamageManager {
                     let _ = ecs_world.remove_one::<SnakeHead>(snake_entity);
                 }
             }
+        }
+    }
+
+    /// Handles the death of a grappler, removing any Grappled components from entities.
+    fn handle_grappler_death(ecs_world: &mut World, killed_entity: Entity) {
+        let mut grappled_by_killed: Vec<Entity> = Vec::new();
+        // Scope to keep the borrow checker quiet
+        {
+            let mut grappled = ecs_world.query::<&Grappled>();
+
+            for (entity, grappled) in &mut grappled.iter() {
+                if grappled.by.id() == killed_entity.id() {
+                    grappled_by_killed.push(entity);
+                }
+            }
+        }
+
+        for grappler in grappled_by_killed {
+            let _ = ecs_world.remove_one::<Grappled>(grappler);
         }
     }
 }

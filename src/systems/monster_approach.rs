@@ -91,24 +91,27 @@ impl MonsterApproach {
                 if immobile_opt.is_some() {
                     approacher_list.push(monster_entity);
                     continue;
-                } else if let Some(grappler) = grappled_opt
-                    && Roll::d20() <= stats.current_dexterity
-                {
-                    let mut g_query = ecs_world
-                        .query_one::<(&Named, &CombatStats)>(grappler.by)
-                        .expect("Grappler entity has no Named component");
-                    let (grappler_name, grappler_stats) =
-                        g_query.get().expect("g_query must have result");
+                } else if let Some(grappled) = grappled_opt {
+                    if Roll::d20() <= stats.current_dexterity
+                        && let Ok(mut g_query) =
+                            ecs_world.query_one::<(&Named, &CombatStats)>(grappled.by)
+                    {
+                        let (grappler_name, grappler_stats) =
+                            g_query.get().expect("g_query must have result");
 
-                    game_state.game_log.entries.push(format!(
-                        "The {} escapes the {}'s grasp!",
-                        named.name, grappler_name.name
-                    ));
-
-                    // Grappler lose turn
-                    waiter_speed_list.push((grappler.by, grappler_stats.speed));
-                    approacher_list.push(monster_entity);
-                    continue;
+                        // Grappler lose turn
+                        if zone.visible_tiles[Zone::get_index_from_xy(&position.x, &position.y)] {
+                            game_state.game_log.entries.push(format!(
+                                "The {} escapes the {}'s grasp!",
+                                named.name, grappler_name.name
+                            ));
+                        }
+                        waiter_speed_list.push((grappled.by, grappler_stats.speed));
+                    } else {
+                        // Stop moving
+                        waiter_speed_list.push((monster_entity, stats.speed));
+                        continue;
+                    }
                 }
 
                 let pathfinding_result = Pathfinding::dijkstra_wrapper(

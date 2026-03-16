@@ -126,6 +126,10 @@ impl MeleeManager {
                         wants_melee.target.id(),
                         &mut equipped_armors,
                     );
+                    // Sneak attack doubles damage
+                    // Can sneak attack if hidden or target is blind or grappled
+                    let is_grappled_by_attacker = target_grappled_opt.is_some()
+                        && target_grappled_opt.unwrap().by.id() == attacker.id();
 
                     //Venomous damage targets toughness ignoring armor
                     match venomous_opt {
@@ -169,11 +173,6 @@ impl MeleeManager {
                             }
                         }
                         None => {
-                            // Sneak attack doubles damage
-                            // Can sneak attack if hidden or target is blind or grappled
-                            let is_grappled_by_attacker = target_grappled_opt.is_some()
-                                && target_grappled_opt.unwrap().by.id() == attacker.id();
-
                             if is_grappled_by_attacker
                                 || hidden_opt.is_some()
                                 || target_blind_opt.is_some()
@@ -298,7 +297,7 @@ impl MeleeManager {
                         }
                     }
 
-                    if grappler_opt.is_some() {
+                    if !is_grappled_by_attacker && grappler_opt.is_some() {
                         grappled_entities.push((attacker, wants_melee.target));
                         if Roll::d20() > target_stats.current_dexterity {
                             if target_is_player {

@@ -367,15 +367,7 @@ fn do_debug_logic(game_state: &mut GameState) {
             } else if is_key_pressed(KeyCode::F6) {
                 game_state.debug_monster_vision = !game_state.debug_monster_vision;
             } else if is_key_pressed(KeyCode::F5) {
-                Spawn::random_terrain_monster(
-                    &mut game_state.ecs_world,
-                    MAP_WIDTH / 2,
-                    MAP_HEIGHT / 2,
-                    game_state
-                        .current_zone
-                        .as_ref()
-                        .expect("Must have Some Zone"),
-                );
+                Spawn::refugee(&mut game_state.ecs_world, MAP_WIDTH / 2, MAP_HEIGHT / 2);
             }
         }
     }
