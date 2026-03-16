@@ -1,5 +1,5 @@
 use crate::components::actions::{WantsToDig, WantsToTrade};
-use crate::components::combat::{SufferingDamage, WantsToShoot};
+use crate::components::combat::{Grappled, SufferingDamage, WantsToShoot};
 use crate::components::common::{Diggable, Hates, Named};
 use crate::components::items::{DiggingTool, RangedWeapon, ShopOwner};
 use crate::constants::STANDARD_ACTION_MULTIPLIER;
@@ -50,6 +50,8 @@ impl Player {
         game_state.run_state = RunState::WaitingPlayerInput;
         let mut attacker_target: Option<(Entity, Entity)> = None;
         let mut digger_target: Option<(Entity, Entity, Entity)> = None;
+        let mut waiter_speed_list: Vec<(Entity, i32)> = Vec::new();
+        let mut player_was_grappled: bool = false;
 
         // Scope for keeping borrow checker quiet
         {
@@ -60,6 +62,7 @@ impl Player {
                     &mut Viewshed,
                     &CombatStats,
                     &mut SufferingDamage,
+                    Option<&Grappled>,
                 )>()
                 .with::<&Player>();
 
@@ -68,7 +71,9 @@ impl Player {
                 .as_mut()
                 .expect("must have Some Zone");
 
-            for (player_entity, (position, viewshed, stats, suffering_damage)) in &mut players {
+            for (player_entity, (position, viewshed, stats, suffering_damage, grappled_opt)) in
+                &mut players
+            {
                 // Check if player is on slime before moving away
                 if let Some(special_tile) = zone
                     .decals_tiles
@@ -82,6 +87,30 @@ impl Player {
                             .entries
                             .push("You slip on the slime!".to_string());
 
+                        game_state.run_state = RunState::DoTick;
+                        break;
+                    }
+                } else if let Some(grappler) = grappled_opt {
+                    player_was_grappled = true;
+                    let mut g_query = ecs_world
+                        .query_one::<(&Named, &CombatStats)>(grappler.by)
+                        .expect("Grappler entity has no Named component");
+                    let (grappler_name, grappler_stats) =
+                        g_query.get().expect("g_query must have result");
+                    // Try to escape grapple
+                    if Roll::d20() <= stats.current_dexterity {
+                        game_state.game_log.entries.push(format!(
+                            "You free yourself from the {}'s grasp!",
+                            grappler_name.name
+                        ));
+
+                        // Grappler lose turn
+                        waiter_speed_list.push((grappler.by, grappler_stats.speed));
+                    } else {
+                        game_state.game_log.entries.push(format!(
+                            "You cant' escape the {}'s grasp!",
+                            grappler_name.name
+                        ));
                         game_state.run_state = RunState::DoTick;
                         break;
                     }
@@ -177,6 +206,18 @@ impl Player {
                 .ecs_world
                 .insert_one(digger, WantsToDig { target, tool });
             game_state.run_state = RunState::DoTick;
+        }
+
+        // Remove grapple if player was grappled
+        if player_was_grappled {
+            let _ = game_state.ecs_world.remove_one::<Grappled>(
+                game_state.current_player_entity.expect("must have player"),
+            );
+        }
+
+        // TODO account speed penalties
+        for (waiter, speed) in waiter_speed_list {
+            Utils::wait_after_action(&mut game_state.ecs_world, waiter, speed);
         }
     }
 

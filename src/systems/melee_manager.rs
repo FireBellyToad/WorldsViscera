@@ -1,8 +1,9 @@
 use crate::{
     components::{
-        combat::InflictsDamage,
+        combat::{Grappled, InflictsDamage},
+        common::{Immunity, ImmunityTypeEnum},
         health::{Blind, DiseaseType, Diseased},
-        monster::DiseaseBearer,
+        monster::{DiseaseBearer, Grappler},
     },
     constants::MAX_DISEASE_TICK_COUNTER,
     engine::state::GameState,
@@ -39,6 +40,7 @@ impl MeleeManager {
         let mut wants_to_melee_list: Vec<(Entity, i32)> = Vec::new();
         let mut hidden_list: Vec<Entity> = Vec::new();
         let mut infected_list: Vec<(Entity, DiseaseType)> = Vec::new();
+        let mut grappled_entities: Vec<(Entity, Entity)> = Vec::new();
 
         // Scope for keeping borrow checker quiet
         {
@@ -52,6 +54,7 @@ impl MeleeManager {
                     Option<&IsHidden>,
                     Option<&Venomous>,
                     Option<&DiseaseBearer>,
+                    Option<&Grappler>,
                 )>()
                 .with::<&MyTurn>();
 
@@ -74,9 +77,10 @@ impl MeleeManager {
                     named_attacker,
                     attacker_position,
                     attacker_stats,
-                    hidden,
-                    venomous,
-                    disease_bearer,
+                    hidden_opt,
+                    venomous_opt,
+                    disease_bearer_opt,
+                    grappler_opt,
                 ),
             ) in &mut attackers
             {
@@ -88,12 +92,23 @@ impl MeleeManager {
                     ecs_world.get::<&mut SufferingDamage>(wants_melee.target)
                 {
                     let mut target_query = ecs_world
-                        .query_one::<(&CombatStats, &Named, Option<&Blind>)>(wants_melee.target)
+                        .query_one::<(
+                            &CombatStats,
+                            &Named,
+                            Option<&Blind>,
+                            Option<&Grappled>,
+                            Option<&Immunity>,
+                        )>(wants_melee.target)
                         .expect("Must have one");
 
                     // Show appropriate log messages
-                    let (target_stats, named_target, target_is_blind) =
-                        target_query.get().expect("Entity is not Named");
+                    let (
+                        target_stats,
+                        named_target,
+                        target_blind_opt,
+                        target_grappled_opt,
+                        target_immunity_opt,
+                    ) = target_query.get().expect("Entity is not Named");
                     let (attacker_dice_number, attacker_dice, erosion) =
                         MeleeManager::get_damage_dices(
                             attacker_stats.unarmed_attack_dice,
@@ -113,7 +128,7 @@ impl MeleeManager {
                     );
 
                     //Venomous damage targets toughness ignoring armor
-                    match venomous {
+                    match venomous_opt {
                         Some(_) => {
                             // TODO what about venom immunity?
                             let saving_throw_roll = Roll::d20();
@@ -155,8 +170,14 @@ impl MeleeManager {
                         }
                         None => {
                             // Sneak attack doubles damage
-                            // Can sneak attack if hidden or target is blind
-                            if hidden.is_some() || target_is_blind.is_some() {
+                            // Can sneak attack if hidden or target is blind or grappled
+                            let is_grappled_by_attacker = target_grappled_opt.is_some()
+                                && target_grappled_opt.unwrap().by.id() == attacker.id();
+
+                            if is_grappled_by_attacker
+                                || hidden_opt.is_some()
+                                || target_blind_opt.is_some()
+                            {
                                 damage_roll = max(
                                     0,
                                     Roll::dice(attacker_dice_number * 2, attacker_dice)
@@ -186,7 +207,7 @@ impl MeleeManager {
                                         ));
                                     }
                                 }
-                                if hidden.is_some() {
+                                if hidden_opt.is_some() {
                                     hidden_list.push(attacker);
                                     // Cannot hide again for 9 - (stats.current_dexterity / 3) turns
                                     let mut can_hide = ecs_world
@@ -229,32 +250,67 @@ impl MeleeManager {
                         }
                     }
 
-                    // If the attacker inflicts disease and target fails the saving throws
-                    // inflict disease
-                    if let Some(dis_bear_some) = disease_bearer
-                        && Roll::d20() > target_stats.current_toughness
-                    {
+                    // If the attacker is a disease bearers
+                    if let Some(dis_bear_some) = disease_bearer_opt {
                         let disease_type = dis_bear_some.disease_type.clone();
-                        // If the target is already infected...
-                        if let Ok(mut dis) = ecs_world.get::<&mut Diseased>(wants_melee.target) {
-                            match dis.tick_counters.entry(disease_type) {
-                                Entry::Occupied(mut entry) => {
-                                    //worsen its status
-                                    entry.insert((0, false));
+
+                        // If not immune and saving throw fails, inflict disease
+                        if let Some(target_immunity) = target_immunity_opt
+                            && !target_immunity.to.iter().any(|i| match i {
+                                ImmunityTypeEnum::Disease(d) => d == &disease_type,
+                                _ => false,
+                            })
+                            && Roll::d20() > target_stats.current_toughness
+                        {
+                            // If the target is already infected...
+                            if let Ok(mut dis) = ecs_world.get::<&mut Diseased>(wants_melee.target)
+                            {
+                                match dis.tick_counters.entry(disease_type) {
+                                    Entry::Occupied(mut entry) => {
+                                        //worsen its status
+                                        entry.insert((0, false));
+                                    }
+                                    Entry::Vacant(entry) => {
+                                        // Infect the healthy target otherwise
+                                        entry.insert((
+                                            MAX_DISEASE_TICK_COUNTER + Roll::d20(),
+                                            false,
+                                        ));
+                                    }
                                 }
-                                Entry::Vacant(entry) => {
-                                    // Infect the healthy target otherwise
-                                    entry.insert((MAX_DISEASE_TICK_COUNTER + Roll::d20(), false));
+                            } else {
+                                // Infect the healthy target otherwise
+                                infected_list.push((wants_melee.target, disease_type));
+                                if player_id == wants_melee.target.id() {
+                                    game_state
+                                        .game_log
+                                        .entries
+                                        .push("You start to feel ill.".to_string());
                                 }
                             }
                         } else {
-                            // Infect the healthy target otherwise
-                            infected_list.push((wants_melee.target, disease_type));
+                            // Immune or unaffected
                             if player_id == wants_melee.target.id() {
+                                game_state.game_log.entries.push(
+                                    "You felt a little sick, but it passed quickly.".to_string(),
+                                );
+                            }
+                        }
+                    }
+
+                    if grappler_opt.is_some() {
+                        grappled_entities.push((attacker, wants_melee.target));
+                        if Roll::d20() > target_stats.current_dexterity {
+                            if target_is_player {
                                 game_state
                                     .game_log
                                     .entries
-                                    .push("You start to feel ill...".to_string());
+                                    .push(format!("The {} grabs on you!", named_attacker.name));
+                            } else {
+                                game_state.game_log.entries.push(format!(
+                                    "The {} grabs on the {}!",
+                                    named_attacker.name, named_target.name
+                                ));
                             }
                         }
                     }
@@ -273,6 +329,10 @@ impl MeleeManager {
         // No longer hidden after attack
         for attacker in hidden_list {
             let _ = ecs_world.remove_one::<IsHidden>(attacker);
+        }
+        // Grappled entities
+        for (by, grappled_ent) in grappled_entities {
+            let _ = ecs_world.insert_one(grappled_ent, Grappled { by });
         }
 
         // If the attacker inflicts disease and target fails the saving throws

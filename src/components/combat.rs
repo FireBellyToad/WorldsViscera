@@ -61,3 +61,7 @@ pub struct WantsToGaze {
 pub struct WantsToCast {
     pub spell: Entity,
 }
+
+pub struct Grappled {
+    pub by: Entity,
+}

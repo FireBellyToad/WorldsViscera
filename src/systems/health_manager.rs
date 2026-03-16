@@ -1,11 +1,11 @@
-use std::cmp::max;
+use std::{cmp::max, collections::HashSet};
 
 use hecs::{Entity, World};
 
 use crate::{
     components::{
         combat::{CombatStats, SufferingDamage},
-        common::{GameLog, MyTurn, Named, Position},
+        common::{GameLog, Immunity, ImmunityTypeEnum, MyTurn, Named, Position},
         health::{Cured, DiseaseType, Diseased, Hunger, Stunned},
     },
     constants::{MAX_DISEASE_TICK_COUNTER, VERY_LONG_ACTION_MULTIPLIER},
@@ -239,9 +239,16 @@ impl HealthManager {
 
         // Remove disease from healed entities. Check if all diseases are cured
         let mut cured_entities: Vec<(Entity, bool)> = Vec::new();
+        let mut gained_immunity: Vec<(Entity, ImmunityTypeEnum)> = Vec::new();
         for (healed, disease_type, from_cure) in healed_entities {
             if let Ok(mut dis) = ecs_world.get::<&mut Diseased>(healed) {
                 dis.tick_counters.remove(&disease_type);
+
+                // 50% of the time, grant immunity to the healed disease
+                if Roll::d6() > 4 {
+                    gained_immunity.push((healed, ImmunityTypeEnum::Disease(disease_type)));
+                }
+
                 // Check if all diseases are cured
                 if dis.tick_counters.is_empty() {
                     cured_entities.push((healed, from_cure));
@@ -254,6 +261,20 @@ impl HealthManager {
                 let _ = ecs_world.remove::<(Diseased, Cured)>(cured);
             } else {
                 let _ = ecs_world.remove_one::<Diseased>(cured);
+            }
+        }
+
+        // Add immunity to entities that gained it
+        for (healed, immunity_type) in gained_immunity {
+            if let Ok(mut immunity) = ecs_world.get::<&mut Immunity>(healed) {
+                immunity.to.insert(immunity_type);
+            } else {
+                let _ = ecs_world.insert_one(
+                    healed,
+                    Immunity {
+                        to: HashSet::from([immunity_type]),
+                    },
+                );
             }
         }
 

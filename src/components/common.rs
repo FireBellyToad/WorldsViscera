@@ -3,7 +3,7 @@ use std::collections::{HashMap, HashSet};
 use hecs::Entity;
 use macroquad::math::Rect;
 
-use crate::utils::assets::TextureName;
+use crate::{components::health::DiseaseType, utils::assets::TextureName};
 
 pub struct Position {
     pub x: i32,
@@ -112,13 +112,17 @@ pub enum DigProductEnum {
     Stone,
 }
 
+// HashSet should handle ImmuntyType enum variants safely like they are actual different immunity
+// for example:
+//  {ImmunityTypeEnum::Disease(DiseaseType::Fever), ImmunityTypeEnum::Disease(DiseaseType::FleshRot)}
 pub struct Immunity {
-    pub to: Vec<ImmunityTypeEnum>,
+    pub to: HashSet<ImmunityTypeEnum>,
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Hash, Eq)]
 pub enum ImmunityTypeEnum {
     Blindness,
+    Disease(DiseaseType),
 }
 
 pub struct SpellList {

@@ -2,7 +2,7 @@ use hecs::Entity;
 
 use crate::{
     components::{
-        combat::{CombatStats, SufferingDamage},
+        combat::{CombatStats, Grappled, SufferingDamage},
         common::*,
         monster::{Aquatic, LeaveTrail, Monster, SnakeBody, SnakeHead, WantsToApproach},
     },
@@ -35,6 +35,7 @@ impl MonsterApproach {
                     Option<&LeaveTrail>,
                     Option<&Immobile>,
                     Option<&SnakeHead>,
+                    Option<&Grappled>,
                 )>()
                 .with::<(&Monster, &MyTurn)>()
                 .without::<&SnakeBody>();
@@ -58,6 +59,7 @@ impl MonsterApproach {
                     leave_trail_opt,
                     immobile_opt,
                     snake_head_opt,
+                    grappled_opt,
                 ),
             ) in &mut named_monsters
             {
@@ -87,6 +89,24 @@ impl MonsterApproach {
 
                 // Do not do anything if the monster is immobile
                 if immobile_opt.is_some() {
+                    approacher_list.push(monster_entity);
+                    continue;
+                } else if let Some(grappler) = grappled_opt
+                    && Roll::d20() <= stats.current_dexterity
+                {
+                    let mut g_query = ecs_world
+                        .query_one::<(&Named, &CombatStats)>(grappler.by)
+                        .expect("Grappler entity has no Named component");
+                    let (grappler_name, grappler_stats) =
+                        g_query.get().expect("g_query must have result");
+
+                    game_state.game_log.entries.push(format!(
+                        "The {} escapes the {}'s grasp!",
+                        named.name, grappler_name.name
+                    ));
+
+                    // Grappler lose turn
+                    waiter_speed_list.push((grappler.by, grappler_stats.speed));
                     approacher_list.push(monster_entity);
                     continue;
                 }

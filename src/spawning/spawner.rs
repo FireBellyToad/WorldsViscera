@@ -191,7 +191,7 @@ impl Spawn {
                 }
                 _ => {}
             },
-            (19..) => match Roll::dice(1, 24) {
+            (19..) => match Roll::dice(1, 26) {
                 (1..=4) => Spawn::gremlin(ecs_world, x, y),
                 (5..=7) => Spawn::moleman(ecs_world, x, y),
                 (8..=11) => {
@@ -201,8 +201,9 @@ impl Spawn {
                 (15..=17) => Spawn::abyssal_one(ecs_world, x, y),
                 (18..=20) => Spawn::sulfuric_slug(ecs_world, x, y),
                 (21..=22) => Spawn::refugee(ecs_world, x, y),
-                23 => Spawn::colossal_worm(ecs_world, x, y, zone),
-                24 => Spawn::darkling(ecs_world, x, y),
+                (23..=24) => Spawn::living_fossil(ecs_world, x, y),
+                25 => Spawn::colossal_worm(ecs_world, x, y, zone),
+                26 => Spawn::darkling(ecs_world, x, y),
                 _ => {}
             },
             _ => {}

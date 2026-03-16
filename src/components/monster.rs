@@ -46,3 +46,5 @@ pub struct SnakeBody {
 //  both a SnakeHead and some SnakeBodies are in fact
 //  parts of the same creature, should not be used by itself!
 pub struct SingleSnakeCreature {}
+
+pub struct Grappler {}

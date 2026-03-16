@@ -8,14 +8,15 @@ use crate::{
         actions::WantsToApply,
         combat::{CanHide, CombatStats, GazeAttack, GazeEffectEnum, SufferingDamage},
         common::{
-            BlocksTile, Hates, Immobile, MyTurn, Named, Position, ProduceCorpse, ProduceSound,
-            Renderable, SmellIntensity, Smellable, Species, SpeciesEnum, SpellList, Viewshed,
+            BlocksTile, Hates, Immobile, Immunity, ImmunityTypeEnum, MyTurn, Named, Position,
+            ProduceCorpse, ProduceSound, Renderable, SmellIntensity, Smellable, Species,
+            SpeciesEnum, SpellList, Viewshed,
         },
         health::{DiseaseType, Hunger},
         items::{BodyLocation, Deadly, DontLeaveCorpse, Edible, Equipped, InBackback},
         monster::{
-            Aquatic, DiseaseBearer, LeaveTrail, Monster, Prey, SingleSnakeCreature, Small, Smart,
-            SnakeBody, SnakeHead, Venomous,
+            Aquatic, DiseaseBearer, Grappler, LeaveTrail, Monster, Prey, SingleSnakeCreature,
+            Small, Smart, SnakeBody, SnakeHead, Venomous,
         },
     },
     constants::{
@@ -235,6 +236,56 @@ impl Spawn {
             (DiseaseBearer {
                 disease_type: DiseaseType::Calcification,
             },),
+        );
+    }
+
+    pub fn living_fossil(ecs_world: &mut World, x: i32, y: i32) {
+        let living_fossil = Spawn::create_monster(
+            ecs_world,
+            (
+                "Living Fossil".to_string(),
+                Species {
+                    value: SpeciesEnum::Undead,
+                },
+                CombatStats {
+                    level: 7,
+                    current_stamina: 8,
+                    max_stamina: 8,
+                    base_armor: 2,
+                    unarmed_attack_dice: 2,
+                    current_toughness: 15,
+                    max_toughness: 15,
+                    current_dexterity: 6,
+                    max_dexterity: 6,
+                    speed: NORMAL,
+                },
+                BASE_MONSTER_VIEW_RADIUS,
+                Edible {
+                    nutrition_dice_number: 1,
+                    nutrition_dice_size: 1,
+                },
+                Smellable {
+                    smell_log: Some("bone powder".to_string()),
+                    intensity: SmellIntensity::Faint,
+                },
+                ProduceSound {
+                    sound_log: "bone ticking on stone".to_string(),
+                },
+                10.0,
+                2.0,
+                x,
+                y,
+            ),
+        );
+
+        let _ = ecs_world.insert(
+            living_fossil,
+            (
+                DiseaseBearer {
+                    disease_type: DiseaseType::Calcification,
+                },
+                Grappler {},
+            ),
         );
     }
 
@@ -1155,11 +1206,16 @@ impl Spawn {
             ),
         );
 
-        let _ = ecs_world.insert_one(
+        let _ = ecs_world.insert(
             darkling,
-            GazeAttack {
-                effect: GazeEffectEnum::Blindness,
-            },
+            (
+                GazeAttack {
+                    effect: GazeEffectEnum::Blindness,
+                },
+                Immunity {
+                    to: HashSet::from([ImmunityTypeEnum::Blindness]),
+                },
+            ),
         );
     }
 
