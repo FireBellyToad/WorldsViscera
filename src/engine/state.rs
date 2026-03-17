@@ -34,6 +34,7 @@ pub struct GameState {
     pub game_log: GameLog,
     pub debug_mode: bool,
     pub debug_monster_vision: bool,
+    pub current_tick: u32,
 }
 
 // State implementations

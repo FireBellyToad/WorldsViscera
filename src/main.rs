@@ -80,10 +80,10 @@ async fn main() {
         game_log: GameLog::new(),
         debug_mode: false,
         debug_monster_vision: false,
+        current_tick: 0,
     };
     populate_world(&mut game_state);
 
-    let mut tick = 0;
     loop {
         //If there are particles, skip everything and draw
         if game_state.run_state != RunState::GameOver {
@@ -108,12 +108,15 @@ async fn main() {
                         populate_world(&mut game_state);
                         clear_input_queue();
                         game_state.run_state = RunState::BeforeTick;
-                        tick = 0;
+                        game_state.current_tick = 0;
                     }
                 }
                 RunState::BeforeTick => {
-                    tick += 1;
-                    println!("BeforeTick ---------------------------- tick {}", tick);
+                    game_state.current_tick += 1;
+                    println!(
+                        "BeforeTick ---------------------------- tick {}",
+                        game_state.current_tick
+                    );
                     do_before_tick_logic(&mut game_state);
 
                     if game_state.run_state != RunState::GameOver
@@ -132,7 +135,10 @@ async fn main() {
                     Player::checks_keyboard_input(&mut game_state);
                 }
                 RunState::DoTick => {
-                    println!("DoTick ---------------------------- tick {}", tick);
+                    println!(
+                        "DoTick ---------------------------- tick {}",
+                        game_state.current_tick
+                    );
                     do_in_tick_game_logic(&mut game_engine, &mut game_state);
 
                     match game_state.run_state {
@@ -151,7 +157,7 @@ async fn main() {
                         populate_world(&mut game_state);
                         clear_input_queue();
                         game_state.run_state = RunState::BeforeTick;
-                        tick = 0;
+                        game_state.current_tick = 0;
                     }
                 }
                 RunState::ShowInventory(mode) => {
