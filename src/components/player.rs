@@ -7,7 +7,7 @@ use crate::engine::state::GameState;
 use crate::utils::common::ItemsInBackpack;
 use crate::utils::roll::Roll;
 use crate::{components::actions::WantsToInvoke, maps::zone::DecalType};
-use hecs::{Entity, World};
+use hecs::{Component, Entity, World};
 use macroquad::input::{
     KeyCode, MouseButton, clear_input_queue, get_char_pressed, get_key_pressed, is_key_down,
     is_mouse_button_down, mouse_position,
@@ -428,7 +428,7 @@ impl Player {
         let ecs_world = &mut game_state.ecs_world;
         let player_entity = game_state.current_player_entity.expect("Must be Some");
 
-        if let Some(item) = Player::take_from_map(ecs_world) {
+        if let Some(item) = Player::take_from_map::<Item>(ecs_world) {
             // Check if the item is being stolen from a shop
             if Utils::get_item_owner(ecs_world, item).is_some() {
                 //Show Dialog
@@ -457,7 +457,7 @@ impl Player {
     }
 
     /// Takes something from map.
-    fn take_from_map(ecs_world: &mut World) -> Option<Entity> {
+    fn take_from_map<T: Component>(ecs_world: &mut World) -> Option<Entity> {
         let mut target_item: Option<Entity> = None;
 
         let mut player_query = ecs_world.query::<&Position>().with::<&Player>();
@@ -469,7 +469,10 @@ impl Player {
         let mut items = ecs_world.query::<(&Item, &Position)>();
         // Get item
         for (item_entity, (_tem, item_position)) in &mut items {
-            if position.x == item_position.x && position.y == item_position.y {
+            if position.x == item_position.x
+                && position.y == item_position.y
+                && ecs_world.satisfies::<&T>(item_entity).unwrap_or(false)
+            {
                 target_item = Some(item_entity);
             }
         }
@@ -482,7 +485,7 @@ impl Player {
         let ecs_world = &mut game_state.ecs_world;
 
         clear_input_queue();
-        let item_on_ground = Player::take_from_map(ecs_world);
+        let item_on_ground = Player::take_from_map::<Edible>(ecs_world);
 
         // Is really Edible?
         if let Some(item) = item_on_ground
@@ -538,7 +541,7 @@ impl Player {
             game_state.run_state = RunState::DoTick;
         } else {
             // Drink a quaffable item on ground
-            let item_on_ground = Player::take_from_map(ecs_world);
+            let item_on_ground = Player::take_from_map::<Quaffable>(ecs_world);
 
             // Is really Quaffable?
             if let Some(item) = item_on_ground
