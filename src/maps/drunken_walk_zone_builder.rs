@@ -104,6 +104,9 @@ impl ZoneBuilder for DrunkenWalkZoneBuilder {
             };
         }
 
+        // Add random gold mine
+        GoldMineBuilder::build(&mut zone, ecs_world);
+
         // Populate water and blocked tiles here, needed for correct spawning
         zone.populate_blocked();
         zone.populate_water();
@@ -210,9 +213,6 @@ impl ZoneBuilder for DrunkenWalkZoneBuilder {
         for _ in 0..cracks_number {
             CracksBuilder::build(&mut zone, ecs_world);
         }
-
-        // Add random gold mine
-        GoldMineBuilder::build(&mut zone, ecs_world);
 
         zone
     }

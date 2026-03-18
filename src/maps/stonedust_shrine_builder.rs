@@ -79,7 +79,7 @@ impl ZoneFeatureBuilder for StonedustShrineBuilder {
                             && ((y - field_rect.y as i32) % (size - 1) == 0))
                     {
                         zone.tiles[Zone::get_index_from_xy(&x, &y)] = TileType::BrickWall;
-                    } else if !has_opening && (counter >= (size * 3) || Roll::dice(1, 4) == 1) {
+                    } else if !has_opening && (counter >= (size) || Roll::dice(1, 4) == 1) {
                         // Guarantee an open space in the fence
                         has_opening = true;
                         owner_opt = Some(Spawn::stonedust_acolyte(ecs_world, x, y));

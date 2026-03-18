@@ -238,10 +238,10 @@ impl SpellManager {
                             }
                         };
                     }
-
-                    // prepare lists for removal
-                    wants_to_cast_list.push((caster, stats.speed));
                 }
+
+                // prepare lists for removal
+                wants_to_cast_list.push((caster, stats.speed));
             }
         }
 

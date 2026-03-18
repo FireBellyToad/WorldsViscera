@@ -72,9 +72,7 @@ impl WetManager {
 
                     // If near a brazier, dry out faster.
                     // If more than one brazier is nearby, dry out much faster.
-                    // This will not make items in backpack dry faster, it makes sense to me!
-                    // Could be fun to see if player wants to put out all the items it wants to dry out faster.
-                    // Equipped items, however, DO dry out faster because they are not really in the backpack.
+                    // This will make items in backpack dry faster.
                     if let Some(position) = position_opt {
                         for (index, tile) in zone.tiles.iter().enumerate() {
                             let (tile_x, tile_y) = Zone::get_xy_from_index(index);
@@ -92,15 +90,9 @@ impl WetManager {
                                 let equipped_items: Vec<(Entity, ItemsInBackpack)> =
                                     items_of_wet_entity
                                         .iter()
-                                        .filter(
-                                            |(
-                                                _,
-                                                (_, in_backpack, _, _, _, _, _, _, equipped_opt, _),
-                                            )| {
-                                                in_backpack.owner.id() == got_wet_entity.id()
-                                                    && equipped_opt.is_some()
-                                            },
-                                        )
+                                        .filter(|(_, (_, in_backpack, _, _, _, _, _, _, _, _))| {
+                                            in_backpack.owner.id() == got_wet_entity.id()
+                                        })
                                         .collect();
 
                                 for (item_entity, _) in equipped_items {
