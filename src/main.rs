@@ -334,7 +334,7 @@ fn do_debug_logic(game_state: &mut GameState) {
                 Spawn::ration(&mut game_state.ecs_world, MAP_WIDTH / 2, MAP_HEIGHT / 2);
                 Spawn::flask_of_water(&mut game_state.ecs_world, MAP_WIDTH / 2, MAP_HEIGHT / 2);
             } else if is_key_pressed(KeyCode::F9) {
-                Spawn::living_fossil(&mut game_state.ecs_world, MAP_WIDTH / 2, MAP_HEIGHT / 2);
+                Spawn::gremlin(&mut game_state.ecs_world, MAP_WIDTH / 2, MAP_HEIGHT / 2);
             } else if is_key_pressed(KeyCode::F8) {
                 use crate::components::combat::CombatStats;
 

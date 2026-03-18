@@ -42,7 +42,7 @@ impl Spawn {
         let rolled_toughness = Roll::stat();
         let rolled_dexterity = Roll::stat();
         // TODO Player with Soldier background must have 5+2d3 starting stamina
-        let rolled_stamina = Roll::d6() + 5;
+        let rolled_stamina = Roll::d6() + 50;
 
         let (spawn_x, spawn_y) = Zone::get_xy_from_index(zone.player_spawn_point);
 
@@ -217,7 +217,8 @@ impl Spawn {
         // Depth based spawn table, recursive if roll is too high
         match dice_roll {
             (1..=4) => Spawn::cave_shrimp(ecs_world, x, y),
-            (5..=9) => Spawn::freshwater_viperfish(ecs_world, x, y),
+            (5..=9) => Spawn::cave_crab(ecs_world, x, y),
+            (10..=12) => Spawn::freshwater_viperfish(ecs_world, x, y),
             (10..) => Spawn::random_water_monster(ecs_world, x, y, depth - 1),
             _ => {}
         }

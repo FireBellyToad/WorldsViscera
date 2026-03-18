@@ -233,9 +233,18 @@ impl Spawn {
 
         let _ = ecs_world.insert(
             calcificator,
-            (DiseaseBearer {
-                disease_type: DiseaseType::Calcification,
-            },),
+            (
+                DiseaseBearer {
+                    disease_type: DiseaseType::Calcification,
+                },
+                Immunity {
+                    to: HashSet::from([
+                        ImmunityTypeEnum::Disease(DiseaseType::Calcification),
+                        ImmunityTypeEnum::Disease(DiseaseType::Fever),
+                        ImmunityTypeEnum::Disease(DiseaseType::FleshRot),
+                    ]),
+                },
+            ),
         );
     }
 
@@ -285,6 +294,13 @@ impl Spawn {
                     disease_type: DiseaseType::Calcification,
                 },
                 Grappler {},
+                Immunity {
+                    to: HashSet::from([
+                        ImmunityTypeEnum::Disease(DiseaseType::Calcification),
+                        ImmunityTypeEnum::Disease(DiseaseType::Fever),
+                        ImmunityTypeEnum::Disease(DiseaseType::FleshRot),
+                    ]),
+                },
             ),
         );
     }
@@ -426,6 +442,51 @@ impl Spawn {
         );
 
         let _ = ecs_world.insert(water_worm, (Prey {}, Aquatic {}, CanHide { cooldown: 0 }));
+    }
+
+    pub fn cave_crab(ecs_world: &mut World, x: i32, y: i32) {
+        let water_worm = Spawn::create_monster(
+            ecs_world,
+            (
+                "Cave crab".to_string(),
+                Species {
+                    value: SpeciesEnum::Fish,
+                },
+                CombatStats {
+                    level: 3,
+                    current_stamina: 5,
+                    max_stamina: 5,
+                    base_armor: 2,
+                    unarmed_attack_dice: 2,
+                    current_toughness: 8,
+                    max_toughness: 8,
+                    current_dexterity: 5,
+                    max_dexterity: 5,
+                    speed: SLOW,
+                },
+                BASE_MONSTER_VIEW_RADIUS,
+                Edible {
+                    nutrition_dice_number: 3,
+                    nutrition_dice_size: 6,
+                },
+                Smellable {
+                    smell_log: Some("humid stone".to_string()),
+                    intensity: SmellIntensity::None,
+                },
+                ProduceSound {
+                    sound_log: "an splashing tickling".to_string(),
+                },
+                8.0,
+                1.0,
+                x,
+                y,
+            ),
+        );
+
+        let _ = ecs_world.insert(
+            water_worm,
+            (Grappler {}, Aquatic {}, CanHide { cooldown: 0 }),
+        );
     }
 
     pub fn gremlin(ecs_world: &mut World, x: i32, y: i32) {
@@ -1128,7 +1189,7 @@ impl Spawn {
     }
 
     pub fn living_dead(ecs_world: &mut World, x: i32, y: i32) {
-        Spawn::create_monster(
+        let living_dead = Spawn::create_monster(
             ecs_world,
             (
                 "Living dead".to_string(),
@@ -1164,6 +1225,17 @@ impl Spawn {
                 x,
                 y,
             ),
+        );
+
+        let _ = ecs_world.insert(
+            living_dead,
+            (Immunity {
+                to: HashSet::from([
+                    ImmunityTypeEnum::Disease(DiseaseType::Calcification),
+                    ImmunityTypeEnum::Disease(DiseaseType::Fever),
+                    ImmunityTypeEnum::Disease(DiseaseType::FleshRot),
+                ]),
+            },),
         );
     }
 

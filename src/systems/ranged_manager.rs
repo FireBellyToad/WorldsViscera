@@ -119,10 +119,11 @@ impl RangedManager {
                             // Log only if visible
                             if zone.visible_tiles[Zone::get_index_from_xy(&x, &y)] {
                                 game_state.game_log.entries.push(
-                                    "The projectile gets stuck into something solid".to_string(),
+                                    "The projectile bounces onto a solid obstacle".to_string(),
                                 );
                             }
                             must_truncate_line_at = (true, i + 1);
+                            break;
                         }
                     }
 

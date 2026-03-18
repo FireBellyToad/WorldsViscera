@@ -104,6 +104,7 @@ impl SpellManager {
                                     .push("The spell bounces on something solid".to_string());
                             }
                             must_truncate_line_at = (true, i + 1);
+                            break;
                         }
                     }
 

@@ -91,6 +91,10 @@ impl MeleeManager {
                 if let Ok(mut target_damage) =
                     ecs_world.get::<&mut SufferingDamage>(wants_melee.target)
                 {
+                    println!(
+                        "---- wants_melee.target Checking entity {:?} components ----",
+                        wants_melee.target
+                    );
                     let mut target_query = ecs_world
                         .query_one::<(
                             &CombatStats,
@@ -102,219 +106,237 @@ impl MeleeManager {
                         .expect("Must have one");
 
                     // Show appropriate log messages
-                    let (
+                    if let Some((
                         target_stats,
                         named_target,
                         target_blind_opt,
                         target_grappled_opt,
                         target_immunity_opt,
-                    ) = target_query.get().expect("Entity is not Named");
-                    let (attacker_dice_number, attacker_dice, erosion) =
-                        MeleeManager::get_damage_dices(
-                            attacker_stats.unarmed_attack_dice,
-                            attacker.id(),
-                            &mut equipped_weapons,
+                    )) = target_query.get()
+                    {
+                        let (attacker_dice_number, attacker_dice, erosion) =
+                            MeleeManager::get_damage_dices(
+                                attacker_stats.unarmed_attack_dice,
+                                attacker.id(),
+                                &mut equipped_weapons,
+                            );
+                        println!(
+                            "attacker_dice_number {}, attacker_dice: {:?}, erosion: {:?}",
+                            attacker_dice_number, attacker_dice, erosion
                         );
-                    println!(
-                        "attacker_dice_number {}, attacker_dice: {:?}, erosion: {:?}",
-                        attacker_dice_number, attacker_dice, erosion
-                    );
 
-                    let damage_roll: i32;
-                    let target_armor = Utils::get_armor_value(
-                        target_stats.base_armor,
-                        wants_melee.target.id(),
-                        &mut equipped_armors,
-                    );
-                    // Sneak attack doubles damage
-                    // Can sneak attack if hidden or target is blind or grappled
-                    let is_grappled_by_attacker = target_grappled_opt.is_some()
-                        && target_grappled_opt.unwrap().by.id() == attacker.id();
+                        let damage_roll: i32;
+                        let target_armor = Utils::get_armor_value(
+                            target_stats.base_armor,
+                            wants_melee.target.id(),
+                            &mut equipped_armors,
+                        );
+                        // Sneak attack doubles damage
+                        // Can sneak attack if hidden or target is blind or grappled
+                        let is_grappled_by_attacker = target_grappled_opt.is_some()
+                            && target_grappled_opt.unwrap().by.id() == attacker.id();
 
-                    //Venomous damage targets toughness ignoring armor
-                    match venomous_opt {
-                        Some(_) => {
-                            // TODO what about venom immunity?
-                            let saving_throw_roll = Roll::d20();
-                            if saving_throw_roll > attacker_stats.current_toughness {
-                                damage_roll = max(
-                                    0,
-                                    Roll::dice(attacker_dice_number, attacker_dice) - erosion,
-                                );
-                                target_damage.toughness_damage_received += damage_roll;
+                        //Venomous damage targets toughness ignoring armor
+                        match venomous_opt {
+                            Some(_) => {
+                                // TODO what about venom immunity?
+                                let saving_throw_roll = Roll::d20();
+                                if saving_throw_roll > attacker_stats.current_toughness {
+                                    damage_roll = max(
+                                        0,
+                                        Roll::dice(attacker_dice_number, attacker_dice) - erosion,
+                                    );
+                                    target_damage.toughness_damage_received += damage_roll;
 
-                                if attacker_is_player {
-                                    game_state.game_log.entries.push(format!(
-                                        "You hit the {} for {} venomous damage",
-                                        named_target.name, damage_roll
-                                    ));
-                                } else if target_is_player {
-                                    game_state.game_log.entries.push(format!(
-                                        "The {} hits you for {} venomous damage",
-                                        named_attacker.name, damage_roll
-                                    ));
-                                } else {
-                                    // Log NPC infighting only if visible
-                                    if zone.visible_tiles[Zone::get_index_from_xy(
-                                        &attacker_position.x,
-                                        &attacker_position.y,
-                                    )] {
+                                    if attacker_is_player {
                                         game_state.game_log.entries.push(format!(
-                                            "The {} hits the {} for {} venomous damage",
-                                            named_attacker.name, named_target.name, damage_roll
+                                            "You hit the {} for {} venomous damage",
+                                            named_target.name, damage_roll
                                         ));
-                                    }
-                                }
-                            } else if target_is_player {
-                                game_state.game_log.entries.push(
-                                    "The hit makes you feel dizzy for a moment, then it passes"
-                                        .to_string(),
-                                );
-                            }
-                        }
-                        None => {
-                            if is_grappled_by_attacker
-                                || hidden_opt.is_some()
-                                || target_blind_opt.is_some()
-                            {
-                                damage_roll = max(
-                                    0,
-                                    Roll::dice(attacker_dice_number * 2, attacker_dice)
-                                        - target_armor
-                                        - erosion,
-                                );
-
-                                if attacker_is_player {
-                                    game_state.game_log.entries.push(format!(
-                                        "You sneak attack the {} for {} damage!",
-                                        named_target.name, damage_roll
-                                    ));
-                                } else if target_is_player {
-                                    game_state.game_log.entries.push(format!(
-                                        "The {} sneak attacks you for {} damage!",
-                                        named_attacker.name, damage_roll
-                                    ));
-                                } else {
-                                    // Log NPC infighting only if visible
-                                    if zone.visible_tiles[Zone::get_index_from_xy(
-                                        &attacker_position.x,
-                                        &attacker_position.y,
-                                    )] {
+                                    } else if target_is_player {
                                         game_state.game_log.entries.push(format!(
-                                            "The {} sneak attacks the {} for {} damage!",
-                                            named_attacker.name, named_target.name, damage_roll
+                                            "The {} hits you for {} venomous damage",
+                                            named_attacker.name, damage_roll
                                         ));
+                                    } else {
+                                        // Log NPC infighting only if visible
+                                        if zone.visible_tiles[Zone::get_index_from_xy(
+                                            &attacker_position.x,
+                                            &attacker_position.y,
+                                        )] {
+                                            game_state.game_log.entries.push(format!(
+                                                "The {} hits the {} for {} venomous damage",
+                                                named_attacker.name, named_target.name, damage_roll
+                                            ));
+                                        }
                                     }
-                                }
-                                if hidden_opt.is_some() {
-                                    hidden_list.push(attacker);
-                                    // Cannot hide again for 9 - (stats.current_dexterity / 3) turns
-                                    let mut can_hide = ecs_world
-                                        .get::<&mut CanHide>(attacker)
-                                        .expect("Entity does not have CanHide");
-                                    can_hide.cooldown = (MAX_HIDDEN_TURNS
-                                        - (attacker_stats.current_dexterity / 3))
-                                        * attacker_stats.speed;
-                                }
-                            } else {
-                                // Standard attack
-                                damage_roll =
-                                    max(0, Roll::dice(1, attacker_dice) - target_armor - erosion);
-                                if attacker_is_player {
-                                    game_state.game_log.entries.push(format!(
-                                        "You hit the {} for {} damage",
-                                        named_target.name, damage_roll
-                                    ));
                                 } else if target_is_player {
-                                    game_state.game_log.entries.push(format!(
-                                        "The {} hits you for {} damage",
-                                        named_attacker.name, damage_roll
-                                    ));
-                                } else {
-                                    // Log NPC infighting only if visible
-                                    if zone.visible_tiles[Zone::get_index_from_xy(
-                                        &attacker_position.x,
-                                        &attacker_position.y,
-                                    )] {
-                                        game_state.game_log.entries.push(format!(
-                                            "{} hits the {} for {} damage",
-                                            named_attacker.name, named_target.name, damage_roll
-                                        ));
-                                    }
+                                    game_state.game_log.entries.push(
+                                        "The hit makes you feel dizzy for a moment, then it passes"
+                                            .to_string(),
+                                    );
                                 }
                             }
+                            None => {
+                                if is_grappled_by_attacker
+                                    || hidden_opt.is_some()
+                                    || target_blind_opt.is_some()
+                                {
+                                    damage_roll = max(
+                                        0,
+                                        Roll::dice(attacker_dice_number * 2, attacker_dice)
+                                            - target_armor
+                                            - erosion,
+                                    );
 
-                            target_damage.damage_received += damage_roll;
-                            target_damage.damager = Some(attacker);
-                        }
-                    }
-
-                    // If the attacker is a disease bearers
-                    if let Some(dis_bear_some) = disease_bearer_opt {
-                        let disease_type = dis_bear_some.disease_type.clone();
-
-                        // If not immune and saving throw fails, inflict disease
-                        if let Some(target_immunity) = target_immunity_opt
-                            && !target_immunity.to.iter().any(|i| match i {
-                                ImmunityTypeEnum::Disease(d) => d == &disease_type,
-                                _ => false,
-                            })
-                            && Roll::d20() > target_stats.current_toughness
-                        {
-                            // If the target is already infected...
-                            if let Ok(mut dis) = ecs_world.get::<&mut Diseased>(wants_melee.target)
-                            {
-                                match dis.tick_counters.entry(disease_type) {
-                                    Entry::Occupied(mut entry) => {
-                                        //worsen its status
-                                        entry.insert((0, false));
-                                    }
-                                    Entry::Vacant(entry) => {
-                                        // Infect the healthy target otherwise
-                                        entry.insert((
-                                            MAX_DISEASE_TICK_COUNTER + Roll::d20(),
-                                            false,
+                                    if attacker_is_player {
+                                        game_state.game_log.entries.push(format!(
+                                            "You sneak attack the {} for {} damage!",
+                                            named_target.name, damage_roll
                                         ));
+                                    } else if target_is_player {
+                                        game_state.game_log.entries.push(format!(
+                                            "The {} sneak attacks you for {} damage!",
+                                            named_attacker.name, damage_roll
+                                        ));
+                                    } else {
+                                        // Log NPC infighting only if visible
+                                        if zone.visible_tiles[Zone::get_index_from_xy(
+                                            &attacker_position.x,
+                                            &attacker_position.y,
+                                        )] {
+                                            game_state.game_log.entries.push(format!(
+                                                "The {} sneak attacks the {} for {} damage!",
+                                                named_attacker.name, named_target.name, damage_roll
+                                            ));
+                                        }
+                                    }
+                                    if hidden_opt.is_some() {
+                                        hidden_list.push(attacker);
+                                        // Cannot hide again for 9 - (stats.current_dexterity / 3) turns
+                                        let mut can_hide = ecs_world
+                                            .get::<&mut CanHide>(attacker)
+                                            .expect("Entity does not have CanHide");
+                                        can_hide.cooldown = (MAX_HIDDEN_TURNS
+                                            - (attacker_stats.current_dexterity / 3))
+                                            * attacker_stats.speed;
+                                    }
+                                } else {
+                                    // Standard attack
+                                    damage_roll = max(
+                                        0,
+                                        Roll::dice(1, attacker_dice) - target_armor - erosion,
+                                    );
+                                    if attacker_is_player {
+                                        game_state.game_log.entries.push(format!(
+                                            "You hit the {} for {} damage",
+                                            named_target.name, damage_roll
+                                        ));
+                                    } else if target_is_player {
+                                        game_state.game_log.entries.push(format!(
+                                            "The {} hits you for {} damage",
+                                            named_attacker.name, damage_roll
+                                        ));
+                                    } else {
+                                        // Log NPC infighting only if visible
+                                        if zone.visible_tiles[Zone::get_index_from_xy(
+                                            &attacker_position.x,
+                                            &attacker_position.y,
+                                        )] {
+                                            game_state.game_log.entries.push(format!(
+                                                "{} hits the {} for {} damage",
+                                                named_attacker.name, named_target.name, damage_roll
+                                            ));
+                                        }
+                                    }
+                                }
+
+                                target_damage.damage_received += damage_roll;
+                                target_damage.damager = Some(attacker);
+                            }
+                        }
+
+                        // If the attacker is a disease bearers
+                        if let Some(dis_bear_some) = disease_bearer_opt {
+                            let disease_type = dis_bear_some.disease_type.clone();
+
+                            // If not immune and saving throw fails, inflict disease
+                            if let Some(target_immunity) = target_immunity_opt
+                                && !target_immunity.to.iter().any(|i| match i {
+                                    ImmunityTypeEnum::Disease(d) => d == &disease_type,
+                                    _ => false,
+                                })
+                                && Roll::d20() > target_stats.current_toughness
+                            {
+                                // If the target is already infected...
+                                if let Ok(mut dis) =
+                                    ecs_world.get::<&mut Diseased>(wants_melee.target)
+                                {
+                                    match dis.tick_counters.entry(disease_type) {
+                                        Entry::Occupied(mut entry) => {
+                                            //worsen its status
+                                            entry.insert((0, false));
+                                        }
+                                        Entry::Vacant(entry) => {
+                                            // Infect the healthy target otherwise
+                                            entry.insert((
+                                                MAX_DISEASE_TICK_COUNTER + Roll::d20(),
+                                                false,
+                                            ));
+                                        }
+                                    }
+                                } else {
+                                    // Infect the healthy target otherwise
+                                    infected_list.push((wants_melee.target, disease_type));
+                                    if player_id == wants_melee.target.id() {
+                                        game_state
+                                            .game_log
+                                            .entries
+                                            .push("You start to feel ill.".to_string());
                                     }
                                 }
                             } else {
-                                // Infect the healthy target otherwise
-                                infected_list.push((wants_melee.target, disease_type));
+                                // Immune or unaffected
                                 if player_id == wants_melee.target.id() {
+                                    game_state.game_log.entries.push(
+                                        "You felt a little sick, but it passed quickly."
+                                            .to_string(),
+                                    );
+                                }
+                            }
+                        }
+
+                        if !is_grappled_by_attacker && grappler_opt.is_some() {
+                            grappled_entities.push((attacker, wants_melee.target));
+                            if Roll::d20() > target_stats.current_dexterity {
+                                if target_is_player {
                                     game_state
                                         .game_log
                                         .entries
-                                        .push("You start to feel ill.".to_string());
+                                        .push(format!("The {} grabs on you!", named_attacker.name));
+                                } else {
+                                    game_state.game_log.entries.push(format!(
+                                        "The {} grabs on the {}!",
+                                        named_attacker.name, named_target.name
+                                    ));
                                 }
                             }
+                        }
+
+                        wants_to_melee_list.push((attacker, attacker_stats.speed));
+                    } else {
+                        if ecs_world.contains(wants_melee.target) {
+                            println!(
+                                "---- wants_melee.target {:?} has no CombatStats or Named, wat? ----",
+                                wants_melee.target
+                            );
                         } else {
-                            // Immune or unaffected
-                            if player_id == wants_melee.target.id() {
-                                game_state.game_log.entries.push(
-                                    "You felt a little sick, but it passed quickly.".to_string(),
-                                );
-                            }
+                            println!(
+                                "---- wants_melee.target {:?} is not in the world, skipping ----",
+                                wants_melee.target
+                            );
                         }
                     }
-
-                    if !is_grappled_by_attacker && grappler_opt.is_some() {
-                        grappled_entities.push((attacker, wants_melee.target));
-                        if Roll::d20() > target_stats.current_dexterity {
-                            if target_is_player {
-                                game_state
-                                    .game_log
-                                    .entries
-                                    .push(format!("The {} grabs on you!", named_attacker.name));
-                            } else {
-                                game_state.game_log.entries.push(format!(
-                                    "The {} grabs on the {}!",
-                                    named_attacker.name, named_target.name
-                                ));
-                            }
-                        }
-                    }
-
-                    wants_to_melee_list.push((attacker, attacker_stats.speed));
                 }
             }
         }

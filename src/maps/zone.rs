@@ -104,6 +104,7 @@ impl Zone {
                 TileType::DownPassage
                 | TileType::Floor
                 | TileType::Water
+                | TileType::StoneFloor
                 | TileType::MushroomField => self.blocked_tiles[index] = false,
                 _ => self.blocked_tiles[index] = true,
             }
