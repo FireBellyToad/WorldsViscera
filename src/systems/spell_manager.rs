@@ -56,11 +56,14 @@ impl SpellManager {
                     )
                     .expect("Spell");
                 let (spell, inflicts_damage_opt, stunned_opt) =
-                    spell_query.get().expect("spell_query should have result"); // TODO maybe refactor this with InflictsDamage component;
+                    spell_query.get().expect("spell_query should have result");
+
+                // Set spell countdown to a random value between 11 and 16
+                spell.spell_cooldown = (Roll::d6() + 10) as u32;
 
                 let mut target_opt: Option<Entity> = None;
 
-                // Do not draw if caster is himself
+                // Do not draw if caster is casting on himself
                 if caster_position.x != wants_to_zap.target.0
                     || caster_position.y != wants_to_zap.target.1
                 {
@@ -104,6 +107,7 @@ impl SpellManager {
                                     .push("The spell bounces on something solid".to_string());
                             }
                             must_truncate_line_at = (true, i + 1);
+
                             break;
                         }
                     }
@@ -234,9 +238,6 @@ impl SpellManager {
                             }
                         };
                     }
-
-                    // Set spell countdown to a random value between 11 and 16
-                    spell.spell_cooldown = (Roll::d6() + 10) as u32;
 
                     // prepare lists for removal
                     wants_to_cast_list.push((caster, stats.speed));
