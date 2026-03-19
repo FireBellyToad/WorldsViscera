@@ -2,7 +2,6 @@ use std::collections::{HashSet, LinkedList};
 
 use hecs::{Entity, World};
 use macroquad::math::Rect;
-use pathfinding::matrix::directions::N;
 
 use crate::{
     components::{
