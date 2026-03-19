@@ -60,6 +60,7 @@ impl Spawn {
                         },
                         Named {
                             name: "brown mushroom".to_string(),
+                            attack_verb: None,
                         },
                     ),
                 );
@@ -74,6 +75,7 @@ impl Spawn {
                         },
                         Named {
                             name: "tuft of tiny mushrooms".to_string(),
+                            attack_verb: None,
                         },
                     ),
                 );
@@ -89,6 +91,7 @@ impl Spawn {
                         Poisonous {},
                         Named {
                             name: "white-spotted red mushroom".to_string(),
+                            attack_verb: None,
                         },
                     ),
                 );
@@ -104,6 +107,7 @@ impl Spawn {
                         Deadly {},
                         Named {
                             name: "white mushroom".to_string(),
+                            attack_verb: None,
                         },
                     ),
                 );
@@ -122,6 +126,7 @@ impl Spawn {
                         TurnedOn {},
                         Named {
                             name: "glowing mushroom".to_string(),
+                            attack_verb: None,
                         },
                     ),
                 );
@@ -136,6 +141,7 @@ impl Spawn {
                         },
                         Named {
                             name: "lichen".to_string(),
+                            attack_verb: None,
                         },
                     ),
                 );
@@ -169,6 +175,7 @@ impl Spawn {
             },
             Named {
                 name: "flask of water".to_string(),
+                attack_verb: None,
             },
             Item {
                 item_tile: item_tile_index,
@@ -198,6 +205,7 @@ impl Spawn {
             },
             Named {
                 name: "curing paste".to_string(),
+                attack_verb: None,
             },
             Item {
                 item_tile: item_tile_index,
@@ -229,6 +237,7 @@ impl Spawn {
             },
             Named {
                 name: "ration".to_string(),
+                attack_verb: None,
             },
             Item {
                 item_tile: item_tile_index,
@@ -262,6 +271,7 @@ impl Spawn {
             },
             Named {
                 name: "lantern".to_string(),
+                attack_verb: None,
             },
             Item {
                 item_tile: item_tile_index,
@@ -301,6 +311,7 @@ impl Spawn {
             },
             Named {
                 name: "lightning wand".to_string(),
+                attack_verb: None,
             },
             Item {
                 item_tile: item_tile_index,
@@ -337,6 +348,7 @@ impl Spawn {
             },
             Named {
                 name: "crossbow".to_string(),
+                attack_verb: None,
             },
             Item {
                 item_tile: item_tile_index,
@@ -374,6 +386,7 @@ impl Spawn {
             },
             Named {
                 name: "slingshot".to_string(),
+                attack_verb: None,
             },
             Item {
                 item_tile: item_tile_index,
@@ -410,6 +423,7 @@ impl Spawn {
             },
             Named {
                 name: "flask of oil".to_string(),
+                attack_verb: None,
             },
             Item {
                 item_tile: item_tile_index,
@@ -445,6 +459,7 @@ impl Spawn {
             },
             Named {
                 name: "shiv".to_string(),
+                attack_verb: None,
             },
             Item {
                 item_tile: item_tile_index,
@@ -478,6 +493,7 @@ impl Spawn {
             },
             Named {
                 name: "rock pick".to_string(),
+                attack_verb: None,
             },
             Item {
                 item_tile: item_tile_index,
@@ -515,6 +531,7 @@ impl Spawn {
             },
             Named {
                 name: "pickaxe".to_string(),
+                attack_verb: None,
             },
             Item {
                 item_tile: item_tile_index,
@@ -551,6 +568,7 @@ impl Spawn {
             },
             Named {
                 name: "leather armor".to_string(),
+                attack_verb: None,
             },
             Item {
                 item_tile: item_tile_index,
@@ -580,6 +598,7 @@ impl Spawn {
             },
             Named {
                 name: "breastplate".to_string(),
+                attack_verb: None,
             },
             Item {
                 item_tile: item_tile_index,
@@ -614,6 +633,7 @@ impl Spawn {
             },
             Named {
                 name: "Mole-man chainmail".to_string(),
+                attack_verb: None,
             },
             Item {
                 item_tile: item_tile_index,
@@ -649,6 +669,7 @@ impl Spawn {
             },
             Named {
                 name: "bag of bolts".to_string(),
+                attack_verb: None,
             },
             Item {
                 item_tile: item_tile_index,
@@ -678,6 +699,7 @@ impl Spawn {
             },
             Named {
                 name: "pile of stones".to_string(),
+                attack_verb: None,
             },
             Item {
                 item_tile: item_tile_index,
@@ -707,6 +729,7 @@ impl Spawn {
             },
             Named {
                 name: "leather cap".to_string(),
+                attack_verb: None,
             },
             Item {
                 item_tile: item_tile_index,
@@ -736,6 +759,7 @@ impl Spawn {
             },
             Named {
                 name: "helmet".to_string(),
+                attack_verb: None,
             },
             Item {
                 item_tile: item_tile_index,
@@ -830,6 +854,7 @@ impl Spawn {
             },
             Named {
                 name: "raw gold".to_string(),
+                attack_verb: None,
             },
             Item {
                 item_tile: item_tile_index,

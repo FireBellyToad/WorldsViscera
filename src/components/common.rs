@@ -21,6 +21,7 @@ pub struct Viewshed {
 }
 pub struct Named {
     pub name: String,
+    pub attack_verb: Option<String>,
 }
 pub struct BlocksTile {}
 

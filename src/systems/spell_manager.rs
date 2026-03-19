@@ -51,11 +51,14 @@ impl SpellManager {
 
             for (caster, (wants_to_zap, wants_to_cast, caster_position, stats)) in &mut casters {
                 let mut spell_query = ecs_world
-                    .query_one::<(&mut Spell, Option<&InflictsDamage>, Option<&Stunned>)>(
-                        wants_to_cast.spell,
-                    )
+                    .query_one::<(
+                        &mut Spell,
+                        &Named,
+                        Option<&InflictsDamage>,
+                        Option<&Stunned>,
+                    )>(wants_to_cast.spell)
                     .expect("Spell");
-                let (spell, inflicts_damage_opt, stunned_opt) =
+                let (spell, named_spell, inflicts_damage_opt, stunned_opt) =
                     spell_query.get().expect("spell_query should have result");
 
                 // Set spell countdown to a random value between 11 and 16
@@ -181,7 +184,11 @@ impl SpellManager {
                                 if caster.id() == player_id {
                                     if target.id() == player_id {
                                         game_state.game_log.entries.push(format!(
-                                            "You burn yourself for {} damage",
+                                            "You {} yourself for {} damage",
+                                            named_spell
+                                                .attack_verb
+                                                .clone()
+                                                .expect("attack_verb must not be None"),
                                             damage_roll
                                         ));
                                     } else {
@@ -192,16 +199,27 @@ impl SpellManager {
                                     }
                                 } else if target.id() == player_id {
                                     game_state.game_log.entries.push(format!(
-                                        "{} burns you for {} damage",
-                                        named_attacker.name, damage_roll
+                                        "{} {}s you for {} damage",
+                                        named_attacker.name,
+                                        named_spell
+                                            .attack_verb
+                                            .clone()
+                                            .expect("attack_verb must not be None"),
+                                        damage_roll
                                     ));
                                 } else if zone.visible_tiles[Zone::get_index_from_xy(
                                     &wants_to_zap.target.0,
                                     &wants_to_zap.target.1,
                                 )] {
                                     game_state.game_log.entries.push(format!(
-                                        "{} burns the {} for {} damage",
-                                        named_attacker.name, named_target.name, damage_roll
+                                        "{} {}s the {} for {} damage",
+                                        named_attacker.name,
+                                        named_spell
+                                            .attack_verb
+                                            .clone()
+                                            .expect("attack_verb must not be None"),
+                                        named_target.name,
+                                        damage_roll
                                     ));
                                 }
                             }
@@ -211,28 +229,44 @@ impl SpellManager {
                                 stunned_list.push((target, stun.tick_counter));
                                 if caster.id() == player_id {
                                     if target.id() == player_id {
-                                        game_state
-                                            .game_log
-                                            .entries
-                                            .push("You stun yourself".to_string());
+                                        game_state.game_log.entries.push(format!(
+                                            "You {} yourself",
+                                            named_spell
+                                                .attack_verb
+                                                .clone()
+                                                .expect("attack_verb must not be None")
+                                        ));
                                     } else {
-                                        game_state
-                                            .game_log
-                                            .entries
-                                            .push(format!("You stun the {}", named_target.name));
+                                        game_state.game_log.entries.push(format!(
+                                            "You {} the {}",
+                                            named_spell
+                                                .attack_verb
+                                                .clone()
+                                                .expect("attack_verb must not be None"),
+                                            named_target.name
+                                        ));
                                     }
                                 } else if target.id() == player_id {
-                                    game_state
-                                        .game_log
-                                        .entries
-                                        .push(format!("{} stuns you", named_attacker.name));
+                                    game_state.game_log.entries.push(format!(
+                                        "{} {}s you",
+                                        named_attacker.name,
+                                        named_spell
+                                            .attack_verb
+                                            .clone()
+                                            .expect("attack_verb must not be None")
+                                    ));
                                 } else if zone.visible_tiles[Zone::get_index_from_xy(
                                     &wants_to_zap.target.0,
                                     &wants_to_zap.target.1,
                                 )] {
                                     game_state.game_log.entries.push(format!(
-                                        "{} stun the {}",
-                                        named_attacker.name, named_target.name
+                                        "{} {} the {}",
+                                        named_attacker.name,
+                                        named_spell
+                                            .attack_verb
+                                            .clone()
+                                            .expect("attack_verb must not be None"),
+                                        named_target.name
                                     ));
                                 }
                             }

@@ -69,6 +69,7 @@ impl Spawn {
             },
             Named {
                 name: "Player".to_string(),
+                attack_verb: Some("hit".to_string()),
             },
             CombatStats {
                 level: 1,
@@ -292,6 +293,7 @@ impl Spawn {
             },
             Named {
                 name: format!("{} corpse", data.name),
+                attack_verb: None,
             },
             Item {
                 item_tile: item_tile_index,
@@ -382,6 +384,7 @@ impl Spawn {
         ecs_world.spawn((
             Named {
                 name: "River water".to_string(),
+                attack_verb: None,
             },
             Quaffable {
                 thirst_dice_number: 2,

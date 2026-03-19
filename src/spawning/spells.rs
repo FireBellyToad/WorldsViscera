@@ -18,6 +18,7 @@ impl Spawn {
         let daze_spell = (
             Named {
                 name: "Daze".to_string(),
+                attack_verb: Some("stun".to_string()),
             },
             Spell {
                 spell_type: SpellType::Daze,
@@ -33,6 +34,7 @@ impl Spawn {
         let daze_spell = (
             Named {
                 name: "Burning Spray".to_string(),
+                attack_verb: Some("burn".to_string()),
             },
             Spell {
                 spell_type: SpellType::BurningSpray,
@@ -51,6 +53,7 @@ impl Spawn {
         let magic_stone = (
             Named {
                 name: "Magic stone".to_string(),
+                attack_verb: Some("strike".to_string()),
             },
             Spell {
                 spell_type: SpellType::MagicStone,

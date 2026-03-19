@@ -2,6 +2,7 @@ use std::collections::{HashSet, LinkedList};
 
 use hecs::{Entity, World};
 use macroquad::math::Rect;
+use pathfinding::matrix::directions::N;
 
 use crate::{
     components::{
@@ -30,7 +31,7 @@ use crate::{
 };
 
 type MonsterSpawnData = (
-    String,
+    Named,
     Species,
     CombatStats,
     i32,
@@ -46,8 +47,19 @@ type MonsterSpawnData = (
 impl Spawn {
     /// Generic monster creation
     pub fn create_monster(ecs_world: &mut World, monster_data: MonsterSpawnData) -> Entity {
-        let (name, species, combat_stats, view_range, edible, smells, sounds, tile_x, tile_y, x, y) =
-            monster_data;
+        let (
+            named,
+            species,
+            combat_stats,
+            view_range,
+            edible,
+            smells,
+            sounds,
+            tile_x,
+            tile_y,
+            x,
+            y,
+        ) = monster_data;
 
         let monster_entity = (
             Monster {},
@@ -68,7 +80,7 @@ impl Spawn {
                 range: view_range,
                 must_recalculate: true,
             },
-            Named { name },
+            named,
             BlocksTile {},
             combat_stats,
             SufferingDamage {
@@ -106,7 +118,10 @@ impl Spawn {
         Spawn::create_monster(
             ecs_world,
             (
-                "Deep One".to_string(),
+                Named {
+                    name: "Deep One".to_string(),
+                    attack_verb: Some("bites".to_string()),
+                },
                 Species {
                     value: SpeciesEnum::DeepSpawn,
                 },
@@ -146,7 +161,10 @@ impl Spawn {
         let abyssal_one = Spawn::create_monster(
             ecs_world,
             (
-                "Abyssal One".to_string(),
+                Named {
+                    name: "Abyssal One".to_string(),
+                    attack_verb: Some("bites".to_string()),
+                },
                 Species {
                     value: SpeciesEnum::DeepSpawn,
                 },
@@ -196,7 +214,10 @@ impl Spawn {
         let calcificator = Spawn::create_monster(
             ecs_world,
             (
-                "Calcificator".to_string(),
+                Named {
+                    name: "Calcificator".to_string(),
+                    attack_verb: Some("scratches".to_string()),
+                },
                 Species {
                     value: SpeciesEnum::Undead,
                 },
@@ -252,7 +273,10 @@ impl Spawn {
         let living_fossil = Spawn::create_monster(
             ecs_world,
             (
-                "Living Fossil".to_string(),
+                Named {
+                    name: "Living Fossil".to_string(),
+                    attack_verb: Some("scratches".to_string()),
+                },
                 Species {
                     value: SpeciesEnum::Undead,
                 },
@@ -309,7 +333,10 @@ impl Spawn {
         let living_filth = Spawn::create_monster(
             ecs_world,
             (
-                "Living filth".to_string(),
+                Named {
+                    name: "Living filth".to_string(),
+                    attack_verb: Some("burns".to_string()),
+                },
                 Species {
                     value: SpeciesEnum::Slime,
                 },
@@ -364,7 +391,10 @@ impl Spawn {
         let freshwater_viperfish = Spawn::create_monster(
             ecs_world,
             (
-                "Freshwater viperfish".to_string(),
+                Named {
+                    name: "Freshwater viperfish".to_string(),
+                    attack_verb: Some("bites".to_string()),
+                },
                 Species {
                     value: SpeciesEnum::Fish,
                 },
@@ -406,7 +436,10 @@ impl Spawn {
         let water_worm = Spawn::create_monster(
             ecs_world,
             (
-                "Cave shrimp".to_string(),
+                Named {
+                    name: "Cave shrimp".to_string(),
+                    attack_verb: Some("nibbles".to_string()),
+                },
                 Species {
                     value: SpeciesEnum::Fish,
                 },
@@ -448,7 +481,10 @@ impl Spawn {
         let water_worm = Spawn::create_monster(
             ecs_world,
             (
-                "Cave crab".to_string(),
+                Named {
+                    name: "Cave crab".to_string(),
+                    attack_verb: Some("pinches".to_string()),
+                },
                 Species {
                     value: SpeciesEnum::Fish,
                 },
@@ -493,7 +529,10 @@ impl Spawn {
         let gremlin = Spawn::create_monster(
             ecs_world,
             (
-                "Gremlin".to_string(),
+                Named {
+                    name: "Gremlin".to_string(),
+                    attack_verb: Some("scratches".to_string()),
+                },
                 Species {
                     value: SpeciesEnum::Gremlin,
                 },
@@ -549,7 +588,10 @@ impl Spawn {
         let enthropic_gremlin = Spawn::create_monster(
             ecs_world,
             (
-                "Enthropic gremlin".to_string(),
+                Named {
+                    name: "Enthropic gremlin".to_string(),
+                    attack_verb: Some("scratches".to_string()),
+                },
                 Species {
                     value: SpeciesEnum::Gremlin,
                 },
@@ -606,7 +648,10 @@ impl Spawn {
         let centipede = Spawn::create_monster(
             ecs_world,
             (
-                "Giant centipede".to_string(),
+                Named {
+                    name: "Giant centipede".to_string(),
+                    attack_verb: Some("bites".to_string()),
+                },
                 Species {
                     value: SpeciesEnum::Bug,
                 },
@@ -648,7 +693,10 @@ impl Spawn {
         let moleman = Spawn::create_monster(
             ecs_world,
             (
-                "Mole-man".to_string(),
+                Named {
+                    name: "Mole-man".to_string(),
+                    attack_verb: Some("hits".to_string()),
+                },
                 Species {
                     value: SpeciesEnum::Undergrounder,
                 },
@@ -729,7 +777,10 @@ impl Spawn {
         let moleman_farmer = Spawn::create_monster(
             ecs_world,
             (
-                "Mole-man farmer".to_string(),
+                Named {
+                    name: "Mole-man farmer".to_string(),
+                    attack_verb: Some("hits".to_string()),
+                },
                 Species {
                     value: SpeciesEnum::Undergrounder,
                 },
@@ -786,7 +837,10 @@ impl Spawn {
         let centipede = Spawn::create_monster(
             ecs_world,
             (
-                "Giant cockroach".to_string(),
+                Named {
+                    name: "Giant cockroach".to_string(),
+                    attack_verb: Some("nibbles".to_string()),
+                },
                 Species {
                     value: SpeciesEnum::Bug,
                 },
@@ -828,7 +882,10 @@ impl Spawn {
         let bombardier_bettle = Spawn::create_monster(
             ecs_world,
             (
-                "Bombardier beetle".to_string(),
+                Named {
+                    name: "Bombardier beetle".to_string(),
+                    attack_verb: Some("nibbles".to_string()),
+                },
                 Species {
                     value: SpeciesEnum::Bug,
                 },
@@ -879,7 +936,10 @@ impl Spawn {
         let slug = Spawn::create_monster(
             ecs_world,
             (
-                "Giant slug".to_string(),
+                Named {
+                    name: "Giant slug".to_string(),
+                    attack_verb: Some("nibbles".to_string()),
+                },
                 Species {
                     value: SpeciesEnum::Gastropod,
                 },
@@ -932,7 +992,10 @@ impl Spawn {
         let slug = Spawn::create_monster(
             ecs_world,
             (
-                "Sulfuric slug".to_string(),
+                Named {
+                    name: "Sulfuric slug".to_string(),
+                    attack_verb: Some("nibbles".to_string()),
+                },
                 Species {
                     value: SpeciesEnum::Gastropod,
                 },
@@ -986,7 +1049,10 @@ impl Spawn {
         let refugee = Spawn::create_monster(
             ecs_world,
             (
-                "Human refugee".to_string(),
+                Named {
+                    name: "Human refugee".to_string(),
+                    attack_verb: Some("hits".to_string()),
+                },
                 Species {
                     value: SpeciesEnum::Human,
                 },
@@ -1055,7 +1121,10 @@ impl Spawn {
         let stonedust_cultist = Spawn::create_monster(
             ecs_world,
             (
-                "Stonedust cultist".to_string(),
+                Named {
+                    name: "Stonedust cultist".to_string(),
+                    attack_verb: Some("hits".to_string()),
+                },
                 Species {
                     value: SpeciesEnum::Human,
                 },
@@ -1123,7 +1192,10 @@ impl Spawn {
         let stonedust_acolyte = Spawn::create_monster(
             ecs_world,
             (
-                "Stonedust acolyte".to_string(),
+                Named {
+                    name: "Stonedust acolyte".to_string(),
+                    attack_verb: Some("hits".to_string()),
+                },
                 Species {
                     value: SpeciesEnum::Human,
                 },
@@ -1192,7 +1264,10 @@ impl Spawn {
         let living_dead = Spawn::create_monster(
             ecs_world,
             (
-                "Living dead".to_string(),
+                Named {
+                    name: "Living dead".to_string(),
+                    attack_verb: Some("bites".to_string()),
+                },
                 Species {
                     value: SpeciesEnum::Undead,
                 },
@@ -1243,7 +1318,10 @@ impl Spawn {
         let darkling = Spawn::create_monster(
             ecs_world,
             (
-                "Darkling".to_string(),
+                Named {
+                    name: "Darkling".to_string(),
+                    attack_verb: Some("slashes".to_string()),
+                },
                 Species {
                     value: SpeciesEnum::DeepSpawn,
                 },
@@ -1295,7 +1373,10 @@ impl Spawn {
         let colossal_worm = Spawn::create_monster(
             ecs_world,
             (
-                "Colossal Worm".to_string(),
+                Named {
+                    name: "Colossal Worm".to_string(),
+                    attack_verb: Some("munches".to_string()),
+                },
                 Species {
                     value: SpeciesEnum::Gastropod,
                 },
@@ -1354,6 +1435,7 @@ impl Spawn {
                 Monster {},
                 Named {
                     name: "Colossal Worm's body".to_string(),
+                    attack_verb: Some("".to_string()),
                 },
                 Renderable {
                     texture_name: TextureName::Creatures,

@@ -150,13 +150,23 @@ impl MeleeManager {
 
                                     if attacker_is_player {
                                         game_state.game_log.entries.push(format!(
-                                            "You hit the {} for {} venomous damage",
-                                            named_target.name, damage_roll
+                                            "You {} the {} for {} venomous damage",
+                                            named_attacker
+                                                .attack_verb
+                                                .clone()
+                                                .expect("attack_verb must not be None "),
+                                            named_target.name,
+                                            damage_roll
                                         ));
                                     } else if target_is_player {
                                         game_state.game_log.entries.push(format!(
-                                            "The {} hits you for {} venomous damage",
-                                            named_attacker.name, damage_roll
+                                            "The {} {} you for {} venomous damage",
+                                            named_attacker
+                                                .attack_verb
+                                                .clone()
+                                                .expect("attack_verb must not be None "),
+                                            named_attacker.name,
+                                            damage_roll
                                         ));
                                     } else {
                                         // Log NPC infighting only if visible
@@ -165,8 +175,14 @@ impl MeleeManager {
                                             &attacker_position.y,
                                         )] {
                                             game_state.game_log.entries.push(format!(
-                                                "The {} hits the {} for {} venomous damage",
-                                                named_attacker.name, named_target.name, damage_roll
+                                                "The {} {} the {} for {} venomous damage",
+                                                named_attacker.name,
+                                                named_attacker
+                                                    .attack_verb
+                                                    .clone()
+                                                    .expect("attack_verb must not be None "),
+                                                named_target.name,
+                                                damage_roll
                                             ));
                                         }
                                     }
@@ -229,13 +245,23 @@ impl MeleeManager {
                                     );
                                     if attacker_is_player {
                                         game_state.game_log.entries.push(format!(
-                                            "You hit the {} for {} damage",
-                                            named_target.name, damage_roll
+                                            "You {} the {} for {} damage",
+                                            named_attacker
+                                                .attack_verb
+                                                .clone()
+                                                .expect("attack_verb must not be None "),
+                                            named_target.name,
+                                            damage_roll
                                         ));
                                     } else if target_is_player {
                                         game_state.game_log.entries.push(format!(
-                                            "The {} hits you for {} damage",
-                                            named_attacker.name, damage_roll
+                                            "The {} {} you for {} damage",
+                                            named_attacker.name,
+                                            named_attacker
+                                                .attack_verb
+                                                .clone()
+                                                .expect("attack_verb must not be None "),
+                                            damage_roll
                                         ));
                                     } else {
                                         // Log NPC infighting only if visible
@@ -244,8 +270,14 @@ impl MeleeManager {
                                             &attacker_position.y,
                                         )] {
                                             game_state.game_log.entries.push(format!(
-                                                "{} hits the {} for {} damage",
-                                                named_attacker.name, named_target.name, damage_roll
+                                                "{} {} the {} for {} damage",
+                                                named_attacker.name,
+                                                named_attacker
+                                                    .attack_verb
+                                                    .clone()
+                                                    .expect("attack_verb must not be None "),
+                                                named_target.name,
+                                                damage_roll
                                             ));
                                         }
                                     }
