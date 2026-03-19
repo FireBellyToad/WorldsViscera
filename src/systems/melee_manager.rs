@@ -356,18 +356,16 @@ impl MeleeManager {
                         }
 
                         wants_to_melee_list.push((attacker, attacker_stats.speed));
+                    } else if ecs_world.contains(wants_melee.target) {
+                        println!(
+                            "---- wants_melee.target {:?} has no CombatStats or Named, wat? ----",
+                            wants_melee.target
+                        );
                     } else {
-                        if ecs_world.contains(wants_melee.target) {
-                            println!(
-                                "---- wants_melee.target {:?} has no CombatStats or Named, wat? ----",
-                                wants_melee.target
-                            );
-                        } else {
-                            println!(
-                                "---- wants_melee.target {:?} is not in the world, skipping ----",
-                                wants_melee.target
-                            );
-                        }
+                        println!(
+                            "---- wants_melee.target {:?} is not in the world, skipping ----",
+                            wants_melee.target
+                        );
                     }
                 }
             }

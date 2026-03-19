@@ -220,7 +220,7 @@ impl Spawn {
             (1..=4) => Spawn::cave_shrimp(ecs_world, x, y),
             (5..=9) => Spawn::cave_crab(ecs_world, x, y),
             (10..=12) => Spawn::freshwater_viperfish(ecs_world, x, y),
-            (10..) => Spawn::random_water_monster(ecs_world, x, y, depth - 1),
+            (13..) => Spawn::random_water_monster(ecs_world, x, y, depth - 1),
             _ => {}
         }
     }
