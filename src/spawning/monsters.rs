@@ -585,7 +585,7 @@ impl Spawn {
                     current_stamina: 7,
                     max_stamina: 7,
                     base_armor: 1,
-                    unarmed_attack_dice: 4,
+                    unarmed_attack_dice: 6,
                     current_toughness: 9,
                     max_toughness: 9,
                     current_dexterity: 10,
@@ -1660,6 +1660,9 @@ impl Spawn {
         }
 
         //Join head and body
-        let _ = ecs_world.insert(colossal_worm, (SnakeHead { body }, SingleSnakeCreature {}));
+        let _ = ecs_world.insert(
+            colossal_worm,
+            (SnakeHead { body }, SingleSnakeCreature {}, Grappler {}),
+        );
     }
 }

@@ -320,8 +320,8 @@ impl Spawn {
                 invokable_type: InvokablesEnum::LightningWand,
             },
             InflictsDamage {
-                number_of_dices: 1,
-                dice_size: 12,
+                number_of_dices: 2,
+                dice_size: 8,
             },
             Smellable {
                 smell_log: Some("ozone".to_string()),

@@ -334,7 +334,7 @@ fn do_debug_logic(game_state: &mut GameState) {
                 Spawn::ration(&mut game_state.ecs_world, MAP_WIDTH / 2, MAP_HEIGHT / 2);
                 Spawn::flask_of_water(&mut game_state.ecs_world, MAP_WIDTH / 2, MAP_HEIGHT / 2);
             } else if is_key_pressed(KeyCode::F9) {
-                Spawn::stonedust_acolyte(&mut game_state.ecs_world, MAP_WIDTH / 2, MAP_HEIGHT / 2);
+                Spawn::pseudoscorpion(&mut game_state.ecs_world, MAP_WIDTH / 2, MAP_HEIGHT / 2);
             } else if is_key_pressed(KeyCode::F8) {
                 use crate::components::combat::CombatStats;
 
@@ -373,7 +373,7 @@ fn do_debug_logic(game_state: &mut GameState) {
             } else if is_key_pressed(KeyCode::F6) {
                 game_state.debug_monster_vision = !game_state.debug_monster_vision;
             } else if is_key_pressed(KeyCode::F5) {
-                Spawn::refugee(&mut game_state.ecs_world, MAP_WIDTH / 2, MAP_HEIGHT / 2);
+                Spawn::giant_trogloraptor(&mut game_state.ecs_world, MAP_WIDTH / 2, MAP_HEIGHT / 2);
             }
         }
     }
