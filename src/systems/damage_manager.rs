@@ -5,9 +5,9 @@ use hecs::{Entity, World};
 use crate::{
     components::{
         combat::{CombatStats, Grappled, SufferingDamage},
-        common::{Experience, Hates, Named, Position, Species, SpeciesEnum},
+        common::{Experience, Hates, Named, Position, ProduceCorpse, Species, SpeciesEnum},
         health::{CanAutomaticallyHeal, DiseaseType, Paralyzed},
-        items::{Deadly, DontLeaveCorpse, Edible},
+        items::{Deadly, Edible},
         monster::{DiseaseBearer, SingleSnakeCreature, SnakeBody, SnakeHead, Venomous},
     },
     constants::{AUTO_ADVANCE_EXP_COUNTER_START, MAX_STAMINA_HEAL_TICK_COUNTER},
@@ -240,12 +240,12 @@ impl DamageManager {
 
             ItemDropping::drop_all_of(killed_entity, ecs_world, x, y);
 
-            // Create corpse if has no "DontLeaveCorpse" component
+            // Create corpse if has "ProduceCorpse" component
             // Change nutrition based on monster
             // The corpse carries the venom of the disease that the monster had (scorpions and beasts like that)
             // TODO it would be cool to make the corpse carry on the poison that killed him...
-            if !ecs_world
-                .satisfies::<&DontLeaveCorpse>(killed_entity)
+            if ecs_world
+                .satisfies::<&ProduceCorpse>(killed_entity)
                 .unwrap_or(false)
             {
                 let edible;

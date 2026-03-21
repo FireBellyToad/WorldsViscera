@@ -13,7 +13,7 @@ use crate::{
             SpeciesEnum, SpellList, Viewshed,
         },
         health::{DiseaseType, Hunger},
-        items::{BodyLocation, Deadly, DontLeaveCorpse, Edible, Equipped, InBackback},
+        items::{BodyLocation, Deadly, Edible, Equipped, InBackback},
         monster::{
             Aquatic, DiseaseBearer, Grappler, LeaveTrail, Monster, Prey, SingleSnakeCreature,
             Small, Smart, SnakeBody, SnakeHead, Venomous,
@@ -41,6 +41,7 @@ type MonsterSpawnData = (
     f32,
     i32,
     i32,
+    bool,
 );
 
 impl Spawn {
@@ -58,6 +59,7 @@ impl Spawn {
             tile_y,
             x,
             y,
+            produce_corpse,
         ) = monster_data;
 
         let monster_entity = (
@@ -100,15 +102,17 @@ impl Spawn {
 
         let monster_spawned = ecs_world.spawn(monster_entity);
 
-        let _ = ecs_world.insert(
-            monster_spawned,
-            (
-                ProduceCorpse {},
-                Hates {
-                    list: HashSet::new(),
-                },
-            ),
-        );
+        if produce_corpse {
+            let _ = ecs_world.insert(
+                monster_spawned,
+                (
+                    ProduceCorpse {},
+                    Hates {
+                        list: HashSet::new(),
+                    },
+                ),
+            );
+        }
 
         monster_spawned
     }
@@ -152,6 +156,7 @@ impl Spawn {
                 0.0,
                 x,
                 y,
+                true,
             ),
         );
     }
@@ -195,6 +200,7 @@ impl Spawn {
                 1.0,
                 x,
                 y,
+                true,
             ),
         );
 
@@ -248,6 +254,7 @@ impl Spawn {
                 1.0,
                 x,
                 y,
+                true,
             ),
         );
 
@@ -307,6 +314,7 @@ impl Spawn {
                 2.0,
                 x,
                 y,
+                true,
             ),
         );
 
@@ -367,6 +375,7 @@ impl Spawn {
                 0.0,
                 x,
                 y,
+                false,
             ),
         );
 
@@ -374,7 +383,6 @@ impl Spawn {
         let _ = ecs_world.insert(
             living_filth,
             (
-                DontLeaveCorpse {},
                 LeaveTrail {
                     of: DecalType::Filth,
                     trail_lifetime: FILTH_TRAIL_LIFETIME,
@@ -425,6 +433,7 @@ impl Spawn {
                 0.0,
                 x,
                 y,
+                true,
             ),
         );
 
@@ -470,6 +479,7 @@ impl Spawn {
                 0.0,
                 x,
                 y,
+                true,
             ),
         );
 
@@ -515,6 +525,7 @@ impl Spawn {
                 1.0,
                 x,
                 y,
+                true,
             ),
         );
 
@@ -563,6 +574,7 @@ impl Spawn {
                 0.0,
                 x,
                 y,
+                true,
             ),
         );
 
@@ -608,6 +620,7 @@ impl Spawn {
                 1.0,
                 x,
                 y,
+                true,
             ),
         );
 
@@ -653,6 +666,7 @@ impl Spawn {
                 0.0,
                 x,
                 y,
+                true,
             ),
         );
 
@@ -712,6 +726,7 @@ impl Spawn {
                 1.0,
                 x,
                 y,
+                true,
             ),
         );
 
@@ -772,6 +787,7 @@ impl Spawn {
                 0.0,
                 x,
                 y,
+                true,
             ),
         );
 
@@ -817,6 +833,7 @@ impl Spawn {
                 1.0,
                 x,
                 y,
+                true,
             ),
         );
 
@@ -862,6 +879,7 @@ impl Spawn {
                 0.0,
                 x,
                 y,
+                true,
             ),
         );
 
@@ -946,6 +964,7 @@ impl Spawn {
                 1.0,
                 x,
                 y,
+                true,
             ),
         );
 
@@ -1006,6 +1025,7 @@ impl Spawn {
                 0.0,
                 x,
                 y,
+                true,
             ),
         );
 
@@ -1051,6 +1071,7 @@ impl Spawn {
                 1.0,
                 x,
                 y,
+                true,
             ),
         );
 
@@ -1105,6 +1126,7 @@ impl Spawn {
                 0.0,
                 x,
                 y,
+                true,
             ),
         );
 
@@ -1161,6 +1183,7 @@ impl Spawn {
                 1.0,
                 x,
                 y,
+                true,
             ),
         );
 
@@ -1218,6 +1241,7 @@ impl Spawn {
                 1.0,
                 x,
                 y,
+                true,
             ),
         );
 
@@ -1301,6 +1325,7 @@ impl Spawn {
                 0.0,
                 x,
                 y,
+                true,
             ),
         );
 
@@ -1393,6 +1418,7 @@ impl Spawn {
                 1.0,
                 x,
                 y,
+                true,
             ),
         );
 
@@ -1485,6 +1511,7 @@ impl Spawn {
                 0.0,
                 x,
                 y,
+                true,
             ),
         );
 
@@ -1539,6 +1566,7 @@ impl Spawn {
                 0.0,
                 x,
                 y,
+                true,
             ),
         );
 
@@ -1594,6 +1622,7 @@ impl Spawn {
                 0.0,
                 x,
                 y,
+                true,
             ),
         );
 
