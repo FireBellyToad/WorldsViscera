@@ -165,21 +165,22 @@ impl Spawn {
 
     /// Spawn a random terrainmonster
     pub fn random_terrain_monster(ecs_world: &mut World, x: i32, y: i32, zone: &Zone) {
-        let dice_roll = max(1, Roll::dice(1, 8) + zone.depth as i32);
+        let dice_roll = max(1, Roll::dice(1, 6) + zone.depth as i32);
 
         // Depth based spawn table, recursive if roll is too high
         match dice_roll {
-            (1..=10) => match Roll::d20() {
+            (1..=10) => match Roll::dice(1, 22) {
                 (1..=5) => Spawn::giant_slug(ecs_world, x, y),
                 (6..=8) => Spawn::giant_cockroach(ecs_world, x, y),
                 (9..=11) => Spawn::deep_one(ecs_world, x, y),
                 (12..=14) => Spawn::living_dead(ecs_world, x, y),
                 (15..=17) => Spawn::living_filth(ecs_world, x, y),
                 (18..=19) => Spawn::refugee(ecs_world, x, y),
-                20 => Spawn::moleman(ecs_world, x, y),
+                (20..=21) => Spawn::pseudoscorpion(ecs_world, x, y),
+                22 => Spawn::moleman(ecs_world, x, y),
                 _ => {}
             },
-            (11..=18) => match Roll::dice(1, 24) {
+            (11..=20) => match Roll::dice(1, 27) {
                 (1..=5) => Spawn::calcificator(ecs_world, x, y),
                 (6..=8) => Spawn::centipede(ecs_world, x, y),
                 (9..=11) => Spawn::gremlin(ecs_world, x, y),
@@ -190,9 +191,10 @@ impl Spawn {
                 (22..=24) => {
                     let _ = Spawn::stonedust_cultist(ecs_world, x, y);
                 }
+                (25..=27) => Spawn::giant_trogloraptor(ecs_world, x, y),
                 _ => {}
             },
-            (19..) => match Roll::dice(1, 26) {
+            (21..) => match Roll::dice(1, 28) {
                 (1..=4) => Spawn::gremlin(ecs_world, x, y),
                 (5..=7) => Spawn::moleman(ecs_world, x, y),
                 (8..=11) => {
@@ -203,8 +205,9 @@ impl Spawn {
                 (18..=20) => Spawn::sulfuric_slug(ecs_world, x, y),
                 (21..=22) => Spawn::refugee(ecs_world, x, y),
                 (23..=24) => Spawn::living_fossil(ecs_world, x, y),
-                25 => Spawn::colossal_worm(ecs_world, x, y, zone),
-                26 => Spawn::darkling(ecs_world, x, y),
+                (25..=26) => Spawn::scorpion(ecs_world, x, y),
+                27 => Spawn::colossal_worm(ecs_world, x, y, zone),
+                28 => Spawn::darkling(ecs_world, x, y),
                 _ => {}
             },
             _ => {}
@@ -247,7 +250,9 @@ impl Spawn {
                 let _ = Spawn::lantern(ecs_world, x, y);
             }
             18 | 19 => Spawn::leather_cap(ecs_world, x, y),
-            20 => Spawn::flask_of_water(ecs_world, x, y),
+            20 => {
+                let _ = Spawn::flask_of_water(ecs_world, x, y);
+            }
             21 => {
                 let _ = Spawn::pickaxe(ecs_world, x, y);
             }

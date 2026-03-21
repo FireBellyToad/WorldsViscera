@@ -415,7 +415,7 @@ impl Spawn {
                     nutrition_dice_size: 6,
                 },
                 Smellable {
-                    smell_log: Some("fish".to_string()),
+                    smell_log: None,
                     intensity: SmellIntensity::None,
                 },
                 ProduceSound {
@@ -432,7 +432,7 @@ impl Spawn {
     }
 
     pub fn cave_shrimp(ecs_world: &mut World, x: i32, y: i32) {
-        let water_worm = Spawn::create_monster(
+        let cave_shrimp = Spawn::create_monster(
             ecs_world,
             (
                 Named {
@@ -460,7 +460,7 @@ impl Spawn {
                     nutrition_dice_size: 6,
                 },
                 Smellable {
-                    smell_log: Some("humid algae".to_string()),
+                    smell_log: None,
                     intensity: SmellIntensity::None,
                 },
                 ProduceSound {
@@ -473,11 +473,11 @@ impl Spawn {
             ),
         );
 
-        let _ = ecs_world.insert(water_worm, (Prey {}, Aquatic {}, CanHide { cooldown: 0 }));
+        let _ = ecs_world.insert(cave_shrimp, (Prey {}, Aquatic {}, CanHide { cooldown: 0 }));
     }
 
     pub fn cave_crab(ecs_world: &mut World, x: i32, y: i32) {
-        let water_worm = Spawn::create_monster(
+        let cave_crab = Spawn::create_monster(
             ecs_world,
             (
                 Named {
@@ -505,7 +505,7 @@ impl Spawn {
                     nutrition_dice_size: 6,
                 },
                 Smellable {
-                    smell_log: Some("humid stone".to_string()),
+                    smell_log: None,
                     intensity: SmellIntensity::None,
                 },
                 ProduceSound {
@@ -519,9 +519,99 @@ impl Spawn {
         );
 
         let _ = ecs_world.insert(
-            water_worm,
+            cave_crab,
             (Grappler {}, Aquatic {}, CanHide { cooldown: 0 }),
         );
+    }
+
+    pub fn pseudoscorpion(ecs_world: &mut World, x: i32, y: i32) {
+        let pseudoscorpion = Spawn::create_monster(
+            ecs_world,
+            (
+                Named {
+                    name: "Pseudoscorpion".to_string(),
+                    attack_verb: Some("pinches".to_string()),
+                },
+                Species {
+                    value: SpeciesEnum::Bug,
+                },
+                CombatStats {
+                    level: 2,
+                    current_stamina: 5,
+                    max_stamina: 5,
+                    base_armor: 1,
+                    unarmed_attack_dice: 2,
+                    current_toughness: 8,
+                    max_toughness: 8,
+                    current_dexterity: 5,
+                    max_dexterity: 5,
+                    speed: NORMAL,
+                },
+                BASE_MONSTER_VIEW_RADIUS,
+                Edible {
+                    nutrition_dice_number: 3,
+                    nutrition_dice_size: 6,
+                },
+                Smellable {
+                    smell_log: Some("Munched bugs".to_string()),
+                    intensity: SmellIntensity::Faint,
+                },
+                ProduceSound {
+                    sound_log: "faint clicking".to_string(),
+                },
+                15.0,
+                0.0,
+                x,
+                y,
+            ),
+        );
+
+        let _ = ecs_world.insert(pseudoscorpion, (Grappler {},));
+    }
+
+    pub fn scorpion(ecs_world: &mut World, x: i32, y: i32) {
+        let scorpion = Spawn::create_monster(
+            ecs_world,
+            (
+                Named {
+                    name: "Scorpion".to_string(),
+                    attack_verb: Some("sting".to_string()),
+                },
+                Species {
+                    value: SpeciesEnum::Bug,
+                },
+                CombatStats {
+                    level: 5,
+                    current_stamina: 7,
+                    max_stamina: 7,
+                    base_armor: 1,
+                    unarmed_attack_dice: 4,
+                    current_toughness: 9,
+                    max_toughness: 9,
+                    current_dexterity: 10,
+                    max_dexterity: 10,
+                    speed: NORMAL,
+                },
+                BASE_MONSTER_VIEW_RADIUS,
+                Edible {
+                    nutrition_dice_number: 3,
+                    nutrition_dice_size: 6,
+                },
+                Smellable {
+                    smell_log: Some("Munched bugs".to_string()),
+                    intensity: SmellIntensity::Faint,
+                },
+                ProduceSound {
+                    sound_log: "faint clicking".to_string(),
+                },
+                15.0,
+                1.0,
+                x,
+                y,
+            ),
+        );
+
+        let _ = ecs_world.insert(scorpion, (Grappler {}, Venomous {}));
     }
 
     pub fn gremlin(ecs_world: &mut World, x: i32, y: i32) {
@@ -648,7 +738,7 @@ impl Spawn {
             ecs_world,
             (
                 Named {
-                    name: "Giant centipede".to_string(),
+                    name: "Centipede".to_string(),
                     attack_verb: Some("bites".to_string()),
                 },
                 Species {
@@ -672,7 +762,7 @@ impl Spawn {
                     nutrition_dice_size: 8,
                 },
                 Smellable {
-                    smell_log: Some("something off and dusty".to_string()),
+                    smell_log: None,
                     intensity: SmellIntensity::None,
                 },
                 ProduceSound {
@@ -686,6 +776,51 @@ impl Spawn {
         );
 
         let _ = ecs_world.insert(centipede, (Venomous {}, Small {}));
+    }
+
+    pub fn giant_trogloraptor(ecs_world: &mut World, x: i32, y: i32) {
+        let giant_trogloraptor = Spawn::create_monster(
+            ecs_world,
+            (
+                Named {
+                    name: "Trogloraptor".to_string(),
+                    attack_verb: Some("bites".to_string()),
+                },
+                Species {
+                    value: SpeciesEnum::Bug,
+                },
+                CombatStats {
+                    level: 4,
+                    current_stamina: 3,
+                    max_stamina: 3,
+                    base_armor: 0,
+                    unarmed_attack_dice: 4,
+                    current_toughness: 5,
+                    max_toughness: 5,
+                    current_dexterity: 14,
+                    max_dexterity: 14,
+                    speed: NORMAL,
+                },
+                BASE_MONSTER_VIEW_RADIUS,
+                Edible {
+                    nutrition_dice_number: 1,
+                    nutrition_dice_size: 10,
+                },
+                Smellable {
+                    smell_log: None,
+                    intensity: SmellIntensity::None,
+                },
+                ProduceSound {
+                    sound_log: "skittering from above".to_string(),
+                },
+                5.0,
+                1.0,
+                x,
+                y,
+            ),
+        );
+
+        let _ = ecs_world.insert(giant_trogloraptor, (CanHide { cooldown: 0 }, Grappler {}));
     }
 
     pub fn moleman(ecs_world: &mut World, x: i32, y: i32) {
@@ -837,7 +972,7 @@ impl Spawn {
             ecs_world,
             (
                 Named {
-                    name: "Giant cockroach".to_string(),
+                    name: "Cockroach".to_string(),
                     attack_verb: Some("nibbles".to_string()),
                 },
                 Species {
@@ -936,7 +1071,7 @@ impl Spawn {
             ecs_world,
             (
                 Named {
-                    name: "Giant slug".to_string(),
+                    name: "Slug".to_string(),
                     attack_verb: Some("nibbles".to_string()),
                 },
                 Species {
@@ -1102,14 +1237,25 @@ impl Spawn {
             let _ = ecs_world.insert_one(refugee, WantsToApply { item: lantern });
         }
 
-        // Refugee has a ration
-        let ration = Spawn::ration(ecs_world, x, y);
-        let _ = ecs_world.remove_one::<Position>(ration);
+        // Refugee has 1 to 3 rations
+        for _ in 0..Roll::dice(1, 3) {
+            let ration = Spawn::ration(ecs_world, x, y);
+            let _ = ecs_world.remove_one::<Position>(ration);
+            let _ = ecs_world.insert_one(
+                ration,
+                InBackback {
+                    owner: refugee,
+                    assigned_char: 'c',
+                },
+            );
+        }
+        let flask_of_water = Spawn::flask_of_water(ecs_world, x, y);
+        let _ = ecs_world.remove_one::<Position>(flask_of_water);
         let _ = ecs_world.insert_one(
-            ration,
+            flask_of_water,
             InBackback {
                 owner: refugee,
-                assigned_char: 'c',
+                assigned_char: 'd',
             },
         );
 
@@ -1184,6 +1330,27 @@ impl Spawn {
             (WantsToApply { item: lantern }, Smart {}),
         );
 
+        for _ in 0..Roll::dice(1, 2) {
+            let ration = Spawn::ration(ecs_world, x, y);
+            let _ = ecs_world.remove_one::<Position>(ration);
+            let _ = ecs_world.insert_one(
+                ration,
+                InBackback {
+                    owner: stonedust_cultist,
+                    assigned_char: 'c',
+                },
+            );
+        }
+        let flask_of_water = Spawn::flask_of_water(ecs_world, x, y);
+        let _ = ecs_world.remove_one::<Position>(flask_of_water);
+        let _ = ecs_world.insert_one(
+            flask_of_water,
+            InBackback {
+                owner: stonedust_cultist,
+                assigned_char: 'd',
+            },
+        );
+
         stonedust_cultist
     }
 
@@ -1250,6 +1417,26 @@ impl Spawn {
             },
         );
 
+        for _ in 0..Roll::dice(1, 2) {
+            let ration = Spawn::ration(ecs_world, x, y);
+            let _ = ecs_world.remove_one::<Position>(ration);
+            let _ = ecs_world.insert_one(
+                ration,
+                InBackback {
+                    owner: stonedust_acolyte,
+                    assigned_char: 'c',
+                },
+            );
+        }
+        let flask_of_water = Spawn::flask_of_water(ecs_world, x, y);
+        let _ = ecs_world.remove_one::<Position>(flask_of_water);
+        let _ = ecs_world.insert_one(
+            flask_of_water,
+            InBackback {
+                owner: stonedust_acolyte,
+                assigned_char: 'd',
+            },
+        );
         // turn on lantern
         let _ = ecs_world.insert(
             stonedust_acolyte,
@@ -1342,7 +1529,7 @@ impl Spawn {
                     nutrition_dice_size: 12,
                 },
                 Smellable {
-                    smell_log: Some("nothing strange".to_string()),
+                    smell_log: None,
                     intensity: SmellIntensity::None,
                 },
                 ProduceSound {

@@ -159,7 +159,7 @@ impl Spawn {
         Spawn::mushroom(ecs_world, x, y, mushroom_type);
     }
 
-    pub fn flask_of_water(ecs_world: &mut World, x: i32, y: i32) {
+    pub fn flask_of_water(ecs_world: &mut World, x: i32, y: i32) -> Entity {
         let item_tile_index = (2, 0);
         let flask_of_water = (
             Position { x, y },
@@ -186,7 +186,7 @@ impl Spawn {
             },
         );
 
-        ecs_world.spawn(flask_of_water);
+        ecs_world.spawn(flask_of_water)
     }
 
     pub fn curing_paste(ecs_world: &mut World, x: i32, y: i32) {
