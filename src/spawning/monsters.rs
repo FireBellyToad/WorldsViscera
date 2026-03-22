@@ -98,20 +98,16 @@ impl Spawn {
             smells,
             sounds,
             edible,
+            Hates {
+                list: HashSet::new(),
+            },
         );
 
         let monster_spawned = ecs_world.spawn(monster_entity);
 
+        // Not all monsters produce corpses on death
         if produce_corpse {
-            let _ = ecs_world.insert(
-                monster_spawned,
-                (
-                    ProduceCorpse {},
-                    Hates {
-                        list: HashSet::new(),
-                    },
-                ),
-            );
+            let _ = ecs_world.insert_one(monster_spawned, ProduceCorpse {});
         }
 
         monster_spawned
@@ -1424,11 +1420,11 @@ impl Spawn {
 
         // Stonedust cultist has dazing spell
         let daze_spell = Spawn::daze(ecs_world);
-        let magic_stone = Spawn::magic_stone(ecs_world);
+        let stone_fell = Spawn::stone_fell(ecs_world);
         let _ = ecs_world.insert_one(
             stonedust_acolyte,
             SpellList {
-                spells: vec![daze_spell, magic_stone],
+                spells: vec![daze_spell, stone_fell],
             },
         );
 

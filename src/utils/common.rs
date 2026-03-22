@@ -109,7 +109,6 @@ impl Utils {
     }
 
     /// Hate table by species
-    //TODO change to static const!
     pub fn what_hates(hater: &SpeciesEnum) -> &[SpeciesEnum; 4] {
         match hater {
             SpeciesEnum::Human => &HUMAN_SPECIES_HATES,

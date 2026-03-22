@@ -3,8 +3,9 @@ use crate::{
         combat::{InflictsDamage, WantsToCast},
         common::{MyTurn, SpellList},
         health::Stunned,
-        items::Spell,
+        items::{Spell, SpellType},
     },
+    constants::STONE_FELL_PARTICLE_TYPE,
     engine::state::GameState,
 };
 use std::cmp::max;
@@ -70,63 +71,91 @@ impl SpellManager {
                 if caster_position.x != wants_to_zap.target.0
                     || caster_position.y != wants_to_zap.target.1
                 {
-                    //Spell will be shot in line
-                    let mut line_effect = EffectManager::new_line(
-                        (caster_position.x, caster_position.y),
-                        (wants_to_zap.target.0, wants_to_zap.target.1),
-                    );
-
-                    // get first entity or blocked tile in line (Exclude caster)
-                    // you cannot shoot something behind a barrier or another npc
-                    let mut must_truncate_line_at = (false, 0);
-                    for (i, &(x, y)) in line_effect.iter().skip(1).enumerate() {
-                        let index = Zone::get_index_from_xy(&x, &y);
-
-                        if !zone.tile_content[index].is_empty() {
-                            //Get the first damageable entity
-                            for &entity in &zone.tile_content[index] {
-                                if ecs_world
-                                    .satisfies::<&SufferingDamage>(entity)
-                                    .unwrap_or(false)
-                                {
-                                    target_opt = Some(entity);
-                                    must_truncate_line_at = (true, i + 1);
-                                    break;
-                                }
-                            }
-                            //If target is found, break the loop
-                            if target_opt.is_some() {
-                                break;
-                            }
-                        }
-
-                        // If no valid target is found, check for solid obstacle
-                        if target_opt.is_none() && zone.blocked_tiles[index] {
-                            // Log only if visible
-                            if zone.visible_tiles[Zone::get_index_from_xy(&x, &y)] {
-                                game_state
-                                    .game_log
-                                    .entries
-                                    .push("The spell bounces on something solid".to_string());
-                            }
-                            must_truncate_line_at = (true, i + 1);
-
-                            break;
-                        }
-                    }
-
-                    if must_truncate_line_at.0 {
-                        line_effect.truncate(must_truncate_line_at.1);
-                    }
-
                     // Use particle type given by ranged spell
                     if zone.visible_tiles
                         [Zone::get_index_from_xy(&wants_to_zap.target.0, &wants_to_zap.target.1)]
                     {
-                        particle_animations.push(ParticleAnimation::new_projectile(
-                            line_effect,
-                            spell.spell_type.particle(),
-                        ));
+                        // Select particle type based on spell type
+                        match spell.spell_type {
+                            SpellType::StoneFell => {
+                                // show particle on striken guy
+                                particle_animations.push(ParticleAnimation::simple_particle(
+                                    wants_to_zap.target.0,
+                                    wants_to_zap.target.1,
+                                    STONE_FELL_PARTICLE_TYPE,
+                                ));
+                                let index = Zone::get_index_from_xy(
+                                    &wants_to_zap.target.0,
+                                    &wants_to_zap.target.1,
+                                );
+                                if !zone.tile_content[index].is_empty() {
+                                    //Get the first damageable entity
+                                    for &entity in &zone.tile_content[index] {
+                                        if ecs_world
+                                            .satisfies::<&SufferingDamage>(entity)
+                                            .unwrap_or(false)
+                                        {
+                                            target_opt = Some(entity);
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                            _ => {
+                                //Spell will be shot in line
+                                let mut line_effect = EffectManager::new_line(
+                                    (caster_position.x, caster_position.y),
+                                    (wants_to_zap.target.0, wants_to_zap.target.1),
+                                );
+
+                                // get first entity or blocked tile in line (Exclude caster)
+                                // you cannot shoot something behind a barrier or another npc
+                                let mut must_truncate_line_at = (false, 0);
+                                for (i, &(x, y)) in line_effect.iter().skip(1).enumerate() {
+                                    let index = Zone::get_index_from_xy(&x, &y);
+
+                                    if !zone.tile_content[index].is_empty() {
+                                        //Get the first damageable entity
+                                        for &entity in &zone.tile_content[index] {
+                                            if ecs_world
+                                                .satisfies::<&SufferingDamage>(entity)
+                                                .unwrap_or(false)
+                                            {
+                                                target_opt = Some(entity);
+                                                must_truncate_line_at = (true, i + 1);
+                                                break;
+                                            }
+                                        }
+                                        //If target is found, break the loop
+                                        if target_opt.is_some() {
+                                            break;
+                                        }
+                                    }
+
+                                    // If no valid target is found, check for solid obstacle
+                                    if target_opt.is_none() && zone.blocked_tiles[index] {
+                                        // Log only if visible
+                                        if zone.visible_tiles[Zone::get_index_from_xy(&x, &y)] {
+                                            game_state.game_log.entries.push(
+                                                "The spell bounces on something solid".to_string(),
+                                            );
+                                        }
+                                        must_truncate_line_at = (true, i + 1);
+
+                                        break;
+                                    }
+                                }
+
+                                if must_truncate_line_at.0 {
+                                    line_effect.truncate(must_truncate_line_at.1);
+                                }
+
+                                particle_animations.push(ParticleAnimation::new_projectile(
+                                    line_effect,
+                                    spell.spell_type.particle(),
+                                ));
+                            }
+                        }
                     }
                 } else {
                     // Only one if shooting himself
@@ -193,8 +222,13 @@ impl SpellManager {
                                         ));
                                     } else {
                                         game_state.game_log.entries.push(format!(
-                                            "You burn the {} for {} damage",
-                                            named_target.name, damage_roll
+                                            "You {} the {} for {} damage",
+                                            named_spell
+                                                .attack_verb
+                                                .clone()
+                                                .expect("attack_verb must not be None"),
+                                            named_target.name,
+                                            damage_roll
                                         ));
                                     }
                                 } else if target.id() == player_id {

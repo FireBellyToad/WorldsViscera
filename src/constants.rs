@@ -207,6 +207,7 @@ pub const BOLT_PARTICLE_TYPE: u32 = 3;
 pub const STONE_PARTICLE_TYPE: u32 = 4;
 pub const DAZE_PARTICLE_TYPE: u32 = 5;
 pub const BURNING_PARTICLE_TYPE: u32 = 6;
+pub const STONE_FELL_PARTICLE_TYPE: u32 = 7;
 
 pub const LEFT_DIR: f32 = 0.0;
 pub const RIGHT_DIR: f32 = 4.0;

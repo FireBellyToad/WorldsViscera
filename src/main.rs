@@ -122,12 +122,7 @@ async fn main() {
                     if game_state.run_state != RunState::GameOver
                         && game_state.run_state != RunState::DrawParticles
                     {
-                        if Player::can_act(&game_state.ecs_world) {
-                            println!("Player's turn");
-                            game_state.run_state = RunState::WaitingPlayerInput;
-                        } else {
-                            game_state.run_state = RunState::DoTick;
-                        }
+                        game_state.run_state = RunState::DoTick;
                     }
                 }
                 RunState::WaitingPlayerInput => {
@@ -144,7 +139,12 @@ async fn main() {
                     match game_state.run_state {
                         RunState::GameOver | RunState::ShowDialog(_) | RunState::DrawParticles => {}
                         _ => {
-                            game_state.run_state = RunState::BeforeTick;
+                            if Player::can_act(&game_state.ecs_world) {
+                                println!("Player's turn");
+                                game_state.run_state = RunState::WaitingPlayerInput;
+                            } else {
+                                game_state.run_state = RunState::BeforeTick;
+                            }
                         }
                     }
                 }
@@ -273,7 +273,6 @@ fn do_before_tick_logic(game_state: &mut GameState) {
     // These Systems must always be run last
     MapIndexing::run(game_state);
     FieldOfViewManager::calculate(game_state);
-    TurnCheck::check_for_turn_reset(game_state);
 }
 
 fn do_in_tick_game_logic(game_engine: &mut GameEngine, game_state: &mut GameState) {
@@ -306,6 +305,7 @@ fn do_in_tick_game_logic(game_engine: &mut GameEngine, game_state: &mut GameStat
             // These Systems must always be run last
             MapIndexing::run(game_state);
             FieldOfViewManager::calculate(game_state);
+            TurnCheck::check_for_turn_reset(game_state);
         }
     }
 }
@@ -334,7 +334,7 @@ fn do_debug_logic(game_state: &mut GameState) {
                 Spawn::ration(&mut game_state.ecs_world, MAP_WIDTH / 2, MAP_HEIGHT / 2);
                 Spawn::flask_of_water(&mut game_state.ecs_world, MAP_WIDTH / 2, MAP_HEIGHT / 2);
             } else if is_key_pressed(KeyCode::F9) {
-                Spawn::pseudoscorpion(&mut game_state.ecs_world, MAP_WIDTH / 2, MAP_HEIGHT / 2);
+                Spawn::stonedust_acolyte(&mut game_state.ecs_world, MAP_WIDTH / 2, MAP_HEIGHT / 2);
             } else if is_key_pressed(KeyCode::F8) {
                 use crate::components::combat::CombatStats;
 

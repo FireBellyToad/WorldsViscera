@@ -3,7 +3,8 @@ use hecs::Entity;
 use crate::{
     components::health::DiseaseType,
     constants::{
-        BOLT_PARTICLE_TYPE, BURNING_PARTICLE_TYPE, DAZE_PARTICLE_TYPE, STONE_PARTICLE_TYPE,
+        BOLT_PARTICLE_TYPE, BURNING_PARTICLE_TYPE, DAZE_PARTICLE_TYPE, STONE_FELL_PARTICLE_TYPE,
+        STONE_PARTICLE_TYPE,
     },
 };
 
@@ -154,7 +155,7 @@ pub struct Spell {
 pub enum SpellType {
     Daze,
     BurningSpray,
-    MagicStone,
+    StoneFell,
 }
 
 impl SpellType {
@@ -162,7 +163,7 @@ impl SpellType {
         match *self {
             SpellType::Daze => DAZE_PARTICLE_TYPE,
             SpellType::BurningSpray => BURNING_PARTICLE_TYPE,
-            SpellType::MagicStone => STONE_PARTICLE_TYPE,
+            SpellType::StoneFell => STONE_FELL_PARTICLE_TYPE,
         }
     }
 }

@@ -49,22 +49,22 @@ impl Spawn {
         ecs_world.spawn(daze_spell)
     }
 
-    pub fn magic_stone(ecs_world: &mut World) -> Entity {
-        let magic_stone = (
+    pub fn stone_fell(ecs_world: &mut World) -> Entity {
+        let stone_fell = (
             Named {
-                name: "Magic stone".to_string(),
+                name: "Stone fell".to_string(),
                 attack_verb: Some("strike".to_string()),
             },
             Spell {
-                spell_type: SpellType::MagicStone,
+                spell_type: SpellType::StoneFell,
                 spell_cooldown: 0,
             },
             InflictsDamage {
-                number_of_dices: 1,
-                dice_size: 8,
+                number_of_dices: 2,
+                dice_size: 6,
             },
         );
 
-        ecs_world.spawn(magic_stone)
+        ecs_world.spawn(stone_fell)
     }
 }
