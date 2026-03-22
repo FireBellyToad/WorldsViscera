@@ -170,8 +170,6 @@ async fn main() {
                     Player::checks_input_for_targeting(&mut game_state, special_view_mode);
                 }
                 RunState::GoToNextZone => {
-                    // Reset heal counter if the player did not wait
-                    Player::reset_heal_counter(&game_state.ecs_world);
                     Player::wait_after_action(&mut game_state, STANDARD_ACTION_MULTIPLIER);
                     change_zone(&mut game_state);
                     clear_input_queue();

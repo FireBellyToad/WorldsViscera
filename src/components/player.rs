@@ -18,11 +18,10 @@ use crate::{
         actions::{WantsItem, WantsToDrink, WantsToSmell},
         combat::{CombatStats, WantsToMelee, WantsToZap},
         common::{MyTurn, Position, Viewshed},
-        health::CanAutomaticallyHeal,
         items::{Edible, Item, Quaffable},
     },
     constants::{
-        MAP_HEIGHT, MAP_WIDTH, MAX_STAMINA_HEAL_TICK_COUNTER, TILE_SIZE_F32, UI_BORDER_F32,
+        MAP_HEIGHT, MAP_WIDTH, TILE_SIZE_F32, UI_BORDER_F32,
     },
     dialog::DialogAction,
     engine::state::RunState,
@@ -227,7 +226,7 @@ impl Player {
     pub fn checks_keyboard_input(game_state: &mut GameState) {
         game_state.run_state = RunState::WaitingPlayerInput;
         let mut check_chars_pressed = false;
-        let mut is_actively_waiting = false;
+
         // Player movement
         match get_key_pressed() {
             None => game_state.run_state = RunState::WaitingPlayerInput, // Nothing happened
@@ -246,7 +245,6 @@ impl Player {
                 // Skip turn doing nothing, so you can heal
                 KeyCode::Space => {
                     Player::wait_after_action(game_state, STANDARD_ACTION_MULTIPLIER);
-                    is_actively_waiting = true;
                     game_state.run_state = RunState::DoTick;
                 }
 
@@ -267,7 +265,6 @@ impl Player {
                         '.' => {
                             game_state.run_state = RunState::DoTick;
                             Player::wait_after_action(game_state, STANDARD_ACTION_MULTIPLIER);
-                            is_actively_waiting = true;
                         }
 
                         //Pick up
@@ -347,11 +344,6 @@ impl Player {
                 }
             }
         }
-
-        // Reset heal counter if the player did not wait through space or . key
-        if game_state.run_state == RunState::DoTick && !is_actively_waiting {
-            Player::reset_heal_counter(&game_state.ecs_world);
-        }
     }
 
     /// Checks mouse input
@@ -405,8 +397,7 @@ impl Player {
                                 target: (rounded_x, rounded_y),
                             },
                         );
-                        // Reset heal counter if the player did not wait
-                        Player::reset_heal_counter(ecs_world);
+
                         game_state.run_state = RunState::DoTick;
                     }
                 }
@@ -442,7 +433,6 @@ impl Player {
                         was_bought: false,
                     },
                 );
-                Player::reset_heal_counter(ecs_world);
 
                 game_state.run_state = RunState::DoTick;
             }
@@ -661,18 +651,6 @@ impl Player {
         let mut player_query = ecs_world.query::<(&Player, &MyTurn)>();
 
         player_query.iter().len() > 0
-    }
-
-    /// Reset heal counter. Usually when the player did anything but wait
-    pub fn reset_heal_counter(ecs_world: &World) {
-        let mut players = ecs_world
-            .query::<(&mut CombatStats, &mut CanAutomaticallyHeal)>()
-            .with::<&Player>();
-        for (_, (stats, can_heal)) in &mut players {
-            if stats.current_stamina < stats.max_stamina {
-                can_heal.tick_counter = MAX_STAMINA_HEAL_TICK_COUNTER
-            }
-        }
     }
 
     /// Wait some ticks after action is taken

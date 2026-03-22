@@ -99,10 +99,10 @@ impl DecayManager {
 
             // Randomly spawn a mushroom at the rotted corpse's location
             // is Some only if the decayed entiy was a corpse and wa not in backpack
-            if let Some((x, y)) = position_opt {
-                if Roll::d6() == 6 {
-                    Spawn::random_mushroom(ecs_world, x, y);
-                }
+            if Roll::d6() == 6
+                && let Some((x, y)) = position_opt
+            {
+                Spawn::random_mushroom(ecs_world, x, y);
             }
         }
     }

@@ -26,7 +26,6 @@ pub struct DamageManager {}
 impl DamageManager {
     pub fn run(game_state: &mut GameState) {
         let ecs_world = &mut game_state.ecs_world;
-
         let zone = game_state
             .current_zone
             .as_mut()
@@ -68,10 +67,17 @@ impl DamageManager {
             }
         }
 
-        let mut damageables =
-            ecs_world.query::<(&mut SufferingDamage, &mut CombatStats, &Position)>();
+        let mut damageables = ecs_world.query::<(
+            &mut SufferingDamage,
+            &mut CombatStats,
+            &Position,
+            Option<&mut CanAutomaticallyHeal>,
+        )>();
 
-        for (damaged_entity, (damageable, stats, position)) in &mut damageables {
+        for (damaged_entity, (damageable, stats, position, can_automatically_heal_opt)) in
+            &mut damageables
+        {
+            let mut must_reset_heal_counter = false;
             if damageable.damage_received > 0 {
                 // From now on, damaged entity will be hostile to its damager
                 if let Some(damager) = damageable.damager
@@ -80,17 +86,13 @@ impl DamageManager {
                     target_hates.list.insert(damager.id());
                 }
 
+                must_reset_heal_counter = true;
                 stats.current_stamina -= damageable.damage_received;
                 //Decrease stamina. If less then 0, delta is subtracted from toughness
                 if stats.current_stamina < 0 {
                     // We add a negative value
                     stats.current_toughness += stats.current_stamina;
                     stats.current_stamina = max(0, stats.current_stamina);
-                }
-
-                // If can heal stamina, reset counter
-                if let Ok(mut regen) = ecs_world.get::<&mut CanAutomaticallyHeal>(damaged_entity) {
-                    regen.tick_counter = MAX_STAMINA_HEAL_TICK_COUNTER + 2;
                 }
 
                 //Drench the tile with blood
@@ -102,6 +104,7 @@ impl DamageManager {
 
             // Venomous hits
             if damageable.toughness_damage_received > 0 {
+                must_reset_heal_counter = true;
                 stats.current_toughness = max(
                     0,
                     stats.current_toughness - damageable.toughness_damage_received,
@@ -114,10 +117,19 @@ impl DamageManager {
 
             // Disease hits on dexterity
             if damageable.dexterity_damage_received > 0 {
+                must_reset_heal_counter = true;
                 stats.current_dexterity = max(
                     0,
                     stats.current_dexterity - damageable.dexterity_damage_received,
                 );
+            }
+
+            // Reset heal counter for stamina regen
+            if must_reset_heal_counter
+                && let Some(can_heal) = can_automatically_heal_opt
+                && stats.current_stamina < stats.max_stamina
+            {
+                can_heal.tick_counter = MAX_STAMINA_HEAL_TICK_COUNTER + 2;
             }
         }
     }
