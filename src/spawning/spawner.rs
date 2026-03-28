@@ -1,5 +1,5 @@
 use std::cmp::max;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
 use crate::components::combat::{CombatStats, SufferingDamage};
 use crate::components::common::{
@@ -127,7 +127,7 @@ impl Spawn {
                     auto_advance_counter: 0,
                 },
                 BlocksTile {},
-                Immunity { to: HashSet::new() },
+                Immunity { to: HashMap::new() },
             ),
         );
 

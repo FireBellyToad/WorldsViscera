@@ -294,7 +294,7 @@ impl MeleeManager {
 
                             // If not immune and saving throw fails, inflict disease
                             if let Some(target_immunity) = target_immunity_opt
-                                && !target_immunity.to.iter().any(|i| match i {
+                                && !target_immunity.to.iter().any(|(i, _)| match i {
                                     ImmunityTypeEnum::Disease(d) => d == &disease_type,
                                     _ => false,
                                 })

@@ -24,7 +24,7 @@ pub struct Cured {
     pub diseases: Vec<DiseaseType>,
 }
 
-#[derive(Eq, PartialEq, Debug, Clone, Hash)]
+#[derive(Eq, PartialEq, Debug, Clone, Hash, Copy)]
 pub enum DiseaseType {
     FleshRot,
     Fever,

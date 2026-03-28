@@ -121,10 +121,10 @@ pub enum DigProductEnum {
 // for example:
 //  {ImmunityTypeEnum::Disease(DiseaseType::Fever), ImmunityTypeEnum::Disease(DiseaseType::FleshRot)}
 pub struct Immunity {
-    pub to: HashSet<ImmunityTypeEnum>,
+    pub to: HashMap<ImmunityTypeEnum, u8>,
 }
 
-#[derive(PartialEq, Debug, Hash, Eq, Clone)]
+#[derive(PartialEq, Debug, Hash, Eq, Clone, Copy)]
 pub enum ImmunityTypeEnum {
     Blindness,
     Disease(DiseaseType),

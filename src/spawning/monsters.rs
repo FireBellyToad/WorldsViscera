@@ -1,4 +1,4 @@
-use std::collections::{HashSet, LinkedList};
+use std::collections::{HashMap, HashSet, LinkedList};
 
 use hecs::{Entity, World};
 use macroquad::math::Rect;
@@ -106,9 +106,9 @@ impl Spawn {
         );
 
         let monster_spawned = ecs_world.spawn(monster_entity);
-        let mut immunity_comp = Immunity { to: HashSet::new() };
+        let mut immunity_comp = Immunity { to: HashMap::new() };
         for immunity in immunities {
-            immunity_comp.to.insert(immunity);
+            immunity_comp.to.insert(immunity, 1);
         }
         let _ = ecs_world.insert(monster_spawned, (immunity_comp,));
 

@@ -1,4 +1,4 @@
-use std::{cmp::max, collections::HashSet};
+use std::cmp::max;
 
 use hecs::{Entity, World};
 
@@ -267,14 +267,13 @@ impl HealthManager {
         // Add immunity to entities that gained it
         for (healed, immunity_type) in gained_immunity {
             if let Ok(mut immunity) = ecs_world.get::<&mut Immunity>(healed) {
-                immunity.to.insert(immunity_type);
+                immunity
+                    .to
+                    .entry(immunity_type)
+                    .and_modify(|v| *v += 1)
+                    .or_insert(1);
             } else {
-                let _ = ecs_world.insert_one(
-                    healed,
-                    Immunity {
-                        to: HashSet::from([immunity_type]),
-                    },
-                );
+                panic!("Immunity component Missing!!!")
             }
         }
 

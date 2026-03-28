@@ -79,7 +79,7 @@ impl Player {
                     .decals_tiles
                     .get(&Zone::get_index_from_xy(&position.x, &position.y))
                     && let DecalType::Slime = special_tile
-                    && !immunity.to.contains(&ImmunityTypeEnum::Slipping)
+                    && !immunity.to.contains_key(&ImmunityTypeEnum::Slipping)
                 {
                     // Do DEX saving or slip on slime!
                     if stats.current_dexterity < Roll::d20() {
@@ -172,7 +172,7 @@ impl Player {
                         .decals_tiles
                         .get(&Zone::get_index_from_xy(&position.x, &position.y))
                         && let DecalType::Acid = special_tile
-                        && !immunity.to.contains(&ImmunityTypeEnum::DamagingFloor)
+                        && !immunity.to.contains_key(&ImmunityTypeEnum::DamagingFloor)
                     {
                         // Do DEX saving or be damaged!
                         if stats.current_dexterity < Roll::d20() {

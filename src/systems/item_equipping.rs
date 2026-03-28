@@ -61,12 +61,17 @@ impl ItemEquipping {
                     item_to_unequip_list.push((equipper, wants_to_equip.item, stats.speed));
 
                     // Remove any immunities given by the item
-                    // TODO FIXME:
-                    // If there are two items that give the same immunity, it will remove anyway
                     if let Some(given_immunities) = gives_immunity_opt {
-                        current_immunities
-                            .to
-                            .retain(|i| !given_immunities.to.contains(i));
+                        for &immunity_type in given_immunities.to.iter() {
+                            current_immunities
+                                .to
+                                .entry(immunity_type)
+                                .and_modify(|v| *v -= 1);
+
+                            if current_immunities.to[&immunity_type] == 0 {
+                                current_immunities.to.remove(&immunity_type);
+                            }
+                        }
                         println!("Unequipped: New Immunities: {:?}", current_immunities.to);
                     }
 
@@ -115,7 +120,13 @@ impl ItemEquipping {
                             ));
                             // Add any immunities given by the item
                             if let Some(given_immunities) = gives_immunity_opt {
-                                current_immunities.to.extend(given_immunities.to.clone());
+                                for &immunity_type in given_immunities.to.iter() {
+                                    current_immunities
+                                        .to
+                                        .entry(immunity_type)
+                                        .and_modify(|v| *v += 1)
+                                        .or_insert(1);
+                                }
                                 println!("Equipped: New Immunities: {:?}", current_immunities.to);
                             }
 
