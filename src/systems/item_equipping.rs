@@ -64,7 +64,7 @@ impl ItemEquipping {
                     // TODO FIXME:
                     // If there are two items that give the same immunity, it will remove anyway
                     if let Some(given_immunities) = gives_immunity_opt {
-                        let _ = current_immunities
+                        current_immunities
                             .to
                             .retain(|i| !given_immunities.to.contains(i));
                         println!("Unequipped: New Immunities: {:?}", current_immunities.to);
@@ -115,7 +115,7 @@ impl ItemEquipping {
                             ));
                             // Add any immunities given by the item
                             if let Some(given_immunities) = gives_immunity_opt {
-                                let _ = current_immunities.to.extend(given_immunities.to.clone());
+                                current_immunities.to.extend(given_immunities.to.clone());
                                 println!("Equipped: New Immunities: {:?}", current_immunities.to);
                             }
 
