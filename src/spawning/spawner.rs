@@ -1,10 +1,10 @@
 use std::cmp::max;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use crate::components::combat::{CombatStats, SufferingDamage};
 use crate::components::common::{
-    BlocksTile, CanListen, CanSmell, DigProductEnum, Diggable, Experience, MyTurn, Named, Position,
-    ProduceSound, Renderable, SmellIntensity, Smellable, Species, SpeciesEnum, Viewshed,
+    BlocksTile, CanListen, CanSmell, DigProductEnum, Diggable, Experience, Immunity, MyTurn, Named,
+    Position, ProduceSound, Renderable, SmellIntensity, Smellable, Species, SpeciesEnum, Viewshed,
 };
 use crate::components::health::{CanAutomaticallyHeal, DiseaseType, Hunger, Thirst};
 use crate::components::items::{
@@ -127,6 +127,7 @@ impl Spawn {
                     auto_advance_counter: 0,
                 },
                 BlocksTile {},
+                Immunity { to: HashSet::new() },
             ),
         );
 
@@ -268,6 +269,9 @@ impl Spawn {
             }
             26 => Spawn::helmet(ecs_world, x, y),
             27 => Spawn::curing_paste(ecs_world, x, y),
+            28 => Spawn::leather_shoes(ecs_world, x, y),
+            29 => Spawn::crampon_boots(ecs_world, x, y),
+
             _ => {}
         };
     }

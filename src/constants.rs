@@ -99,7 +99,7 @@ pub const MUSHROOM_POISONOUS: i32 = 1;
 pub const MUSHROOM_MEDIOCRE: i32 = 2;
 pub const MUSHROOM_DEADLY: i32 = 3;
 pub const MUSHROOM_LUMINESCENT: i32 = 4;
-pub const MUSHROOM_LICHEN: i32 = 5;
+pub const MUSHROOM_MOLD: i32 = 5;
 pub const MUSHROOM_LIGHT_RADIUS: i32 = 2;
 
 pub const MUSHROOM_SPAWN_MAP: [i32; 15] = [
@@ -115,9 +115,9 @@ pub const MUSHROOM_SPAWN_MAP: [i32; 15] = [
     MUSHROOM_DEADLY,
     MUSHROOM_LUMINESCENT,
     MUSHROOM_LUMINESCENT,
-    MUSHROOM_LICHEN,
-    MUSHROOM_LICHEN,
-    MUSHROOM_LICHEN,
+    MUSHROOM_MOLD,
+    MUSHROOM_MOLD,
+    MUSHROOM_MOLD,
 ];
 
 pub const RUST_MAX_VALUE: u32 = 3;
@@ -128,6 +128,7 @@ pub const BASE_MONSTER_VIEW_RADIUS: i32 = 8;
 pub const MAX_HIDDEN_TURNS: i32 = 9;
 pub const SLUG_TRAIL_LIFETIME: u32 = 50;
 pub const FILTH_TRAIL_LIFETIME: u32 = 20;
+pub const ACID_DECAL_DAMAGE_DICE: i32 = 6;
 pub const MAX_PRIORITIES_NUMBER: usize = 5;
 pub const HUMAN_SPECIES_HATES: [SpeciesEnum; 4] = [
     SpeciesEnum::Fish,

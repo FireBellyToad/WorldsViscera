@@ -1,8 +1,8 @@
 use crate::components::actions::{WantsToDig, WantsToTrade};
 use crate::components::combat::{Grappled, SufferingDamage, WantsToShoot};
-use crate::components::common::{Diggable, Hates, Named};
+use crate::components::common::{Diggable, Hates, Immunity, ImmunityTypeEnum, Named};
 use crate::components::items::{DiggingTool, RangedWeapon, ShopOwner};
-use crate::constants::STANDARD_ACTION_MULTIPLIER;
+use crate::constants::{ACID_DECAL_DAMAGE_DICE, STANDARD_ACTION_MULTIPLIER};
 use crate::engine::state::GameState;
 use crate::utils::common::ItemsInBackpack;
 use crate::utils::roll::Roll;
@@ -20,9 +20,7 @@ use crate::{
         common::{MyTurn, Position, Viewshed},
         items::{Edible, Item, Quaffable},
     },
-    constants::{
-        MAP_HEIGHT, MAP_WIDTH, TILE_SIZE_F32, UI_BORDER_F32,
-    },
+    constants::{MAP_HEIGHT, MAP_WIDTH, TILE_SIZE_F32, UI_BORDER_F32},
     dialog::DialogAction,
     engine::state::RunState,
     inventory::InventoryAction,
@@ -62,6 +60,7 @@ impl Player {
                     &CombatStats,
                     &mut SufferingDamage,
                     Option<&Grappled>,
+                    &Immunity,
                 )>()
                 .with::<&Player>();
 
@@ -70,14 +69,17 @@ impl Player {
                 .as_mut()
                 .expect("must have Some Zone");
 
-            for (player_entity, (position, viewshed, stats, suffering_damage, grappled_opt)) in
-                &mut players
+            for (
+                player_entity,
+                (position, viewshed, stats, suffering_damage, grappled_opt, immunity),
+            ) in &mut players
             {
-                // Check if player is on slime before moving away
+                // Check if player is on slime before moving away and is not immune to slip
                 if let Some(special_tile) = zone
                     .decals_tiles
                     .get(&Zone::get_index_from_xy(&position.x, &position.y))
                     && let DecalType::Slime = special_tile
+                    && !immunity.to.contains(&ImmunityTypeEnum::Slipping)
                 {
                     // Do DEX saving or slip on slime!
                     if stats.current_dexterity < Roll::d20() {
@@ -170,6 +172,7 @@ impl Player {
                         .decals_tiles
                         .get(&Zone::get_index_from_xy(&position.x, &position.y))
                         && let DecalType::Acid = special_tile
+                        && !immunity.to.contains(&ImmunityTypeEnum::DamagingFloor)
                     {
                         // Do DEX saving or be damaged!
                         if stats.current_dexterity < Roll::d20() {
@@ -177,7 +180,8 @@ impl Player {
                                 .game_log
                                 .entries
                                 .push("You burn yourself on the acid!".to_string());
-                            suffering_damage.damage_received += Roll::dice(1, 3);
+                            suffering_damage.damage_received +=
+                                Roll::dice(1, ACID_DECAL_DAMAGE_DICE);
                         }
                     }
 

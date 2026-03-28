@@ -3,9 +3,8 @@ use hecs::{Entity, World};
 use crate::{
     components::{
         combat::InflictsDamage,
-        common::Named,
+        common::{Named, Spell, SpellType},
         health::Stunned,
-        items::{Spell, SpellType},
     },
     spawning::spawner::Spawn,
 };

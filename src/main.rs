@@ -328,11 +328,10 @@ fn do_debug_logic(game_state: &mut GameState) {
                     Stunned { tick_counter: 3 },
                 );
             } else if is_key_pressed(KeyCode::F10) {
-                Spawn::wand(&mut game_state.ecs_world, MAP_WIDTH / 2, MAP_HEIGHT / 2);
-                Spawn::ration(&mut game_state.ecs_world, MAP_WIDTH / 2, MAP_HEIGHT / 2);
-                Spawn::flask_of_water(&mut game_state.ecs_world, MAP_WIDTH / 2, MAP_HEIGHT / 2);
+                Spawn::crampon_boots(&mut game_state.ecs_world, MAP_WIDTH / 2, MAP_HEIGHT / 2);
+                Spawn::leather_shoes(&mut game_state.ecs_world, MAP_WIDTH / 2, MAP_HEIGHT / 2);
             } else if is_key_pressed(KeyCode::F9) {
-                Spawn::stonedust_acolyte(&mut game_state.ecs_world, MAP_WIDTH / 2, MAP_HEIGHT / 2);
+                Spawn::giant_slug(&mut game_state.ecs_world, MAP_WIDTH / 2, MAP_HEIGHT / 2);
             } else if is_key_pressed(KeyCode::F8) {
                 use crate::components::combat::CombatStats;
 
@@ -342,7 +341,7 @@ fn do_debug_logic(game_state: &mut GameState) {
                         game_state.current_player_entity.expect("must be some"),
                     )
                     .expect("must have stats");
-                stats.current_dexterity = 0;
+                stats.current_dexterity = 1;
             } else if is_key_pressed(KeyCode::F7) {
                 use std::collections::HashMap;
 
@@ -371,7 +370,7 @@ fn do_debug_logic(game_state: &mut GameState) {
             } else if is_key_pressed(KeyCode::F6) {
                 game_state.debug_monster_vision = !game_state.debug_monster_vision;
             } else if is_key_pressed(KeyCode::F5) {
-                Spawn::living_filth(&mut game_state.ecs_world, MAP_WIDTH / 2, MAP_HEIGHT / 2);
+                Spawn::sulfuric_slug(&mut game_state.ecs_world, MAP_WIDTH / 2, MAP_HEIGHT / 2);
             }
         }
     }

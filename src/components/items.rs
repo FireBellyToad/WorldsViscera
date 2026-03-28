@@ -1,11 +1,10 @@
+use std::collections::HashSet;
+
 use hecs::Entity;
 
 use crate::{
-    components::health::DiseaseType,
-    constants::{
-        BOLT_PARTICLE_TYPE, BURNING_PARTICLE_TYPE, DAZE_PARTICLE_TYPE, STONE_FELL_PARTICLE_TYPE,
-        STONE_PARTICLE_TYPE,
-    },
+    components::{common::ImmunityTypeEnum, health::DiseaseType},
+    constants::{BOLT_PARTICLE_TYPE, STONE_PARTICLE_TYPE},
 };
 
 pub struct Item {
@@ -37,6 +36,7 @@ pub enum BodyLocation {
     Torso,
     Head,
     Feet,
+    Shoulders,
 }
 
 #[derive(PartialEq, Debug)]
@@ -146,24 +146,6 @@ pub struct Cure {
     pub diseases: Vec<DiseaseType>,
 }
 
-pub struct Spell {
-    pub spell_type: SpellType,
-    pub spell_cooldown: u32,
-}
-
-#[derive(PartialEq, Debug)]
-pub enum SpellType {
-    Daze,
-    BurningSpray,
-    StoneFell,
-}
-
-impl SpellType {
-    pub fn particle(&self) -> u32 {
-        match *self {
-            SpellType::Daze => DAZE_PARTICLE_TYPE,
-            SpellType::BurningSpray => BURNING_PARTICLE_TYPE,
-            SpellType::StoneFell => STONE_FELL_PARTICLE_TYPE,
-        }
-    }
+pub struct GivesImmunity {
+    pub to: HashSet<ImmunityTypeEnum>,
 }

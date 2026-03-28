@@ -37,11 +37,12 @@ type MonsterSpawnData = (
     Edible,
     Smellable,
     ProduceSound,
-    f32,
-    f32,
-    i32,
-    i32,
     bool,
+    Vec<ImmunityTypeEnum>,
+    f32,
+    f32,
+    i32,
+    i32,
 );
 
 impl Spawn {
@@ -55,11 +56,12 @@ impl Spawn {
             edible,
             smells,
             sounds,
+            produce_corpse,
+            immunities,
             tile_x,
             tile_y,
             x,
             y,
-            produce_corpse,
         ) = monster_data;
 
         let monster_entity = (
@@ -104,6 +106,11 @@ impl Spawn {
         );
 
         let monster_spawned = ecs_world.spawn(monster_entity);
+        let mut immunity_comp = Immunity { to: HashSet::new() };
+        for immunity in immunities {
+            immunity_comp.to.insert(immunity);
+        }
+        let _ = ecs_world.insert(monster_spawned, (immunity_comp,));
 
         // Not all monsters produce corpses on death
         if produce_corpse {
@@ -148,11 +155,12 @@ impl Spawn {
                 ProduceSound {
                     sound_log: "someone weezing".to_string(),
                 },
+                true,
+                vec![],
                 1.0,
                 0.0,
                 x,
                 y,
-                true,
             ),
         );
     }
@@ -192,11 +200,12 @@ impl Spawn {
                 ProduceSound {
                     sound_log: "someone panting".to_string(),
                 },
+                true,
+                vec![],
                 1.0,
                 1.0,
                 x,
                 y,
-                true,
             ),
         );
 
@@ -246,28 +255,24 @@ impl Spawn {
                 ProduceSound {
                     sound_log: "chalk scratching on floor".to_string(),
                 },
+                true,
+                vec![
+                    ImmunityTypeEnum::Disease(DiseaseType::Calcification),
+                    ImmunityTypeEnum::Disease(DiseaseType::Fever),
+                    ImmunityTypeEnum::Disease(DiseaseType::FleshRot),
+                ],
                 10.0,
                 1.0,
                 x,
                 y,
-                true,
             ),
         );
 
         let _ = ecs_world.insert(
             calcificator,
-            (
-                DiseaseBearer {
-                    disease_type: DiseaseType::Calcification,
-                },
-                Immunity {
-                    to: HashSet::from([
-                        ImmunityTypeEnum::Disease(DiseaseType::Calcification),
-                        ImmunityTypeEnum::Disease(DiseaseType::Fever),
-                        ImmunityTypeEnum::Disease(DiseaseType::FleshRot),
-                    ]),
-                },
-            ),
+            (DiseaseBearer {
+                disease_type: DiseaseType::Calcification,
+            },),
         );
     }
 
@@ -306,11 +311,16 @@ impl Spawn {
                 ProduceSound {
                     sound_log: "bone ticking on stone".to_string(),
                 },
+                true,
+                vec![
+                    ImmunityTypeEnum::Disease(DiseaseType::Calcification),
+                    ImmunityTypeEnum::Disease(DiseaseType::Fever),
+                    ImmunityTypeEnum::Disease(DiseaseType::FleshRot),
+                ],
                 10.0,
                 2.0,
                 x,
                 y,
-                true,
             ),
         );
 
@@ -321,13 +331,6 @@ impl Spawn {
                     disease_type: DiseaseType::Calcification,
                 },
                 Grappler {},
-                Immunity {
-                    to: HashSet::from([
-                        ImmunityTypeEnum::Disease(DiseaseType::Calcification),
-                        ImmunityTypeEnum::Disease(DiseaseType::Fever),
-                        ImmunityTypeEnum::Disease(DiseaseType::FleshRot),
-                    ]),
-                },
             ),
         );
     }
@@ -367,11 +370,12 @@ impl Spawn {
                 ProduceSound {
                     sound_log: "slimy flop".to_string(),
                 },
+                false,
+                vec![],
                 11.0,
                 0.0,
                 x,
                 y,
-                false,
             ),
         );
 
@@ -425,11 +429,12 @@ impl Spawn {
                 ProduceSound {
                     sound_log: "a splash in the water".to_string(),
                 },
+                true,
+                vec![],
                 4.0,
                 0.0,
                 x,
                 y,
-                true,
             ),
         );
 
@@ -471,11 +476,12 @@ impl Spawn {
                 ProduceSound {
                     sound_log: "a drop of water".to_string(),
                 },
+                true,
+                vec![],
                 8.0,
                 0.0,
                 x,
                 y,
-                true,
             ),
         );
 
@@ -517,11 +523,12 @@ impl Spawn {
                 ProduceSound {
                     sound_log: "an splashing tickling".to_string(),
                 },
+                true,
+                vec![],
                 8.0,
                 1.0,
                 x,
                 y,
-                true,
             ),
         );
 
@@ -566,11 +573,12 @@ impl Spawn {
                 ProduceSound {
                     sound_log: "faint clicking".to_string(),
                 },
+                true,
+                vec![],
                 15.0,
                 0.0,
                 x,
                 y,
-                true,
             ),
         );
 
@@ -612,11 +620,12 @@ impl Spawn {
                 ProduceSound {
                     sound_log: "faint clicking".to_string(),
                 },
+                true,
+                vec![],
                 15.0,
                 1.0,
                 x,
                 y,
-                true,
             ),
         );
 
@@ -658,11 +667,12 @@ impl Spawn {
                 ProduceSound {
                     sound_log: "someone cackling".to_string(),
                 },
+                true,
+                vec![],
                 3.0,
                 0.0,
                 x,
                 y,
-                true,
             ),
         );
 
@@ -718,11 +728,12 @@ impl Spawn {
                 ProduceSound {
                     sound_log: "someone raving madly".to_string(),
                 },
+                true,
+                vec![],
                 3.0,
                 1.0,
                 x,
                 y,
-                true,
             ),
         );
 
@@ -779,11 +790,12 @@ impl Spawn {
                 ProduceSound {
                     sound_log: "skittering of many legs".to_string(),
                 },
+                true,
+                vec![],
                 5.0,
                 0.0,
                 x,
                 y,
-                true,
             ),
         );
 
@@ -825,11 +837,12 @@ impl Spawn {
                 ProduceSound {
                     sound_log: "skittering from above".to_string(),
                 },
+                true,
+                vec![],
                 5.0,
                 1.0,
                 x,
                 y,
-                true,
             ),
         );
 
@@ -871,11 +884,12 @@ impl Spawn {
                 ProduceSound {
                     sound_log: "someone mumbling".to_string(),
                 },
+                true,
+                vec![],
                 2.0,
                 0.0,
                 x,
                 y,
-                true,
             ),
         );
 
@@ -956,11 +970,12 @@ impl Spawn {
                 ProduceSound {
                     sound_log: "someone mumbling".to_string(),
                 },
+                true,
+                vec![],
                 2.0,
                 1.0,
                 x,
                 y,
-                true,
             ),
         );
 
@@ -1017,11 +1032,12 @@ impl Spawn {
                 ProduceSound {
                     sound_log: "nervous skittering".to_string(),
                 },
+                true,
+                vec![],
                 6.0,
                 0.0,
                 x,
                 y,
-                true,
             ),
         );
 
@@ -1063,11 +1079,12 @@ impl Spawn {
                 ProduceSound {
                     sound_log: "faint pop".to_string(),
                 },
+                true,
+                vec![],
                 6.0,
                 1.0,
                 x,
                 y,
-                true,
             ),
         );
 
@@ -1118,11 +1135,12 @@ impl Spawn {
                 ProduceSound {
                     sound_log: "slow slushing".to_string(),
                 },
+                true,
+                vec![],
                 7.0,
                 0.0,
                 x,
                 y,
-                true,
             ),
         );
 
@@ -1175,11 +1193,12 @@ impl Spawn {
                 ProduceSound {
                     sound_log: "something sizzling".to_string(),
                 },
+                true,
+                vec![],
                 7.0,
                 1.0,
                 x,
                 y,
-                true,
             ),
         );
 
@@ -1233,11 +1252,12 @@ impl Spawn {
                 ProduceSound {
                     sound_log: "faint breathing".to_string(),
                 },
+                true,
+                vec![],
                 0.0,
                 1.0,
                 x,
                 y,
-                true,
             ),
         );
 
@@ -1317,11 +1337,12 @@ impl Spawn {
                 ProduceSound {
                     sound_log: "rythmic chanting".to_string(),
                 },
+                true,
+                vec![],
                 14.0,
                 0.0,
                 x,
                 y,
-                true,
             ),
         );
 
@@ -1410,11 +1431,12 @@ impl Spawn {
                 ProduceSound {
                     sound_log: "rythmic preaching".to_string(),
                 },
+                true,
+                vec![],
                 14.0,
                 1.0,
                 x,
                 y,
-                true,
             ),
         );
 
@@ -1469,7 +1491,7 @@ impl Spawn {
     }
 
     pub fn living_dead(ecs_world: &mut World, x: i32, y: i32) {
-        let living_dead = Spawn::create_monster(
+        let _ = Spawn::create_monster(
             ecs_world,
             (
                 Named {
@@ -1503,23 +1525,17 @@ impl Spawn {
                 ProduceSound {
                     sound_log: "dragging feet".to_string(),
                 },
+                true,
+                vec![
+                    ImmunityTypeEnum::Disease(DiseaseType::Calcification),
+                    ImmunityTypeEnum::Disease(DiseaseType::Fever),
+                    ImmunityTypeEnum::Disease(DiseaseType::FleshRot),
+                ],
                 10.0,
                 0.0,
                 x,
                 y,
-                true,
             ),
-        );
-
-        let _ = ecs_world.insert(
-            living_dead,
-            (Immunity {
-                to: HashSet::from([
-                    ImmunityTypeEnum::Disease(DiseaseType::Calcification),
-                    ImmunityTypeEnum::Disease(DiseaseType::Fever),
-                    ImmunityTypeEnum::Disease(DiseaseType::FleshRot),
-                ]),
-            },),
         );
     }
 
@@ -1558,24 +1574,20 @@ impl Spawn {
                 ProduceSound {
                     sound_log: "someone whispering".to_string(),
                 },
+                true,
+                vec![ImmunityTypeEnum::Blindness],
                 12.0,
                 0.0,
                 x,
                 y,
-                true,
             ),
         );
 
         let _ = ecs_world.insert(
             darkling,
-            (
-                GazeAttack {
-                    effect: GazeEffectEnum::Blindness,
-                },
-                Immunity {
-                    to: HashSet::from([ImmunityTypeEnum::Blindness]),
-                },
-            ),
+            (GazeAttack {
+                effect: GazeEffectEnum::Blindness,
+            },),
         );
     }
 
@@ -1614,11 +1626,12 @@ impl Spawn {
                 ProduceSound {
                     sound_log: "cave rumbling".to_string(),
                 },
+                true,
+                vec![],
                 13.0,
                 0.0,
                 x,
                 y,
-                true,
             ),
         );
 

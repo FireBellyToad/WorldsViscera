@@ -1,8 +1,10 @@
+use std::collections::HashSet;
+
 use crate::{
     components::{
-        common::DigProductEnum,
+        common::{DigProductEnum, ImmunityTypeEnum},
         health::DiseaseType,
-        items::{Ammo, AmmoType, Cure, DiggingTool, RangedWeapon},
+        items::{Ammo, AmmoType, Cure, DiggingTool, GivesImmunity, RangedWeapon},
     },
     spawning::spawner::Spawn,
 };
@@ -90,7 +92,7 @@ impl Spawn {
                         },
                         Poisonous {},
                         Named {
-                            name: "white-spotted red mushroom".to_string(),
+                            name: "white-spotted mushroom".to_string(),
                             attack_verb: None,
                         },
                     ),
@@ -106,7 +108,7 @@ impl Spawn {
                         },
                         Deadly {},
                         Named {
-                            name: "white mushroom".to_string(),
+                            name: "drumstick white mushroom".to_string(),
                             attack_verb: None,
                         },
                     ),
@@ -131,7 +133,7 @@ impl Spawn {
                     ),
                 );
             }
-            MUSHROOM_LICHEN => {
+            MUSHROOM_MOLD => {
                 let _ = ecs_world.insert(
                     mushroom_entity,
                     (
@@ -140,12 +142,12 @@ impl Spawn {
                             nutrition_dice_size: 10,
                         },
                         Named {
-                            name: "lichen".to_string(),
+                            name: "mold".to_string(),
                             attack_verb: None,
                         },
                     ),
                 );
-                //Lichen does not rot after being harvested
+                //Mold does not rot after being harvested
                 let _ = ecs_world.remove_one::<ToBeHarvested>(mushroom_entity);
             }
             _ => {}
@@ -584,7 +586,7 @@ impl Spawn {
 
     pub fn breastplate(ecs_world: &mut World, x: i32, y: i32) {
         let item_tile_index = (1, 3);
-        let flask_of_oil = (
+        let breastplate = (
             Position { x, y },
             Renderable {
                 texture_name: TextureName::Items,
@@ -606,12 +608,12 @@ impl Spawn {
             Equippable {
                 body_location: BodyLocation::Torso,
             },
-            Armor { value: 3 },
+            Armor { value: 4 },
             Bulky {},
             Metallic {},
         );
 
-        ecs_world.spawn(flask_of_oil);
+        ecs_world.spawn(breastplate);
     }
 
     pub fn moleman_chain(ecs_world: &mut World, owner: Entity) {
@@ -647,10 +649,73 @@ impl Spawn {
             },
             Armor { value: 2 },
             Bulky {},
-            Metallic {},
         );
 
         ecs_world.spawn(dvergar_chain);
+    }
+
+    pub fn leather_shoes(ecs_world: &mut World, x: i32, y: i32) {
+        let item_tile_index = (0, 6);
+        let leather_shoes = (
+            Position { x, y },
+            Renderable {
+                texture_name: TextureName::Items,
+                texture_region: Rect {
+                    x: (item_tile_index.0 * TILE_SIZE) as f32,
+                    y: (item_tile_index.1 * TILE_SIZE) as f32,
+                    w: TILE_SIZE_F32,
+                    h: TILE_SIZE_F32,
+                },
+                z_index: 0,
+            },
+            Named {
+                name: "leather shoes".to_string(),
+                attack_verb: None,
+            },
+            Item {
+                item_tile: item_tile_index,
+            },
+            Equippable {
+                body_location: BodyLocation::Feet,
+            },
+            GivesImmunity {
+                to: HashSet::from([ImmunityTypeEnum::DamagingFloor]),
+            },
+        );
+
+        ecs_world.spawn(leather_shoes);
+    }
+
+    pub fn crampon_boots(ecs_world: &mut World, x: i32, y: i32) {
+        let item_tile_index = (1, 6);
+        let crampon_boots = (
+            Position { x, y },
+            Renderable {
+                texture_name: TextureName::Items,
+                texture_region: Rect {
+                    x: (item_tile_index.0 * TILE_SIZE) as f32,
+                    y: (item_tile_index.1 * TILE_SIZE) as f32,
+                    w: TILE_SIZE_F32,
+                    h: TILE_SIZE_F32,
+                },
+                z_index: 0,
+            },
+            Named {
+                name: "crampon boots".to_string(),
+                attack_verb: None,
+            },
+            Item {
+                item_tile: item_tile_index,
+            },
+            Equippable {
+                body_location: BodyLocation::Feet,
+            },
+            GivesImmunity {
+                to: HashSet::from([ImmunityTypeEnum::DamagingFloor, ImmunityTypeEnum::Slipping]),
+            },
+        );
+
+        ecs_world.spawn(crampon_boots);
     }
 
     pub fn crossbow_ammo(ecs_world: &mut World, x: i32, y: i32) -> Entity {

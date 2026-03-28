@@ -4,8 +4,8 @@ use crate::{
     components::{
         actions::WantsToEquip,
         combat::CombatStats,
-        common::{Named, Position},
-        items::{BodyLocation, Equipped},
+        common::{Immunity, Named, Position},
+        items::{BodyLocation, Equipped, GivesImmunity},
     },
     engine::state::GameState,
     maps::zone::Zone,
@@ -28,8 +28,14 @@ impl ItemEquipping {
         // Scope for keeping borrow checker quiet
         {
             // List of entities that want to equip items
-            let mut items_to_equip = ecs_world.query::<(&WantsToEquip, &Position, &CombatStats)>();
-            let mut equipped_items = ecs_world.query::<&Equipped>();
+            let mut items_to_equip = ecs_world.query::<(
+                &WantsToEquip,
+                &Position,
+                &CombatStats,
+                &mut Immunity,
+                &Named,
+            )>();
+            let mut equipped_items = ecs_world.query::<(&Equipped, Option<&GivesImmunity>)>();
 
             //Log all the equipments
 
@@ -38,16 +44,31 @@ impl ItemEquipping {
                 .as_ref()
                 .expect("must have Some Zone");
 
-            for (equipper, (wants_to_equip, position, stats)) in &mut items_to_equip {
+            for (equipper, (wants_to_equip, position, stats, current_immunities, named_equipper)) in
+                &mut items_to_equip
+            {
                 // Show appropriate log messages
-                let named_item: hecs::Ref<'_, Named> = ecs_world
-                    .get::<&Named>(wants_to_equip.item)
-                    .expect("Entity is not Named");
-                let is_already_equipped = ecs_world.get::<&Equipped>(wants_to_equip.item).is_ok();
+                let mut item_query = ecs_world
+                    .query_one::<(&Named, Option<&Equipped>, Option<&GivesImmunity>)>(
+                        wants_to_equip.item,
+                    )
+                    .expect("item_query failed");
+                let (named_item, equipped, gives_immunity_opt) =
+                    item_query.get().expect("item_query must have some");
 
-                if is_already_equipped {
+                if equipped.is_some() {
                     // Unequip item
                     item_to_unequip_list.push((equipper, wants_to_equip.item, stats.speed));
+
+                    // Remove any immunities given by the item
+                    // TODO FIXME:
+                    // If there are two items that give the same immunity, it will remove anyway
+                    if let Some(given_immunities) = gives_immunity_opt {
+                        let _ = current_immunities
+                            .to
+                            .retain(|i| !given_immunities.to.contains(i));
+                        println!("Unequipped: New Immunities: {:?}", current_immunities.to);
+                    }
 
                     if player_id == equipper.id() {
                         game_state
@@ -56,19 +77,17 @@ impl ItemEquipping {
                             .push(format!("You unequip the {}", named_item.name));
                     }
                 } else {
-                    let named_dropper = ecs_world
-                        .get::<&Named>(equipper)
-                        .expect("Entity is not Named");
-
                     //Check if wants_item.body_location is already taken
-                    let item_in_same_location: Option<(Entity, &Equipped)> =
-                        equipped_items.iter().find(|(_, equipped)| {
-                            equipped.owner.id() == equipper.id()
-                                && Utils::occupies_same_location(
-                                    &equipped.body_location,
-                                    &wants_to_equip.body_location,
-                                )
-                        });
+                    let item_in_same_location: Option<(
+                        Entity,
+                        (&Equipped, Option<&GivesImmunity>),
+                    )> = equipped_items.iter().find(|(_, (equipped, _))| {
+                        equipped.owner.id() == equipper.id()
+                            && Utils::occupies_same_location(
+                                &equipped.body_location,
+                                &wants_to_equip.body_location,
+                            )
+                    });
 
                     match item_in_same_location {
                         // Old item in same body location as new one
@@ -87,13 +106,18 @@ impl ItemEquipping {
                             }
                         }
                         None => {
-                            // Drop item and keep track of the drop Position
+                            // Equip item
                             item_to_equip_list.push((
                                 wants_to_equip.item,
                                 wants_to_equip.body_location.clone(),
                                 equipper,
                                 stats.speed,
                             ));
+                            // Add any immunities given by the item
+                            if let Some(given_immunities) = gives_immunity_opt {
+                                let _ = current_immunities.to.extend(given_immunities.to.clone());
+                                println!("Equipped: New Immunities: {:?}", current_immunities.to);
+                            }
 
                             if player_id == equipper.id() {
                                 game_state
@@ -105,7 +129,7 @@ impl ItemEquipping {
                             {
                                 game_state.game_log.entries.push(format!(
                                     "{} equips the {}",
-                                    named_dropper.name, named_item.name
+                                    named_equipper.name, named_item.name
                                 ));
                             }
                         }

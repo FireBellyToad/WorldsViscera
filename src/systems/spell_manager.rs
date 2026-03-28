@@ -1,9 +1,8 @@
 use crate::{
     components::{
         combat::{InflictsDamage, WantsToCast},
-        common::{MyTurn, SpellList},
+        common::{MyTurn, Spell, SpellList, SpellType},
         health::Stunned,
-        items::{Spell, SpellType},
     },
     constants::STONE_FELL_PARTICLE_TYPE,
     engine::state::GameState,

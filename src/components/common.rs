@@ -3,7 +3,11 @@ use std::collections::{HashMap, HashSet};
 use hecs::Entity;
 use macroquad::math::Rect;
 
-use crate::{components::health::DiseaseType, utils::assets::TextureName};
+use crate::{
+    components::health::DiseaseType,
+    constants::{BURNING_PARTICLE_TYPE, DAZE_PARTICLE_TYPE, STONE_FELL_PARTICLE_TYPE},
+    utils::assets::TextureName,
+};
 
 pub struct Position {
     pub x: i32,
@@ -120,10 +124,34 @@ pub struct Immunity {
     pub to: HashSet<ImmunityTypeEnum>,
 }
 
-#[derive(PartialEq, Debug, Hash, Eq)]
+#[derive(PartialEq, Debug, Hash, Eq, Clone)]
 pub enum ImmunityTypeEnum {
     Blindness,
     Disease(DiseaseType),
+    DamagingFloor,
+    Slipping,
+}
+
+pub struct Spell {
+    pub spell_type: SpellType,
+    pub spell_cooldown: u32,
+}
+
+#[derive(PartialEq, Debug)]
+pub enum SpellType {
+    Daze,
+    BurningSpray,
+    StoneFell,
+}
+
+impl SpellType {
+    pub fn particle(&self) -> u32 {
+        match *self {
+            SpellType::Daze => DAZE_PARTICLE_TYPE,
+            SpellType::BurningSpray => BURNING_PARTICLE_TYPE,
+            SpellType::StoneFell => STONE_FELL_PARTICLE_TYPE,
+        }
+    }
 }
 
 pub struct SpellList {

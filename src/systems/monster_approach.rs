@@ -6,6 +6,7 @@ use crate::{
         common::*,
         monster::{Aquatic, LeaveTrail, Monster, SnakeBody, SnakeHead, WantsToApproach},
     },
+    constants::ACID_DECAL_DAMAGE_DICE,
     engine::state::GameState,
     maps::zone::{DecalType, Zone},
     utils::{common::Utils, pathfinding::Pathfinding, roll::Roll},
@@ -170,7 +171,8 @@ impl MonsterApproach {
                     {
                         // Do DEX saving or slip on slime!
                         if stats.current_dexterity < Roll::d20() {
-                            suffering_damage.damage_received += Roll::dice(1, 3);
+                            suffering_damage.damage_received +=
+                                Roll::dice(1, ACID_DECAL_DAMAGE_DICE);
                             if zone.visible_tiles[Zone::get_index_from_xy(&position.x, &position.y)]
                             {
                                 // Log only if visible
