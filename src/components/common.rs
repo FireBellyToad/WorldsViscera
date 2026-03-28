@@ -130,6 +130,7 @@ pub enum ImmunityTypeEnum {
     Disease(DiseaseType),
     DamagingFloor,
     Slipping,
+    StoneFellSpell,
 }
 
 pub struct Spell {

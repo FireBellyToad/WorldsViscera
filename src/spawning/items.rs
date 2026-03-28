@@ -834,6 +834,9 @@ impl Spawn {
             },
             Armor { value: 2 },
             Metallic {},
+            GivesImmunity {
+                to: HashSet::from([ImmunityTypeEnum::StoneFellSpell]),
+            },
         );
 
         ecs_world.spawn(helmet);

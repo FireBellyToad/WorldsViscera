@@ -1,7 +1,7 @@
 use crate::{
     components::{
         combat::{InflictsDamage, WantsToCast},
-        common::{MyTurn, Spell, SpellList, SpellType},
+        common::{Immunity, ImmunityTypeEnum, MyTurn, Spell, SpellList, SpellType},
         health::Stunned,
     },
     constants::STONE_FELL_PARTICLE_TYPE,
@@ -90,12 +90,24 @@ impl SpellManager {
                                 if !zone.tile_content[index].is_empty() {
                                     //Get the first damageable entity
                                     for &entity in &zone.tile_content[index] {
+                                        let is_immune = ecs_world
+                                            .get::<&Immunity>(entity)
+                                            .expect("Must always have immunity component")
+                                            .to
+                                            .contains_key(&ImmunityTypeEnum::StoneFellSpell);
+
                                         if ecs_world
                                             .satisfies::<&SufferingDamage>(entity)
                                             .unwrap_or(false)
+                                            && !is_immune
                                         {
                                             target_opt = Some(entity);
                                             break;
+                                        } else if is_immune {
+                                            game_state.game_log.entries.push(
+                                                "The stones just bounce off your hard headgear"
+                                                    .to_string(),
+                                            );
                                         }
                                     }
                                 }
