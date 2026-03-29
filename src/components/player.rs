@@ -91,30 +91,6 @@ impl Player {
                         game_state.run_state = RunState::DoTick;
                         break;
                     }
-                } else if let Some(grappler) = grappled_opt {
-                    player_was_grappled = true;
-                    let mut g_query = ecs_world
-                        .query_one::<(&Named, &CombatStats)>(grappler.by)
-                        .expect("Grappler entity has no Named component");
-                    let (grappler_name, grappler_stats) =
-                        g_query.get().expect("g_query must have result");
-                    // Try to escape grapple
-                    if Roll::d20() <= stats.current_dexterity {
-                        game_state.game_log.entries.push(format!(
-                            "You free yourself from the {}'s grasp!",
-                            grappler_name.name
-                        ));
-
-                        // Grappler lose turn
-                        waiter_speed_list.push((grappler.by, grappler_stats.speed));
-                    } else {
-                        game_state.game_log.entries.push(format!(
-                            "You cant' escape the {}'s grasp!",
-                            grappler_name.name
-                        ));
-                        game_state.run_state = RunState::DoTick;
-                        break;
-                    }
                 }
 
                 let destination_index =
@@ -161,27 +137,57 @@ impl Player {
                     && digger_target.is_none()
                     && !zone.blocked_tiles[destination_index]
                 {
-                    zone.blocked_tiles[Zone::get_index_from_xy(&position.x, &position.y)] = false;
-                    position.x = (position.x + delta_x).clamp(0, MAP_WIDTH - 1);
-                    position.y = (position.y + delta_y).clamp(0, MAP_HEIGHT - 1);
-                    viewshed.must_recalculate = true;
-                    zone.blocked_tiles[Zone::get_index_from_xy(&position.x, &position.y)] = true;
+                    // Check if player is grappled and try to escape.
+                    // Placed if here so Player can still attack grappler
+                    if let Some(grappler) = grappled_opt {
+                        player_was_grappled = true;
+                        let mut g_query = ecs_world
+                            .query_one::<(&Named, &CombatStats)>(grappler.by)
+                            .expect("Grappler entity has no Named component");
+                        let (grappler_name, grappler_stats) =
+                            g_query.get().expect("g_query must have result");
+                        // Try to escape grapple
+                        if Roll::d20() <= stats.current_dexterity {
+                            game_state.game_log.entries.push(format!(
+                                "You free yourself from the {}'s grasp!",
+                                grappler_name.name
+                            ));
 
-                    // Check if player has stepped on a acid
-                    if let Some(special_tile) = zone
-                        .decals_tiles
-                        .get(&Zone::get_index_from_xy(&position.x, &position.y))
-                        && let DecalType::Acid = special_tile
-                        && !immunity.to.contains_key(&ImmunityTypeEnum::DamagingFloor)
-                    {
-                        // Do DEX saving or be damaged!
-                        if stats.current_dexterity < Roll::d20() {
-                            game_state
-                                .game_log
-                                .entries
-                                .push("You burn yourself on the acid!".to_string());
-                            suffering_damage.damage_received +=
-                                Roll::dice(1, ACID_DECAL_DAMAGE_DICE);
+                            // Grappler lose turn
+                            waiter_speed_list.push((grappler.by, grappler_stats.speed));
+                        } else {
+                            game_state.game_log.entries.push(format!(
+                                "You cant' escape the {}'s grasp!",
+                                grappler_name.name
+                            ));
+                            game_state.run_state = RunState::DoTick;
+                            break;
+                        }
+                    } else {
+                        zone.blocked_tiles[Zone::get_index_from_xy(&position.x, &position.y)] =
+                            false;
+                        position.x = (position.x + delta_x).clamp(0, MAP_WIDTH - 1);
+                        position.y = (position.y + delta_y).clamp(0, MAP_HEIGHT - 1);
+                        viewshed.must_recalculate = true;
+                        zone.blocked_tiles[Zone::get_index_from_xy(&position.x, &position.y)] =
+                            true;
+
+                        // Check if player has stepped on a acid
+                        if let Some(special_tile) = zone
+                            .decals_tiles
+                            .get(&Zone::get_index_from_xy(&position.x, &position.y))
+                            && let DecalType::Acid = special_tile
+                            && !immunity.to.contains_key(&ImmunityTypeEnum::DamagingFloor)
+                        {
+                            // Do DEX saving or be damaged!
+                            if stats.current_dexterity < Roll::d20() {
+                                game_state
+                                    .game_log
+                                    .entries
+                                    .push("You burn yourself on the acid!".to_string());
+                                suffering_damage.damage_received +=
+                                    Roll::dice(1, ACID_DECAL_DAMAGE_DICE);
+                            }
                         }
                     }
 
