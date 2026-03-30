@@ -338,8 +338,7 @@ impl Spawn {
         }
     }
 
-    /// Spawn special tile entities
-    #[allow(clippy::single_match)]
+    /// Spawn special tile entitie
     fn tile_entity(ecs_world: &mut World, x: i32, y: i32, tile: &TileType) {
         match tile {
             TileType::Brazier => {
@@ -382,6 +381,15 @@ impl Spawn {
                         dig_points: Roll::dice(2, 20),
                         produces: DigProductEnum::Gold,
                     },
+                ));
+            }
+            TileType::MediumCrystal | TileType::BigCrystal => {
+                ecs_world.spawn((
+                    Position { x, y },
+                    ProduceLight {
+                        radius: CRYSTAL_LIGHT_RADIUS,
+                    },
+                    TurnedOn {},
                 ));
             }
             _ => {}

@@ -20,7 +20,7 @@ pub struct TestZoneBuilder {}
 impl ZoneBuilder for TestZoneBuilder {
     /// Create new dungeon zone (needed?)
     fn build(depth: u32, ecs_world: &mut World) -> Zone {
-        let mut zone = Zone::new(depth);
+        let mut zone = Zone::new(depth, TileType::Wall);
 
         // Create boundaries
         for x in 0..MAP_WIDTH {

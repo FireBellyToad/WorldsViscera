@@ -15,7 +15,7 @@ pub struct ArenaZoneBuilder {}
 impl ZoneBuilder for ArenaZoneBuilder {
     /// Create new dungeon zone (needed?)
     fn build(depth: u32, _: &mut World) -> Zone {
-        let mut zone = Zone::new(depth);
+        let mut zone = Zone::new(depth, TileType::Wall);
 
         // Create boundaries
         for x in 0..MAP_WIDTH {

@@ -18,6 +18,10 @@ pub enum TileType {
     GoldMine,
     BrickWall,
     StoneFloor,
+    MiniCrystal,
+    LittleCrystal,
+    MediumCrystal,
+    BigCrystal,
 }
 #[derive(Clone, Debug, PartialEq)]
 pub enum DecalType {
@@ -49,9 +53,9 @@ pub struct Zone {
 /// Zone Simplementations
 impl Zone {
     /// Create new empty zone
-    pub fn new(depth: u32) -> Zone {
+    pub fn new(depth: u32, fill_tile: TileType) -> Zone {
         Zone {
-            tiles: vec![TileType::Wall; (MAP_WIDTH * MAP_HEIGHT) as usize],
+            tiles: vec![fill_tile; (MAP_WIDTH * MAP_HEIGHT) as usize],
             rooms: Vec::new(),
             revealed_tiles: vec![false; (MAP_WIDTH * MAP_HEIGHT) as usize],
             visible_tiles: vec![false; (MAP_WIDTH * MAP_HEIGHT) as usize],
@@ -105,7 +109,10 @@ impl Zone {
                 | TileType::Floor
                 | TileType::Water
                 | TileType::StoneFloor
-                | TileType::MushroomField => self.blocked_tiles[index] = false,
+                | TileType::MushroomField
+                | TileType::MiniCrystal
+                | TileType::LittleCrystal
+                | TileType::MediumCrystal => self.blocked_tiles[index] = false,
                 _ => self.blocked_tiles[index] = true,
             }
         }
@@ -147,6 +154,10 @@ impl Zone {
             TileType::GoldMine => (1.0, 2.0),
             TileType::BrickWall => (2.0, 2.0),
             TileType::StoneFloor => (3.0, 2.0),
+            TileType::MiniCrystal => (0.0, 3.0),
+            TileType::LittleCrystal => (1.0, 3.0),
+            TileType::MediumCrystal => (2.0, 3.0),
+            TileType::BigCrystal => (3.0, 3.0),
         }
     }
 

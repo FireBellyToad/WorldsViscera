@@ -4,6 +4,7 @@ use crate::maps::zone::Zone;
 
 pub mod arena_zone_builder;
 pub mod cracks_builder;
+pub mod crystal_cave_builder;
 pub mod drunken_walk_zone_builder;
 pub mod dungeon_zone_builder;
 pub mod gold_mine_builder;

@@ -19,7 +19,7 @@ pub struct DungeonZoneBuilder {}
 impl ZoneBuilder for DungeonZoneBuilder {
     /// Create new dungeon zone (needed?)
     fn build(depth: u32, _: &mut World) -> Zone {
-        let mut zone = Zone::new(depth);
+        let mut zone = Zone::new(depth, TileType::Wall);
 
         const MAX_ROOMS: i32 = 30;
         const MIN_SIZE: i32 = 3;
