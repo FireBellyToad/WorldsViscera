@@ -142,7 +142,7 @@ impl Spawn {
                             nutrition_dice_size: 10,
                         },
                         Named {
-                            name: "mold".to_string(),
+                            name: "patch of mold".to_string(),
                             attack_verb: None,
                         },
                     ),

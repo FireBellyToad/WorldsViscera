@@ -212,6 +212,8 @@ impl Draw {
             text_color = RED;
         } else if player_stats.current_stamina <= player_stats.max_stamina / 2 {
             text_color = YELLOW;
+        } else if player_stats.current_stamina == player_stats.max_stamina {
+            text_color = GREEN;
         }
 
         Draw::stat_text(
