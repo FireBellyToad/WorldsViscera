@@ -5,7 +5,8 @@ use crate::{
         advancement_system::AdvancementSystem, dig_manager::DigManager,
         gaze_attacks_manager::GazeAttacksManager, health_manager::HealthManager,
         leave_trail_system::LeaveTrailSystem, ranged_manager::RangedManager,
-        spell_manager::SpellManager, trade_system::TradeSystem,
+        special_tiles_system::SpecialTilesSystem, spell_manager::SpellManager,
+        trade_system::TradeSystem,
     },
 };
 use components::{common::GameLog, player::Player};
@@ -302,6 +303,7 @@ fn do_in_tick_game_logic(game_engine: &mut GameEngine, game_state: &mut GameStat
             TradeSystem::run(game_state);
             // These Systems must always be run last
             MapIndexing::run(game_state);
+            SpecialTilesSystem::run(game_state);
             FieldOfViewManager::calculate(game_state);
             TurnCheck::check_for_turn_reset(game_state);
         }

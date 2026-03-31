@@ -21,6 +21,8 @@ pub const MAX_RIVERS_IN_ZONE: i32 = 4;
 pub const MAX_CRACKS_IN_ZONE: i32 = 4;
 pub const MAX_GOLD_IN_ZONE: i32 = 10;
 pub const CRYSTAL_LIGHT_RADIUS: i32 = 1;
+pub const CRYSTAL_GROWTH_COUNTER_START: u32 = 4 * NORMAL as u32;
+
 /// Hud related constants
 pub const HUD_WIDTH: i32 = MAP_WIDTH * TILE_SIZE;
 pub const HUD_HEIGHT: i32 = 192 + UI_BORDER;

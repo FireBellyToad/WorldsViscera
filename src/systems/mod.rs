@@ -25,6 +25,7 @@ pub mod particle_manager;
 pub mod ranged_manager;
 pub mod smell_manager;
 pub mod sound_system;
+pub mod special_tiles_system;
 pub mod spell_manager;
 pub mod thirst_check;
 pub mod trade_system;

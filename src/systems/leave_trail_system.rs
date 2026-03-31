@@ -22,7 +22,7 @@ impl LeaveTrailSystem {
                 .as_mut()
                 .expect("must have Some Zone");
 
-            // List of entities that has stats
+            // List of entities that leave a trail
             let mut trailers = ecs_world
                 .query::<(&LeaveTrail, &Position)>()
                 .with::<&MyTurn>();

@@ -158,3 +158,7 @@ impl SpellType {
 pub struct SpellList {
     pub spells: Vec<Entity>,
 }
+
+pub struct GrownIfSteppedOn {
+    pub counter_to_next_state: u32,
+}
