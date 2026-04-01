@@ -25,7 +25,7 @@ impl ZoneFeatureBuilder for GoldMineBuilder {
             let index = Zone::get_index_from_xy(&random_x, &random_y);
             // if somehow reachable, place the mine
             if !zone
-                .get_adjacent_passable_tiles(random_x, random_y, false, false)
+                .get_adjacent_passable_tiles(&random_x, &random_y, false, false)
                 .is_empty()
             {
                 zone.tiles[index] = TileType::GoldMine;

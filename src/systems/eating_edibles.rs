@@ -29,14 +29,19 @@ impl EatingEdibles {
             .id();
         let mut eater_cleanup_list: Vec<Entity> = Vec::new();
         let mut eaten_eater_list: Vec<(Entity, Entity, i32)> = Vec::new();
-        let mut killed_list: Vec<Entity> = Vec::new();
         let mut infected_list: Vec<(Entity, DiseaseType)> = Vec::new();
 
         // Scope for keeping borrow checker quiet
         {
             // List of entities that want to collect items
-            let mut eaters =
-                ecs_world.query::<(&WantsToEat, &CombatStats, &mut Hunger, &Position, &Named)>();
+            let mut eaters = ecs_world.query::<(
+                &WantsToEat,
+                &CombatStats,
+                &mut SufferingDamage,
+                &mut Hunger,
+                &Position,
+                &Named,
+            )>();
 
             let zone = game_state
                 .current_zone
@@ -45,7 +50,8 @@ impl EatingEdibles {
 
             //Log all the eating
 
-            for (eater, (wants_to_eat, stats, hunger, position, named_eater)) in &mut eaters {
+            for (eater, (wants_to_eat, stats, damage, hunger, position, named_eater)) in &mut eaters
+            {
                 let possible_edible = ecs_world.get::<&Edible>(wants_to_eat.item);
 
                 // Keep track of the eater
@@ -72,13 +78,20 @@ impl EatingEdibles {
                     }
 
                     if ecs_world.get::<&Deadly>(wants_to_eat.item).is_ok() {
+                        damage.damage_received = stats.current_stamina + stats.current_toughness;
                         if eater.id() == player_id {
                             game_state.game_log.entries.push(
                                 "You ate a deadly poisonous food! You agonize and die".to_string(),
                             );
+                            continue;
+                        } else if zone.visible_tiles
+                            [Zone::get_index_from_xy(&position.x, &position.y)]
+                        {
+                            game_state
+                                .game_log
+                                .entries
+                                .push(format!("{} agonize and die", named_eater.name));
                         }
-                        killed_list.push(eater);
-                        continue;
                     }
 
                     // inflict disease of diseased corpse (without saving throw)
@@ -218,16 +231,6 @@ impl EatingEdibles {
         for to_clean in eater_cleanup_list {
             // Remove owner's will to eat
             let _ = ecs_world.remove_one::<WantsToEat>(to_clean);
-        }
-
-        for killed in killed_list {
-            let mut damage = ecs_world
-                .get::<&mut SufferingDamage>(killed)
-                .expect("Entity has no SufferingDamage");
-            let stats = ecs_world
-                .get::<&mut CombatStats>(killed)
-                .expect("Entity has no CombatStats");
-            damage.damage_received = stats.current_stamina + stats.current_toughness;
         }
 
         // Infect the infected

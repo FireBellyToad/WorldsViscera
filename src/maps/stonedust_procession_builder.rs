@@ -27,7 +27,7 @@ impl ZoneFeatureBuilder for StonedustProcessionBuilder {
         let mut free_y = y;
         for _ in 0..procession_size {
             // 3. Search for free space. If worm is too big, it cannot fit and we despawn it
-            let adjacent_tiles = zone.get_adjacent_passable_tiles(free_x, free_y, true, false);
+            let adjacent_tiles = zone.get_adjacent_passable_tiles(&free_x, &free_y, true, false);
             if adjacent_tiles.is_empty() {
                 println!("Cannot fit stonedust procession!");
                 let _ = ecs_world.despawn(acolyte);

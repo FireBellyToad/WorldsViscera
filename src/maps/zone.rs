@@ -75,8 +75,8 @@ impl Zone {
     /// Gets which tile adjacent from a x,y position is passable
     pub fn get_adjacent_passable_tiles(
         &self,
-        x_pos: i32,
-        y_pos: i32,
+        &x_pos: &i32,
+        &y_pos: &i32,
         use_manhattan_distance: bool,
         only_water_tiles: bool,
     ) -> Vec<(i32, i32)> {

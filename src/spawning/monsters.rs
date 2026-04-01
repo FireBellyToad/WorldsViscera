@@ -1642,7 +1642,7 @@ impl Spawn {
         let mut free_y = y;
         for it in 0..worm_size {
             // Search for free space. If worm is too big, it cannot fit and we despawn it
-            let adjacent_tiles = zone.get_adjacent_passable_tiles(free_x, free_y, true, false);
+            let adjacent_tiles = zone.get_adjacent_passable_tiles(&free_x, &free_y, true, false);
             if adjacent_tiles.is_empty() {
                 //Cannot place worm body here, despawn and exit
                 println!("Cannot fit colossal worm!");

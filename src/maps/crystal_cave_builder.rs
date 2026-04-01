@@ -6,6 +6,7 @@ use crate::{
         ZoneBuilder,
         zone::{TileType, Zone},
     },
+    spawning::spawner::Spawn,
     utils::roll::Roll,
 };
 
@@ -33,7 +34,21 @@ impl ZoneBuilder for CrystalCaveBuilder {
             }
         }
 
-        zone.player_spawn_point = Zone::get_index_from_xy(&(MAP_WIDTH / 2), &(MAP_HEIGHT / 2));
+        let player_x = &((MAP_WIDTH / 2) - Roll::dice(2, 3) as i32);
+        zone.player_spawn_point = Zone::get_index_from_xy(player_x, &1);
+
+        // TODO place keys to activate down passage in the zone
+        // Something like this:
+        // |...k...|
+        // |.......|
+        // |k.....k|
+
+        // TODO place two human refugees in random locations
+        for _ in 0..2 {
+            let refugee_x = Roll::dice(1, MAP_WIDTH - 2);
+            let refugee_y = Roll::dice(1, MAP_HEIGHT - 2);
+            let _ = Spawn::refugee(ecs_world, refugee_x, refugee_y);
+        }
 
         zone
     }
