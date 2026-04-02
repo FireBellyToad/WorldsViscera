@@ -54,49 +54,46 @@ impl SpecialTilesSystem {
                 if let Some((stepper, stepper_damage, stepper_stats, stepper_named)) =
                     stepper_search_result
                 {
-                    grow_if_step.counter_to_next_state -= 1;
-                    if grow_if_step.counter_to_next_state == 0 {
-                        grow_if_step.counter_to_next_state = CRYSTAL_GROWTH_COUNTER_START;
+                    if zone.tiles[pos_idx] == TileType::BigCrystal {
+                        // if the Entity is stuck between BigCrystals, is crushed to death
+                        if zone
+                            .get_adjacent_passable_tiles(&position.x, &position.y, false, false)
+                            .is_empty()
+                        {
+                            stepper_damage.damage_received =
+                                stepper_stats.current_stamina + stepper_stats.current_toughness;
+                            if stepper.id() == player_entity.id() {
+                                game_state.game_log.entries.push(
+                                    "The crystals crush your body into a bloody pulp!".to_string(),
+                                );
+                                break;
+                            } else if zone.visible_tiles[pos_idx] {
+                                game_state.game_log.entries.push(format!(
+                                    "The crystals crush the {}'s body into a bloody pulp!",
+                                    stepper_named.name,
+                                ));
+                            }
+                        }
+                    } else {
+                        grow_if_step.counter_to_next_state -= 1;
+                        if grow_if_step.counter_to_next_state == 0 {
+                            grow_if_step.counter_to_next_state = CRYSTAL_GROWTH_COUNTER_START;
 
-                        // Increase crystal growth stage when counter reaches 0
-                        match zone.tiles[pos_idx] {
-                            TileType::MiniCrystal => zone.tiles[pos_idx] = TileType::LittleCrystal,
-                            TileType::LittleCrystal => {
-                                zone.tiles[pos_idx] = TileType::MediumCrystal
-                            }
-                            TileType::MediumCrystal => {
-                                zone.tiles[pos_idx] = TileType::BigCrystal;
-                                grow_if_step.counter_to_next_state = 0;
-                            }
-                            TileType::BigCrystal => {
-                                // if the Entity is stuck between BigCrystals, is crushed to death
-                                if zone
-                                    .get_adjacent_passable_tiles(
-                                        &position.x,
-                                        &position.y,
-                                        false,
-                                        false,
-                                    )
-                                    .is_empty()
-                                {
-                                    stepper_damage.damage_received = stepper_stats.current_stamina
-                                        + stepper_stats.current_toughness;
-                                    if stepper.id() == player_entity.id() {
-                                        game_state.game_log.entries.push(
-                                            "The crystals crush your body into a bloody pulp!"
-                                                .to_string(),
-                                        );
-                                        break;
-                                    } else if zone.visible_tiles[pos_idx] {
-                                        game_state.game_log.entries.push(format!(
-                                            "The crystals crush the {}'s body into a bloody pulp!",
-                                            stepper_named.name,
-                                        ));
-                                    }
+                            // Increase crystal growth stage when counter reaches 0
+                            match zone.tiles[pos_idx] {
+                                TileType::MiniCrystal => {
+                                    zone.tiles[pos_idx] = TileType::LittleCrystal
                                 }
-                            }
-                            _ => {}
-                        };
+                                TileType::LittleCrystal => {
+                                    zone.tiles[pos_idx] = TileType::MediumCrystal
+                                }
+                                TileType::MediumCrystal => {
+                                    zone.tiles[pos_idx] = TileType::BigCrystal;
+                                    grow_if_step.counter_to_next_state = 0;
+                                }
+                                _ => {}
+                            };
+                        }
                     }
                 }
             }
