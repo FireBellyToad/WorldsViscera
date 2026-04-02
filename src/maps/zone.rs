@@ -22,6 +22,7 @@ pub enum TileType {
     LittleCrystal,
     MediumCrystal,
     BigCrystal,
+    GoldLock,
 }
 #[derive(Clone, Debug, PartialEq)]
 pub enum DecalType {
@@ -158,6 +159,7 @@ impl Zone {
             TileType::LittleCrystal => (1.0, 3.0),
             TileType::MediumCrystal => (2.0, 3.0),
             TileType::BigCrystal => (3.0, 3.0),
+            TileType::GoldLock => (0.0, 4.0),
         }
     }
 

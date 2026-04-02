@@ -160,5 +160,11 @@ pub struct SpellList {
 }
 
 pub struct GrownIfSteppedOn {
-    pub counter_to_next_state: u32,
+    pub counter_to_next_state: u8,
 }
+
+pub struct Lock {
+    pub keys_to_unlock: u8,
+}
+
+pub struct Key {}

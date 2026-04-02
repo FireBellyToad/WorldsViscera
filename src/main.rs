@@ -303,7 +303,7 @@ fn do_in_tick_game_logic(game_engine: &mut GameEngine, game_state: &mut GameStat
             TradeSystem::run(game_state);
             // These Systems must always be run last
             MapIndexing::run(game_state);
-            SpecialTilesSystem::run(game_state);
+            SpecialTilesSystem::grow_on_step_tiles(game_state);
             FieldOfViewManager::calculate(game_state);
             TurnCheck::check_for_turn_reset(game_state);
         }

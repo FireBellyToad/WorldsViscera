@@ -2,7 +2,7 @@ use std::collections::HashSet;
 
 use crate::{
     components::{
-        common::{DigProductEnum, ImmunityTypeEnum},
+        common::{DigProductEnum, ImmunityTypeEnum, Key},
         health::DiseaseType,
         items::{Ammo, AmmoType, Cure, DiggingTool, GivesImmunity, RangedWeapon},
     },
@@ -931,5 +931,32 @@ impl Spawn {
         );
 
         ecs_world.spawn(raw_gold)
+    }
+
+    pub fn gold_key(ecs_world: &mut World, x: i32, y: i32) -> Entity {
+        let item_tile_index = (1, 5);
+        let gold_key = (
+            Position { x, y },
+            Renderable {
+                texture_name: TextureName::Items,
+                texture_region: Rect {
+                    x: (item_tile_index.0 * TILE_SIZE) as f32,
+                    y: (item_tile_index.1 * TILE_SIZE) as f32,
+                    w: TILE_SIZE_F32,
+                    h: TILE_SIZE_F32,
+                },
+                z_index: 0,
+            },
+            Named {
+                name: "golden grooved circle".to_string(),
+                attack_verb: None,
+            },
+            Item {
+                item_tile: item_tile_index,
+            },
+            Key {},
+        );
+
+        ecs_world.spawn(gold_key)
     }
 }

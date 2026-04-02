@@ -23,9 +23,9 @@ impl ZoneBuilder for CrystalCaveBuilder {
                 if x != 0 && y != 0 && x != MAP_WIDTH - 1 && y != MAP_HEIGHT - 1 {
                     let index = Zone::get_index_from_xy(&x, &y);
 
-                    if Roll::d20() <= 3 {
+                    if Roll::d20() <= 6 {
                         zone.tiles[index] = TileType::LittleCrystal;
-                    } else if Roll::d20() == 1 {
+                    } else if Roll::d20() <= 3 {
                         zone.tiles[index] = TileType::MediumCrystal;
                     } else {
                         zone.tiles[index] = TileType::MiniCrystal;
@@ -37,14 +37,25 @@ impl ZoneBuilder for CrystalCaveBuilder {
         let player_x = &((MAP_WIDTH / 2) - Roll::dice(2, 3) as i32);
         zone.player_spawn_point = Zone::get_index_from_xy(player_x, &1);
 
-        // TODO place keys to activate down passage in the zone
+        zone.tiles[Zone::get_index_from_xy(&(MAP_WIDTH / 2), &(MAP_HEIGHT / 2))] =
+            TileType::GoldLock;
+
+        // Place keys to activate down passage in the zone
         // Something like this:
         // |...k...|
         // |.......|
         // |k.....k|
+        // TODO improve randomicity
+        for (key_x, key_y) in [
+            (MAP_WIDTH / 2, 1),
+            (1, MAP_HEIGHT - 2),
+            (MAP_WIDTH - 2, MAP_HEIGHT - 2),
+        ] {
+            let _ = Spawn::gold_key(ecs_world, key_x, key_y);
+        }
 
-        // TODO place two human refugees in random locations
-        for _ in 0..2 {
+        // place human refugees in random locations
+        for _ in 0..4 {
             let refugee_x = Roll::dice(1, MAP_WIDTH - 2);
             let refugee_y = Roll::dice(1, MAP_HEIGHT - 2);
             let _ = Spawn::refugee(ecs_world, refugee_x, refugee_y);

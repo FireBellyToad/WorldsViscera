@@ -3,19 +3,18 @@ use hecs::Entity;
 use crate::{
     components::{
         combat::{CombatStats, SufferingDamage},
-        common::{GrownIfSteppedOn, MyTurn, Named, Position, SmellIntensity, Smellable},
-        monster::{LeaveTrail, TrailCounter},
+        common::{GrownIfSteppedOn, Named, Position},
     },
     constants::CRYSTAL_GROWTH_COUNTER_START,
-    engine::state::{GameState, RunState},
-    maps::zone::{DecalType, TileType, Zone},
+    engine::state::GameState,
+    maps::zone::{TileType, Zone},
 };
 
+/// Handles special tile interactions
 pub struct SpecialTilesSystem {}
 
 impl SpecialTilesSystem {
-    /// Handles special tile interactions
-    pub fn run(game_state: &mut GameState) {
+    pub fn grow_on_step_tiles(game_state: &mut GameState) {
         let ecs_world = &mut game_state.ecs_world;
         let player_entity = game_state.current_player_entity.expect("must have Player");
         let zone = game_state
