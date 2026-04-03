@@ -18,7 +18,7 @@ use crate::{
     utils::roll::Roll,
 };
 
-type DeadEntityData = (Entity, String, (i32, i32), Option<Entity>, u32);
+type DeadEntityData = (Entity, &'static str, (i32, i32), Option<Entity>, u32);
 
 pub struct DamageManager {}
 
@@ -171,7 +171,7 @@ impl DamageManager {
                     if is_killed {
                         dead_entities.push((
                             entity,
-                            named.name.clone(),
+                            named.name,
                             (position.x, position.y),
                             damageable.damager,
                             stats.level,

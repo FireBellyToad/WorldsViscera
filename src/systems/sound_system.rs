@@ -40,7 +40,7 @@ impl SoundSystem {
                                 .listen_cache
                                 .entry(producer.id())
                                 .or_insert_with(|| {
-                                    (producer, produce_sound.sound_log.clone(), false)
+                                    (producer, produce_sound.sound_log.to_string(), false)
                                 });
                         } else if can_listen.listen_cache.contains_key(&producer.id()) {
                             let _ = can_listen.listen_cache.remove(&producer.id());

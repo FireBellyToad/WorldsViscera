@@ -20,8 +20,8 @@ pub struct Viewshed {
     pub must_recalculate: bool,
 }
 pub struct Named {
-    pub name: String,
-    pub attack_verb: Option<String>,
+    pub name: &'static str,
+    pub attack_verb: Option<&'static str>,
 }
 pub struct BlocksTile {}
 
@@ -51,7 +51,7 @@ pub enum SmellIntensity {
 }
 
 pub struct Smellable {
-    pub smell_log: Option<String>,
+    pub smell_log: Option<&'static str>,
     pub intensity: SmellIntensity,
 }
 
@@ -71,7 +71,7 @@ pub struct CanListen {
 }
 
 pub struct ProduceSound {
-    pub sound_log: String,
+    pub sound_log: &'static str,
 }
 
 pub struct Species {

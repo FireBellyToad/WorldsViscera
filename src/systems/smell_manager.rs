@@ -4,6 +4,7 @@ use crate::{
     components::{
         actions::WantsToSmell,
         common::{CanSmell, Position, SmellIntensity, Smellable},
+        items::Rotten,
     },
     engine::state::GameState,
     maps::zone::Zone,
@@ -21,7 +22,8 @@ impl SmellManager {
         // Scope for keeping borrow checker quiet
         {
             // List of entities that want to smell things
-            let mut smellers = ecs_world.query::<(&WantsToSmell, &CanSmell, &Position)>();
+            let mut smellers =
+                ecs_world.query::<(&WantsToSmell, &CanSmell, &Position, Option<&Rotten>)>();
 
             //Log all the smells
 
@@ -29,7 +31,9 @@ impl SmellManager {
                 .current_zone
                 .as_ref()
                 .expect("must have Some Zone");
-            for (smeller, (wants_to_smell, smell_ability, smeller_position)) in &mut smellers {
+            for (smeller, (wants_to_smell, smell_ability, smeller_position, rotten_opt)) in
+                &mut smellers
+            {
                 let index =
                     Zone::get_index_from_xy(&wants_to_smell.target.0, &wants_to_smell.target.1);
 
@@ -59,13 +63,23 @@ impl SmellManager {
 
                             if can_smell {
                                 have_smelled_something = true;
-                                game_state.game_log.entries.push(format!(
-                                    "You smell {}",
-                                    smells
-                                        .smell_log
-                                        .as_ref()
-                                        .expect("must have valid smell log")
-                                ));
+                                if rotten_opt.is_some() {
+                                    game_state.game_log.entries.push(format!(
+                                        "You smell rotten {}",
+                                        smells
+                                            .smell_log
+                                            .as_ref()
+                                            .expect("must have valid smell log")
+                                    ));
+                                } else {
+                                    game_state.game_log.entries.push(format!(
+                                        "You smell {}",
+                                        smells
+                                            .smell_log
+                                            .as_ref()
+                                            .expect("must have valid smell log")
+                                    ));
+                                };
                             }
                         }
                     }

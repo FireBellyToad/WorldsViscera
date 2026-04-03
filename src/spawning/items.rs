@@ -41,7 +41,7 @@ impl Spawn {
                 z_index: 0,
             },
             Smellable {
-                smell_log: Some("mushrooms".to_string()),
+                smell_log: Some("mushrooms"),
                 intensity: SmellIntensity::Faint,
             },
             ToBeHarvested {},
@@ -59,7 +59,7 @@ impl Spawn {
                             nutrition_dice_size: 20,
                         },
                         Named {
-                            name: "brown mushroom".to_string(),
+                            name: "brown mushroom",
                             attack_verb: None,
                         },
                     ),
@@ -74,7 +74,7 @@ impl Spawn {
                             nutrition_dice_size: 6,
                         },
                         Named {
-                            name: "tuft of tiny mushrooms".to_string(),
+                            name: "tuft of tiny mushrooms",
                             attack_verb: None,
                         },
                     ),
@@ -90,7 +90,7 @@ impl Spawn {
                         },
                         Poisonous {},
                         Named {
-                            name: "white-spotted red mushroom".to_string(),
+                            name: "white-spotted red mushroom",
                             attack_verb: None,
                         },
                     ),
@@ -106,7 +106,7 @@ impl Spawn {
                         },
                         Deadly {},
                         Named {
-                            name: "white mushroom".to_string(),
+                            name: "white mushroom",
                             attack_verb: None,
                         },
                     ),
@@ -125,7 +125,7 @@ impl Spawn {
                         },
                         TurnedOn {},
                         Named {
-                            name: "glowing mushroom".to_string(),
+                            name: "glowing mushroom",
                             attack_verb: None,
                         },
                     ),
@@ -140,7 +140,7 @@ impl Spawn {
                             nutrition_dice_size: 10,
                         },
                         Named {
-                            name: "lichen".to_string(),
+                            name: "lichen",
                             attack_verb: None,
                         },
                     ),
@@ -174,7 +174,7 @@ impl Spawn {
                 z_index: 0,
             },
             Named {
-                name: "flask of water".to_string(),
+                name: "flask of water",
                 attack_verb: None,
             },
             Item {
@@ -204,7 +204,7 @@ impl Spawn {
                 z_index: 0,
             },
             Named {
-                name: "curing paste".to_string(),
+                name: "curing paste",
                 attack_verb: None,
             },
             Item {
@@ -236,14 +236,14 @@ impl Spawn {
                 z_index: 0,
             },
             Named {
-                name: "ration".to_string(),
+                name: "ration",
                 attack_verb: None,
             },
             Item {
                 item_tile: item_tile_index,
             },
             Smellable {
-                smell_log: Some("dry meat".to_string()),
+                smell_log: Some("dry meat"),
                 intensity: SmellIntensity::Faint,
             },
             Edible {
@@ -270,7 +270,7 @@ impl Spawn {
                 z_index: 0,
             },
             Named {
-                name: "lantern".to_string(),
+                name: "lantern",
                 attack_verb: None,
             },
             Item {
@@ -283,7 +283,7 @@ impl Spawn {
                 fuel_counter: STARTING_FUEL + Roll::d100(),
             },
             Smellable {
-                smell_log: Some("a scent of burning fuel".to_string()),
+                smell_log: Some("a scent of burning fuel"),
                 intensity: SmellIntensity::Faint,
             },
             TurnedOff {},
@@ -310,7 +310,7 @@ impl Spawn {
                 z_index: 0,
             },
             Named {
-                name: "lightning wand".to_string(),
+                name: "lightning wand",
                 attack_verb: None,
             },
             Item {
@@ -324,7 +324,7 @@ impl Spawn {
                 dice_size: 8,
             },
             Smellable {
-                smell_log: Some("ozone".to_string()),
+                smell_log: Some("ozone"),
                 intensity: SmellIntensity::Faint,
             },
         );
@@ -347,7 +347,7 @@ impl Spawn {
                 z_index: 0,
             },
             Named {
-                name: "crossbow".to_string(),
+                name: "crossbow",
                 attack_verb: None,
             },
             Item {
@@ -385,7 +385,7 @@ impl Spawn {
                 z_index: 0,
             },
             Named {
-                name: "slingshot".to_string(),
+                name: "slingshot",
                 attack_verb: None,
             },
             Item {
@@ -422,7 +422,7 @@ impl Spawn {
                 z_index: 0,
             },
             Named {
-                name: "flask of oil".to_string(),
+                name: "flask of oil",
                 attack_verb: None,
             },
             Item {
@@ -432,7 +432,7 @@ impl Spawn {
                 fuel_counter: STARTING_FUEL + Roll::d100(),
             },
             Smellable {
-                smell_log: Some("a faint scent of fuel".to_string()),
+                smell_log: Some("a faint scent of fuel"),
                 intensity: SmellIntensity::Faint,
             },
             Appliable {
@@ -458,7 +458,7 @@ impl Spawn {
                 z_index: 0,
             },
             Named {
-                name: "shiv".to_string(),
+                name: "shiv",
                 attack_verb: None,
             },
             Item {
@@ -492,7 +492,7 @@ impl Spawn {
                 z_index: 0,
             },
             Named {
-                name: "rock pick".to_string(),
+                name: "rock pick",
                 attack_verb: None,
             },
             Item {
@@ -530,7 +530,7 @@ impl Spawn {
                 z_index: 0,
             },
             Named {
-                name: "pickaxe".to_string(),
+                name: "pickaxe",
                 attack_verb: None,
             },
             Item {
@@ -567,7 +567,7 @@ impl Spawn {
                 z_index: 0,
             },
             Named {
-                name: "leather armor".to_string(),
+                name: "leather armor",
                 attack_verb: None,
             },
             Item {
@@ -597,7 +597,7 @@ impl Spawn {
                 z_index: 0,
             },
             Named {
-                name: "breastplate".to_string(),
+                name: "breastplate",
                 attack_verb: None,
             },
             Item {
@@ -632,7 +632,7 @@ impl Spawn {
                 z_index: 0,
             },
             Named {
-                name: "Mole-man chainmail".to_string(),
+                name: "Mole-man chainmail",
                 attack_verb: None,
             },
             Item {
@@ -668,7 +668,7 @@ impl Spawn {
                 z_index: 0,
             },
             Named {
-                name: "bag of bolts".to_string(),
+                name: "bag of bolts",
                 attack_verb: None,
             },
             Item {
@@ -698,7 +698,7 @@ impl Spawn {
                 z_index: 0,
             },
             Named {
-                name: "pile of stones".to_string(),
+                name: "pile of stones",
                 attack_verb: None,
             },
             Item {
@@ -728,7 +728,7 @@ impl Spawn {
                 z_index: 0,
             },
             Named {
-                name: "leather cap".to_string(),
+                name: "leather cap",
                 attack_verb: None,
             },
             Item {
@@ -758,7 +758,7 @@ impl Spawn {
                 z_index: 0,
             },
             Named {
-                name: "helmet".to_string(),
+                name: "helmet",
                 attack_verb: None,
             },
             Item {
@@ -853,7 +853,7 @@ impl Spawn {
                 z_index: 0,
             },
             Named {
-                name: "raw gold".to_string(),
+                name: "raw gold",
                 attack_verb: None,
             },
             Item {
