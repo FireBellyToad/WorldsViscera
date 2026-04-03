@@ -3,11 +3,12 @@ use hecs::Entity;
 use crate::{
     components::{
         combat::{CombatStats, SufferingDamage},
-        common::{GrownIfSteppedOn, Named, Position},
+        common::{GrownIfSteppedOn, Immunity, ImmunityTypeEnum, Named, Position},
     },
     constants::CRYSTAL_GROWTH_COUNTER_START,
     engine::state::GameState,
     maps::zone::{TileType, Zone},
+    utils::roll::Roll,
 };
 
 /// Handles special tile interactions
@@ -27,7 +28,7 @@ impl SpecialTilesSystem {
             // List of entities that has stats
             let mut grown_if_stepped_on = ecs_world.query::<(&mut GrownIfSteppedOn, &Position)>();
             let mut live_entities =
-                ecs_world.query::<(&mut SufferingDamage, &CombatStats, &Named)>();
+                ecs_world.query::<(&mut SufferingDamage, &CombatStats, &Named, &Immunity)>();
 
             for (_, (grow_if_step, position)) in &mut grown_if_stepped_on {
                 let pos_idx = Zone::get_index_from_xy(&position.x, &position.y);
@@ -39,19 +40,25 @@ impl SpecialTilesSystem {
                     &mut SufferingDamage,
                     &CombatStats,
                     &Named,
+                    &Immunity,
                 )> = live_entities
                     .iter()
-                    .filter_map(|(le, (damage, stats, named))| {
+                    .filter_map(|(le, (damage, stats, named, immunity))| {
                         if zone.tile_content[pos_idx].iter().any(|e| le.id() == e.id()) {
-                            Some((le, damage, stats, named))
+                            Some((le, damage, stats, named, immunity))
                         } else {
                             None
                         }
                     })
                     .next();
 
-                if let Some((stepper, stepper_damage, stepper_stats, stepper_named)) =
-                    stepper_search_result
+                if let Some((
+                    stepper,
+                    stepper_damage,
+                    stepper_stats,
+                    stepper_named,
+                    stepper_immunity,
+                )) = stepper_search_result
                 {
                     if zone.tiles[pos_idx] == TileType::BigCrystal {
                         // if the Entity is stuck between BigCrystals, is crushed to death
@@ -78,10 +85,44 @@ impl SpecialTilesSystem {
                         if grow_if_step.counter_to_next_state == 0 {
                             grow_if_step.counter_to_next_state = CRYSTAL_GROWTH_COUNTER_START;
 
+                            // log crystal growth.
+                            // If the stepper has not any immunity to damaging floors,
+                            // inflicts damage to the stepper.
+                            if stepper_immunity
+                                .to
+                                .contains_key(&ImmunityTypeEnum::DamagingFloor)
+                            {
+                                if stepper.id() == player_entity.id() {
+                                    game_state
+                                        .game_log
+                                        .entries
+                                        .push("The crystals grow under your feet".to_string());
+                                    break;
+                                } else if zone.visible_tiles[pos_idx] {
+                                    game_state.game_log.entries.push(format!(
+                                        "The crystals grow under {}'s feet",
+                                        stepper_named.name,
+                                    ));
+                                }
+                            } else if Roll::d20() > stepper_stats.current_dexterity {
+                                stepper_damage.damage_received += 1;
+                                if stepper.id() == player_entity.id() {
+                                    game_state
+                                        .game_log
+                                        .entries
+                                        .push("The crystals stings your bare feet".to_string());
+                                    break;
+                                } else if zone.visible_tiles[pos_idx] {
+                                    game_state.game_log.entries.push(format!(
+                                        "The crystals stings {}'s bare feet",
+                                        stepper_named.name,
+                                    ));
+                                }
+                            }
                             // Increase crystal growth stage when counter reaches 0
                             match zone.tiles[pos_idx] {
                                 TileType::MiniCrystal => {
-                                    zone.tiles[pos_idx] = TileType::LittleCrystal
+                                    zone.tiles[pos_idx] = TileType::LittleCrystal;
                                 }
                                 TileType::LittleCrystal => {
                                     zone.tiles[pos_idx] = TileType::MediumCrystal
