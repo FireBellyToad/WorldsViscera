@@ -199,7 +199,7 @@ fn populate_world(game_state: &mut GameState) {
         },
     ));
 
-    let zone = CrystalCaveBuilder::build(1, &mut game_state.ecs_world);
+    let zone = ArenaZoneBuilder::build(1, &mut game_state.ecs_world);
 
     game_state.current_player_entity = Some(Spawn::player(&mut game_state.ecs_world, &zone));
     Spawn::everyhing_in_map(&mut game_state.ecs_world, &zone);
@@ -372,7 +372,23 @@ fn do_debug_logic(game_state: &mut GameState) {
             } else if is_key_pressed(KeyCode::F6) {
                 game_state.debug_monster_vision = !game_state.debug_monster_vision;
             } else if is_key_pressed(KeyCode::F5) {
-                Spawn::sulfuric_slug(&mut game_state.ecs_world, MAP_WIDTH / 2, MAP_HEIGHT / 2);
+                Spawn::pseudoscorpion(&mut game_state.ecs_world, MAP_WIDTH / 2, MAP_HEIGHT / 2);
+            } else if is_key_pressed(KeyCode::F4) {
+                use crate::components::combat::Grappled;
+
+                if let Ok(grappled) = game_state
+                    .ecs_world
+                    .get::<&Grappled>(game_state.current_player_entity.expect("must be some"))
+                {
+                    use crate::components::combat::SufferingDamage;
+
+                    if let Ok(mut damage) = game_state
+                        .ecs_world
+                        .get::<&mut SufferingDamage>(grappled.by)
+                    {
+                        damage.damage_received += 10000;
+                    }
+                }
             }
         }
     }

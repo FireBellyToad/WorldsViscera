@@ -70,7 +70,7 @@ impl HealthManager {
                     if let Some(cured) = cured_opt
                         && cured.diseases.iter().any(|d| d == disease_type)
                     {
-                        healed_entities.push((diseased_entity, disease_type.clone(), true));
+                        healed_entities.push((diseased_entity, *disease_type, true));
 
                         // TODO refactor log
                         if player_id == diseased_entity.id() {
@@ -97,11 +97,7 @@ impl HealthManager {
                         // If saving throw is successful, improve health status or heal if already improved
                         if Roll::d20() <= stats.current_toughness {
                             if *is_improving {
-                                healed_entities.push((
-                                    diseased_entity,
-                                    disease_type.clone(),
-                                    false,
-                                ));
+                                healed_entities.push((diseased_entity, *disease_type, false));
                                 // TODO refactor log
                                 if player_id == diseased_entity.id() {
                                     game_log.entries.push("You feel better".to_string());

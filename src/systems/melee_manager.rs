@@ -290,7 +290,7 @@ impl MeleeManager {
 
                         // If the attacker is a disease bearers
                         if let Some(dis_bear_some) = disease_bearer_opt {
-                            let disease_type = dis_bear_some.disease_type.clone();
+                            let disease_type = dis_bear_some.disease_type;
 
                             // If not immune and saving throw fails, inflict disease
                             if let Some(target_immunity) = target_immunity_opt

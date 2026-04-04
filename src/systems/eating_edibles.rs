@@ -96,7 +96,7 @@ impl EatingEdibles {
 
                     // inflict disease of diseased corpse (without saving throw)
                     if let Ok(dis_bear_some) = ecs_world.get::<&DiseaseBearer>(wants_to_eat.item) {
-                        let disease_type = dis_bear_some.disease_type.clone();
+                        let disease_type = dis_bear_some.disease_type;
                         // If the target is already infected, worsen its status
                         if let Ok(mut dis) = ecs_world.get::<&mut Diseased>(eater) {
                             // If the target is already infected, worsen its status

@@ -139,11 +139,16 @@ impl Player {
                 {
                     // Check if player is grappled and try to escape.
                     // Placed if here so Player can still attack grappler
-                    if let Some(grappler) = grappled_opt {
+                    if let Some(grappled) = grappled_opt {
                         player_was_grappled = true;
                         let mut g_query = ecs_world
-                            .query_one::<(&Named, &CombatStats)>(grappler.by)
-                            .expect("Grappler entity has no Named component");
+                            .query_one::<(&Named, &CombatStats)>(grappled.by)
+                            .unwrap_or_else(|_| {
+                                panic!(
+                                    "No Grappler entity with &Named, &CombatStats {:?}",
+                                    grappled.by,
+                                )
+                            });
                         let (grappler_name, grappler_stats) =
                             g_query.get().expect("g_query must have result");
                         // Try to escape grapple
@@ -154,7 +159,7 @@ impl Player {
                             ));
 
                             // Grappler lose turn
-                            waiter_speed_list.push((grappler.by, grappler_stats.speed));
+                            waiter_speed_list.push((grappled.by, grappler_stats.speed));
                         } else {
                             game_state.game_log.entries.push(format!(
                                 "You cant' escape the {}'s grasp!",

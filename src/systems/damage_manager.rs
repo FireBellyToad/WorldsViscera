@@ -280,7 +280,7 @@ impl DamageManager {
                     .unwrap_or(false);
                 let mut disease_type_opt: Option<DiseaseType> = None;
                 if let Ok(disease_bearer) = ecs_world.get::<&DiseaseBearer>(killed_entity) {
-                    disease_type_opt = Some(disease_bearer.disease_type.clone());
+                    disease_type_opt = Some(disease_bearer.disease_type);
                 };
                 let is_undead = if let Ok(species) = ecs_world.get::<&Species>(killed_entity)
                     && species.value == SpeciesEnum::Undead
@@ -385,6 +385,7 @@ impl DamageManager {
 
             for (entity, grappled) in &mut grappled.iter() {
                 if grappled.by.id() == killed_entity.id() {
+                    println!("Grappler entity {:?} died", grappled.by,);
                     grappled_by_killed.push(entity);
                 }
             }

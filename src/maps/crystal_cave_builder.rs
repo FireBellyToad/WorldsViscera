@@ -34,7 +34,7 @@ impl ZoneBuilder for CrystalCaveBuilder {
             }
         }
 
-        let player_x = &((MAP_WIDTH / 2) - Roll::dice(2, 3) as i32);
+        let player_x = &((MAP_WIDTH / 2) - Roll::dice(2, 3));
         zone.player_spawn_point = Zone::get_index_from_xy(player_x, &1);
 
         zone.tiles[Zone::get_index_from_xy(&(MAP_WIDTH / 2), &(MAP_HEIGHT / 2))] =
@@ -56,9 +56,11 @@ impl ZoneBuilder for CrystalCaveBuilder {
 
         // place human refugees in random locations
         for _ in 0..4 {
-            let refugee_x = Roll::dice(1, MAP_WIDTH - 2);
-            let refugee_y = Roll::dice(1, MAP_HEIGHT - 2);
-            let _ = Spawn::refugee(ecs_world, refugee_x, refugee_y);
+            Spawn::refugee(
+                ecs_world,
+                Roll::dice(1, MAP_WIDTH - 2),
+                Roll::dice(1, MAP_HEIGHT - 2),
+            );
         }
 
         zone

@@ -44,9 +44,11 @@ pub struct Utils {}
 
 impl Utils {
     /// Pythagorean distance
+    #[inline]
     pub fn distance(x1: &i32, x2: &i32, y1: &i32, y2: &i32) -> f32 {
         ((x1.abs_diff(*x2).pow(2) + y1.abs_diff(*y2).pow(2)) as f32).sqrt()
     }
+
     /// Utility function to check if two Equippable occupy the same body location
     pub fn occupies_same_location(b1: &BodyLocation, b2: &BodyLocation) -> bool {
         if b1 == b2 {
@@ -109,6 +111,7 @@ impl Utils {
     }
 
     /// Hate table by species
+    #[inline]
     pub fn what_hates(hater: &SpeciesEnum) -> &[SpeciesEnum; 4] {
         match hater {
             SpeciesEnum::Human => &HUMAN_SPECIES_HATES,
