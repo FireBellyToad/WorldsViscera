@@ -466,7 +466,7 @@ fn build_item_string(
     }
 
     if *corpse {
-        item_string.push_str(" corpse ");
+        item_string.push_str("corpse");
     }
 
     item_string

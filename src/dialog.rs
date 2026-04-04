@@ -97,6 +97,8 @@ impl Dialog {
         // Build the body text based on the dialog action
         // The body text is a vector of strings that will be displayed in the dialog box
         // each string will be displayed on a new line
+        // These string must be owned (String) rather than borrowed (&str),
+        // so we use into_iter().map(|s| s.to_owned()).collect()
         let body_text: Vec<String> = match action {
             DialogAction::Eat(item) => {
                 let mut q = ecs_world
