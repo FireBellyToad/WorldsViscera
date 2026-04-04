@@ -124,8 +124,7 @@ impl Inventory {
                     } else {
                         game_state
                             .game_log
-                            .entries
-                            .push(format!("No item available for letter {letterkey}"));
+                            .add_entry(&format!("No item available for letter {letterkey}"));
                     }
                 }
             }

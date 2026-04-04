@@ -63,8 +63,7 @@ impl InvokeManager {
                     println!("Zap himself because is wet{:?}", zapper_wrapper);
                     game_state
                         .game_log
-                        .entries
-                        .push("Using the Lightning wand while wet was a bad idea...".to_string());
+                        .add_entry("Using the Lightning wand while wet was a bad idea...");
                 }
 
                 // Do not draw if zapping himself
@@ -128,12 +127,9 @@ impl InvokeManager {
                             } else {
                                 target_damage.damage_received += damage_roll / 2;
                                 if target.id() == player_id {
-                                    game_state
-                                        .game_log
-                                        .entries
-                                        .push("You duck some of the blow!".to_string());
+                                    game_state.game_log.add_entry("You duck some of the blow!");
                                 } else {
-                                    game_state.game_log.entries.push(format!(
+                                    game_state.game_log.add_entry(&format!(
                                         "{} ducks some of the blow!",
                                         named_target.name
                                     ));
@@ -143,23 +139,23 @@ impl InvokeManager {
 
                             if zapper.id() == player_id {
                                 if target.id() == player_id {
-                                    game_state.game_log.entries.push(format!(
+                                    game_state.game_log.add_entry(&format!(
                                         "You zap yourself for {} damage",
                                         damage_roll
                                     ));
                                 } else {
-                                    game_state.game_log.entries.push(format!(
+                                    game_state.game_log.add_entry(&format!(
                                         "You zap the {} for {} damage",
                                         named_target.name, damage_roll
                                     ));
                                 }
                             } else if target.id() == player_id {
-                                game_state.game_log.entries.push(format!(
+                                game_state.game_log.add_entry(&format!(
                                     "{} zaps you for {} damage",
                                     named_attacker.name, damage_roll
                                 ));
                             } else {
-                                game_state.game_log.entries.push(format!(
+                                game_state.game_log.add_entry(&format!(
                                     "{} zaps the {} for {} damage",
                                     named_attacker.name, named_target.name, damage_roll
                                 ));

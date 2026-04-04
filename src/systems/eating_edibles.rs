@@ -60,22 +60,21 @@ impl EatingEdibles {
                     if eater.id() == player_id {
                         game_state
                             .game_log
-                            .entries
-                            .push(format!("You ate a {}", named_edible.name));
+                            .add_entry(&format!("You ate a {}", named_edible.name));
                     } else if zone.visible_tiles[Zone::get_index_from_xy(&position.x, &position.y)]
                     {
                         // Log NPC infighting only if visible
-                        game_state
-                            .game_log
-                            .entries
-                            .push(format!("{} ate a {}", named_eater.name, named_edible.name));
+                        game_state.game_log.add_entry(&format!(
+                            "{} ate a {}",
+                            named_eater.name, named_edible.name
+                        ));
                     }
 
                     if ecs_world.get::<&Deadly>(wants_to_eat.item).is_ok() {
                         if eater.id() == player_id {
-                            game_state.game_log.entries.push(
-                                "You ate a deadly poisonous food! You agonize and die".to_string(),
-                            );
+                            game_state
+                                .game_log
+                                .add_entry("You ate a deadly poisonous food! You agonize and die");
                         }
                         killed_list.push(eater);
                         continue;
@@ -101,10 +100,7 @@ impl EatingEdibles {
                             // Infect the healthy target otherwise
                             infected_list.push((eater, disease_type));
                             if player_id == eater.id() {
-                                game_state
-                                    .game_log
-                                    .entries
-                                    .push("You start to feel ill...".to_string());
+                                game_state.game_log.add_entry("You start to feel ill...");
                             }
                         }
                     }
@@ -135,13 +131,11 @@ impl EatingEdibles {
                             if is_rotten {
                                 game_state
                                     .game_log
-                                    .entries
-                                    .push("You ate rotten food! You vomit!".to_string());
+                                    .add_entry("You ate rotten food! You vomit!");
                             } else if is_poisonous {
                                 game_state
                                     .game_log
-                                    .entries
-                                    .push("You ate poisonous food! You vomit!".to_string());
+                                    .add_entry("You ate poisonous food! You vomit!");
                             }
                         } else if zone.visible_tiles
                             [Zone::get_index_from_xy(&position.x, &position.y)]
@@ -149,8 +143,7 @@ impl EatingEdibles {
                             // Log NPC infighting only if visible
                             game_state
                                 .game_log
-                                .entries
-                                .push(format!("The {} vomits!", named_eater.name));
+                                .add_entry(&format!("The {} vomits!", named_eater.name));
                         }
 
                         zone.decals_tiles.insert(
@@ -174,14 +167,14 @@ impl EatingEdibles {
                             .expect("owner must be named and hate");
                         if let Some((hates, named_owner)) = shop_owner_query.get() {
                             if eater.id() == player_id {
-                                game_state.game_log.entries.push(format!(
+                                game_state.game_log.add_entry(&format!(
                                     "You eat the stolen {}! The {} gets angry!",
                                     named_edible.name, named_owner.name
                                 ));
                             } else if zone.visible_tiles
                                 [Zone::get_index_from_xy(&item_pos.x, &item_pos.y)]
                             {
-                                game_state.game_log.entries.push(format!(
+                                game_state.game_log.add_entry(&format!(
                                     "The {} eats the stolen {}! The {} gets angry!",
                                     named_eater.name, named_edible.name, named_owner.name
                                 ));
@@ -192,10 +185,7 @@ impl EatingEdibles {
                     }
                 } else {
                     if eater.id() == player_id {
-                        game_state
-                            .game_log
-                            .entries
-                            .push("You can't eat that!".to_string());
+                        game_state.game_log.add_entry("You can't eat that!");
                     }
                     eater_cleanup_list.push(eater);
                 }

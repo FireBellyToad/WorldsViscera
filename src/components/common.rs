@@ -27,6 +27,7 @@ pub struct BlocksTile {}
 
 pub struct ProduceCorpse {}
 
+/// Game log, used in UI
 pub struct GameLog {
     pub entries: Vec<String>,
 }
@@ -35,6 +36,12 @@ impl GameLog {
         GameLog {
             entries: Vec::new(),
         }
+    }
+
+    /// Adds an entry to the game log.
+    /// Entries are stored as owned `String`s, using `String::from` to convert from `&str`.
+    pub fn add_entry(&mut self, entry: &str) {
+        self.entries.push(String::from(entry));
     }
 }
 pub struct WaitingToAct {
@@ -65,7 +72,7 @@ pub struct Wet {
 }
 
 pub struct CanListen {
-    pub listen_cache: HashMap<u32, (Entity, String, bool)>,
+    pub listen_cache: HashMap<u32, (Entity, &'static str, bool)>,
     pub radius: f32,
     pub cooldown: i32,
 }

@@ -72,7 +72,7 @@ impl DecayManager {
                         Err(_) => {
                             // Rot
                             perishable.rot_counter = STARTING_ROT_COUNTER + Roll::d100();
-                            expired_edibles.push((entity, named.name.clone()));
+                            expired_edibles.push((entity, named.name));
                         }
                     }
                 }

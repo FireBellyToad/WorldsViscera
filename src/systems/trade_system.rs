@@ -79,10 +79,10 @@ impl TradeSystem {
                         }
 
                         if items_to_be_received.is_empty() {
-                            game_state
-                                .game_log
-                                .entries
-                                .push(format!("{} has no items to trade", shop_owner_name.name));
+                            game_state.game_log.add_entry(&format!(
+                                "{} has no items to trade",
+                                shop_owner_name.name
+                            ));
                         } else {
                             // Open trade dialog
                             new_run_state_opt = Some(RunState::ShowDialog(DialogAction::Trade((
@@ -95,8 +95,7 @@ impl TradeSystem {
                     } else {
                         game_state
                             .game_log
-                            .entries
-                            .push(format!("{} is not interested", shop_owner_name.name));
+                            .add_entry(&format!("{} is not interested", shop_owner_name.name));
                     }
                     traders.push(trader);
                 }

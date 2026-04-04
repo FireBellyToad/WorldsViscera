@@ -64,7 +64,7 @@ impl SmellManager {
                             if can_smell {
                                 have_smelled_something = true;
                                 if rotten_opt.is_some() {
-                                    game_state.game_log.entries.push(format!(
+                                    game_state.game_log.add_entry(&format!(
                                         "You smell rotten {}",
                                         smells
                                             .smell_log
@@ -72,7 +72,7 @@ impl SmellManager {
                                             .expect("must have valid smell log")
                                     ));
                                 } else {
-                                    game_state.game_log.entries.push(format!(
+                                    game_state.game_log.add_entry(&format!(
                                         "You smell {}",
                                         smells
                                             .smell_log
@@ -86,10 +86,7 @@ impl SmellManager {
                 }
 
                 if !have_smelled_something {
-                    game_state
-                        .game_log
-                        .entries
-                        .push("You smell nothing strange".to_string());
+                    game_state.game_log.add_entry("You smell nothing strange");
                 }
 
                 // prepare lists for removal

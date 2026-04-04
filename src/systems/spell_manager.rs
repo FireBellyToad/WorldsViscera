@@ -136,9 +136,9 @@ impl SpellManager {
                                     if target_opt.is_none() && zone.blocked_tiles[index] {
                                         // Log only if visible
                                         if zone.visible_tiles[Zone::get_index_from_xy(&x, &y)] {
-                                            game_state.game_log.entries.push(
-                                                "The spell bounces on something solid".to_string(),
-                                            );
+                                            game_state
+                                                .game_log
+                                                .add_entry("The spell bounces on something solid");
                                         }
                                         must_truncate_line_at = (true, i + 1);
 
@@ -181,7 +181,7 @@ impl SpellManager {
 
                     if Roll::d20() <= target_stats.current_dexterity {
                         if target.id() == player_id {
-                            game_state.game_log.entries.push(format!(
+                            game_state.game_log.add_entry(&format!(
                                 "You avoid the spell cast by {}",
                                 named_attacker.name
                             ));
@@ -189,7 +189,7 @@ impl SpellManager {
                             &wants_to_zap.target.0,
                             &wants_to_zap.target.1,
                         )] {
-                            game_state.game_log.entries.push(format!(
+                            game_state.game_log.add_entry(&format!(
                                 "{} avoids the spell cast by {}",
                                 named_target.name, named_attacker.name,
                             ));
@@ -212,46 +212,34 @@ impl SpellManager {
 
                                 if caster.id() == player_id {
                                     if target.id() == player_id {
-                                        game_state.game_log.entries.push(format!(
+                                        game_state.game_log.add_entry(&format!(
                                             "You {} yourself for {} damage",
-                                            named_spell
-                                                .attack_verb
-                                                .clone()
-                                                .expect("attack_verb must not be None"),
+                                            named_spell.attack_verb.unwrap_or("zap"),
                                             damage_roll
                                         ));
                                     } else {
-                                        game_state.game_log.entries.push(format!(
+                                        game_state.game_log.add_entry(&format!(
                                             "You {} the {} for {} damage",
-                                            named_spell
-                                                .attack_verb
-                                                .clone()
-                                                .expect("attack_verb must not be None"),
+                                            named_spell.attack_verb.unwrap_or("zap"),
                                             named_target.name,
                                             damage_roll
                                         ));
                                     }
                                 } else if target.id() == player_id {
-                                    game_state.game_log.entries.push(format!(
+                                    game_state.game_log.add_entry(&format!(
                                         "{} {}s you for {} damage",
                                         named_attacker.name,
-                                        named_spell
-                                            .attack_verb
-                                            .clone()
-                                            .expect("attack_verb must not be None"),
+                                        named_spell.attack_verb.unwrap_or("zap"),
                                         damage_roll
                                     ));
                                 } else if zone.visible_tiles[Zone::get_index_from_xy(
                                     &wants_to_zap.target.0,
                                     &wants_to_zap.target.1,
                                 )] {
-                                    game_state.game_log.entries.push(format!(
+                                    game_state.game_log.add_entry(&format!(
                                         "{} {}s the {} for {} damage",
                                         named_attacker.name,
-                                        named_spell
-                                            .attack_verb
-                                            .clone()
-                                            .expect("attack_verb must not be None"),
+                                        named_spell.attack_verb.unwrap_or("zap"),
                                         named_target.name,
                                         damage_roll
                                     ));
@@ -263,43 +251,31 @@ impl SpellManager {
                                 stunned_list.push((target, stun.tick_counter));
                                 if caster.id() == player_id {
                                     if target.id() == player_id {
-                                        game_state.game_log.entries.push(format!(
+                                        game_state.game_log.add_entry(&format!(
                                             "You {} yourself",
-                                            named_spell
-                                                .attack_verb
-                                                .clone()
-                                                .expect("attack_verb must not be None")
+                                            named_spell.attack_verb.unwrap_or("zaps"),
                                         ));
                                     } else {
-                                        game_state.game_log.entries.push(format!(
+                                        game_state.game_log.add_entry(&format!(
                                             "You {} the {}",
-                                            named_spell
-                                                .attack_verb
-                                                .clone()
-                                                .expect("attack_verb must not be None"),
+                                            named_spell.attack_verb.unwrap_or("zap"),
                                             named_target.name
                                         ));
                                     }
                                 } else if target.id() == player_id {
-                                    game_state.game_log.entries.push(format!(
+                                    game_state.game_log.add_entry(&format!(
                                         "{} {}s you",
                                         named_attacker.name,
-                                        named_spell
-                                            .attack_verb
-                                            .clone()
-                                            .expect("attack_verb must not be None")
+                                        named_spell.attack_verb.unwrap_or("zap"),
                                     ));
                                 } else if zone.visible_tiles[Zone::get_index_from_xy(
                                     &wants_to_zap.target.0,
                                     &wants_to_zap.target.1,
                                 )] {
-                                    game_state.game_log.entries.push(format!(
+                                    game_state.game_log.add_entry(&format!(
                                         "{} {} the {}",
                                         named_attacker.name,
-                                        named_spell
-                                            .attack_verb
-                                            .clone()
-                                            .expect("attack_verb must not be None"),
+                                        named_spell.attack_verb.unwrap_or("zap"),
                                         named_target.name
                                     ));
                                 }

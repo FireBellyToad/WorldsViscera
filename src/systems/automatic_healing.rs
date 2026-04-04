@@ -76,10 +76,7 @@ impl AutomaticHealing {
                                     entities_free.push(entity);
 
                                     if entity.id() == player_id {
-                                        game_state
-                                            .game_log
-                                            .entries
-                                            .push("You can move now".to_string());
+                                        game_state.game_log.add_entry("You can move now");
                                     } else {
                                         game_state
                                             .game_log

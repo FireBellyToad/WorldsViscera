@@ -20,9 +20,7 @@ use crate::{
         common::{MyTurn, Position, Viewshed},
         items::{Edible, Item, Quaffable},
     },
-    constants::{
-        MAP_HEIGHT, MAP_WIDTH, TILE_SIZE_F32, UI_BORDER_F32,
-    },
+    constants::{MAP_HEIGHT, MAP_WIDTH, TILE_SIZE_F32, UI_BORDER_F32},
     dialog::DialogAction,
     engine::state::RunState,
     inventory::InventoryAction,
@@ -81,10 +79,7 @@ impl Player {
                 {
                     // Do DEX saving or slip on slime!
                     if stats.current_dexterity < Roll::d20() {
-                        game_state
-                            .game_log
-                            .entries
-                            .push("You slip on the slime!".to_string());
+                        game_state.game_log.add_entry("You slip on the slime!");
 
                         game_state.run_state = RunState::DoTick;
                         break;
@@ -98,7 +93,7 @@ impl Player {
                         g_query.get().expect("g_query must have result");
                     // Try to escape grapple
                     if Roll::d20() <= stats.current_dexterity {
-                        game_state.game_log.entries.push(format!(
+                        game_state.game_log.add_entry(&format!(
                             "You free yourself from the {}'s grasp!",
                             grappler_name.name
                         ));
@@ -106,7 +101,7 @@ impl Player {
                         // Grappler lose turn
                         waiter_speed_list.push((grappler.by, grappler_stats.speed));
                     } else {
-                        game_state.game_log.entries.push(format!(
+                        game_state.game_log.add_entry(&format!(
                             "You cant' escape the {}'s grasp!",
                             grappler_name.name
                         ));
@@ -149,8 +144,7 @@ impl Player {
                     } else if is_diggable {
                         game_state
                             .game_log
-                            .entries
-                            .push("You have no digging tool to use on this wall".to_string());
+                            .add_entry("You have no digging tool to use on this wall");
                     }
                 }
 
@@ -175,8 +169,7 @@ impl Player {
                         if stats.current_dexterity < Roll::d20() {
                             game_state
                                 .game_log
-                                .entries
-                                .push("You burn yourself on the acid!".to_string());
+                                .add_entry("You burn yourself on the acid!");
                             suffering_damage.damage_received += Roll::dice(1, 3);
                         }
                     }
@@ -439,8 +432,7 @@ impl Player {
         } else {
             game_state
                 .game_log
-                .entries
-                .push("There is nothing here to pick up".to_string());
+                .add_entry("There is nothing here to pick up");
 
             game_state.run_state = RunState::WaitingPlayerInput;
         }
@@ -563,21 +555,14 @@ impl Player {
 
             game_state
                 .game_log
-                .entries
-                .push("There is nothing here to pick up".to_string());
+                .add_entry("There is nothing here to pick up");
 
             //TODO skill check
             if standing_on_tile == &TileType::DownPassage {
-                game_state
-                    .game_log
-                    .entries
-                    .push("You climb down...".to_string());
+                game_state.game_log.add_entry("You climb down...");
                 game_state.run_state = RunState::GoToNextZone;
             } else {
-                game_state
-                    .game_log
-                    .entries
-                    .push("You can't go down here".to_string());
+                game_state.game_log.add_entry("You can't go down here");
             }
         }
     }
@@ -606,8 +591,7 @@ impl Player {
             if player_ranged_weapons.is_empty() {
                 game_state
                     .game_log
-                    .entries
-                    .push("You don't have a ranged weapon equipped".to_string());
+                    .add_entry("You don't have a ranged weapon equipped");
             } else {
                 // Should be one, anyway
                 weapon_opt = Some(player_ranged_weapons[0].0);
@@ -628,7 +612,7 @@ impl Player {
                     let weapon_named = ecs_world
                         .get::<&Named>(weapon)
                         .expect("Entity has no Named");
-                    game_state.game_log.entries.push(format!(
+                    game_state.game_log.add_entry(&format!(
                         "You don't have any ammunition for your {}",
                         weapon_named.name
                     ));
@@ -723,9 +707,9 @@ impl Player {
                             owner_entity = Some(entity);
                             break;
                         } else {
-                            game_state.game_log.entries.push(
-                                "You see someone who may trade, but it's too far away".to_string(),
-                            );
+                            game_state
+                                .game_log
+                                .add_entry("You see someone who may trade, but it's too far away");
                             //We must guarantee only one shop owner per zone
                             game_state.run_state = RunState::WaitingPlayerInput;
                             return; //abort control flow
@@ -742,8 +726,7 @@ impl Player {
             if owner_entity.is_none() {
                 game_state
                     .game_log
-                    .entries
-                    .push("You can't see anyone willing to trade".to_string());
+                    .add_entry("You can't see anyone willing to trade");
             }
         }
 

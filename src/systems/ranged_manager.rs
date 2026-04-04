@@ -118,9 +118,9 @@ impl RangedManager {
                         if target_opt.is_none() && zone.blocked_tiles[index] {
                             // Log only if visible
                             if zone.visible_tiles[Zone::get_index_from_xy(&x, &y)] {
-                                game_state.game_log.entries.push(
-                                    "The projectile bounces onto a solid obstacle".to_string(),
-                                );
+                                game_state
+                                    .game_log
+                                    .add_entry("The projectile bounces onto a solid obstacle");
                             }
                             must_truncate_line_at = (true, i + 1);
                             break;
@@ -192,13 +192,13 @@ impl RangedManager {
                                     .entries
                                     .push(format!("You shoot yourself for {} damage", damage_roll));
                             } else {
-                                game_state.game_log.entries.push(format!(
+                                game_state.game_log.add_entry(&format!(
                                     "You shoot the {} for {} damage",
                                     named_target.name, damage_roll
                                 ));
                             }
                         } else if target.id() == player_id {
-                            game_state.game_log.entries.push(format!(
+                            game_state.game_log.add_entry(&format!(
                                 "{} shoot you for {} damage",
                                 named_attacker.name, damage_roll
                             ));
@@ -206,7 +206,7 @@ impl RangedManager {
                             &wants_to_zap.target.0,
                             &wants_to_zap.target.1,
                         )] {
-                            game_state.game_log.entries.push(format!(
+                            game_state.game_log.add_entry(&format!(
                                 "{} shoot the {} for {} damage",
                                 named_attacker.name, named_target.name, damage_roll
                             ));

@@ -13,6 +13,7 @@ use crate::{
     components::{
         actions::{WantsItem, WantsToDrink, WantsToEat},
         common::Named,
+        items::Corpse,
     },
     constants::*,
     engine::state::{GameState, RunState},
@@ -96,14 +97,32 @@ impl Dialog {
         // Build the body text based on the dialog action
         // The body text is a vector of strings that will be displayed in the dialog box
         // each string will be displayed on a new line
-        let body_text = match action {
+        let body_text: Vec<String> = match action {
             DialogAction::Eat(item) => {
-                let named = ecs_world.get::<&Named>(*item).expect("Item is not named");
-                vec!["There is a", named.name, "on the ground.", "Eat it?"]
+                let mut q = ecs_world
+                    .query_one::<(&Named, Option<&Corpse>)>(*item)
+                    .unwrap_or_else(|_| panic!("Item with entity {:?} is not named", item));
+                let (named, corpse_opt) = q.get().expect("Item is not named!");
+
+                // Hack to determine if the collected item is a corpse (for logging purposes)
+                let corpse_text = if corpse_opt.is_some() {
+                    format!("{}{}", named.name, " corpse")
+                } else {
+                    named.name.to_owned()
+                };
+                vec![
+                    "There is a".to_owned(),
+                    corpse_text,
+                    "on the ground.".to_owned(),
+                    "Eat it?".to_owned(),
+                ]
             }
             DialogAction::Quaff(item) => {
                 let named = ecs_world.get::<&Named>(*item).expect("Item is not named");
                 vec!["There is a", named.name, "on the ground.", "Drink it?"]
+                    .into_iter()
+                    .map(|s| s.to_owned())
+                    .collect()
             }
             DialogAction::StealPick(item) => {
                 let named = ecs_world.get::<&Named>(*item).expect("Item is not named");
@@ -113,6 +132,9 @@ impl Dialog {
                     "will anger its owner.",
                     "Steal it?",
                 ]
+                .into_iter()
+                .map(|s| s.to_owned())
+                .collect()
             }
             DialogAction::StealEat(item) => {
                 let named = ecs_world.get::<&Named>(*item).expect("Item is not named");
@@ -122,6 +144,9 @@ impl Dialog {
                     "will anger its owner.",
                     "Steal it?",
                 ]
+                .into_iter()
+                .map(|s| s.to_owned())
+                .collect()
             }
             DialogAction::Trade(trade_info) => {
                 let (_, traded_item, shop_owner, items_to_be_received) = trade_info;
@@ -134,10 +159,11 @@ impl Dialog {
                 // Build items string with "and" and "carriage return"
                 let mut offer_string =
                     Dialog::build_offer_string(items_to_be_received.iter(), ecs_world);
+
                 let mut final_string_vec: Vec<&str> = vec![shop_owner_named.name, "offers you"];
                 final_string_vec.append(&mut offer_string);
                 final_string_vec.append(&mut vec!["for your", traded_named.name]);
-                final_string_vec
+                final_string_vec.into_iter().map(|s| s.to_owned()).collect()
             }
         };
 

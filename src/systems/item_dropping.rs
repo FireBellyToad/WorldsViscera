@@ -5,7 +5,7 @@ use crate::{
         actions::WantsToDrop,
         combat::CombatStats,
         common::{MyTurn, Named, Position},
-        items::{Equipped, InBackback},
+        items::{Corpse, Equipped, InBackback},
     },
     engine::state::GameState,
     utils::common::{ItemsInBackpack, Utils},
@@ -25,49 +25,55 @@ impl ItemDropping {
         // Scope for keeping borrow checker quiet
         {
             // List of entities that want to drop items
-            let mut items_to_drop = ecs_world
+            let mut droppers_of_item = ecs_world
                 .query::<(&WantsToDrop, &CombatStats, &Position)>()
                 .with::<&MyTurn>();
 
             //Log all the drop downs
 
-            for (dropper, (wants_item, stats, drop_position)) in &mut items_to_drop {
-                let is_equipped = ecs_world.get::<&Equipped>(wants_item.item).is_ok();
+            for (dropper, (wants_to_drop, stats, drop_position)) in &mut droppers_of_item {
+                let mut dropped_item_query = ecs_world
+                    .query_one::<(&InBackback, Option<&Equipped>, Option<&Corpse>)>(
+                        wants_to_drop.item,
+                    )
+                    .expect("No entity {:?} found with InBackback component");
+                let (_, equipped_opt, corpse) =
+                    dropped_item_query.get().expect("Must have Equipped");
+                let corpse_text = if corpse.is_some() { " corpse" } else { "" };
 
-                if is_equipped {
+                if equipped_opt.is_some() {
                     if player_id == dropper.id() {
                         game_state
                             .game_log
-                            .entries
-                            .push("You cannot drop an equipped item".to_string());
+                            .add_entry("You cannot drop an equipped item");
                     }
 
                     item_drop_nothing.push(dropper);
                 } else {
                     let named_item = ecs_world
-                        .get::<&Named>(wants_item.item)
+                        .get::<&Named>(wants_to_drop.item)
                         .expect("Entity is not Named");
 
                     // Drop item and keep track of the drop Position
                     item_drop_position_list.push((
-                        wants_item.item,
+                        wants_to_drop.item,
                         dropper,
                         (drop_position.x, drop_position.y),
                         stats.speed,
                     ));
 
                     if player_id == dropper.id() {
-                        game_state
-                            .game_log
-                            .entries
-                            .push(format!("You drop up the {}", named_item.name));
+                        game_state.game_log.add_entry(&format!(
+                            "You drop up a {}{}",
+                            named_item.name, corpse_text
+                        ));
                     } else {
                         let named_dropper = ecs_world
                             .get::<&Named>(dropper)
                             .expect("Entity is not Named");
-                        game_state.game_log.entries.push(format!(
-                            "{} drops up a {}",
-                            named_dropper.name, named_item.name
+                        game_state.game_log.add_entry(&format!(
+                            "{} drops up a {}{}",
+                            named_dropper.name, named_item.name, corpse_text
                         ));
                     }
                 }
