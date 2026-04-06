@@ -193,7 +193,7 @@ fn populate_world(game_state: &mut GameState) {
     // Generate new seed, or else it will always generate the same things
     rand::srand(macroquad::miniquad::date::now() as _);
 
-    let zone = ArenaZoneBuilder::build(1, &mut game_state.ecs_world);
+    let zone = CrystalCaveBuilder::build(1, &mut game_state.ecs_world);
 
     game_state.current_player_entity = Some(Spawn::player(&mut game_state.ecs_world, &zone));
     Spawn::everyhing_in_map(&mut game_state.ecs_world, &zone);

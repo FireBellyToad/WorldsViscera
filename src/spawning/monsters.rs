@@ -1299,6 +1299,18 @@ impl Spawn {
             },
         );
 
+        if Roll::d6() < 4 {
+            let shoes = Spawn::leather_shoes(ecs_world, 0, 0);
+            let _ = ecs_world.remove_one::<Position>(shoes);
+            let _ = ecs_world.insert(
+                shoes,
+                (InBackback {
+                    owner: refugee,
+                    assigned_char: 'e',
+                },),
+            );
+        }
+
         let _ = ecs_world.insert(refugee, (Smart {}, Prey {}));
     }
 

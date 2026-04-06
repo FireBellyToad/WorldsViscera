@@ -654,7 +654,7 @@ impl Spawn {
         ecs_world.spawn(dvergar_chain);
     }
 
-    pub fn leather_shoes(ecs_world: &mut World, x: i32, y: i32) {
+    pub fn leather_shoes(ecs_world: &mut World, x: i32, y: i32) -> Entity {
         let item_tile_index = (0, 6);
         let leather_shoes = (
             Position { x, y },
@@ -683,7 +683,7 @@ impl Spawn {
             },
         );
 
-        ecs_world.spawn(leather_shoes);
+        ecs_world.spawn(leather_shoes)
     }
 
     pub fn crampon_boots(ecs_world: &mut World, x: i32, y: i32) {

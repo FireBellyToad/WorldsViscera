@@ -27,6 +27,12 @@ impl SpecialTilesSystem {
         {
             // List of entities that has stats
             let mut grown_if_stepped_on = ecs_world.query::<(&mut GrownIfSteppedOn, &Position)>();
+
+            // Avoid unnecessary work if there are no special tiles
+            if grown_if_stepped_on.iter().len() == 0 {
+                return;
+            }
+
             let mut live_entities =
                 ecs_world.query::<(&mut SufferingDamage, &CombatStats, &Named, &Immunity)>();
 

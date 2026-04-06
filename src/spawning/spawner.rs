@@ -270,7 +270,9 @@ impl Spawn {
             }
             26 => Spawn::helmet(ecs_world, x, y),
             27 => Spawn::curing_paste(ecs_world, x, y),
-            28 => Spawn::leather_shoes(ecs_world, x, y),
+            28 => {
+                let _ = Spawn::leather_shoes(ecs_world, x, y);
+            }
             29 => Spawn::crampon_boots(ecs_world, x, y),
 
             _ => {}
