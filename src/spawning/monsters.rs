@@ -29,7 +29,7 @@ use crate::{
     utils::{assets::TextureName, roll::Roll},
 };
 
-type MonsterSpawnData = (
+type MonsterSpawnData<'a> = (
     Named,
     Species,
     CombatStats,
@@ -125,8 +125,8 @@ impl Spawn {
             ecs_world,
             (
                 Named {
-                    name: "Deep One".to_string(),
-                    attack_verb: Some("bites".to_string()),
+                    name: "Deep One",
+                    attack_verb: Some("bites"),
                 },
                 Species {
                     value: SpeciesEnum::DeepSpawn,
@@ -149,11 +149,11 @@ impl Spawn {
                     nutrition_dice_size: 6,
                 },
                 Smellable {
-                    smell_log: Some("dried human sweat".to_string()),
+                    smell_log: Some("dried human sweat"),
                     intensity: SmellIntensity::Faint,
                 },
                 ProduceSound {
-                    sound_log: "someone weezing".to_string(),
+                    sound_log: "someone weezing",
                 },
                 true,
                 vec![],
@@ -170,8 +170,8 @@ impl Spawn {
             ecs_world,
             (
                 Named {
-                    name: "Abyssal One".to_string(),
-                    attack_verb: Some("bites".to_string()),
+                    name: "Abyssal One",
+                    attack_verb: Some("bites"),
                 },
                 Species {
                     value: SpeciesEnum::DeepSpawn,
@@ -194,11 +194,11 @@ impl Spawn {
                     nutrition_dice_size: 6,
                 },
                 Smellable {
-                    smell_log: Some("organic waste".to_string()),
+                    smell_log: Some("organic waste"),
                     intensity: SmellIntensity::Faint,
                 },
                 ProduceSound {
-                    sound_log: "someone panting".to_string(),
+                    sound_log: "someone panting",
                 },
                 true,
                 vec![],
@@ -225,8 +225,8 @@ impl Spawn {
             ecs_world,
             (
                 Named {
-                    name: "Calcificator".to_string(),
-                    attack_verb: Some("scratches".to_string()),
+                    name: "Calcificator",
+                    attack_verb: Some("scratches"),
                 },
                 Species {
                     value: SpeciesEnum::Undead,
@@ -249,11 +249,11 @@ impl Spawn {
                     nutrition_dice_size: 1,
                 },
                 Smellable {
-                    smell_log: Some("chalk".to_string()),
+                    smell_log: Some("chalk"),
                     intensity: SmellIntensity::Faint,
                 },
                 ProduceSound {
-                    sound_log: "chalk scratching on floor".to_string(),
+                    sound_log: "chalk scratching on floor",
                 },
                 true,
                 vec![
@@ -281,8 +281,8 @@ impl Spawn {
             ecs_world,
             (
                 Named {
-                    name: "Living Fossil".to_string(),
-                    attack_verb: Some("scratches".to_string()),
+                    name: "Living Fossil",
+                    attack_verb: Some("scratches"),
                 },
                 Species {
                     value: SpeciesEnum::Undead,
@@ -305,11 +305,11 @@ impl Spawn {
                     nutrition_dice_size: 1,
                 },
                 Smellable {
-                    smell_log: Some("bone powder".to_string()),
+                    smell_log: Some("bone powder"),
                     intensity: SmellIntensity::Faint,
                 },
                 ProduceSound {
-                    sound_log: "bone ticking on stone".to_string(),
+                    sound_log: "bone ticking on stone",
                 },
                 true,
                 vec![
@@ -340,8 +340,8 @@ impl Spawn {
             ecs_world,
             (
                 Named {
-                    name: "Living filth".to_string(),
-                    attack_verb: Some("burns".to_string()),
+                    name: "Living filth",
+                    attack_verb: Some("burns"),
                 },
                 Species {
                     value: SpeciesEnum::Slime,
@@ -364,11 +364,11 @@ impl Spawn {
                     nutrition_dice_size: 1,
                 },
                 Smellable {
-                    smell_log: Some("foul sewage".to_string()),
+                    smell_log: Some("foul sewage"),
                     intensity: SmellIntensity::Strong,
                 },
                 ProduceSound {
-                    sound_log: "slimy flop".to_string(),
+                    sound_log: "slimy flop",
                 },
                 false,
                 vec![],
@@ -399,8 +399,8 @@ impl Spawn {
             ecs_world,
             (
                 Named {
-                    name: "Freshwater viperfish".to_string(),
-                    attack_verb: Some("bites".to_string()),
+                    name: "Freshwater viperfish",
+                    attack_verb: Some("bites"),
                 },
                 Species {
                     value: SpeciesEnum::Fish,
@@ -427,7 +427,7 @@ impl Spawn {
                     intensity: SmellIntensity::None,
                 },
                 ProduceSound {
-                    sound_log: "a splash in the water".to_string(),
+                    sound_log: "a splash in the water",
                 },
                 true,
                 vec![],
@@ -446,8 +446,8 @@ impl Spawn {
             ecs_world,
             (
                 Named {
-                    name: "Cave shrimp".to_string(),
-                    attack_verb: Some("nibbles".to_string()),
+                    name: "Cave shrimp",
+                    attack_verb: Some("nibbles"),
                 },
                 Species {
                     value: SpeciesEnum::Fish,
@@ -474,7 +474,7 @@ impl Spawn {
                     intensity: SmellIntensity::None,
                 },
                 ProduceSound {
-                    sound_log: "a drop of water".to_string(),
+                    sound_log: "a drop of water",
                 },
                 true,
                 vec![],
@@ -493,8 +493,8 @@ impl Spawn {
             ecs_world,
             (
                 Named {
-                    name: "Cave crab".to_string(),
-                    attack_verb: Some("pinches".to_string()),
+                    name: "Cave crab",
+                    attack_verb: Some("pinches"),
                 },
                 Species {
                     value: SpeciesEnum::Fish,
@@ -521,7 +521,7 @@ impl Spawn {
                     intensity: SmellIntensity::None,
                 },
                 ProduceSound {
-                    sound_log: "an splashing tickling".to_string(),
+                    sound_log: "an splashing tickling",
                 },
                 true,
                 vec![],
@@ -543,8 +543,8 @@ impl Spawn {
             ecs_world,
             (
                 Named {
-                    name: "Pseudoscorpion".to_string(),
-                    attack_verb: Some("pinches".to_string()),
+                    name: "Pseudoscorpion",
+                    attack_verb: Some("pinches"),
                 },
                 Species {
                     value: SpeciesEnum::Bug,
@@ -567,11 +567,11 @@ impl Spawn {
                     nutrition_dice_size: 6,
                 },
                 Smellable {
-                    smell_log: Some("Munched bugs".to_string()),
+                    smell_log: Some("Munched bugs"),
                     intensity: SmellIntensity::Faint,
                 },
                 ProduceSound {
-                    sound_log: "faint clicking".to_string(),
+                    sound_log: "faint clicking",
                 },
                 true,
                 vec![],
@@ -590,8 +590,8 @@ impl Spawn {
             ecs_world,
             (
                 Named {
-                    name: "Scorpion".to_string(),
-                    attack_verb: Some("sting".to_string()),
+                    name: "Scorpion",
+                    attack_verb: Some("sting"),
                 },
                 Species {
                     value: SpeciesEnum::Bug,
@@ -614,11 +614,11 @@ impl Spawn {
                     nutrition_dice_size: 6,
                 },
                 Smellable {
-                    smell_log: Some("Munched bugs".to_string()),
+                    smell_log: Some("Munched bugs"),
                     intensity: SmellIntensity::Faint,
                 },
                 ProduceSound {
-                    sound_log: "faint clicking".to_string(),
+                    sound_log: "faint clicking",
                 },
                 true,
                 vec![],
@@ -637,8 +637,8 @@ impl Spawn {
             ecs_world,
             (
                 Named {
-                    name: "Gremlin".to_string(),
-                    attack_verb: Some("scratches".to_string()),
+                    name: "Gremlin",
+                    attack_verb: Some("scratches"),
                 },
                 Species {
                     value: SpeciesEnum::Gremlin,
@@ -661,11 +661,11 @@ impl Spawn {
                     nutrition_dice_size: 6,
                 },
                 Smellable {
-                    smell_log: Some("cheap leather".to_string()),
+                    smell_log: Some("cheap leather"),
                     intensity: SmellIntensity::Faint,
                 },
                 ProduceSound {
-                    sound_log: "someone cackling".to_string(),
+                    sound_log: "someone cackling",
                 },
                 true,
                 vec![],
@@ -698,8 +698,8 @@ impl Spawn {
             ecs_world,
             (
                 Named {
-                    name: "Enthropic gremlin".to_string(),
-                    attack_verb: Some("scratches".to_string()),
+                    name: "Enthropic gremlin",
+                    attack_verb: Some("scratches"),
                 },
                 Species {
                     value: SpeciesEnum::Gremlin,
@@ -722,11 +722,11 @@ impl Spawn {
                     nutrition_dice_size: 6,
                 },
                 Smellable {
-                    smell_log: Some("cheap leather".to_string()),
+                    smell_log: Some("cheap leather"),
                     intensity: SmellIntensity::Faint,
                 },
                 ProduceSound {
-                    sound_log: "someone raving madly".to_string(),
+                    sound_log: "someone raving madly",
                 },
                 true,
                 vec![],
@@ -760,8 +760,8 @@ impl Spawn {
             ecs_world,
             (
                 Named {
-                    name: "Centipede".to_string(),
-                    attack_verb: Some("bites".to_string()),
+                    name: "Centipede",
+                    attack_verb: Some("bites"),
                 },
                 Species {
                     value: SpeciesEnum::Bug,
@@ -788,7 +788,7 @@ impl Spawn {
                     intensity: SmellIntensity::None,
                 },
                 ProduceSound {
-                    sound_log: "skittering of many legs".to_string(),
+                    sound_log: "skittering of many legs",
                 },
                 true,
                 vec![],
@@ -807,8 +807,8 @@ impl Spawn {
             ecs_world,
             (
                 Named {
-                    name: "Trogloraptor".to_string(),
-                    attack_verb: Some("bites".to_string()),
+                    name: "Trogloraptor",
+                    attack_verb: Some("bites"),
                 },
                 Species {
                     value: SpeciesEnum::Bug,
@@ -835,7 +835,7 @@ impl Spawn {
                     intensity: SmellIntensity::None,
                 },
                 ProduceSound {
-                    sound_log: "skittering from above".to_string(),
+                    sound_log: "skittering from above",
                 },
                 true,
                 vec![],
@@ -854,8 +854,8 @@ impl Spawn {
             ecs_world,
             (
                 Named {
-                    name: "Mole-man".to_string(),
-                    attack_verb: Some("hits".to_string()),
+                    name: "Mole-man",
+                    attack_verb: Some("hits"),
                 },
                 Species {
                     value: SpeciesEnum::Undergrounder,
@@ -878,11 +878,11 @@ impl Spawn {
                     nutrition_dice_size: 6,
                 },
                 Smellable {
-                    smell_log: Some("coal drenched in vinegar".to_string()),
+                    smell_log: Some("coal drenched in vinegar"),
                     intensity: SmellIntensity::Faint,
                 },
                 ProduceSound {
-                    sound_log: "someone mumbling".to_string(),
+                    sound_log: "someone mumbling",
                 },
                 true,
                 vec![],
@@ -940,8 +940,8 @@ impl Spawn {
             ecs_world,
             (
                 Named {
-                    name: "Mole-man farmer".to_string(),
-                    attack_verb: Some("hits".to_string()),
+                    name: "Mole-man farmer",
+                    attack_verb: Some("hits"),
                 },
                 Species {
                     value: SpeciesEnum::Undergrounder,
@@ -964,11 +964,11 @@ impl Spawn {
                     nutrition_dice_size: 6,
                 },
                 Smellable {
-                    smell_log: Some("mushroom drenched in vinegar".to_string()),
+                    smell_log: Some("mushroom drenched in vinegar"),
                     intensity: SmellIntensity::Faint,
                 },
                 ProduceSound {
-                    sound_log: "someone mumbling".to_string(),
+                    sound_log: "someone mumbling",
                 },
                 true,
                 vec![],
@@ -1002,8 +1002,8 @@ impl Spawn {
             ecs_world,
             (
                 Named {
-                    name: "Cockroach".to_string(),
-                    attack_verb: Some("nibbles".to_string()),
+                    name: "Cockroach",
+                    attack_verb: Some("nibbles"),
                 },
                 Species {
                     value: SpeciesEnum::Bug,
@@ -1026,11 +1026,11 @@ impl Spawn {
                     nutrition_dice_size: 6,
                 },
                 Smellable {
-                    smell_log: Some("cupboard dust".to_string()),
+                    smell_log: Some("cupboard dust"),
                     intensity: SmellIntensity::Faint,
                 },
                 ProduceSound {
-                    sound_log: "nervous skittering".to_string(),
+                    sound_log: "nervous skittering",
                 },
                 true,
                 vec![],
@@ -1049,8 +1049,8 @@ impl Spawn {
             ecs_world,
             (
                 Named {
-                    name: "Bombardier beetle".to_string(),
-                    attack_verb: Some("nibbles".to_string()),
+                    name: "Bombardier beetle",
+                    attack_verb: Some("nibbles"),
                 },
                 Species {
                     value: SpeciesEnum::Bug,
@@ -1073,11 +1073,11 @@ impl Spawn {
                     nutrition_dice_size: 6,
                 },
                 Smellable {
-                    smell_log: Some("burnt cupboard dust".to_string()),
+                    smell_log: Some("burnt cupboard dust"),
                     intensity: SmellIntensity::Faint,
                 },
                 ProduceSound {
-                    sound_log: "faint pop".to_string(),
+                    sound_log: "faint pop",
                 },
                 true,
                 vec![],
@@ -1105,8 +1105,8 @@ impl Spawn {
             ecs_world,
             (
                 Named {
-                    name: "Slug".to_string(),
-                    attack_verb: Some("nibbles".to_string()),
+                    name: "Slug",
+                    attack_verb: Some("nibbles"),
                 },
                 Species {
                     value: SpeciesEnum::Gastropod,
@@ -1129,11 +1129,11 @@ impl Spawn {
                     nutrition_dice_size: 6,
                 },
                 Smellable {
-                    smell_log: Some("foul saliva".to_string()),
+                    smell_log: Some("foul saliva"),
                     intensity: SmellIntensity::Faint,
                 },
                 ProduceSound {
-                    sound_log: "slow slushing".to_string(),
+                    sound_log: "slow slushing",
                 },
                 true,
                 vec![],
@@ -1163,8 +1163,8 @@ impl Spawn {
             ecs_world,
             (
                 Named {
-                    name: "Sulfuric slug".to_string(),
-                    attack_verb: Some("nibbles".to_string()),
+                    name: "Sulfuric slug",
+                    attack_verb: Some("nibbles"),
                 },
                 Species {
                     value: SpeciesEnum::Gastropod,
@@ -1187,11 +1187,11 @@ impl Spawn {
                     nutrition_dice_size: 6,
                 },
                 Smellable {
-                    smell_log: Some("nasty sulphuric fumes".to_string()),
+                    smell_log: Some("nasty sulphuric fumes"),
                     intensity: SmellIntensity::Strong,
                 },
                 ProduceSound {
-                    sound_log: "something sizzling".to_string(),
+                    sound_log: "something sizzling",
                 },
                 true,
                 vec![],
@@ -1222,8 +1222,8 @@ impl Spawn {
             ecs_world,
             (
                 Named {
-                    name: "Human refugee".to_string(),
-                    attack_verb: Some("hits".to_string()),
+                    name: "Human refugee",
+                    attack_verb: Some("hits"),
                 },
                 Species {
                     value: SpeciesEnum::Human,
@@ -1246,11 +1246,11 @@ impl Spawn {
                     nutrition_dice_size: 4,
                 },
                 Smellable {
-                    smell_log: Some("human sweat".to_string()),
+                    smell_log: Some("human sweat"),
                     intensity: SmellIntensity::Faint,
                 },
                 ProduceSound {
-                    sound_log: "faint breathing".to_string(),
+                    sound_log: "faint breathing",
                 },
                 true,
                 vec![],
@@ -1307,8 +1307,8 @@ impl Spawn {
             ecs_world,
             (
                 Named {
-                    name: "Stonedust cultist".to_string(),
-                    attack_verb: Some("hits".to_string()),
+                    name: "Stonedust cultist",
+                    attack_verb: Some("hits"),
                 },
                 Species {
                     value: SpeciesEnum::Human,
@@ -1331,11 +1331,11 @@ impl Spawn {
                     nutrition_dice_size: 4,
                 },
                 Smellable {
-                    smell_log: Some("stone dust".to_string()),
+                    smell_log: Some("stone dust"),
                     intensity: SmellIntensity::Faint,
                 },
                 ProduceSound {
-                    sound_log: "rythmic chanting".to_string(),
+                    sound_log: "rythmic chanting",
                 },
                 true,
                 vec![],
@@ -1401,8 +1401,8 @@ impl Spawn {
             ecs_world,
             (
                 Named {
-                    name: "Stonedust acolyte".to_string(),
-                    attack_verb: Some("hits".to_string()),
+                    name: "Stonedust acolyte",
+                    attack_verb: Some("hits"),
                 },
                 Species {
                     value: SpeciesEnum::Human,
@@ -1425,11 +1425,11 @@ impl Spawn {
                     nutrition_dice_size: 4,
                 },
                 Smellable {
-                    smell_log: Some("stone dust".to_string()),
+                    smell_log: Some("stone dust"),
                     intensity: SmellIntensity::Faint,
                 },
                 ProduceSound {
-                    sound_log: "rythmic preaching".to_string(),
+                    sound_log: "rythmic preaching",
                 },
                 true,
                 vec![],
@@ -1495,8 +1495,8 @@ impl Spawn {
             ecs_world,
             (
                 Named {
-                    name: "Living dead".to_string(),
-                    attack_verb: Some("bites".to_string()),
+                    name: "Living dead",
+                    attack_verb: Some("bites"),
                 },
                 Species {
                     value: SpeciesEnum::Undead,
@@ -1519,11 +1519,11 @@ impl Spawn {
                     nutrition_dice_size: 1,
                 },
                 Smellable {
-                    smell_log: Some("decomposition".to_string()),
+                    smell_log: Some("decomposition"),
                     intensity: SmellIntensity::Faint,
                 },
                 ProduceSound {
-                    sound_log: "dragging feet".to_string(),
+                    sound_log: "dragging feet",
                 },
                 true,
                 vec![
@@ -1544,8 +1544,8 @@ impl Spawn {
             ecs_world,
             (
                 Named {
-                    name: "Darkling".to_string(),
-                    attack_verb: Some("slashes".to_string()),
+                    name: "Darkling",
+                    attack_verb: Some("slashes"),
                 },
                 Species {
                     value: SpeciesEnum::DeepSpawn,
@@ -1572,7 +1572,7 @@ impl Spawn {
                     intensity: SmellIntensity::None,
                 },
                 ProduceSound {
-                    sound_log: "someone whispering".to_string(),
+                    sound_log: "someone whispering",
                 },
                 true,
                 vec![ImmunityTypeEnum::Blindness],
@@ -1596,8 +1596,8 @@ impl Spawn {
             ecs_world,
             (
                 Named {
-                    name: "Colossal Worm".to_string(),
-                    attack_verb: Some("munches".to_string()),
+                    name: "Colossal Worm",
+                    attack_verb: Some("munches"),
                 },
                 Species {
                     value: SpeciesEnum::Gastropod,
@@ -1620,11 +1620,11 @@ impl Spawn {
                     nutrition_dice_size: 20,
                 },
                 Smellable {
-                    smell_log: Some("stomach acid and stone dust".to_string()),
+                    smell_log: Some("stomach acid and stone dust"),
                     intensity: SmellIntensity::Strong,
                 },
                 ProduceSound {
-                    sound_log: "cave rumbling".to_string(),
+                    sound_log: "cave rumbling",
                 },
                 true,
                 vec![],
@@ -1658,8 +1658,8 @@ impl Spawn {
             let body_part = ecs_world.spawn((
                 Monster {},
                 Named {
-                    name: "Colossal Worm's body".to_string(),
-                    attack_verb: Some("".to_string()),
+                    name: "Colossal Worm's body",
+                    attack_verb: Some(""),
                 },
                 Renderable {
                     texture_name: TextureName::Creatures,
@@ -1682,7 +1682,7 @@ impl Spawn {
                     y: free_y,
                 },
                 Smellable {
-                    smell_log: Some("stomach acid and stone dust".to_string()),
+                    smell_log: Some("stomach acid and stone dust"),
                     intensity: SmellIntensity::Strong,
                 },
                 SufferingDamage {

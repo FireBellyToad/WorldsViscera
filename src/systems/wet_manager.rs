@@ -61,7 +61,7 @@ impl WetManager {
                         // Log only the first time the player gets wet
                         // Avoid multiple logs while walking in water
                         if player_id == got_wet_entity.id() {
-                            game_state.game_log.entries.push("You get wet".to_string());
+                            game_state.game_log.add_entry("You get wet");
                         }
 
                         entities_that_got_wet.push(got_wet_entity);
@@ -107,10 +107,7 @@ impl WetManager {
                         entities_that_dryed.push(got_wet_entity);
 
                         if player_id == got_wet_entity.id() {
-                            game_state
-                                .game_log
-                                .entries
-                                .push("You are no longer wet".to_string());
+                            game_state.game_log.add_entry("You are no longer wet");
                         }
                     }
                 }
@@ -184,7 +181,7 @@ impl WetManager {
             if turned_on.is_some() && fueled.is_some() {
                 entities_in_backpack_to_turn_off.push(item);
                 if *player_id == got_wet_entity.id() {
-                    game_log.entries.push(format!(
+                    game_log.add_entry(&format!(
                         "Your {} gets wet and turns itself off!",
                         named.name
                     ));
@@ -194,17 +191,16 @@ impl WetManager {
                 if let Some(rust) = eroded {
                     if rust.value < RUST_MAX_VALUE {
                         if *player_id == got_wet_entity.id() {
-                            game_log
-                                .entries
-                                .push(format!("Your {} gets wet and rusts further!", named.name));
+                            game_log.add_entry(&format!(
+                                "Your {} gets wet and rusts further!",
+                                named.name
+                            ));
                         }
                         entities_in_backpack_to_rust.push((item, rust.value + 1));
                     }
                 } else {
                     if *player_id == got_wet_entity.id() {
-                        game_log
-                            .entries
-                            .push(format!("Your {} gets wet and rusts!", named.name));
+                        game_log.add_entry(&format!("Your {} gets wet and rusts!", named.name));
                     }
                     entities_in_backpack_to_rust.push((item, 1));
                 }

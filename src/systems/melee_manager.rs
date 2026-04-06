@@ -149,21 +149,19 @@ impl MeleeManager {
                                     target_damage.toughness_damage_received += damage_roll;
 
                                     if attacker_is_player {
-                                        game_state.game_log.entries.push(format!(
+                                        game_state.game_log.add_entry(&format!(
                                             "You {} the {} for {} venomous damage",
                                             named_attacker
                                                 .attack_verb
-                                                .clone()
                                                 .expect("attack_verb must not be None "),
                                             named_target.name,
                                             damage_roll
                                         ));
                                     } else if target_is_player {
-                                        game_state.game_log.entries.push(format!(
+                                        game_state.game_log.add_entry(&format!(
                                             "The {} {} you for {} venomous damage",
                                             named_attacker
                                                 .attack_verb
-                                                .clone()
                                                 .expect("attack_verb must not be None "),
                                             named_attacker.name,
                                             damage_roll
@@ -174,12 +172,11 @@ impl MeleeManager {
                                             &attacker_position.x,
                                             &attacker_position.y,
                                         )] {
-                                            game_state.game_log.entries.push(format!(
+                                            game_state.game_log.add_entry(&format!(
                                                 "The {} {} the {} for {} venomous damage",
                                                 named_attacker.name,
                                                 named_attacker
                                                     .attack_verb
-                                                    .clone()
                                                     .expect("attack_verb must not be None "),
                                                 named_target.name,
                                                 damage_roll
@@ -187,9 +184,8 @@ impl MeleeManager {
                                         }
                                     }
                                 } else if target_is_player {
-                                    game_state.game_log.entries.push(
-                                        "The hit makes you feel dizzy for a moment, then it passes"
-                                            .to_string(),
+                                    game_state.game_log.add_entry(
+                                        "The hit makes you feel dizzy for a moment, then it passes",
                                     );
                                 }
                             }
@@ -206,12 +202,12 @@ impl MeleeManager {
                                     );
 
                                     if attacker_is_player {
-                                        game_state.game_log.entries.push(format!(
+                                        game_state.game_log.add_entry(&format!(
                                             "You sneak attack the {} for {} damage!",
                                             named_target.name, damage_roll
                                         ));
                                     } else if target_is_player {
-                                        game_state.game_log.entries.push(format!(
+                                        game_state.game_log.add_entry(&format!(
                                             "The {} sneak attacks you for {} damage!",
                                             named_attacker.name, damage_roll
                                         ));
@@ -221,7 +217,7 @@ impl MeleeManager {
                                             &attacker_position.x,
                                             &attacker_position.y,
                                         )] {
-                                            game_state.game_log.entries.push(format!(
+                                            game_state.game_log.add_entry(&format!(
                                                 "The {} sneak attacks the {} for {} damage!",
                                                 named_attacker.name, named_target.name, damage_roll
                                             ));
@@ -244,22 +240,20 @@ impl MeleeManager {
                                         Roll::dice(1, attacker_dice) - target_armor - erosion,
                                     );
                                     if attacker_is_player {
-                                        game_state.game_log.entries.push(format!(
+                                        game_state.game_log.add_entry(&format!(
                                             "You {} the {} for {} damage",
                                             named_attacker
                                                 .attack_verb
-                                                .clone()
                                                 .expect("attack_verb must not be None "),
                                             named_target.name,
                                             damage_roll
                                         ));
                                     } else if target_is_player {
-                                        game_state.game_log.entries.push(format!(
+                                        game_state.game_log.add_entry(&format!(
                                             "The {} {} you for {} damage",
                                             named_attacker.name,
                                             named_attacker
                                                 .attack_verb
-                                                .clone()
                                                 .expect("attack_verb must not be None "),
                                             damage_roll
                                         ));
@@ -269,12 +263,11 @@ impl MeleeManager {
                                             &attacker_position.x,
                                             &attacker_position.y,
                                         )] {
-                                            game_state.game_log.entries.push(format!(
+                                            game_state.game_log.add_entry(&format!(
                                                 "{} {} the {} for {} damage",
                                                 named_attacker.name,
                                                 named_attacker
                                                     .attack_verb
-                                                    .clone()
                                                     .expect("attack_verb must not be None "),
                                                 named_target.name,
                                                 damage_roll
@@ -321,18 +314,14 @@ impl MeleeManager {
                                     // Infect the healthy target otherwise
                                     infected_list.push((wants_melee.target, disease_type));
                                     if player_id == wants_melee.target.id() {
-                                        game_state
-                                            .game_log
-                                            .entries
-                                            .push("You start to feel ill.".to_string());
+                                        game_state.game_log.add_entry("You start to feel ill.");
                                     }
                                 }
                             } else {
                                 // Immune or unaffected
                                 if player_id == wants_melee.target.id() {
-                                    game_state.game_log.entries.push(
-                                        "You felt a little sick, but it passed quickly."
-                                            .to_string(),
+                                    game_state.game_log.add_entry(
+                                        "You felt a little sick, but it passed quickly.",
                                     );
                                 }
                             }
@@ -347,7 +336,7 @@ impl MeleeManager {
                                         .entries
                                         .push(format!("The {} grabs on you!", named_attacker.name));
                                 } else {
-                                    game_state.game_log.entries.push(format!(
+                                    game_state.game_log.add_entry(&format!(
                                         "The {} grabs on the {}!",
                                         named_attacker.name, named_target.name
                                     ));

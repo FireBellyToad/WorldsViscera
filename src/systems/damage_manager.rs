@@ -18,7 +18,7 @@ use crate::{
     utils::roll::Roll,
 };
 
-type DeadEntityData = (Entity, String, (i32, i32), Option<Entity>, u32);
+type DeadEntityData = (Entity, &'static str, (i32, i32), Option<Entity>, u32);
 
 pub struct DamageManager {}
 
@@ -171,7 +171,7 @@ impl DamageManager {
                     if is_killed {
                         dead_entities.push((
                             entity,
-                            named.name.clone(),
+                            named.name,
                             (position.x, position.y),
                             damageable.damager,
                             stats.level,
@@ -180,12 +180,9 @@ impl DamageManager {
 
                     if entity.id() == player_id {
                         if is_killed {
-                            game_state.game_log.entries.push("You die!".to_string());
+                            game_state.game_log.add_entry("You die!");
                         } else {
-                            game_state
-                                .game_log
-                                .entries
-                                .push("You stagger in pain!".to_string());
+                            game_state.game_log.add_entry("You stagger in pain!");
                         }
                     } else if zone.visible_tiles[Zone::get_index_from_xy(&position.x, &position.y)]
                     {
@@ -193,13 +190,11 @@ impl DamageManager {
                         if is_killed {
                             game_state
                                 .game_log
-                                .entries
-                                .push(format!("{} dies!", named.name));
+                                .add_entry(&format!("{} dies!", named.name));
                         } else if stats.current_toughness > 0 {
                             game_state
                                 .game_log
-                                .entries
-                                .push(format!("{} staggers in pain!", named.name));
+                                .add_entry(&format!("{} staggers in pain!", named.name));
                         }
                     }
                 }
@@ -208,15 +203,11 @@ impl DamageManager {
                     paralyzed_entities.push(entity);
 
                     if entity.id() == player_id {
-                        game_state
-                            .game_log
-                            .entries
-                            .push("You are paralyzed!".to_string());
+                        game_state.game_log.add_entry("You are paralyzed!");
                     } else {
                         game_state
                             .game_log
-                            .entries
-                            .push(format!("{} is paralyzed!", named.name));
+                            .add_entry(&format!("{} is paralyzed!", named.name));
                     }
                 }
                 // Reset SufferingDamage component

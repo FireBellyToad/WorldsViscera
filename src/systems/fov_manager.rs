@@ -47,10 +47,7 @@ impl FieldOfViewManager {
                     if blind.tick_counter <= 0 {
                         remove_blindness_list.push(entity);
                         if is_player {
-                            game_state
-                                .game_log
-                                .entries
-                                .push("You can see again".to_string());
+                            game_state.game_log.add_entry("You can see again");
                             viewshed.must_recalculate = true;
                         }
                     }

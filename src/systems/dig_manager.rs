@@ -58,16 +58,12 @@ impl DigManager {
                 if digger.id() == player_id {
                     game_state
                         .game_log
-                        .entries
-                        .push("You dig the cracked stone wall".to_string());
+                        .add_entry("You dig the cracked stone wall");
                 }
 
                 // Clear path if digged enough
                 if diggable.dig_points <= 0 {
-                    game_state
-                        .game_log
-                        .entries
-                        .push("The cracked wall opens!".to_string());
+                    game_state.game_log.add_entry("The cracked wall opens!");
 
                     zone.tiles[Zone::get_index_from_xy(&pos.x, &pos.y)] = TileType::Floor;
 

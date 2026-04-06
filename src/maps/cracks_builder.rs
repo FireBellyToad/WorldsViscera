@@ -67,7 +67,7 @@ impl ZoneFeatureBuilder for CracksBuilder {
             //5 - go to step 2
         }
 
-        //6 - return the river tiles
+        //6 - return the crack tiles
         cracked_tiles
     }
 }

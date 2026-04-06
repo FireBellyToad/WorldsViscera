@@ -78,8 +78,7 @@ impl ItemEquipping {
                     if player_id == equipper.id() {
                         game_state
                             .game_log
-                            .entries
-                            .push(format!("You unequip the {}", named_item.name));
+                            .add_entry(&format!("You unequip the {}", named_item.name));
                     }
                 } else {
                     //Check if wants_item.body_location is already taken
@@ -104,7 +103,7 @@ impl ItemEquipping {
                             cleanup_equip.push(equipper);
 
                             if player_id == equipper.id() {
-                                game_state.game_log.entries.push(format!(
+                                game_state.game_log.add_entry(&format!(
                                     "You must unequip the {} before equipping the {}",
                                     named_item_to_remove.name, named_item.name
                                 ));
@@ -138,7 +137,7 @@ impl ItemEquipping {
                             } else if zone.visible_tiles
                                 [Zone::get_index_from_xy(&position.x, &position.y)]
                             {
-                                game_state.game_log.entries.push(format!(
+                                game_state.game_log.add_entry(&format!(
                                     "{} equips the {}",
                                     named_equipper.name, named_item.name
                                 ));

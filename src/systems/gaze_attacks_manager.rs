@@ -61,8 +61,7 @@ impl GazeAttacksManager {
                         if player_entity_id == wants_to_gaze.target.id() {
                             game_state
                                 .game_log
-                                .entries
-                                .push(format!("You just ignore the {}'s gaze!", named.name));
+                                .add_entry(&format!("You just ignore the {}'s gaze!", named.name));
                         }
                     } else {
                         // One save to avoid the gaze, the other to resist once the target has been gazed upon
@@ -89,7 +88,7 @@ impl GazeAttacksManager {
 
                             //Log attack
                             if player_entity_id == wants_to_gaze.target.id() {
-                                game_state.game_log.entries.push(format!(
+                                game_state.game_log.add_entry(&format!(
                                     "The {} {} you with its gaze!",
                                     named.name, effect
                                 ));
@@ -98,7 +97,7 @@ impl GazeAttacksManager {
                                 && zone.visible_tiles
                                     [Zone::get_index_from_xy(&position.x, &position.y)]
                             {
-                                game_state.game_log.entries.push(format!(
+                                game_state.game_log.add_entry(&format!(
                                     "The {} {} the {} with its gaze!",
                                     named.name, effect, target_name.name
                                 ));

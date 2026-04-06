@@ -16,8 +16,8 @@ impl Spawn {
     pub fn daze(ecs_world: &mut World) -> Entity {
         let daze_spell = (
             Named {
-                name: "Daze".to_string(),
-                attack_verb: Some("stun".to_string()),
+                name: "Daze",
+                attack_verb: Some("stun"),
             },
             Spell {
                 spell_type: SpellType::Daze,
@@ -32,8 +32,8 @@ impl Spawn {
     pub fn burning_spray(ecs_world: &mut World) -> Entity {
         let daze_spell = (
             Named {
-                name: "Burning Spray".to_string(),
-                attack_verb: Some("burn".to_string()),
+                name: "Burning Spray",
+                attack_verb: Some("burn"),
             },
             Spell {
                 spell_type: SpellType::BurningSpray,
@@ -51,8 +51,8 @@ impl Spawn {
     pub fn stone_fell(ecs_world: &mut World) -> Entity {
         let stone_fell = (
             Named {
-                name: "Stone fell".to_string(),
-                attack_verb: Some("strike".to_string()),
+                name: "Stone fell",
+                attack_verb: Some("strike"),
             },
             Spell {
                 spell_type: SpellType::StoneFell,

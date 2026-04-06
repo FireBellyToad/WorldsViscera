@@ -5,7 +5,7 @@ use crate::{
         actions::WantsItem,
         combat::CombatStats,
         common::{Hates, MyTurn, Named, Position},
-        items::{InBackback, Item, Perishable, ToBeHarvested},
+        items::{Corpse, InBackback, Item, Perishable, ToBeHarvested},
         monster::Small,
     },
     constants::{
@@ -68,10 +68,7 @@ impl ItemCollection {
                                 == MAX_ITEMS_IN_BACKPACK_FOR_SMALL)
                     {
                         if player_id == collector.id() {
-                            game_state
-                                .game_log
-                                .entries
-                                .push("You cannot carry anymore!".to_string());
+                            game_state.game_log.add_entry("You cannot carry anymore!");
                             failed_pick_upper.push(collector);
                         }
                     } else {
@@ -88,21 +85,28 @@ impl ItemCollection {
                         last_assigned_char = char_to_assign;
 
                         // Show appropriate log messages
-                        let named_item =
-                            ecs_world.get::<&Named>(item).expect("Entity is not Named");
+                        let mut picked_item_query = ecs_world
+                            .query_one::<(&Named, Option<&Corpse>)>(item)
+                            .expect("No entity {:?} found with Named component");
+
+                        let (named_item, corpse_opt) = picked_item_query
+                            .get()
+                            .expect("Must have Named and maybe Corpse!");
+                        // Hack to determine if the collected item is a corpse (for logging purposes)
+                        let corpse_text = Utils::get_corpse_string(corpse_opt.is_some());
 
                         if player_id == collector.id() {
-                            game_state
-                                .game_log
-                                .entries
-                                .push(format!("You pick up the {}", named_item.name));
+                            game_state.game_log.add_entry(&format!(
+                                "You pick up the {}{}",
+                                named_item.name, corpse_text
+                            ));
                         } else if zone.visible_tiles
                             [Zone::get_index_from_xy(&position.x, &position.y)]
                         {
                             // Log NPC  only if visible
-                            game_state.game_log.entries.push(format!(
-                                "The {} picks up the {}",
-                                named_collector.name, named_item.name
+                            game_state.game_log.add_entry(&format!(
+                                "The {} picks up the {}{}",
+                                named_collector.name, named_item.name, corpse_text
                             ));
                         }
 
@@ -127,16 +131,19 @@ impl ItemCollection {
                                 .expect("owner must be named and hate");
                             if let Some((hates, named_owner)) = shop_owner_query.get() {
                                 if collector.id() == player_id {
-                                    game_state.game_log.entries.push(format!(
-                                        "You stole the {}! The {} gets angry!",
-                                        named_item.name, named_owner.name
+                                    game_state.game_log.add_entry(&format!(
+                                        "You stole the {}{}! The {} gets angry!",
+                                        named_item.name, corpse_text, named_owner.name
                                     ));
                                 } else if zone.visible_tiles
                                     [Zone::get_index_from_xy(&position.x, &position.y)]
                                 {
-                                    game_state.game_log.entries.push(format!(
-                                        "The {} stoles the {}! The {} gets angry!",
-                                        named_collector.name, named_item.name, named_owner.name
+                                    game_state.game_log.add_entry(&format!(
+                                        "The {} stoles the {}{}! The {} gets angry!",
+                                        named_collector.name,
+                                        named_item.name,
+                                        corpse_text,
+                                        named_owner.name
                                     ));
                                 }
 

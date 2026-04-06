@@ -22,7 +22,7 @@ impl DecayManager {
             .expect("Player id should be set")
             .id();
 
-        let mut expired_edibles: Vec<(Entity, String)> = Vec::new();
+        let mut expired_edibles: Vec<(Entity, &str)> = Vec::new();
         let mut rotten_edibles_to_despawn: Vec<(Entity, Option<(i32, i32)>)> = Vec::new();
 
         // Scope for keeping borrow checker quiet
@@ -72,7 +72,7 @@ impl DecayManager {
                         Err(_) => {
                             // Rot
                             perishable.rot_counter = STARTING_ROT_COUNTER + Roll::d100();
-                            expired_edibles.push((entity, named.name.clone()));
+                            expired_edibles.push((entity, named.name));
                         }
                     }
                 }
@@ -87,7 +87,7 @@ impl DecayManager {
                     Rotten {},
                     Smellable {
                         intensity: SmellIntensity::Faint,
-                        smell_log: Some(format!("rotten {}", name)),
+                        smell_log: Some(name),
                     },
                 ),
             );
