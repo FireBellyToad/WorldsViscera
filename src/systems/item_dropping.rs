@@ -37,9 +37,9 @@ impl ItemDropping {
                         wants_to_drop.item,
                     )
                     .expect("No entity {:?} found with InBackback component");
-                let (_, equipped_opt, corpse) =
+                let (_, equipped_opt, corpse_opt) =
                     dropped_item_query.get().expect("Must have Equipped");
-                let corpse_text = if corpse.is_some() { " corpse" } else { "" };
+                let corpse_text = Utils::get_corpse_string(corpse_opt.is_some());
 
                 if equipped_opt.is_some() {
                     if player_id == dropper.id() {

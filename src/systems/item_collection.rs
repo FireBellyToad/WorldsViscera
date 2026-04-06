@@ -93,7 +93,7 @@ impl ItemCollection {
                             .get()
                             .expect("Must have Named and maybe Corpse!");
                         // Hack to determine if the collected item is a corpse (for logging purposes)
-                        let corpse_text = if corpse_opt.is_some() { " corpse" } else { "" };
+                        let corpse_text = Utils::get_corpse_string(corpse_opt.is_some());
 
                         if player_id == collector.id() {
                             game_state.game_log.add_entry(&format!(
