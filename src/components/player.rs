@@ -144,7 +144,7 @@ impl Player {
                             g_query.get().expect("g_query must have result");
                         // Try to escape grapple
                         if Roll::d20() <= stats.current_dexterity {
-                            game_state.game_log.entries.push(format!(
+                            game_state.game_log.add_entry(&format!(
                                 "You free yourself from the {}'s grasp!",
                                 grappler_name.name
                             ));
@@ -152,7 +152,7 @@ impl Player {
                             // Grappler lose turn
                             waiter_speed_list.push((grappler.by, grappler_stats.speed));
                         } else {
-                            game_state.game_log.entries.push(format!(
+                            game_state.game_log.add_entry(&format!(
                                 "You cant' escape the {}'s grasp!",
                                 grappler_name.name
                             ));
@@ -179,8 +179,7 @@ impl Player {
                             if stats.current_dexterity < Roll::d20() {
                                 game_state
                                     .game_log
-                                    .entries
-                                    .push("You burn yourself on the acid!".to_string());
+                                    .add_entry("You burn yourself on the acid!");
                                 suffering_damage.damage_received +=
                                     Roll::dice(1, ACID_DECAL_DAMAGE_DICE);
                             }

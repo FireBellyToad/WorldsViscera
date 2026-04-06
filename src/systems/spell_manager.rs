@@ -104,9 +104,8 @@ impl SpellManager {
                                             target_opt = Some(entity);
                                             break;
                                         } else if is_immune {
-                                            game_state.game_log.entries.push(
-                                                "The stones just bounce off your hard headgear"
-                                                    .to_string(),
+                                            game_state.game_log.add_entry(
+                                                "The stones just bounce off your hard headgear",
                                             );
                                         }
                                     }

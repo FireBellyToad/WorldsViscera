@@ -92,7 +92,7 @@ impl Spawn {
                         },
                         Poisonous {},
                         Named {
-                            name: "white-spotted mushroom".to_string(),
+                            name: "white-spotted mushroom",
                             attack_verb: None,
                         },
                     ),
@@ -108,7 +108,7 @@ impl Spawn {
                         },
                         Deadly {},
                         Named {
-                            name: "drumstick white mushroom".to_string(),
+                            name: "drumstick white mushroom",
                             attack_verb: None,
                         },
                     ),
@@ -142,7 +142,7 @@ impl Spawn {
                             nutrition_dice_size: 10,
                         },
                         Named {
-                            name: "patch of mold".to_string(),
+                            name: "patch of mold",
                             attack_verb: None,
                         },
                     ),
@@ -669,7 +669,7 @@ impl Spawn {
                 z_index: 0,
             },
             Named {
-                name: "leather shoes".to_string(),
+                name: "leather shoes",
                 attack_verb: None,
             },
             Item {
@@ -701,7 +701,7 @@ impl Spawn {
                 z_index: 0,
             },
             Named {
-                name: "crampon boots".to_string(),
+                name: "crampon boots",
                 attack_verb: None,
             },
             Item {
