@@ -948,7 +948,7 @@ impl Spawn {
                 z_index: 0,
             },
             Named {
-                name: "golden grooved circle".to_string(),
+                name: "golden grooved circle",
                 attack_verb: None,
             },
             Item {
