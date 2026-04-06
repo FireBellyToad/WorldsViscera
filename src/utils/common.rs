@@ -202,4 +202,9 @@ impl Utils {
             panic!("Target has no CombatStats and is not a snake");
         }
     }
+
+    #[inline]
+    pub fn get_corpse_string(is_corpse: bool) -> &'static str {
+        if is_corpse { " corpse" } else { "" }
+    }
 }

@@ -39,9 +39,7 @@ impl SoundSystem {
                             can_listen
                                 .listen_cache
                                 .entry(producer.id())
-                                .or_insert_with(|| {
-                                    (producer, produce_sound.sound_log.clone(), false)
-                                });
+                                .or_insert_with(|| (producer, produce_sound.sound_log, false));
                         } else if can_listen.listen_cache.contains_key(&producer.id()) {
                             let _ = can_listen.listen_cache.remove(&producer.id());
                         }
@@ -55,8 +53,7 @@ impl SoundSystem {
                         if !*already_listened && index == random_sound - 1 {
                             game_state
                                 .game_log
-                                .entries
-                                .push(format!("You hear {}", listen_log));
+                                .add_entry(&format!("You hear {}", listen_log));
                             *already_listened = true;
                             break;
                         }

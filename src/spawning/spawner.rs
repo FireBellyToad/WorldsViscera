@@ -25,7 +25,7 @@ use macroquad::math::Rect;
 pub struct CorpseSpawnData {
     pub x: i32,
     pub y: i32,
-    pub name: String,
+    pub name: &'static str,
     pub edible: Edible,
     pub is_venomous: bool,
     pub is_deadly: bool,
@@ -69,8 +69,8 @@ impl Spawn {
                 must_recalculate: true,
             },
             Named {
-                name: "Player".to_string(),
-                attack_verb: Some("hit".to_string()),
+                name: "Player",
+                attack_verb: Some("hit"),
             },
             CombatStats {
                 level: 1,
@@ -106,7 +106,7 @@ impl Spawn {
             },
             Smellable {
                 intensity: SmellIntensity::Faint,
-                smell_log: Some("yourself".to_string()),
+                smell_log: Some("yourself"),
             },
             CanListen {
                 listen_cache: HashMap::new(),
@@ -302,7 +302,7 @@ impl Spawn {
                 z_index: 0,
             },
             Named {
-                name: format!("{} corpse", data.name),
+                name: data.name,
                 attack_verb: None,
             },
             Item {
@@ -331,8 +331,8 @@ impl Spawn {
                 (
                     Rotten {},
                     Smellable {
-                        intensity: SmellIntensity::Faint,
-                        smell_log: Some(format!("rotten {}", data.name)),
+                        intensity: SmellIntensity::Strong,
+                        smell_log: Some(data.name),
                     },
                 ),
             );
@@ -349,11 +349,11 @@ impl Spawn {
                         radius: BRAZIER_RADIUS,
                     },
                     Smellable {
-                        smell_log: Some("burning chemicals".to_string()),
+                        smell_log: Some("burning chemicals"),
                         intensity: SmellIntensity::Strong,
                     },
                     ProduceSound {
-                        sound_log: "fire burning".to_string(),
+                        sound_log: "fire burning",
                     },
                     TurnedOn {},
                 ));
@@ -362,7 +362,7 @@ impl Spawn {
                 ecs_world.spawn((
                     Position { x, y },
                     ProduceSound {
-                        sound_log: "breeze from below".to_string(),
+                        sound_log: "breeze from below",
                     },
                 ));
             }
@@ -412,7 +412,7 @@ impl Spawn {
     pub fn river_water_entity(ecs_world: &mut World) -> Entity {
         ecs_world.spawn((
             Named {
-                name: "River water".to_string(),
+                name: "River water",
                 attack_verb: None,
             },
             Quaffable {

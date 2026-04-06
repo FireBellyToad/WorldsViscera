@@ -2,11 +2,7 @@ use hecs::Entity;
 
 use crate::{
     components::{
-        actions::WantsToDrink,
-        combat::CombatStats,
-        common::Named,
-        health::Thirst,
-        items::Quaffable,
+        actions::WantsToDrink, combat::CombatStats, common::Named, health::Thirst, items::Quaffable,
     },
     engine::state::GameState,
     utils::{common::Utils, roll::Roll},
@@ -54,7 +50,7 @@ impl DrinkingQuaffables {
                     let named_drinker = ecs_world
                         .get::<&Named>(drinker)
                         .expect("Entity is not Named");
-                    game_state.game_log.entries.push(format!(
+                    game_state.game_log.add_entry(&format!(
                         "{} drank the {}",
                         named_drinker.name, named_quaffable.name
                     ));

@@ -101,18 +101,17 @@ impl ApplySystem {
                 if let Some(fuel) = must_be_fueled {
                     if wet.is_some() {
                         if player_id == in_backback.owner.id() {
-                            game_state
-                                .game_log
-                                .entries
-                                .push(format!("Your {} is too wet to be turned on", named.name));
+                            game_state.game_log.add_entry(&format!(
+                                "Your {} is too wet to be turned on",
+                                named.name
+                            ));
                         }
                         continue;
                     } else if fuel.fuel_counter < 1 {
                         if player_id == in_backback.owner.id() {
                             game_state
                                 .game_log
-                                .entries
-                                .push(format!("Your {} has no fuel", named.name));
+                                .add_entry(&format!("Your {} has no fuel", named.name));
                         }
                         continue;
                     }

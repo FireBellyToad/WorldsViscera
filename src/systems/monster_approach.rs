@@ -78,8 +78,7 @@ impl MonsterApproach {
                             // Log NPC infighting only if visible
                             game_state
                                 .game_log
-                                .entries
-                                .push(format!("The {} slips on the slime!", named.name));
+                                .add_entry(&format!("The {} slips on the slime!", named.name));
                         }
                         continue;
                     }
@@ -102,7 +101,7 @@ impl MonsterApproach {
 
                         // Grappler lose turn
                         if zone.visible_tiles[Zone::get_index_from_xy(&position.x, &position.y)] {
-                            game_state.game_log.entries.push(format!(
+                            game_state.game_log.add_entry(&format!(
                                 "The {} escapes the {}'s grasp!",
                                 named.name, grappler_name.name
                             ));

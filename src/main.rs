@@ -56,7 +56,7 @@ mod utils;
 //Game configuration
 fn get_game_configuration() -> Conf {
     Conf {
-        window_title: "World's Viscera".to_string(),
+        window_title: "World's Viscera".to_owned(),
         fullscreen: false,
         window_height: WINDOW_HEIGHT,
         window_width: WINDOW_WIDTH,
@@ -83,6 +83,7 @@ async fn main() {
         debug_monster_vision: false,
         current_tick: 0,
     };
+    game_state.game_log.add_entry("Welcome to World's Viscera!");
     populate_world(&mut game_state);
 
     loop {
@@ -191,13 +192,6 @@ async fn main() {
 fn populate_world(game_state: &mut GameState) {
     // Generate new seed, or else it will always generate the same things
     rand::srand(macroquad::miniquad::date::now() as _);
-    //Add Game log to world
-    game_state.ecs_world.spawn((
-        true,
-        GameLog {
-            entries: vec!["Welcome to World's Viscera".to_string()],
-        },
-    ));
 
     let zone = ArenaZoneBuilder::build(1, &mut game_state.ecs_world);
 

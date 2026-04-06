@@ -198,11 +198,11 @@ impl Draw {
         let mut text_color = WHITE;
 
         // Draw Level (LVL)
-        Draw::stat_text(level_text, 0.0, text_color);
+        Draw::stat_text(&level_text, 0.0, text_color);
 
         // Draw Experience (EXP)
         Draw::stat_text(
-            exp_text,
+            &exp_text,
             LETTER_SIZE + (level_text_len as f32 * LETTER_SIZE),
             text_color,
         );
@@ -217,7 +217,7 @@ impl Draw {
         }
 
         Draw::stat_text(
-            sta_text,
+            &sta_text,
             2.0 * LETTER_SIZE
                 + (level_text_len as f32 * LETTER_SIZE)
                 + (exp_text_len as f32 * LETTER_SIZE),
@@ -232,7 +232,7 @@ impl Draw {
         }
 
         Draw::stat_text(
-            tou_text,
+            &tou_text,
             3.0 * LETTER_SIZE
                 + (level_text_len as f32 * LETTER_SIZE)
                 + (exp_text_len as f32 * LETTER_SIZE)
@@ -248,7 +248,7 @@ impl Draw {
         }
 
         Draw::stat_text(
-            dex_text,
+            &dex_text,
             4.0 * LETTER_SIZE
                 + (level_text_len as f32 * LETTER_SIZE)
                 + (exp_text_len as f32 * LETTER_SIZE)
@@ -265,7 +265,7 @@ impl Draw {
             _ => text_color = WHITE,
         }
         Draw::stat_text(
-            hunger_text,
+            &hunger_text,
             5.0 * LETTER_SIZE
                 + (level_text_len as f32 * LETTER_SIZE)
                 + (exp_text_len as f32 * LETTER_SIZE)
@@ -283,7 +283,7 @@ impl Draw {
             _ => text_color = WHITE,
         }
         Draw::stat_text(
-            thirst_text,
+            &thirst_text,
             6.0 * LETTER_SIZE
                 + (level_text_len as f32 * LETTER_SIZE)
                 + (exp_text_len as f32 * LETTER_SIZE)
@@ -297,7 +297,7 @@ impl Draw {
         text_color = WHITE;
         // TODO improve
         Draw::stat_text(
-            depth_text,
+            &depth_text,
             7.0 * LETTER_SIZE
                 + (level_text_len as f32 * LETTER_SIZE)
                 + (exp_text_len as f32 * LETTER_SIZE)
@@ -310,7 +310,7 @@ impl Draw {
         );
     }
 
-    fn stat_text(text: String, left_pad: f32, text_color: Color) {
+    fn stat_text(text: &str, left_pad: f32, text_color: Color) {
         draw_text(
             text,
             (HUD_BORDER + HEADER_LEFT_SPAN + UI_BORDER) as f32 + left_pad,
@@ -739,6 +739,11 @@ impl Draw {
             if is_blocked {
                 use macroquad::color::BLUE;
 
+                let color = match zone.tiles[index] {
+                    TileType::CrackedWall => GREEN,
+                    _ => BLUE,
+                };
+
                 let (rounded_x, rounded_y) = Zone::get_xy_from_index(index);
 
                 draw_rectangle_lines(
@@ -747,7 +752,7 @@ impl Draw {
                     TILE_SIZE_F32,
                     TILE_SIZE_F32,
                     2.0,
-                    BLUE,
+                    color,
                 );
             }
         }

@@ -32,8 +32,7 @@ impl AdvancementSystem {
                     if exp_entity.id() == player_id {
                         game_state
                             .game_log
-                            .entries
-                            .push(format!("You have reached level {}", stats.level));
+                            .add_entry(&format!("You have reached level {}", stats.level));
                     }
 
                     // Increase stats and Stamina

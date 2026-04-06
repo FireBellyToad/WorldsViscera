@@ -43,11 +43,11 @@ impl LeaveTrailSystem {
         for (trail_pos_idx, trail_counter, of) in trail_to_spawn {
             let smell = match of {
                 DecalType::Filth => Smellable {
-                    smell_log: Some("filth".to_string()),
+                    smell_log: Some("filth"),
                     intensity: SmellIntensity::Faint,
                 },
                 DecalType::Acid => Smellable {
-                    smell_log: Some("acidic fumes".to_string()),
+                    smell_log: Some("acidic fumes"),
                     intensity: SmellIntensity::Faint,
                 },
                 _ => Smellable {
