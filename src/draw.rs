@@ -737,6 +737,11 @@ impl Draw {
             if is_blocked {
                 use macroquad::color::BLUE;
 
+                let color = match zone.tiles[index] {
+                    TileType::CrackedWall => GREEN,
+                    _ => BLUE,
+                };
+
                 let (rounded_x, rounded_y) = Zone::get_xy_from_index(index);
 
                 draw_rectangle_lines(
@@ -745,7 +750,7 @@ impl Draw {
                     TILE_SIZE_F32,
                     TILE_SIZE_F32,
                     2.0,
-                    BLUE,
+                    color,
                 );
             }
         }
