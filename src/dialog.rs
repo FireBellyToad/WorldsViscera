@@ -5,7 +5,7 @@ use macroquad::{
     color::{BLACK, WHITE},
     input::{clear_input_queue, get_char_pressed},
     shapes::draw_rectangle,
-    text::{TextAlignment, TextParams, draw_multiline_text, draw_multiline_text_ex, draw_text},
+    text::{TextAlignment, TextParams, draw_multiline_text_ex, draw_text},
     texture::Texture2D,
 };
 
@@ -182,8 +182,8 @@ impl Dialog {
         // ------- Text, Aligned to center -----------
         draw_multiline_text_ex(
             &body_text,
-            (DIALOG_X as f32 + DIALOG_SIZE as f32 / 2.0 + HUD_BORDER as f32),
-            (DIALOG_Y + DIALOG_TOP_SPAN + UI_BORDER) as f32,
+            DIALOG_X as f32 + DIALOG_SIZE as f32 / 2.0 + HUD_BORDER as f32,
+            DIALOG_Y as f32 + DIALOG_TOP_SPAN as f32 + UI_BORDER as f32,
             Some(1.5),
             TextParams {
                 font_size: FONT_SIZE as u16,
@@ -212,6 +212,7 @@ impl Dialog {
     }
 
     /// Builds a string representation of the items to be received in a shop offer.
+    /// result example with 2 items: "a sword and a potion"
     fn build_offer_string(items: Iter<'_, Entity>, ecs_world: &World) -> String {
         let mut offer_string_arr = String::new();
         let items_length = items.len();
@@ -220,7 +221,7 @@ impl Dialog {
                 .get::<&Named>(*item)
                 .expect("offered item is not named");
             offer_string_arr.push_str("a ");
-            offer_string_arr.push_str(&named.name);
+            offer_string_arr.push_str(named.name);
             if items_length >= 2 {
                 if index < items_length - 2 {
                     offer_string_arr.push_str(",\n");

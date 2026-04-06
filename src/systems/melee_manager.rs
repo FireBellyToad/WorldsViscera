@@ -153,7 +153,6 @@ impl MeleeManager {
                                             "You {} the {} for {} venomous damage",
                                             named_attacker
                                                 .attack_verb
-                                                .clone()
                                                 .expect("attack_verb must not be None "),
                                             named_target.name,
                                             damage_roll
@@ -163,7 +162,6 @@ impl MeleeManager {
                                             "The {} {} you for {} venomous damage",
                                             named_attacker
                                                 .attack_verb
-                                                .clone()
                                                 .expect("attack_verb must not be None "),
                                             named_attacker.name,
                                             damage_roll
@@ -179,7 +177,6 @@ impl MeleeManager {
                                                 named_attacker.name,
                                                 named_attacker
                                                     .attack_verb
-                                                    .clone()
                                                     .expect("attack_verb must not be None "),
                                                 named_target.name,
                                                 damage_roll
@@ -247,7 +244,6 @@ impl MeleeManager {
                                             "You {} the {} for {} damage",
                                             named_attacker
                                                 .attack_verb
-                                                .clone()
                                                 .expect("attack_verb must not be None "),
                                             named_target.name,
                                             damage_roll
@@ -258,7 +254,6 @@ impl MeleeManager {
                                             named_attacker.name,
                                             named_attacker
                                                 .attack_verb
-                                                .clone()
                                                 .expect("attack_verb must not be None "),
                                             damage_roll
                                         ));
@@ -273,7 +268,6 @@ impl MeleeManager {
                                                 named_attacker.name,
                                                 named_attacker
                                                     .attack_verb
-                                                    .clone()
                                                     .expect("attack_verb must not be None "),
                                                 named_target.name,
                                                 damage_roll
