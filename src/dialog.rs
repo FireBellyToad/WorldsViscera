@@ -143,20 +143,23 @@ impl Dialog {
             }
             DialogAction::Trade(trade_info) => {
                 let (_, traded_item, shop_owner, items_to_be_received) = trade_info;
-                let traded_named = ecs_world
-                    .get::<&Named>(*traded_item)
-                    .expect("traded_item is not named");
+
+                let mut q = ecs_world
+                    .query_one::<(&Named, Option<&Corpse>)>(*traded_item)
+                    .unwrap_or_else(|_| panic!("Item with entity {:?} is not named", traded_item));
+                let (traded_named, corpse_opt) = q.get().expect("Item is not named!");
                 let shop_owner_named = ecs_world
                     .get::<&Named>(*shop_owner)
                     .expect("shop_owner is not named");
                 // Build items string with "and" and "carriage return"
-                let mut offer_string =
-                    Dialog::build_offer_string(items_to_be_received.iter(), ecs_world);
-
-                let mut final_string_vec: Vec<&str> = vec![shop_owner_named.name, "offers you"];
-                final_string_vec.append(&mut offer_string);
-                final_string_vec.append(&mut vec!["for your", traded_named.name]);
-                final_string_vec.into_iter().map(|s| s.to_owned()).collect()
+                // Hack to determine if the collected item is a corpse (for logging purposes)
+                format!(
+                    "{}\noffers you\n{}\nfor your\n{}{}.\nAccept the offer?",
+                    shop_owner_named.name,
+                    Dialog::build_offer_string(items_to_be_received.iter(), ecs_world),
+                    traded_named.name,
+                    Utils::get_corpse_string(corpse_opt.is_some()),
+                )
             }
         };
 
@@ -179,7 +182,7 @@ impl Dialog {
         // ------- Text, Aligned to center -----------
         draw_multiline_text_ex(
             &body_text,
-            (DIALOG_X as f32 + DIALOG_SIZE as f32 / 3.25 + HUD_BORDER as f32),
+            (DIALOG_X as f32 + DIALOG_SIZE as f32 / 2.0 + HUD_BORDER as f32),
             (DIALOG_Y + DIALOG_TOP_SPAN + UI_BORDER) as f32,
             Some(1.5),
             TextParams {
@@ -209,24 +212,22 @@ impl Dialog {
     }
 
     /// Builds a string representation of the items to be received in a shop offer.
-    fn build_offer_string(items: Iter<'_, Entity>, ecs_world: &World) -> Vec<&'static str> {
-        let mut offer_string_arr: Vec<&str> = Vec::new();
+    fn build_offer_string(items: Iter<'_, Entity>, ecs_world: &World) -> String {
+        let mut offer_string_arr = String::new();
         let items_length = items.len();
         for (index, item) in items.enumerate() {
-            let mut offer_string = Vec::new();
             let named = ecs_world
                 .get::<&Named>(*item)
                 .expect("offered item is not named");
-            offer_string.push("a ");
-            offer_string.push(&named.name);
+            offer_string_arr.push_str("a ");
+            offer_string_arr.push_str(&named.name);
             if items_length >= 2 {
                 if index < items_length - 2 {
-                    offer_string.push(", ");
+                    offer_string_arr.push_str(",\n");
                 } else if index == items_length - 2 {
-                    offer_string.push(" and ");
+                    offer_string_arr.push_str("\nand a ");
                 }
             }
-            offer_string_arr.append(&mut offer_string);
         }
         offer_string_arr
     }
