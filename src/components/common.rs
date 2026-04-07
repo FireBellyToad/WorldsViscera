@@ -174,4 +174,6 @@ pub struct Lock {
     pub keys_to_unlock: u8,
 }
 
-pub struct Key {}
+pub struct Key {
+    pub lock: Entity,
+}

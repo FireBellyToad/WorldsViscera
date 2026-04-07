@@ -933,7 +933,7 @@ impl Spawn {
         ecs_world.spawn(raw_gold)
     }
 
-    pub fn gold_key(ecs_world: &mut World, x: i32, y: i32) -> Entity {
+    pub fn gold_key(ecs_world: &mut World, x: i32, y: i32, lock: Entity) -> Entity {
         let item_tile_index = (1, 5);
         let gold_key = (
             Position { x, y },
@@ -954,7 +954,10 @@ impl Spawn {
             Item {
                 item_tile: item_tile_index,
             },
-            Key {},
+            Key { lock },
+            Appliable {
+                application_time: STANDARD_ACTION_MULTIPLIER,
+            },
         );
 
         ecs_world.spawn(gold_key)

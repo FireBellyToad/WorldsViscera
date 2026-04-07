@@ -37,8 +37,15 @@ impl ZoneBuilder for CrystalCaveBuilder {
         let player_x = &((MAP_WIDTH / 2) - Roll::dice(2, 3));
         zone.player_spawn_point = Zone::get_index_from_xy(player_x, &1);
 
-        zone.tiles[Zone::get_index_from_xy(&(MAP_WIDTH / 2), &(MAP_HEIGHT / 2))] =
-            TileType::GoldLock;
+        let lock_index = Zone::get_index_from_xy(&(MAP_WIDTH / 2), &(MAP_HEIGHT / 2));
+        zone.tiles[lock_index] = TileType::GoldLock(3.0);
+
+        let lock_entity = Spawn::tile_entity(
+            ecs_world,
+            MAP_WIDTH / 2,
+            MAP_HEIGHT / 2,
+            &TileType::GoldLock(3.0),
+        );
 
         // Place keys to activate down passage in the zone
         // Something like this:
@@ -51,7 +58,12 @@ impl ZoneBuilder for CrystalCaveBuilder {
             (1, MAP_HEIGHT - 2),
             (MAP_WIDTH - 2, MAP_HEIGHT - 2),
         ] {
-            let _ = Spawn::gold_key(ecs_world, key_x, key_y);
+            let _ = Spawn::gold_key(
+                ecs_world,
+                key_x,
+                key_y,
+                lock_entity.expect("must have lock entity"),
+            );
         }
 
         // place human refugees in random locations

@@ -4,7 +4,7 @@ use std::collections::HashMap;
 use crate::components::combat::{CombatStats, SufferingDamage};
 use crate::components::common::{
     BlocksTile, CanListen, CanSmell, DigProductEnum, Diggable, Experience, GrownIfSteppedOn,
-    Immunity, MyTurn, Named, Position, ProduceSound, Renderable, SmellIntensity, Smellable,
+    Immunity, Lock, MyTurn, Named, Position, ProduceSound, Renderable, SmellIntensity, Smellable,
     Species, SpeciesEnum, Viewshed,
 };
 use crate::components::health::{CanAutomaticallyHeal, DiseaseType, Hunger, Thirst};
@@ -342,71 +342,65 @@ impl Spawn {
     }
 
     /// Spawn special tile entitie
-    fn tile_entity(ecs_world: &mut World, x: i32, y: i32, tile: &TileType) {
+    pub fn tile_entity(ecs_world: &mut World, x: i32, y: i32, tile: &TileType) -> Option<Entity> {
         match tile {
-            TileType::Brazier => {
-                ecs_world.spawn((
-                    Position { x, y },
-                    ProduceLight {
-                        radius: BRAZIER_RADIUS,
-                    },
-                    Smellable {
-                        smell_log: Some("burning chemicals"),
-                        intensity: SmellIntensity::Strong,
-                    },
-                    ProduceSound {
-                        sound_log: "fire burning",
-                    },
-                    TurnedOn {},
-                ));
-            }
-            TileType::DownPassage => {
-                ecs_world.spawn((
-                    Position { x, y },
-                    ProduceSound {
-                        sound_log: "breeze from below",
-                    },
-                ));
-            }
-            TileType::CrackedWall => {
-                ecs_world.spawn((
-                    Position { x, y },
-                    Diggable {
-                        dig_points: Roll::dice(4, 10),
-                        produces: DigProductEnum::Stone,
-                    },
-                ));
-            }
-            TileType::GoldMine => {
-                ecs_world.spawn((
-                    Position { x, y },
-                    Diggable {
-                        dig_points: Roll::dice(2, 20),
-                        produces: DigProductEnum::Gold,
-                    },
-                ));
-            }
-            TileType::MiniCrystal | TileType::LittleCrystal => {
-                ecs_world.spawn((
-                    Position { x, y },
-                    GrownIfSteppedOn {
-                        counter_to_next_state: CRYSTAL_GROWTH_COUNTER_START,
-                    },
-                ));
-            }
-            TileType::MediumCrystal | TileType::BigCrystal => {
-                ecs_world.spawn((
-                    Position { x, y },
-                    ProduceLight {
-                        radius: CRYSTAL_LIGHT_RADIUS,
-                    },
-                    TurnedOn {},
-                    GrownIfSteppedOn {
-                        counter_to_next_state: CRYSTAL_GROWTH_COUNTER_START,
-                    },
-                ));
-            }
-            _ => {}
+            TileType::Brazier => Some(ecs_world.spawn((
+                Position { x, y },
+                ProduceLight {
+                    radius: BRAZIER_RADIUS,
+                },
+                Smellable {
+                    smell_log: Some("burning chemicals"),
+                    intensity: SmellIntensity::Strong,
+                },
+                ProduceSound {
+                    sound_log: "fire burning",
+                },
+                TurnedOn {},
+            ))),
+            TileType::DownPassage => Some(ecs_world.spawn((
+                Position { x, y },
+                ProduceSound {
+                    sound_log: "breeze from below",
+                },
+            ))),
+            TileType::CrackedWall => Some(ecs_world.spawn((
+                Position { x, y },
+                Diggable {
+                    dig_points: Roll::dice(4, 10),
+                    produces: DigProductEnum::Stone,
+                },
+            ))),
+            TileType::GoldMine => Some(ecs_world.spawn((
+                Position { x, y },
+                Diggable {
+                    dig_points: Roll::dice(2, 20),
+                    produces: DigProductEnum::Gold,
+                },
+            ))),
+            TileType::MiniCrystal | TileType::LittleCrystal => Some(ecs_world.spawn((
+                Position { x, y },
+                GrownIfSteppedOn {
+                    counter_to_next_state: CRYSTAL_GROWTH_COUNTER_START,
+                },
+            ))),
+            TileType::MediumCrystal | TileType::BigCrystal => Some(ecs_world.spawn((
+                Position { x, y },
+                ProduceLight {
+                    radius: CRYSTAL_LIGHT_RADIUS,
+                },
+                TurnedOn {},
+                GrownIfSteppedOn {
+                    counter_to_next_state: CRYSTAL_GROWTH_COUNTER_START,
+                },
+            ))),
+            TileType::GoldLock(keys_to_unlock) => Some(ecs_world.spawn((
+                Position { x, y },
+                Lock {
+                    keys_to_unlock: *keys_to_unlock as u8,
+                },
+            ))),
+            _ => None,
         }
     }
 
