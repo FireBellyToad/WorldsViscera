@@ -22,6 +22,7 @@ pub const MAX_CRACKS_IN_ZONE: i32 = 4;
 pub const MAX_GOLD_IN_ZONE: i32 = 10;
 pub const CRYSTAL_LIGHT_RADIUS: i32 = 1;
 pub const CRYSTAL_GROWTH_COUNTER_START: u8 = 2 * NORMAL as u8;
+pub const CRYSTAL_CAVE_DEPTH: u32 = 9;
 
 /// Hud related constants
 pub const HUD_WIDTH: i32 = MAP_WIDTH * TILE_SIZE;

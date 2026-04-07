@@ -193,7 +193,7 @@ fn populate_world(game_state: &mut GameState) {
     // Generate new seed, or else it will always generate the same things
     rand::srand(macroquad::miniquad::date::now() as _);
 
-    let zone = CrystalCaveBuilder::build(1, &mut game_state.ecs_world);
+    let zone = ArenaZoneBuilder::build(1, &mut game_state.ecs_world);
 
     game_state.current_player_entity = Some(Spawn::player(&mut game_state.ecs_world, &zone));
     Spawn::everyhing_in_map(&mut game_state.ecs_world, &zone);
@@ -218,7 +218,14 @@ fn change_zone(game_state: &mut GameState) {
         let _ = game_state.ecs_world.despawn(e);
     }
 
-    let zone = DrunkenWalkZoneBuilder::build(current_depth + 1, &mut game_state.ecs_world);
+    // Build new zone based on depth.
+    // -1 because current depth is then incremented to get the next Zone
+    let zone = match current_depth - 1 {
+        CRYSTAL_CAVE_DEPTH => {
+            CrystalCaveBuilder::build(current_depth + 1, &mut game_state.ecs_world)
+        }
+        _ => DrunkenWalkZoneBuilder::build(current_depth + 1, &mut game_state.ecs_world),
+    };
 
     // Scope for keeping borrow checker quiet
     {
