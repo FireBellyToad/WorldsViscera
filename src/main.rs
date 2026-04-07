@@ -220,7 +220,7 @@ fn change_zone(game_state: &mut GameState) {
 
     // Build new zone based on depth.
     // -1 because current depth is then incremented to get the next Zone
-    let zone = match current_depth - 1 {
+    let zone = match current_depth + 1 {
         CRYSTAL_CAVE_DEPTH => {
             CrystalCaveBuilder::build(current_depth + 1, &mut game_state.ecs_world)
         }
