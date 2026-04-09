@@ -48,7 +48,7 @@ impl Player {
         let mut attacker_target: Option<(Entity, Entity)> = None;
         let mut digger_target: Option<(Entity, Entity, Entity)> = None;
         let mut waiter_speed_list: Vec<(Entity, i32)> = Vec::new();
-        let mut player_was_grappled: bool = false;
+        let mut remove_grappled: bool = false;
 
         // Scope for keeping borrow checker quiet
         {
@@ -135,16 +135,12 @@ impl Player {
                 {
                     // Check if player is grappled and try to escape.
                     // Placed if here so Player can still attack grappler
-                    if let Some(grappled) = grappled_opt {
-                        player_was_grappled = true;
-                        let mut g_query = ecs_world
-                            .query_one::<(&Named, &CombatStats)>(grappled.by)
-                            .unwrap_or_else(|_| {
-                                panic!(
-                                    "No Grappler entity with &Named, &CombatStats {:?}",
-                                    grappled.by,
-                                )
-                            });
+                    if let Some(grappled) = grappled_opt
+                        && let Ok(mut g_query) =
+                            ecs_world.query_one::<(&Named, &CombatStats)>(grappled.by)
+                    {
+                        remove_grappled = true;
+
                         let (grappler_name, grappler_stats) =
                             g_query.get().expect("g_query must have result");
                         // Try to escape grapple
@@ -218,7 +214,7 @@ impl Player {
         }
 
         // Remove grapple if player was grappled
-        if player_was_grappled {
+        if remove_grappled {
             let _ = game_state.ecs_world.remove_one::<Grappled>(
                 game_state.current_player_entity.expect("must have player"),
             );

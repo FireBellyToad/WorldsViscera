@@ -19,6 +19,7 @@ pub const BRAZIER_RADIUS: i32 = 20;
 pub const MAX_BRAZIER_IN_ZONE: i32 = 6;
 pub const MAX_RIVERS_IN_ZONE: i32 = 4;
 pub const MAX_CRACKS_IN_ZONE: i32 = 4;
+
 pub const MAX_GOLD_IN_ZONE: i32 = 10;
 pub const CRYSTAL_LIGHT_RADIUS: i32 = 1;
 pub const CRYSTAL_GROWTH_COUNTER_START: u8 = 2 * NORMAL as u8;

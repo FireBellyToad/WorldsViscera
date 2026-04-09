@@ -1,5 +1,5 @@
 use crate::{
-    components::common::Experience,
+    components::{combat::Grappled, common::Experience},
     maps::{arena_zone_builder::ArenaZoneBuilder, crystal_cave_builder::CrystalCaveBuilder},
     systems::{
         advancement_system::AdvancementSystem, dig_manager::DigManager,
@@ -214,6 +214,13 @@ fn change_zone(game_state: &mut GameState) {
 
     let entities_to_delete = game_state.get_entities_to_delete_on_zone_change();
 
+    let player = game_state
+        .current_player_entity
+        .expect("Player id should be set");
+
+    // Remove any existing Grappled component from the player
+    let _ = game_state.ecs_world.remove_one::<&Grappled>(player);
+
     for e in entities_to_delete {
         let _ = game_state.ecs_world.despawn(e);
     }
@@ -390,6 +397,8 @@ fn do_debug_logic(game_state: &mut GameState) {
                         damage.damage_received += 10000;
                     }
                 }
+            } else if is_key_pressed(KeyCode::F3) {
+                game_state.run_state = RunState::GoToNextZone;
             }
         }
     }

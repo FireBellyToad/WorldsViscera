@@ -112,8 +112,11 @@ impl ZoneBuilder for DrunkenWalkZoneBuilder {
         zone.populate_water();
 
         // First crack generation, used for player spawn point and down passage to ensure we have a path to the exit
-        let mut first_crack_tiles = CracksBuilder::build(&mut zone, ecs_world);
-        while first_crack_tiles.is_empty() {
+        let mut first_crack_tiles = CracksBuilder::build(&mut zone, ecs_world); // Ensure that in first crack there is at least one non blocked tile
+        // this is needed to ensure the player has a possible path to the exit
+        while first_crack_tiles.is_empty()
+            || first_crack_tiles.iter().all(|&i| zone.blocked_tiles[i])
+        {
             first_crack_tiles = CracksBuilder::build(&mut zone, ecs_world);
         }
 
@@ -129,7 +132,7 @@ impl ZoneBuilder for DrunkenWalkZoneBuilder {
         // Choose a random point for player spawn after
         // ensuring first crack gieves a path to the exit
         zone.player_spawn_point = zone.tiles.len() / 2;
-        while zone.tiles[zone.player_spawn_point] == TileType::Wall {
+        while zone.blocked_tiles[zone.player_spawn_point] {
             try_x = Roll::dice(1, MAP_WIDTH - 2);
             try_y = Roll::dice(1, MAP_HEIGHT - 2);
             zone.player_spawn_point = Zone::get_index_from_xy(&try_x, &try_y);

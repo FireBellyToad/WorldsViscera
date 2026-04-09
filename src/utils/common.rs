@@ -1,16 +1,19 @@
 use crate::{
     components::{
-        combat::CombatStats,
-        common::{Position, Viewshed},
+        combat::{CombatStats, SufferingDamage},
+        common::{GameLog, GrownIfSteppedOn, Immunity, ImmunityTypeEnum, Position, Viewshed},
         items::{Ammo, Armor, Edible, Equippable, RangedWeapon, ShopOwner},
         monster::{SingleSnakeCreature, SnakeBody},
     },
     constants::{
-        BUG_SPECIES_HATES, DEEPSPAWN_SPECIES_HATES, FISH_SPECIES_HATES, GASTROPOD_SPECIES_HATES,
-        GREMLIN_SPECIES_HATES, HUMAN_SPECIES_HATES, MYCONID_SPECIES_HATES, SLIME_SPECIES_HATES,
-        UNDEAD_SPECIES_HATES, UNDERGROUNDER_SPECIES_HATES,
+        BUG_SPECIES_HATES, CRYSTAL_GROWTH_COUNTER_START, DEEPSPAWN_SPECIES_HATES,
+        FISH_SPECIES_HATES, GASTROPOD_SPECIES_HATES, GREMLIN_SPECIES_HATES, HUMAN_SPECIES_HATES,
+        MYCONID_SPECIES_HATES, SLIME_SPECIES_HATES, UNDEAD_SPECIES_HATES,
+        UNDERGROUNDER_SPECIES_HATES,
     },
-    maps::zone::Zone,
+    engine::state::GameState,
+    maps::zone::{TileType, Zone},
+    utils::roll::Roll,
 };
 use std::cmp::max;
 

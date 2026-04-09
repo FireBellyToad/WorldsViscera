@@ -48,10 +48,10 @@ impl GameState {
             .id();
 
         let mut must_delete;
-        let all_entities_in_world: Vec<Entity> =
-            self.ecs_world.iter().map(|eref| eref.entity()).collect();
 
-        for entity in all_entities_in_world {
+        for entity_ref in self.ecs_world.iter() {
+            let entity = entity_ref.entity();
+
             must_delete = true;
 
             // Do not despawn objects in player's backpack
@@ -60,12 +60,7 @@ impl GameState {
                 if in_backpack.owner.id() == player_id {
                     must_delete = false;
                 }
-            } else if entity.id() == player_id
-                || self
-                    .ecs_world
-                    .satisfies::<&GameLog>(entity)
-                    .expect("cannot extract satisfies value")
-            {
+            } else if entity.id() == player_id {
                 must_delete = false;
                 // Clear listen cache
                 if let Ok(mut can_listen) = self.ecs_world.get::<&mut CanListen>(entity) {
