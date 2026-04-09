@@ -1,3 +1,1 @@
-- sometimes the level exit have no guaranteed pass
-- sometimes creatures spawned stuck inside walls
 - snake creatures gets stucks if space is too small
