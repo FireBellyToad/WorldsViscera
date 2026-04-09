@@ -1,10 +1,8 @@
-use hecs::Entity;
 
 use crate::{
     components::{
         combat::{CombatStats, SufferingDamage},
         common::{GrownIfSteppedOn, Immunity, ImmunityTypeEnum, Named, Position, Species},
-        player::Player,
     },
     constants::CRYSTAL_GROWTH_COUNTER_START,
     engine::state::GameState,
