@@ -32,7 +32,8 @@ impl ZoneFeatureBuilder for CracksBuilder {
             //3 - draw a cracked tile there if there is a wall tile
             let index = Zone::get_index_from_xy(&current_position.0, &current_position.1);
             if zone.tiles[index] == TileType::Wall {
-                // 10% chance to replace with floor instead of cracked wall
+                // 1 on 8 chance to replace with floor instead of cracked wall
+                // so that crack paths will be more random
                 if Roll::dice(1, 8) == 1 {
                     zone.tiles[index] = TileType::Floor;
                 } else {
