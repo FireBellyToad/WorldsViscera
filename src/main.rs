@@ -1,6 +1,9 @@
 use crate::{
     components::{combat::Grappled, common::Experience},
-    maps::{arena_zone_builder::ArenaZoneBuilder, crystal_cave_builder::CrystalCaveBuilder},
+    maps::{
+        arena_zone_builder::ArenaZoneBuilder, crystal_cave_builder::CrystalCaveBuilder,
+        test_zone_builder::TestZoneBuilder,
+    },
     systems::{
         advancement_system::AdvancementSystem, dig_manager::DigManager,
         gaze_attacks_manager::GazeAttacksManager, health_manager::HealthManager,
@@ -193,7 +196,7 @@ fn populate_world(game_state: &mut GameState) {
     // Generate new seed, or else it will always generate the same things
     rand::srand(macroquad::miniquad::date::now() as _);
 
-    let zone = ArenaZoneBuilder::build(1, &mut game_state.ecs_world);
+    let zone = TestZoneBuilder::build(1, &mut game_state.ecs_world);
 
     game_state.current_player_entity = Some(Spawn::player(&mut game_state.ecs_world, &zone));
     Spawn::everyhing_in_map(&mut game_state.ecs_world, &zone);
@@ -302,8 +305,9 @@ fn do_in_tick_game_logic(game_engine: &mut GameEngine, game_state: &mut GameStat
             ItemCollection::run(game_state);
             ItemEquipping::run(game_state);
             ItemDropping::run(game_state);
-            EatingEdibles::run(game_state);
             DigManager::run(game_state);
+            // EatingEdibles must run after DigManager because monsters digging also eat stone
+            EatingEdibles::run(game_state);
             DrinkingQuaffables::run(game_state);
             SoundSystem::run(game_state);
             LeaveTrailSystem::run(game_state);
@@ -380,7 +384,12 @@ fn do_debug_logic(game_state: &mut GameState) {
             } else if is_key_pressed(KeyCode::F6) {
                 game_state.debug_monster_vision = !game_state.debug_monster_vision;
             } else if is_key_pressed(KeyCode::F5) {
-                Spawn::pseudoscorpion(&mut game_state.ecs_world, MAP_WIDTH / 2, MAP_HEIGHT / 2);
+                Spawn::colossal_worm(
+                    &mut game_state.ecs_world,
+                    MAP_WIDTH / 2,
+                    MAP_HEIGHT / 2,
+                    &game_state.current_zone.as_ref().unwrap(),
+                );
             } else if is_key_pressed(KeyCode::F4) {
                 use crate::components::combat::Grappled;
 

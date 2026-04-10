@@ -2,7 +2,7 @@ use hecs::Entity;
 
 use crate::{
     components::{
-        actions::WantsToDig,
+        actions::{WantsToDig, WantsToEat},
         combat::{CombatStats, InflictsDamage},
         common::{DigProductEnum, Diggable, MyTurn, Position},
     },
@@ -24,6 +24,7 @@ impl DigManager {
         let mut diggers_list: Vec<(Entity, i32)> = Vec::new();
         let mut digged_list: Vec<Entity> = Vec::new();
         let mut produced_list: Vec<(i32, i32, DigProductEnum)> = Vec::new();
+        let mut wants_to_eat_list: Vec<(Entity, i32)> = Vec::new();
 
         // Scope for keeping borrow checker quiet
         {
@@ -43,17 +44,36 @@ impl DigManager {
                 let mut diggable_query = ecs_world
                     .query_one::<(&mut Diggable, &Position)>(wants_to_dig.target)
                     .expect("target must be diggable in a position!");
-                let dig_tool_dice = ecs_world
-                    .get::<&InflictsDamage>(wants_to_dig.tool)
-                    .expect("must be diggable!");
-
                 let (diggable, pos) = diggable_query
                     .get()
                     .expect("must have Some diggable in a position!");
+
+                let mut dig_tool_query = ecs_world
+                    .query_one::<(Option<&InflictsDamage>, Option<&CombatStats>)>(wants_to_dig.tool)
+                    .unwrap_or_else(|_| {
+                        panic!(
+                            "Must have InflictsDamage or CombatStats on dig tool {:?}!",
+                            wants_to_dig.tool
+                        )
+                    });
+                let (diggable_inf_dam, dig_tool_combat_stats) = dig_tool_query
+                    .get()
+                    .expect("must have Some diggable in a position!");
+
+                let dig_tool_dice: (i32, i32) = if let Some(stats) = dig_tool_combat_stats {
+                    (1, stats.unarmed_attack_dice)
+                } else if let Some(inf_dam) = diggable_inf_dam {
+                    // Double the number of dices to account for the cracked wall
+                    (inf_dam.number_of_dices * 2, inf_dam.dice_size)
+                } else {
+                    panic!("Cannot determine dig tool dice!");
+                };
+
                 // Subtract dig points and log
-                diggable.dig_points -=
-                    Roll::dice(dig_tool_dice.number_of_dices, dig_tool_dice.dice_size);
+                let dig_roll = Roll::dice(dig_tool_dice.0, dig_tool_dice.1);
+                diggable.dig_points -= dig_roll;
                 diggers_list.push((digger, stats.speed));
+                wants_to_eat_list.push((digger, dig_roll));
 
                 if digger.id() == player_id {
                     game_state
@@ -92,6 +112,12 @@ impl DigManager {
 
         for target in digged_list {
             let _ = ecs_world.despawn(target);
+        }
+
+        // Spawn edible stones for diggers that eat stones
+        for (digger, dig_roll) in wants_to_eat_list {
+            let item = Spawn::edible_stone(ecs_world, dig_roll);
+            let _ = ecs_world.insert_one(digger, WantsToEat { item });
         }
 
         for (x, y, product) in produced_list {

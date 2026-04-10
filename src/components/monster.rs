@@ -48,3 +48,5 @@ pub struct SnakeBody {
 pub struct SingleSnakeCreature {}
 
 pub struct Grappler {}
+
+pub struct StoneEater {}

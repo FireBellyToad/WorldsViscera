@@ -16,7 +16,7 @@ use crate::{
         items::{BodyLocation, Deadly, Edible, Equipped, InBackback},
         monster::{
             Aquatic, DiseaseBearer, Grappler, LeaveTrail, Monster, Prey, SingleSnakeCreature,
-            Small, Smart, SnakeBody, SnakeHead, Venomous,
+            Small, Smart, SnakeBody, SnakeHead, StoneEater, Venomous,
         },
     },
     constants::{
@@ -1712,7 +1712,12 @@ impl Spawn {
         //Join head and body
         let _ = ecs_world.insert(
             colossal_worm,
-            (SnakeHead { body }, SingleSnakeCreature {}, Grappler {}),
+            (
+                SnakeHead { body },
+                SingleSnakeCreature {},
+                Grappler {},
+                StoneEater {},
+            ),
         );
     }
 }

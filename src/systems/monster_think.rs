@@ -1,3 +1,4 @@
+use crate::components::actions::WantsToDig;
 use crate::components::combat::GazeAttack;
 use crate::components::combat::IsHidden;
 use crate::components::combat::WantsToCast;
@@ -6,6 +7,7 @@ use crate::components::combat::WantsToShoot;
 use crate::components::items::Equippable;
 use crate::components::items::Equipped;
 use crate::components::monster::Prey;
+use crate::components::monster::StoneEater;
 use crate::constants::MAP_HEIGHT;
 use crate::constants::MAP_WIDTH;
 use crate::constants::MAX_PRIORITIES_NUMBER;
@@ -46,6 +48,7 @@ pub enum MonsterAction {
     PickUp,
     Invoke,
     Cast,
+    Dig,
 }
 
 struct MonsterThinkData<'a> {
@@ -64,6 +67,7 @@ struct MonsterThinkData<'a> {
     pub backpack_is_not_full: bool,
     pub is_prey: bool,
     pub can_cast: bool,
+    can_eat_stone: bool,
 }
 
 type MonsterTargetPick = (MonsterAction, Option<Entity>, i32, i32);
@@ -89,6 +93,7 @@ impl MonsterThink {
         let mut eat_target_list: Vec<(Entity, Entity)> = Vec::new();
         let mut equipper_item_list: Vec<(Entity, Entity)> = Vec::new();
         let mut gaze_at_target_list: Vec<(Entity, Entity)> = Vec::new();
+        let mut dig_target_list: Vec<(Entity, Entity)> = Vec::new();
 
         // Scope for keeping borrow checker quiet
         {
@@ -105,6 +110,7 @@ impl MonsterThink {
                     Option<&WantsToApproach>,
                     Option<&Prey>,
                     Option<&GazeAttack>,
+                    Option<&StoneEater>,
                 )>()
                 .with::<(&Monster, &MyTurn)>();
 
@@ -128,6 +134,7 @@ impl MonsterThink {
                     wants_to_approach,
                     is_prey,
                     gaze_attack_opt,
+                    stone_eater_opt,
                 ),
             ) in &mut all_monsters
             {
@@ -201,6 +208,7 @@ impl MonsterThink {
                                     && total_items < MAX_ITEMS_IN_BACKPACK_FOR_SMALL),
                             is_prey: is_prey.is_some(),
                             can_cast: !castable_spells_list.is_empty(),
+                            can_eat_stone: stone_eater_opt.is_some(),
                         },
                     );
 
@@ -248,6 +256,11 @@ impl MonsterThink {
                         MonsterAction::Eat => {
                             if let Some(t) = target {
                                 eat_target_list.push((monster, t));
+                            }
+                        }
+                        MonsterAction::Dig => {
+                            if let Some(t) = target {
+                                dig_target_list.push((monster, t));
                             }
                         }
                         MonsterAction::Attack => {
@@ -313,6 +326,17 @@ impl MonsterThink {
         // eat if needed
         for (eater, item) in eat_target_list {
             let _ = ecs_world.insert_one(eater, WantsToEat { item });
+        }
+
+        // dig if needed
+        for (digger, target) in dig_target_list {
+            let _ = ecs_world.insert_one(
+                digger,
+                WantsToDig {
+                    target,
+                    tool: digger,
+                },
+            );
         }
 
         // pick up item
@@ -559,6 +583,18 @@ impl MonsterThink {
                                     targets_vec[3] = Some((action, Some(entity), x, y));
                                 }
                             }
+                        }
+                    } else if monster_dto.can_eat_stone
+                        && ecs_world.satisfies::<&Diggable>(entity).unwrap_or(false)
+                    {
+                        if distance < NEXT_TO_DISTANCE {
+                            action = MonsterAction::Dig;
+                        } else {
+                            action = MonsterAction::Move
+                        }
+
+                        if targets_vec[3].is_none() {
+                            targets_vec[3] = Some((action, Some(entity), x, y));
                         }
                     }
                 }

@@ -47,6 +47,11 @@ impl ZoneBuilder for TestZoneBuilder {
             }
         }
 
+        //Straight river
+        for y in 3..MAP_HEIGHT - 3 {
+            zone.tiles[Zone::get_index_from_xy(&40, &y)] = TileType::CrackedWall;
+        }
+
         // Populate water and blocked tiles here, needed for correct spawning
         zone.populate_blocked();
         zone.populate_water();

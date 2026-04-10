@@ -417,4 +417,18 @@ impl Spawn {
             },
         ))
     }
+    /// Generate ad hoc quaffable entity from lake
+    pub fn edible_stone(ecs_world: &mut World, dig_roll: i32) -> Entity {
+        // Nasty hack: let's roll a number of d1 equal to the dig roll
+        ecs_world.spawn((
+            Named {
+                name: "cracked wall",
+                attack_verb: None,
+            },
+            Edible {
+                nutrition_dice_number: dig_roll,
+                nutrition_dice_size: 1,
+            },
+        ))
+    }
 }
