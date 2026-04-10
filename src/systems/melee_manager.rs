@@ -3,10 +3,11 @@ use crate::{
         combat::{Grappled, InflictsDamage},
         common::{Immunity, ImmunityTypeEnum},
         health::{Blind, DiseaseType, Diseased},
-        monster::{DiseaseBearer, Grappler},
+        monster::{DiseaseBearer, Grappler, LeaveTrail},
     },
-    constants::MAX_DISEASE_TICK_COUNTER,
+    constants::{ACID_DECAL_DAMAGE_DICE, MAX_DISEASE_TICK_COUNTER},
     engine::state::GameState,
+    maps::zone::DecalType,
     utils::common::Utils,
 };
 use std::{
@@ -102,8 +103,9 @@ impl MeleeManager {
                             Option<&Blind>,
                             Option<&Grappled>,
                             Option<&Immunity>,
+                            Option<&LeaveTrail>
                         )>(wants_melee.target)
-                        .expect("Must have one");
+                        .expect("Must have one for components CombatStats, Named, Blind, Grappled, Immunity, LeaveTrail");
 
                     // Show appropriate log messages
                     if let Some((
@@ -112,6 +114,7 @@ impl MeleeManager {
                         target_blind_opt,
                         target_grappled_opt,
                         target_immunity_opt,
+                        target_trail_opt,
                     )) = target_query.get()
                     {
                         let (attacker_dice_number, attacker_dice, erosion) =
@@ -338,6 +341,19 @@ impl MeleeManager {
                                 } else {
                                     game_state.game_log.add_entry(&format!(
                                         "The {} grabs on the {}!",
+                                        named_attacker.name, named_target.name
+                                    ));
+                                }
+
+                                // Grabbing a monster that leaves an acid trail
+                                // will deal damage to grappler
+                                if let Some(trail) = target_trail_opt
+                                    && trail.of == DecalType::Acid
+                                {
+                                    target_damage.damage_received +=
+                                        Roll::dice(1, ACID_DECAL_DAMAGE_DICE);
+                                    game_state.game_log.add_entry(&format!(
+                                        "The {} is burned by the {}'s acid!",
                                         named_attacker.name, named_target.name
                                     ));
                                 }

@@ -212,7 +212,7 @@ impl ZoneBuilder for DrunkenWalkZoneBuilder {
         zone.tiles[down_passage_index] = TileType::DownPassage;
 
         // Add random cracks (the more deep we are, the more cracks we have)
-        let cracks_number = Roll::dice(1, MAX_CRACKS_IN_ZONE) + (depth as i32 / 2);
+        let cracks_number = max(Roll::dice(1, 4) + (depth as i32 / 2), MAX_CRACKS_IN_ZONE);
         for _ in 0..cracks_number {
             CracksBuilder::build(&mut zone, ecs_world);
         }

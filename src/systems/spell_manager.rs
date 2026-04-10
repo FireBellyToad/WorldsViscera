@@ -41,7 +41,7 @@ impl SpellManager {
         {
             // List of entities that want to cast a spell at stuff
             let mut casters =
-                ecs_world.query::<(&WantsToZap, &WantsToCast, &Position, &CombatStats)>();
+                ecs_world.query::<(&WantsToZap, &WantsToCast, &Position, &CombatStats, &Named)>();
 
             //Log all the castings
             let zone = game_state
@@ -49,7 +49,9 @@ impl SpellManager {
                 .as_ref()
                 .expect("must have Some Zone");
 
-            for (caster, (wants_to_zap, wants_to_cast, caster_position, stats)) in &mut casters {
+            for (caster, (wants_to_zap, wants_to_cast, caster_position, stats, named_attacker)) in
+                &mut casters
+            {
                 let mut spell_query = ecs_world
                     .query_one::<(
                         &mut Spell,
@@ -90,23 +92,24 @@ impl SpellManager {
                                 if !zone.tile_content[index].is_empty() {
                                     //Get the first damageable entity
                                     for &entity in &zone.tile_content[index] {
-                                        let is_immune = ecs_world
-                                            .get::<&Immunity>(entity)
-                                            .expect("Must always have immunity component")
-                                            .to
-                                            .contains_key(&ImmunityTypeEnum::StoneFellSpell);
-
                                         if ecs_world
                                             .satisfies::<&SufferingDamage>(entity)
                                             .unwrap_or(false)
-                                            && !is_immune
                                         {
-                                            target_opt = Some(entity);
+                                            let is_immune = ecs_world
+                                                .get::<&Immunity>(entity)
+                                                .expect("Must always have immunity component with SufferingDamage")
+                                                .to
+                                                .contains_key(&ImmunityTypeEnum::StoneFellSpell);
+
+                                            if !is_immune {
+                                                target_opt = Some(entity);
+                                            } else if is_immune && entity.id() == player_id {
+                                                game_state.game_log.add_entry(
+                                                    "The stones just bounce off your hard headgear",
+                                                );
+                                            }
                                             break;
-                                        } else if is_immune {
-                                            game_state.game_log.add_entry(
-                                                "The stones just bounce off your hard headgear",
-                                            );
                                         }
                                     }
                                 }
@@ -182,9 +185,6 @@ impl SpellManager {
 
                     // Show appropriate log messages
                     let target_stats = Utils::get_target_stats(ecs_world, target);
-                    let named_attacker = ecs_world
-                        .get::<&Named>(caster)
-                        .expect("Entity is not Named");
                     let named_target = ecs_world
                         .get::<&Named>(target)
                         .expect("Entity is not Named");
