@@ -338,7 +338,10 @@ impl MeleeManager {
                                         .game_log
                                         .entries
                                         .push(format!("The {} grabs on you!", named_attacker.name));
-                                } else {
+                                } else if zone.visible_tiles[Zone::get_index_from_xy(
+                                    &attacker_position.x,
+                                    &attacker_position.y,
+                                )] {
                                     game_state.game_log.add_entry(&format!(
                                         "The {} grabs on the {}!",
                                         named_attacker.name, named_target.name

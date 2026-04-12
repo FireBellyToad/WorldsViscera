@@ -1,4 +1,3 @@
-
 use crate::{
     components::{
         combat::{CombatStats, SufferingDamage},
@@ -62,16 +61,36 @@ impl SpecialTilesSystem {
                             ));
                         }
                     }
-                } else if let Some(&tile_ent) = zone.tile_content[pos_idx]
-                    .iter()
-                    .find(|e| e.id() == player_entity.id())
-                    && let Ok(mut grow_if_step) = ecs_world.get::<&mut GrownIfSteppedOn>(tile_ent)
+                }
+                // If there is a GrownIfSteppedOn component on the tile...
+                else if let Some(mut grow_if_step) =
+                    zone.tile_content[pos_idx].iter().find_map(|&e| {
+                        if let Ok(giso_component) = ecs_world.get::<&mut GrownIfSteppedOn>(e) {
+                            Some(giso_component)
+                        } else {
+                            None
+                        }
+                    })
                 {
                     // if player or NPC is on the tile, decrement the counter
                     // Get the entity and the name of the stepper. If present, decrement the counter
                     grow_if_step.counter_to_next_state -= 1;
                     if grow_if_step.counter_to_next_state == 0 {
                         grow_if_step.counter_to_next_state = CRYSTAL_GROWTH_COUNTER_START;
+                        // Increase crystal growth stage when counter reaches 0
+                        match zone.tiles[pos_idx] {
+                            TileType::MiniCrystal => {
+                                zone.tiles[pos_idx] = TileType::LittleCrystal;
+                            }
+                            TileType::LittleCrystal => {
+                                zone.tiles[pos_idx] = TileType::MediumCrystal
+                            }
+                            TileType::MediumCrystal => {
+                                zone.tiles[pos_idx] = TileType::BigCrystal;
+                                grow_if_step.counter_to_next_state = 0;
+                            }
+                            _ => {}
+                        };
 
                         // log crystal growth.
                         // If the stepper has not any immunity to damaging floors,
@@ -85,7 +104,6 @@ impl SpecialTilesSystem {
                                     .game_log
                                     .entries
                                     .push("The crystals grow under your feet".to_string());
-                                break;
                             } else if zone.visible_tiles[pos_idx] {
                                 game_state.game_log.entries.push(format!(
                                     "The crystals grow under {}'s feet",
@@ -107,20 +125,6 @@ impl SpecialTilesSystem {
                                 ));
                             }
                         }
-                        // Increase crystal growth stage when counter reaches 0
-                        match zone.tiles[pos_idx] {
-                            TileType::MiniCrystal => {
-                                zone.tiles[pos_idx] = TileType::LittleCrystal;
-                            }
-                            TileType::LittleCrystal => {
-                                zone.tiles[pos_idx] = TileType::MediumCrystal
-                            }
-                            TileType::MediumCrystal => {
-                                zone.tiles[pos_idx] = TileType::BigCrystal;
-                                grow_if_step.counter_to_next_state = 0;
-                            }
-                            _ => {}
-                        };
                     }
                 }
             }
