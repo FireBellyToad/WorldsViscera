@@ -83,7 +83,7 @@ impl DigManager {
                     game_state
                         .game_log
                         .add_entry("You dig the cracked stone wall");
-                } else {
+                } else if zone.visible_tiles[Zone::get_index_from_xy(&pos.x, &pos.y)] {
                     game_state
                         .game_log
                         .add_entry(&format!("The {} digs the cracked stone wall", named.name));
