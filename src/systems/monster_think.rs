@@ -66,8 +66,9 @@ struct MonsterThinkData<'a> {
     pub hates: &'a HashSet<u32>,
     pub backpack_is_not_full: bool,
     pub is_prey: bool,
-    pub can_cast: bool,
+    can_cast: bool,
     can_eat_stone: bool,
+    has_dig_tool: bool,
 }
 
 type MonsterTargetPick = (MonsterAction, Option<Entity>, i32, i32);
@@ -93,7 +94,7 @@ impl MonsterThink {
         let mut eat_target_list: Vec<(Entity, Entity)> = Vec::new();
         let mut equipper_item_list: Vec<(Entity, Entity)> = Vec::new();
         let mut gaze_at_target_list: Vec<(Entity, Entity)> = Vec::new();
-        let mut dig_target_list: Vec<(Entity, Entity)> = Vec::new();
+        let mut dig_target_list: Vec<(Entity, Entity, Option<Entity>)> = Vec::new();
 
         // Scope for keeping borrow checker quiet
         {
@@ -177,8 +178,15 @@ impl MonsterThink {
                     // Get invokables
                     let invokables: Vec<&(Entity, ItemsInBackpack)> = items_in_backpacks
                         .iter()
-                        .filter(|(_, (_, in_backpack, invokable, _, _, _, _, _, _, _))| {
+                        .filter(|(_, (_, in_backpack, invokable, ..))| {
                             in_backpack.owner.id() == monster.id() && invokable.is_some()
+                        })
+                        .collect();
+
+                    let dig_tool: Vec<&(Entity, ItemsInBackpack)> = items_in_backpacks
+                        .iter()
+                        .filter(|(_, (_, in_backpack, .., dig_tool))| {
+                            in_backpack.owner.id() == monster.id() && dig_tool.is_some()
                         })
                         .collect();
 
@@ -209,6 +217,7 @@ impl MonsterThink {
                             is_prey: is_prey.is_some(),
                             can_cast: !castable_spells_list.is_empty(),
                             can_eat_stone: stone_eater_opt.is_some(),
+                            has_dig_tool: !dig_tool.is_empty(),
                         },
                     );
 
@@ -260,7 +269,12 @@ impl MonsterThink {
                         }
                         MonsterAction::Dig => {
                             if let Some(t) = target {
-                                dig_target_list.push((monster, t));
+                                // if has dig tool, use it; otherwise use his own attack (so insert None)
+                                if dig_tool.is_empty() {
+                                    dig_target_list.push((monster, t, None));
+                                } else {
+                                    dig_target_list.push((monster, t, Some(dig_tool[0].0)));
+                                }
                             }
                         }
                         MonsterAction::Attack => {
@@ -329,14 +343,24 @@ impl MonsterThink {
         }
 
         // dig if needed
-        for (digger, target) in dig_target_list {
-            let _ = ecs_world.insert_one(
-                digger,
-                WantsToDig {
-                    target,
-                    tool: digger,
-                },
-            );
+        for (digger, target, dig_tool_opt) in dig_target_list {
+            if let Some(dig_tool) = dig_tool_opt {
+                let _ = ecs_world.insert_one(
+                    digger,
+                    WantsToDig {
+                        target,
+                        tool: dig_tool,
+                    },
+                );
+            } else {
+                let _ = ecs_world.insert_one(
+                    digger,
+                    WantsToDig {
+                        target,
+                        tool: digger,
+                    },
+                );
+            }
         }
 
         // pick up item
@@ -405,14 +429,10 @@ impl MonsterThink {
         // All equippables that are not equipped by the monster
         let equippables: Vec<(&Entity, &Equippable)> = items_of_monster
             .iter()
-            .filter(
-                |(_, (_, in_backpack, _, _, _, _, _, equippable, equipped, _))| {
-                    in_backpack.owner.id() == monster.id()
-                        && equippable.is_some()
-                        && equipped.is_none()
-                },
-            )
-            .map(|(entity, (_, _, _, _, _, _, _, equippable, _, _))| {
+            .filter(|(_, (_, in_backpack, .., equippable, equipped, _, _))| {
+                in_backpack.owner.id() == monster.id() && equippable.is_some() && equipped.is_none()
+            })
+            .map(|(entity, (_, _, _, _, _, _, _, equippable, ..))| {
                 (entity, equippable.expect("Equippable item is missing"))
             })
             .collect();
@@ -420,10 +440,10 @@ impl MonsterThink {
         // All equippables that are equipped by the monster
         let equipped: Vec<(&Entity, &Equipped)> = items_of_monster
             .iter()
-            .filter(|(_, (_, in_backpack, _, _, _, _, _, _, equipped, _))| {
+            .filter(|(_, (_, in_backpack, _, _, _, _, _, _, equipped, ..))| {
                 in_backpack.owner.id() == monster.id() && equipped.is_some()
             })
-            .map(|(entity, (_, _, _, _, _, _, _, _, equipped, _))| {
+            .map(|(entity, (_, _, _, _, _, _, _, _, equipped, ..))| {
                 (entity, equipped.expect("Equippable item is missing"))
             })
             .collect();
@@ -513,7 +533,7 @@ impl MonsterThink {
 
                             if is_enemy {
                                 //Enemy target is far away, try to approach it. Unless it's prey, than it should escape
-                                if monster_dto.is_prey && is_enemy && targets_vec[0].is_none() {
+                                if monster_dto.is_prey && targets_vec[0].is_none() {
                                     // If prey but can somehow do a ranged attack, just attack
                                     if action == MonsterAction::Invoke
                                         || action == MonsterAction::Cast
@@ -584,17 +604,23 @@ impl MonsterThink {
                                 }
                             }
                         }
-                    } else if monster_dto.can_eat_stone
+                    } else if (monster_dto.can_eat_stone || monster_dto.has_dig_tool)
                         && ecs_world.satisfies::<&Diggable>(entity).unwrap_or(false)
                     {
+                        // If is StoneEater or has DiggingTool equipped, dig or move towards a Crack wall
                         if distance < NEXT_TO_DISTANCE {
                             action = MonsterAction::Dig;
                         } else {
                             action = MonsterAction::Move
                         }
 
-                        if targets_vec[3].is_none() {
+                        // Since StoneEaters will get to reduce their hunger with digging activities,
+                        // let them handle the action with a greater priority (index 3)
+                        // Monster with DiggingTool equipped will handle with a lower priority (index 4)
+                        if monster_dto.can_eat_stone && targets_vec[3].is_none() {
                             targets_vec[3] = Some((action, Some(entity), x, y));
+                        } else if monster_dto.has_dig_tool && targets_vec[4].is_none() {
+                            targets_vec[4] = Some((action, Some(entity), x, y));
                         }
                     }
                 }
@@ -618,11 +644,9 @@ impl MonsterThink {
     ) -> (bool, Option<Entity>) {
         let equipped_ranged_weapons: Vec<&(Entity, ItemsInBackpack)> = items_in_backpacks
             .iter()
-            .filter(
-                |(_, (_, in_backpack, _, _, _, _, _, _, equipped, ranged))| {
-                    in_backpack.owner.id() == monster.id() && equipped.is_some() && ranged.is_some()
-                },
-            )
+            .filter(|(_, (_, in_backpack, .., equipped, ranged, _))| {
+                in_backpack.owner.id() == monster.id() && equipped.is_some() && ranged.is_some()
+            })
             .collect();
 
         // Has no equipped ranged weapons, cannot shoot
@@ -631,7 +655,7 @@ impl MonsterThink {
         }
 
         // Check if monster has at least one ammo for the equipped ranged weapon
-        for (weapon_entity, (_, _, _, _, _, _, _, _, _, ranged_weapon_opt)) in
+        for (weapon_entity, (_, _, _, _, _, _, _, _, _, ranged_weapon_opt, _)) in
             &equipped_ranged_weapons
         {
             // If the monsters has the ammo for at least one equipped ranged weapon, it can shoot!

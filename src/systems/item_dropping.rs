@@ -108,13 +108,10 @@ impl ItemDropping {
 
         {
             //Drop items
-            let mut items_to_drop_entity = ecs_world.query::<ItemsInBackpack>();
-
-            items_to_drop = items_to_drop_entity
+            items_to_drop = ecs_world
+                .query::<ItemsInBackpack>()
                 .iter()
-                .filter(|(_, (_, in_backpack, _, _, _, _, _, _, _, _))| {
-                    in_backpack.owner.id() == ent.id()
-                })
+                .filter(|(_, (_, in_backpack, ..))| in_backpack.owner.id() == ent.id())
                 .map(|(e, _)| e)
                 .collect();
         }

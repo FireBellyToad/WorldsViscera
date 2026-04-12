@@ -1,7 +1,7 @@
 use crate::components::actions::{WantsToDig, WantsToTrade};
 use crate::components::combat::{Grappled, SufferingDamage, WantsToShoot};
 use crate::components::common::{Diggable, Hates, Immunity, ImmunityTypeEnum, Named};
-use crate::components::items::{DiggingTool, RangedWeapon, ShopOwner};
+use crate::components::items::{RangedWeapon, ShopOwner};
 use crate::constants::{ACID_DECAL_DAMAGE_DICE, STANDARD_ACTION_MULTIPLIER};
 use crate::engine::state::GameState;
 use crate::utils::common::ItemsInBackpack;
@@ -93,12 +93,12 @@ impl Player {
                 let destination_index =
                     Zone::get_index_from_xy(&(position.x + delta_x), &(position.y + delta_y));
 
-                let mut digging_tools_in_backpack =
-                    ecs_world.query::<ItemsInBackpack>().with::<&DiggingTool>();
-
-                let player_dig_tool = digging_tools_in_backpack.iter().find_map(
-                    |(item, (_, in_backpack, _, _, _, _, _, _, equipped, _))| {
-                        if in_backpack.owner.id() == player_entity.id() && equipped.is_some() {
+                let player_dig_tool = ecs_world.query::<ItemsInBackpack>().iter().find_map(
+                    |(item, (_, in_backpack, .., equipped, _, _, dig_tool))| {
+                        if in_backpack.owner.id() == player_entity.id()
+                            && equipped.is_some()
+                            && dig_tool.is_some()
+                        {
                             Some(item)
                         } else {
                             None
@@ -587,18 +587,19 @@ impl Player {
         let mut weapon_opt: Option<Entity> = None;
         //Scope to keep borrow checker quiet
         {
+            // Must move the query in ranged_weapons_in_backpacks_query
+            // because we need to check if .is_empty() later,
+            // and can't be dropped before of that
             let mut ranged_weapons_in_backpacks_query = ecs_world.query::<ItemsInBackpack>();
 
             let player_ranged_weapons: Vec<(Entity, ItemsInBackpack)> =
                 ranged_weapons_in_backpacks_query
                     .iter()
-                    .filter(
-                        |(_, (_, in_backpack, _, _, _, _, _, _, equipped, ranged))| {
-                            in_backpack.owner.id() == player_entity.id()
-                                && equipped.is_some()
-                                && ranged.is_some()
-                        },
-                    )
+                    .filter(|(_, (_, in_backpack, .., equipped, ranged, _))| {
+                        in_backpack.owner.id() == player_entity.id()
+                            && equipped.is_some()
+                            && ranged.is_some()
+                    })
                     .collect();
 
             if player_ranged_weapons.is_empty() {

@@ -4,7 +4,7 @@ use crate::{
     components::{
         actions::{WantsToDig, WantsToEat},
         combat::{CombatStats, InflictsDamage},
-        common::{DigProductEnum, Diggable, MyTurn, Position},
+        common::{DigProductEnum, Diggable, MyTurn, Named, Position},
     },
     engine::state::GameState,
     maps::zone::{TileType, Zone},
@@ -30,7 +30,7 @@ impl DigManager {
         {
             // List of entities that want to dig
             let mut collectors = ecs_world
-                .query::<(&WantsToDig, &CombatStats)>()
+                .query::<(&WantsToDig, &CombatStats, &Named)>()
                 .with::<&MyTurn>();
 
             let zone = game_state
@@ -40,7 +40,7 @@ impl DigManager {
 
             //Log all the pick ups
 
-            for (digger, (wants_to_dig, stats)) in &mut collectors {
+            for (digger, (wants_to_dig, stats, named)) in &mut collectors {
                 let mut diggable_query = ecs_world
                     .query_one::<(&mut Diggable, &Position)>(wants_to_dig.target)
                     .expect("target must be diggable in a position!");
@@ -48,6 +48,7 @@ impl DigManager {
                     .get()
                     .expect("must have Some diggable in a position!");
 
+                // Extract dig tool stats. Could be a real item (InflictsDamage) or just the CombatStats of a StoneEater monster
                 let mut dig_tool_query = ecs_world
                     .query_one::<(Option<&InflictsDamage>, Option<&CombatStats>)>(wants_to_dig.tool)
                     .unwrap_or_else(|_| {
@@ -73,17 +74,28 @@ impl DigManager {
                 let dig_roll = Roll::dice(dig_tool_dice.0, dig_tool_dice.1);
                 diggable.dig_points -= dig_roll;
                 diggers_list.push((digger, stats.speed));
-                wants_to_eat_list.push((digger, dig_roll));
+                //Create mock edibile for stone eaters only (the entity must have CombatStats component)
+                if dig_tool_combat_stats.is_some() {
+                    wants_to_eat_list.push((digger, dig_roll));
+                }
 
                 if digger.id() == player_id {
                     game_state
                         .game_log
                         .add_entry("You dig the cracked stone wall");
+                } else {
+                    game_state
+                        .game_log
+                        .add_entry(&format!("The {} digs the cracked stone wall", named.name));
                 }
 
                 // Clear path if digged enough
                 if diggable.dig_points <= 0 {
-                    game_state.game_log.add_entry("The cracked wall opens!");
+                    if zone.visible_tiles[Zone::get_index_from_xy(&pos.x, &pos.y)] {
+                        game_state.game_log.add_entry("The cracked wall opens!");
+                    } else {
+                        game_state.game_log.add_entry("You hear falling rocks");
+                    }
 
                     zone.tiles[Zone::get_index_from_xy(&pos.x, &pos.y)] = TileType::Floor;
 

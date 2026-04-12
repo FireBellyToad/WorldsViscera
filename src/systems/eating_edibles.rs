@@ -52,23 +52,21 @@ impl EatingEdibles {
 
             for (eater, (wants_to_eat, stats, damage, hunger, position, named_eater)) in &mut eaters
             {
-                let possible_edible = ecs_world.get::<&Edible>(wants_to_eat.item);
+                if let Ok(mut q) = ecs_world.query_one::<(
+                    &Edible,
+                    &Named,
+                    Option<&Poisonous>,
+                    Option<&Rotten>,
+                    Option<&Corpse>,
+                )>(wants_to_eat.item)
+                {
+                    // Keep track of the eater
+                    let (edible_nutrition, named_edible, poisonous_opt, rotten_opt, corpse_opt) =
+                        q.get().expect("must have one result");
 
-                // Keep track of the eater
-                if let Ok(edible_nutrition) = possible_edible {
                     // Eat!
                     eaten_eater_list.push((wants_to_eat.item, eater, stats.speed));
 
-                    // Show appropriate log messages
-
-                    let mut q = ecs_world
-                        .query_one::<(&Named, Option<&Poisonous>, Option<&Rotten>, Option<&Corpse>)>(wants_to_eat.item)
-                        .unwrap_or_else(|_| {
-                            panic!("Item with entity {:?} is not named", wants_to_eat.item)
-                        });
-
-                    let (named_edible, poisonous_opt, rotten_opt, corpse_opt) =
-                        q.get().expect("Item is not named!");
                     if eater.id() == player_id {
                         game_state.game_log.add_entry(&format!(
                             "You ate a {}{}",

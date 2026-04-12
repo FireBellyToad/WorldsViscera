@@ -47,7 +47,7 @@ impl ZoneBuilder for TestZoneBuilder {
             }
         }
 
-        //Straight river
+        //Straight crack
         for y in 3..MAP_HEIGHT - 3 {
             zone.tiles[Zone::get_index_from_xy(&40, &y)] = TileType::CrackedWall;
         }

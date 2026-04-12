@@ -359,7 +359,7 @@ impl Inventory {
         let mut inventory_query = ecs_world.query::<InventoryItem>();
         let mut inventory = inventory_query
             .iter()
-            .filter(|(_, (_, _, in_backpack, _q, _, _, _, _))| in_backpack.owner.id() == player_id)
+            .filter(|(_, (_, _, in_backpack, ..))| in_backpack.owner.id() == player_id)
             .map(
                 |(
                     entity,
@@ -402,7 +402,7 @@ impl Inventory {
 
         let mut inventory = inventory_query
             .iter()
-            .filter(|(_, (_, _, in_backpack, _q, _, _, _, _))| in_backpack.owner.id() == player_id)
+            .filter(|(_, (_, _, in_backpack, ..))| in_backpack.owner.id() == player_id)
             .map(
                 |(
                     entity,

@@ -914,7 +914,7 @@ impl Spawn {
                     },
                 ),
             );
-        } else if weapon_roll > 2 {
+        } else {
             let rockpick = Spawn::rockpick(ecs_world, x, y);
             let _ = ecs_world.remove_one::<Position>(rockpick);
             let _ = ecs_world.insert(

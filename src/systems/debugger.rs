@@ -32,9 +32,7 @@ impl Debugger {
             for (monster, name) in &mut stupid_monsters {
                 if items
                     .iter()
-                    .any(|(_, (_, in_backpack, _, _, _, _, _, _, _, _))| {
-                        in_backpack.owner.id() == monster.id()
-                    })
+                    .any(|(_, (_, in_backpack, ..))| in_backpack.owner.id() == monster.id())
                 {
                     panic!(
                         "Monster {:?} {} has something in backpack even if not smart!!!",

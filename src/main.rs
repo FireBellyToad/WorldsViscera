@@ -345,7 +345,7 @@ fn do_debug_logic(game_state: &mut GameState) {
                 Spawn::crampon_boots(&mut game_state.ecs_world, MAP_WIDTH / 2, MAP_HEIGHT / 2);
                 Spawn::leather_shoes(&mut game_state.ecs_world, MAP_WIDTH / 2, MAP_HEIGHT / 2);
             } else if is_key_pressed(KeyCode::F9) {
-                Spawn::giant_slug(&mut game_state.ecs_world, MAP_WIDTH / 2, MAP_HEIGHT / 2);
+                Spawn::moleman(&mut game_state.ecs_world, 38, MAP_HEIGHT / 2);
             } else if is_key_pressed(KeyCode::F8) {
                 use crate::components::combat::CombatStats;
 
@@ -386,9 +386,9 @@ fn do_debug_logic(game_state: &mut GameState) {
             } else if is_key_pressed(KeyCode::F5) {
                 Spawn::colossal_worm(
                     &mut game_state.ecs_world,
-                    MAP_WIDTH / 2,
+                    38,
                     MAP_HEIGHT / 2,
-                    &game_state.current_zone.as_ref().unwrap(),
+                    game_state.current_zone.as_ref().unwrap(),
                 );
             } else if is_key_pressed(KeyCode::F4) {
                 use crate::components::combat::Grappled;
