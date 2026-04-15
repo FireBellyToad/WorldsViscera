@@ -150,13 +150,12 @@ impl MonsterThink {
                 let mut has_equipped_item_in_backpack = false;
                 let mut has_eaten_edible_in_backpack = false;
                 if smart.is_some() {
-                    // if smart, try to equip potential items (default is None)
+                    // if smart, try to equip potential items
                     has_equipped_item_in_backpack = MonsterThink::handle_npc_equipment(
                         &mut equipper_item_list,
                         monster,
                         &items_in_backpacks,
-                    )
-                    .unwrap_or_default();
+                    );
 
                     // If smart, can eat something from backpack when not satiated
                     has_eaten_edible_in_backpack = MonsterThink::handle_edibles_in_backpack(
@@ -168,7 +167,7 @@ impl MonsterThink {
                 }
 
                 // if has not equipped an item or eaten, try to cast a spell or invoke an item
-                if !has_equipped_item_in_backpack || !has_eaten_edible_in_backpack {
+                if !has_equipped_item_in_backpack && !has_eaten_edible_in_backpack {
                     let total_items = items_in_backpacks.iter().len();
 
                     // Get castable spells
@@ -420,59 +419,57 @@ impl MonsterThink {
 
     /// Check if the monster has nothing that can equip and do it if is the case.
     /// Will also check if the monster has equippables that overlaps on a body location which is already equipped with something else.
-    /// Will return None if the monster has nothing to equip or Some Item that has been equipped.
     fn handle_npc_equipment(
         equipper_item_list: &mut Vec<(Entity, Entity)>,
         monster: Entity,
         items_of_monster: &Vec<(Entity, ItemsInBackpack)>,
-    ) -> Option<bool> {
-        // All equippables that are not equipped by the monster
-        let equippables: Vec<(&Entity, &Equippable)> = items_of_monster
-            .iter()
-            .filter(|(_, (_, in_backpack, .., equippable, equipped, _, _))| {
-                in_backpack.owner.id() == monster.id() && equippable.is_some() && equipped.is_none()
-            })
-            .map(|(entity, (_, _, _, _, _, _, _, equippable, ..))| {
-                (entity, equippable.expect("Equippable item is missing"))
-            })
-            .collect();
-
-        // All equippables that are equipped by the monster
+    ) -> bool {
+        // What the monster is already equipping
         let equipped: Vec<(&Entity, &Equipped)> = items_of_monster
             .iter()
-            .filter(|(_, (_, in_backpack, _, _, _, _, _, _, equipped, ..))| {
-                in_backpack.owner.id() == monster.id() && equipped.is_some()
-            })
-            .map(|(entity, (_, _, _, _, _, _, _, _, equipped, ..))| {
-                (entity, equipped.expect("Equippable item is missing"))
-            })
+            .filter_map(
+                |(entity, (_, in_backpack, _, _, _, _, _, _, equipped, ..))| {
+                    if in_backpack.owner.id() == monster.id() && equipped.is_some() {
+                        Some((entity, equipped.expect("Equippable item is missing")))
+                    } else {
+                        None
+                    }
+                },
+            )
             .collect();
-        let mut item_to_equip_found = !equippables.is_empty();
-        if !equippables.is_empty() {
-            for (item_a, equippable_a) in equippables {
-                // If has nothing equipped or has at least one item which body location do not overlap
-                // with currently equipped items
-                item_to_equip_found = equipped.is_empty()
+
+        items_of_monster
+            .iter()
+            // Get all equippables that are not currently equipped by the monster
+            .filter_map(
+                |(entity, (_, in_backpack, .., equippable, equipped, _, _))| {
+                    if in_backpack.owner.id() == monster.id()
+                        && equippable.is_some()
+                        && equipped.is_none()
+                    {
+                        Some((entity, equippable.expect("Equippable item is missing")))
+                    } else {
+                        None
+                    }
+                },
+            )
+            // If has nothing equipped or has at least one item which body location do not overlap
+            // with currently equipped items
+            .any(|(item_a, equippable_a)| {
+                if equipped.is_empty()
                     || equipped.iter().any(|(_, equipped_b)| {
                         !Utils::occupies_same_location(
                             &equippable_a.body_location,
                             &equipped_b.body_location,
                         )
-                    });
-
-                if item_to_equip_found {
-                    // Equip the first item that does not overlap
+                    })
+                {
+                    // Equip the first item that does not overlap and leave the loop
                     equipper_item_list.push((monster, *item_a));
-                    break;
+                    return true;
                 }
-            }
-
-            if item_to_equip_found {
-                // If something is equipped, continue to the next monster
-                return None;
-            }
-        }
-        Some(item_to_equip_found)
+                false
+            })
     }
 
     /// pick a target from visible tiles
@@ -642,32 +639,29 @@ impl MonsterThink {
         monster: Entity,
         items_in_backpacks: &Vec<(Entity, ItemsInBackpack)>,
     ) -> (bool, Option<Entity>) {
-        let equipped_ranged_weapons: Vec<&(Entity, ItemsInBackpack)> = items_in_backpacks
-            .iter()
-            .filter(|(_, (_, in_backpack, .., equipped, ranged, _))| {
-                in_backpack.owner.id() == monster.id() && equipped.is_some() && ranged.is_some()
-            })
-            .collect();
-
-        // Has no equipped ranged weapons, cannot shoot
-        if equipped_ranged_weapons.is_empty() {
-            return (false, None);
-        }
-
         // Check if monster has at least one ammo for the equipped ranged weapon
-        for (weapon_entity, (_, _, _, _, _, _, _, _, _, ranged_weapon_opt, _)) in
-            &equipped_ranged_weapons
-        {
-            // If the monsters has the ammo for at least one equipped ranged weapon, it can shoot!
-            // Most of the time all ranged weapons occupy BothHands BodyLocation
-            if let Some(ranged_weapon) = ranged_weapon_opt
-                && ranged_weapon.ammo_count_total > 0
-            {
-                return (true, Some(*weapon_entity));
-            }
-        }
-
-        (false, None)
+        return items_in_backpacks
+            .iter()
+            // Find the first equipped ranged weapon with available ammo
+            .find_map(
+                |(
+                    weapon_entity,
+                    (_, in_backpack, _, _, _, _, _, _, equipped_opt, ranged_weapon_opt, ..),
+                )| {
+                    // If the monsters has the ammo for at least one equipped ranged weapon, it can shoot!
+                    // Most of the time all ranged weapons occupy BothHands BodyLocation
+                    if in_backpack.owner.id() == monster.id()
+                        && equipped_opt.is_some()
+                        && let Some(ranged_weapon) = ranged_weapon_opt
+                        && ranged_weapon.ammo_count_total > 0
+                    {
+                        return Some((true, Some(*weapon_entity)));
+                    } else {
+                        return None;
+                    }
+                },
+            )
+            .unwrap_or((false, None));
     }
 
     /// Get monster's castable spells, confronting its spell list and all the spells with cooldown < 1
@@ -675,8 +669,7 @@ impl MonsterThink {
         let mut ready_spells_query = ecs_world.query::<&Spell>();
         let ready_spells: Vec<Entity> = ready_spells_query
             .iter()
-            .filter(|(_, s)| s.spell_cooldown < 1)
-            .map(|(e, _)| e)
+            .filter_map(|(e, s)| if s.spell_cooldown < 1 { Some(e) } else { None })
             .collect();
         //Get monster spell list and filter castable spells
         let mut spells_list_query = ecs_world.query::<&SpellList>();
@@ -703,16 +696,16 @@ impl MonsterThink {
         edible_in_backpacks: Vec<(Entity, EdibleInBackpack)>,
     ) -> bool {
         if hunger.current_status != HungerStatus::Satiated {
-            let edibles_of_monster: Vec<&Entity> = edible_in_backpacks
-                .iter()
-                .filter(|(_, (in_back, _))| in_back.owner.id() == monster.id())
-                .map(|(e, _)| e)
-                .collect();
-            if let Some(&edible_to_eat) = edibles_of_monster.first() {
-                eat_target_list.push((monster, *edible_to_eat));
-                return true;
-            }
+            edible_in_backpacks.iter().any(|(e, (in_back, _))| {
+                if in_back.owner.id() == monster.id() {
+                    eat_target_list.push((monster, *e));
+                    true
+                } else {
+                    false
+                }
+            })
+        } else {
+            false
         }
-        false
     }
 }

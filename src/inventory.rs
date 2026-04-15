@@ -359,28 +359,31 @@ impl Inventory {
         let mut inventory_query = ecs_world.query::<InventoryItem>();
         let mut inventory = inventory_query
             .iter()
-            .filter(|(_, (_, _, in_backpack, ..))| in_backpack.owner.id() == player_id)
-            .map(
+            .filter_map(
                 |(
                     entity,
                     (named, item, in_backpack, equipped, eroded, ranged_opt, wet_opt, corpse_opt),
                 )| {
-                    let mut ammo = -1;
-                    if let Some(ranged) = ranged_opt {
-                        ammo = ranged.ammo_count_total as i32;
-                    }
+                    if in_backpack.owner.id() == player_id {
+                        let mut ammo = -1;
+                        if let Some(ranged) = ranged_opt {
+                            ammo = ranged.ammo_count_total as i32;
+                        }
 
-                    (
-                        entity,
-                        named.name,
-                        in_backpack.assigned_char,
-                        item.item_tile,
-                        equipped.is_some(),
-                        eroded.is_some(),
-                        ammo,
-                        wet_opt.is_some(),
-                        corpse_opt.is_some(),
-                    )
+                        Some((
+                            entity,
+                            named.name,
+                            in_backpack.assigned_char,
+                            item.item_tile,
+                            equipped.is_some(),
+                            eroded.is_some(),
+                            ammo,
+                            wet_opt.is_some(),
+                            corpse_opt.is_some(),
+                        ))
+                    } else {
+                        None
+                    }
                 },
             )
             .collect::<InventoryItemData>();
@@ -402,30 +405,33 @@ impl Inventory {
 
         let mut inventory = inventory_query
             .iter()
-            .filter(|(_, (_, _, in_backpack, ..))| in_backpack.owner.id() == player_id)
-            .map(
+            .filter_map(
                 |(
                     entity,
                     (named, item, in_backpack, equipped, eroded, ranged_opt, wet_opt, corpse_opt),
                 )| {
-                    let mut ammo = -1;
-                    if let Some(ranged) = ranged_opt {
-                        ammo = ranged.ammo_count_total as i32;
-                    }
+                    if in_backpack.owner.id() == player_id {
+                        let mut ammo = -1;
+                        if let Some(ranged) = ranged_opt {
+                            ammo = ranged.ammo_count_total as i32;
+                        }
 
-                    (
-                        entity,
-                        named.name,
-                        in_backpack.assigned_char,
-                        item.item_tile,
-                        equipped.is_some(),
-                        eroded.is_some(),
-                        ammo,
-                        wet_opt.is_some(),
-                        corpse_opt.is_some(),
-                    )
+                        Some((
+                            entity,
+                            named.name,
+                            in_backpack.assigned_char,
+                            item.item_tile,
+                            equipped.is_some(),
+                            eroded.is_some(),
+                            ammo,
+                            wet_opt.is_some(),
+                            corpse_opt.is_some(),
+                        ))
+                    } else {
+                        None
+                    }
                 },
-            ) //
+            )
             .collect::<InventoryItemData>();
 
         //Sort alphabetically by assigned char

@@ -425,7 +425,7 @@ impl Player {
         let ecs_world = &mut game_state.ecs_world;
         let player_entity = game_state.current_player_entity.expect("Must be Some");
 
-        if let Some(item) = Player::take_from_map::<Item>(ecs_world) {
+        if let Some(item) = Player::take_from_map::<Item>(ecs_world, player_entity) {
             // Check if the item is being stolen from a shop
             if Utils::get_item_owner(ecs_world, item).is_some() {
                 //Show Dialog
@@ -452,14 +452,12 @@ impl Player {
     }
 
     /// Takes something from map.
-    fn take_from_map<T: Component>(ecs_world: &mut World) -> Option<Entity> {
+    fn take_from_map<T: Component>(ecs_world: &mut World, player_entity: Entity) -> Option<Entity> {
         let mut target_item: Option<Entity> = None;
 
-        let mut player_query = ecs_world.query::<&Position>().with::<&Player>();
-        let (_, position) = player_query
-            .iter()
-            .last()
-            .expect("Player is not in hecs::World");
+        let position = ecs_world
+            .get::<&Position>(player_entity)
+            .expect("Player must have a position");
 
         let mut items = ecs_world.query::<(&Item, &Position)>();
         // Get item
@@ -478,9 +476,10 @@ impl Player {
     /// Try to eat. Return new Runstate
     fn try_eat(game_state: &mut GameState) {
         let ecs_world = &mut game_state.ecs_world;
+        let player_entity = game_state.current_player_entity.expect("Must be Some");
 
         clear_input_queue();
-        let item_on_ground = Player::take_from_map::<Edible>(ecs_world);
+        let item_on_ground = Player::take_from_map::<Edible>(ecs_world, player_entity);
 
         // Is really Edible?
         if let Some(item) = item_on_ground
@@ -517,11 +516,9 @@ impl Player {
                 .current_zone
                 .as_ref()
                 .expect("must have Some Zone");
-            let mut player_query = ecs_world.query::<&Position>().with::<&Player>();
-            let (_, position) = player_query
-                .iter()
-                .last()
-                .expect("Player is not in hecs::World");
+            let position = ecs_world
+                .get::<&Position>(player_entity)
+                .expect("Player must have a position");
             let player_position = position;
 
             // Get Water from river
@@ -536,7 +533,7 @@ impl Player {
             game_state.run_state = RunState::DoTick;
         } else {
             // Drink a quaffable item on ground
-            let item_on_ground = Player::take_from_map::<Quaffable>(ecs_world);
+            let item_on_ground = Player::take_from_map::<Quaffable>(ecs_world, player_entity);
 
             // Is really Quaffable?
             if let Some(item) = item_on_ground
@@ -552,13 +549,14 @@ impl Player {
         let standing_on_tile;
 
         game_state.run_state = RunState::WaitingPlayerInput;
+        let player_entity = game_state
+            .current_player_entity
+            .expect("Must have player entity");
         //Scope to keep borrow checker quiet
         {
-            let mut player_query = ecs_world.query::<&Position>().with::<&Player>();
-            let (_, position) = player_query
-                .iter()
-                .last()
-                .expect("Player is not in hecs::World");
+            let position = ecs_world
+                .get::<&Position>(player_entity)
+                .expect("Player must have a position");
 
             let zone = game_state
                 .current_zone
@@ -592,23 +590,21 @@ impl Player {
             // and can't be dropped before of that
             let mut ranged_weapons_in_backpacks_query = ecs_world.query::<ItemsInBackpack>();
 
-            let player_ranged_weapons: Vec<(Entity, ItemsInBackpack)> =
-                ranged_weapons_in_backpacks_query
-                    .iter()
-                    .filter(|(_, (_, in_backpack, .., equipped, ranged, _))| {
+            let player_ranged_weapon: Option<(Entity, ItemsInBackpack)> =
+                ranged_weapons_in_backpacks_query.iter().find(
+                    |(_, (_, in_backpack, .., equipped, ranged, _))| {
                         in_backpack.owner.id() == player_entity.id()
                             && equipped.is_some()
                             && ranged.is_some()
-                    })
-                    .collect();
+                    },
+                );
 
-            if player_ranged_weapons.is_empty() {
+            if let Some(weapon) = player_ranged_weapon {
+                weapon_opt = Some(weapon.0);
+            } else {
                 game_state
                     .game_log
                     .add_entry("You don't have a ranged weapon equipped");
-            } else {
-                // Should be one, anyway
-                weapon_opt = Some(player_ranged_weapons[0].0);
             }
         }
 
@@ -617,15 +613,13 @@ impl Player {
             //Scope to keep borrow checker quiet
             {
                 // Check if the Player has ammo available
-                let weapon_stats = ecs_world
-                    .get::<&RangedWeapon>(weapon)
-                    .expect("Entity has no RangedWeapon"); // TODO maybe refactor this with InflictsDamage component;
+                let mut q = ecs_world
+                    .query_one::<(&RangedWeapon, &Named)>(weapon)
+                    .unwrap_or_else(|_| panic!("No Named RangedWeapon for entity {:?}", weapon)); // TODO maybe refactor this with InflictsDamage component;
+                let (weapon_stats, weapon_named) = q.get().expect("Entity has no RangedWeapon");
 
                 // If no ammo available, abort without advancing to next tick
                 if weapon_stats.ammo_count_total == 0 {
-                    let weapon_named = ecs_world
-                        .get::<&Named>(weapon)
-                        .expect("Entity has no Named");
                     game_state.game_log.add_entry(&format!(
                         "You don't have any ammunition for your {}",
                         weapon_named.name
@@ -645,10 +639,10 @@ impl Player {
     }
 
     /// Extract Player's entity from world and return it with copy
-    pub fn can_act(ecs_world: &World) -> bool {
-        let mut player_query = ecs_world.query::<(&Player, &MyTurn)>();
-
-        player_query.iter().len() > 0
+    pub fn can_act(ecs_world: &World, player_entity: Entity) -> bool {
+        ecs_world
+            .satisfies::<&MyTurn>(player_entity)
+            .unwrap_or(false)
     }
 
     /// Wait some ticks after action is taken
@@ -697,13 +691,13 @@ impl Player {
                 .current_zone
                 .as_ref()
                 .expect("must have Some Zone");
+            let player_entity = game_state
+                .current_player_entity
+                .expect("must have Some Player");
             let mut player_query = ecs_world
-                .query::<(&Viewshed, &Position)>()
-                .with::<&Player>();
-            let (_, (viewshed, player_pos)) = player_query
-                .iter()
-                .last()
+                .query_one::<(&Viewshed, &Position)>(player_entity)
                 .expect("Player is not in hecs::World");
+            let (viewshed, player_pos) = player_query.get().expect("Player is not in hecs::World");
 
             // Search for visibile shop owners in the visibile tiles
             for &index in &viewshed.visible_tiles {

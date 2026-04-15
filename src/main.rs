@@ -1,8 +1,6 @@
 use crate::{
     components::{combat::Grappled, common::Experience},
-    maps::{
-        arena_zone_builder::ArenaZoneBuilder, crystal_cave_builder::CrystalCaveBuilder,
-    },
+    maps::{arena_zone_builder::ArenaZoneBuilder, crystal_cave_builder::CrystalCaveBuilder},
     systems::{
         advancement_system::AdvancementSystem, dig_manager::DigManager,
         gaze_attacks_manager::GazeAttacksManager, health_manager::HealthManager,
@@ -143,7 +141,12 @@ async fn main() {
                     match game_state.run_state {
                         RunState::GameOver | RunState::ShowDialog(_) | RunState::DrawParticles => {}
                         _ => {
-                            if Player::can_act(&game_state.ecs_world) {
+                            if Player::can_act(
+                                &game_state.ecs_world,
+                                game_state
+                                    .current_player_entity
+                                    .expect("No current player entity"),
+                            ) {
                                 println!("Player's turn");
                                 game_state.run_state = RunState::WaitingPlayerInput;
                             } else {
@@ -341,10 +344,9 @@ fn do_debug_logic(game_state: &mut GameState) {
                     Stunned { tick_counter: 3 },
                 );
             } else if is_key_pressed(KeyCode::F10) {
-                Spawn::crampon_boots(&mut game_state.ecs_world, MAP_WIDTH / 2, MAP_HEIGHT / 2);
-                Spawn::leather_shoes(&mut game_state.ecs_world, MAP_WIDTH / 2, MAP_HEIGHT / 2);
+                Spawn::slingshot(&mut game_state.ecs_world, MAP_WIDTH / 2, MAP_HEIGHT / 2);
             } else if is_key_pressed(KeyCode::F9) {
-                Spawn::moleman(&mut game_state.ecs_world, 38, MAP_HEIGHT / 2);
+                Spawn::naked_refugee(&mut game_state.ecs_world, MAP_WIDTH / 2, MAP_HEIGHT / 2);
             } else if is_key_pressed(KeyCode::F8) {
                 use crate::components::combat::CombatStats;
 

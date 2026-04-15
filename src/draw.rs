@@ -136,14 +136,15 @@ impl Draw {
             .as_ref()
             .expect("must have Some Zone");
         let ecs_world = &mut game_state.ecs_world;
+        let player_entity = game_state
+            .current_player_entity
+            .expect("must have Some Player");
 
         let mut player_query = ecs_world
-            .query::<(&Experience, &CombatStats, &Hunger, &Thirst)>()
-            .with::<&Player>();
-        let (_, (experience, player_stats, hunger, thirst)) = player_query
-            .iter()
-            .last()
+            .query_one::<(&Experience, &CombatStats, &Hunger, &Thirst)>(player_entity)
             .expect("Player is not in hecs::World");
+        let (experience, player_stats, hunger, thirst) =
+            player_query.get().expect("Player is not in hecs::World");
 
         let level_text = format!("LVL:{}", player_stats.level);
         let level_text_len = level_text.len();
