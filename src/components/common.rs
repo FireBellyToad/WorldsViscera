@@ -177,3 +177,7 @@ pub struct Lock {
 pub struct Key {
     pub lock: Entity,
 }
+
+pub struct WillChat {
+    pub dialogues: Vec<&'static str>,
+}

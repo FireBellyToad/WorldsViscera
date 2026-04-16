@@ -10,7 +10,7 @@ use crate::{
         common::{
             BlocksTile, Hates, Immobile, Immunity, ImmunityTypeEnum, MyTurn, Named, Position,
             ProduceCorpse, ProduceSound, Renderable, SmellIntensity, Smellable, Species,
-            SpeciesEnum, SpellList, Viewshed,
+            SpeciesEnum, SpellList, Viewshed, WillChat,
         },
         health::{DiseaseType, Hunger},
         items::{BodyLocation, Deadly, Edible, Equipped, InBackback},
@@ -815,8 +815,8 @@ impl Spawn {
                 },
                 CombatStats {
                     level: 4,
-                    current_stamina: 3,
-                    max_stamina: 3,
+                    current_stamina: 6,
+                    max_stamina: 6,
                     base_armor: 0,
                     unarmed_attack_dice: 4,
                     current_toughness: 5,
@@ -932,7 +932,19 @@ impl Spawn {
             );
         }
 
-        let _ = ecs_world.insert(moleman, (Smart {},));
+        let _ = ecs_world.insert(
+            moleman,
+            (
+                Smart {},
+                WillChat {
+                    dialogues: vec![
+                        "Dig stone I must",
+                        "You enemy? You friend?",
+                        "Humans somewhere, I heard",
+                    ],
+                },
+            ),
+        );
     }
 
     pub fn moleman_farmer(ecs_world: &mut World, x: i32, y: i32) -> Entity {
@@ -993,7 +1005,20 @@ impl Spawn {
             },
         );
 
-        let _ = ecs_world.insert(moleman_farmer, (Smart {}, Immobile {}));
+        let _ = ecs_world.insert(
+            moleman_farmer,
+            (
+                Smart {},
+                Immobile {},
+                WillChat {
+                    dialogues: vec![
+                        "Good mushrooms I trade",
+                        "No steal, I kill thieves",
+                        "Want corpses. You have?",
+                    ],
+                },
+            ),
+        );
         moleman_farmer
     }
 
@@ -1311,7 +1336,91 @@ impl Spawn {
             );
         }
 
-        let _ = ecs_world.insert(refugee, (Smart {}, Prey {}));
+        let _ = ecs_world.insert(
+            refugee,
+            (
+                Smart {},
+                Prey {},
+                WillChat {
+                    dialogues: vec![
+                        "Leave me alone,\nyou weirdo",
+                        "I don't want you\nanywhere near me,\n get lost!",
+                        "Go away, you'll\nattract some darn\nmonster here!",
+                    ],
+                },
+            ),
+        );
+    }
+
+    /// Spawn a naked human refugee, test only
+    #[allow(dead_code)]
+    pub fn naked_refugee(ecs_world: &mut World, x: i32, y: i32) {
+        let refugee = Spawn::create_monster(
+            ecs_world,
+            (
+                Named {
+                    name: "Human refugee",
+                    attack_verb: Some("hits"),
+                },
+                Species {
+                    value: SpeciesEnum::Human,
+                },
+                CombatStats {
+                    level: 2,
+                    current_stamina: 6,
+                    max_stamina: 6,
+                    base_armor: 0,
+                    unarmed_attack_dice: 3,
+                    current_toughness: 10,
+                    max_toughness: 10,
+                    current_dexterity: 10,
+                    max_dexterity: 10,
+                    speed: NORMAL,
+                },
+                BASE_VIEW_RADIUS,
+                Edible {
+                    nutrition_dice_number: 5,
+                    nutrition_dice_size: 4,
+                },
+                Smellable {
+                    smell_log: Some("human sweat"),
+                    intensity: SmellIntensity::Faint,
+                },
+                ProduceSound {
+                    sound_log: "faint breathing",
+                },
+                true,
+                vec![],
+                0.0,
+                1.0,
+                x,
+                y,
+            ),
+        );
+
+        // Refugee has 1 to 3 rations
+        for _ in 0..Roll::dice(1, 3) {
+            let ration = Spawn::ration(ecs_world, x, y);
+            let _ = ecs_world.remove_one::<Position>(ration);
+            let _ = ecs_world.insert_one(
+                ration,
+                InBackback {
+                    owner: refugee,
+                    assigned_char: 'c',
+                },
+            );
+        }
+
+        let _ = ecs_world.insert(
+            refugee,
+            (
+                Smart {},
+                Prey {},
+                WillChat {
+                    dialogues: vec!["Leave me alone"],
+                },
+            ),
+        );
     }
 
     pub fn stonedust_cultist(ecs_world: &mut World, x: i32, y: i32) -> Entity {
@@ -1381,7 +1490,17 @@ impl Spawn {
         // turn on lantern
         let _ = ecs_world.insert(
             stonedust_cultist,
-            (WantsToApply { item: lantern }, Smart {}),
+            (
+                WantsToApply { item: lantern },
+                Smart {},
+                WillChat {
+                    dialogues: vec![
+                        "Thou art the\n\"Willing descender\",\nour cult knows about you",
+                        "I envy thyne path\nof descent in\nthe bowels of\nthis world",
+                        "Our sacred scripts\nspoke of your\ndescent, brave one!",
+                    ],
+                },
+            ),
         );
 
         for _ in 0..Roll::dice(1, 2) {
@@ -1496,10 +1615,125 @@ impl Spawn {
         // turn on lantern
         let _ = ecs_world.insert(
             stonedust_acolyte,
-            (WantsToApply { item: lantern }, Smart {}),
+            (
+                WantsToApply { item: lantern },
+                Smart {},
+                WillChat {
+                    dialogues: vec![
+                        "Thou art the\n\"Willing descender\",\nonly the World's Viscera\ncan decide thyne fate",
+                        "I do not know\nwhat awaits thou\nin the depths below,\n sacred one",
+                        "Our sacred scripts\nspoke of your\ndescent, brave one!",
+                    ],
+                },
+            ),
         );
 
         stonedust_acolyte
+    }
+
+    pub fn stonedust_abbot(ecs_world: &mut World, x: i32, y: i32) -> Entity {
+        let stonedust_abbot = Spawn::create_monster(
+            ecs_world,
+            (
+                Named {
+                    name: "Stonedust abbot",
+                    attack_verb: Some("hits"),
+                },
+                Species {
+                    value: SpeciesEnum::Human,
+                },
+                CombatStats {
+                    level: 8,
+                    current_stamina: 10,
+                    max_stamina: 10,
+                    base_armor: 0,
+                    unarmed_attack_dice: 3,
+                    current_toughness: 13,
+                    max_toughness: 13,
+                    current_dexterity: 13,
+                    max_dexterity: 13,
+                    speed: NORMAL,
+                },
+                BASE_VIEW_RADIUS,
+                Edible {
+                    nutrition_dice_number: 5,
+                    nutrition_dice_size: 4,
+                },
+                Smellable {
+                    smell_log: Some("stone dust"),
+                    intensity: SmellIntensity::Faint,
+                },
+                ProduceSound {
+                    sound_log: "rythmic preaching",
+                },
+                true,
+                vec![],
+                14.0,
+                1.0,
+                x,
+                y,
+            ),
+        );
+
+        // Stonedust cultist has dazing spell
+        let daze_spell = Spawn::daze(ecs_world);
+        let stone_fell = Spawn::stone_fell(ecs_world);
+        let _ = ecs_world.insert_one(
+            stonedust_abbot,
+            SpellList {
+                spells: vec![daze_spell, stone_fell],
+            },
+        );
+
+        // Stonedust cultist has lantern
+        let lantern = Spawn::lantern(ecs_world, x, y);
+        let _ = ecs_world.remove_one::<Position>(lantern);
+        let _ = ecs_world.insert_one(
+            lantern,
+            InBackback {
+                owner: stonedust_abbot,
+                assigned_char: 'a',
+            },
+        );
+
+        for _ in 0..Roll::dice(1, 2) {
+            let ration = Spawn::ration(ecs_world, x, y);
+            let _ = ecs_world.remove_one::<Position>(ration);
+            let _ = ecs_world.insert_one(
+                ration,
+                InBackback {
+                    owner: stonedust_abbot,
+                    assigned_char: 'c',
+                },
+            );
+        }
+        let flask_of_water = Spawn::flask_of_water(ecs_world, x, y);
+        let _ = ecs_world.remove_one::<Position>(flask_of_water);
+        let _ = ecs_world.insert_one(
+            flask_of_water,
+            InBackback {
+                owner: stonedust_abbot,
+                assigned_char: 'd',
+            },
+        );
+        // turn on lantern
+        let _ = ecs_world.insert(
+            stonedust_abbot,
+            (
+                WantsToApply { item: lantern },
+                Smart {},
+                Immobile {},
+                WillChat {
+                    dialogues: vec![
+                        "Hast thou any\nraw gold?",
+                        "I have special\npaste made from\nholy stone dust.",
+                        "All diseases can\nbe cured with\nour sacred paste",
+                    ],
+                },
+            ),
+        );
+
+        stonedust_abbot
     }
 
     pub fn living_dead(ecs_world: &mut World, x: i32, y: i32) {

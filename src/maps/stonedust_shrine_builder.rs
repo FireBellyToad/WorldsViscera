@@ -82,7 +82,7 @@ impl ZoneFeatureBuilder for StonedustShrineBuilder {
                     } else if !has_opening && (counter >= (size) || Roll::dice(1, 4) == 1) {
                         // Guarantee an open space in the fence
                         has_opening = true;
-                        owner_opt = Some(Spawn::stonedust_acolyte(ecs_world, x, y));
+                        owner_opt = Some(Spawn::stonedust_abbot(ecs_world, x, y));
                     } else {
                         zone.tiles[Zone::get_index_from_xy(&x, &y)] = TileType::BrickWall;
                     }
@@ -100,13 +100,10 @@ impl ZoneFeatureBuilder for StonedustShrineBuilder {
             if let Some(owner) = owner_opt {
                 let _ = ecs_world.insert(
                     owner,
-                    (
-                        ShopOwner {
-                            shop_tiles: tiles.clone(),
-                            wanted_items: vec![Tradable::RawGold],
-                        },
-                        Immobile {},
-                    ),
+                    (ShopOwner {
+                        shop_tiles: tiles.clone(),
+                        wanted_items: vec![Tradable::RawGold],
+                    },),
                 );
             } else {
                 panic!("Cannot create Stonedust Shrine without owner!");
