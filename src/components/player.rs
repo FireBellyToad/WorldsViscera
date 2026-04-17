@@ -290,10 +290,8 @@ impl Player {
                         }
 
                         //Kill himself in debug mode only
-                        'k' => {
-                            if game_state.debug_mode {
-                                game_state.run_state = RunState::GameOver;
-                            }
+                        'k' if game_state.debug_mode => {
+                            game_state.run_state = RunState::GameOver;
                         }
 
                         '>' => {

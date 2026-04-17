@@ -640,7 +640,7 @@ impl MonsterThink {
         items_in_backpacks: &Vec<(Entity, ItemsInBackpack)>,
     ) -> (bool, Option<Entity>) {
         // Check if monster has at least one ammo for the equipped ranged weapon
-        return items_in_backpacks
+        items_in_backpacks
             .iter()
             // Find the first equipped ranged weapon with available ammo
             .find_map(
@@ -655,13 +655,13 @@ impl MonsterThink {
                         && let Some(ranged_weapon) = ranged_weapon_opt
                         && ranged_weapon.ammo_count_total > 0
                     {
-                        return Some((true, Some(*weapon_entity)));
+                        Some((true, Some(*weapon_entity)))
                     } else {
-                        return None;
+                        None
                     }
                 },
             )
-            .unwrap_or((false, None));
+            .unwrap_or((false, None))
     }
 
     /// Get monster's castable spells, confronting its spell list and all the spells with cooldown < 1
