@@ -349,7 +349,7 @@ fn do_debug_logic(game_state: &mut GameState) {
             } else if is_key_pressed(KeyCode::F10) {
                 Spawn::slingshot(&mut game_state.ecs_world, MAP_WIDTH / 2, MAP_HEIGHT / 2);
             } else if is_key_pressed(KeyCode::F9) {
-                Spawn::naked_refugee(&mut game_state.ecs_world, MAP_WIDTH / 2, MAP_HEIGHT / 2);
+                Spawn::refugee(&mut game_state.ecs_world, MAP_WIDTH / 2, MAP_HEIGHT / 2);
             } else if is_key_pressed(KeyCode::F8) {
                 use crate::components::combat::CombatStats;
 

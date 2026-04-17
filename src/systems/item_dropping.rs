@@ -104,10 +104,8 @@ impl ItemDropping {
 
     /// Drop all items of entity
     pub fn drop_all_of(ent: Entity, ecs_world: &mut World, drop_x: i32, drop_y: i32) {
-        let items_to_drop: Vec<Entity>;
-
         //Drop items
-        items_to_drop = ecs_world
+        let items_to_drop: Vec<Entity> = ecs_world
             .query::<ItemsInBackpack>()
             .iter()
             .filter_map(|(e, (_, in_backpack, ..))| {

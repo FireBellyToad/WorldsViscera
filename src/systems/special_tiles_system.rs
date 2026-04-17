@@ -63,14 +63,10 @@ impl SpecialTilesSystem {
                     }
                 }
                 // If there is a GrownIfSteppedOn component on the tile...
-                else if let Some(mut grow_if_step) =
-                    zone.tile_content[pos_idx].iter().find_map(|&e| {
-                        if let Ok(giso_component) = ecs_world.get::<&mut GrownIfSteppedOn>(e) {
-                            Some(giso_component)
-                        } else {
-                            None
-                        }
-                    })
+                // find the first entity with the component and get a mutable reference to it
+                else if let Some(mut grow_if_step) = zone.tile_content[pos_idx]
+                    .iter()
+                    .find_map(|&e| ecs_world.get::<&mut GrownIfSteppedOn>(e).ok())
                 {
                     // if player or NPC is on the tile, decrement the counter
                     // Get the entity and the name of the stepper. If present, decrement the counter
