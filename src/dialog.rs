@@ -29,6 +29,7 @@ pub enum DialogAction {
     Trade(TradeDtt),
     StealPick(Entity),
     StealEat(Entity),
+    ShowMessage(&'static str),
 }
 
 pub struct Dialog {}
@@ -53,7 +54,7 @@ impl Dialog {
                         _ => RunState::WaitingPlayerInput,
                     }
                 }
-                'y' => {
+                'y' | 'o' => {
                     // Confirm action and execute its game logic
                     let player_entity = game_state
                         .current_player_entity
@@ -81,6 +82,7 @@ impl Dialog {
                         DialogAction::Trade(trade_info) => {
                             TradeSystem::end_trade(ecs_world, trade_info);
                         }
+                        _ => {}
                     }
 
                     //Avoid strange behaviors
@@ -161,6 +163,7 @@ impl Dialog {
                     Utils::get_corpse_string(corpse_opt.is_some()),
                 )
             }
+            DialogAction::ShowMessage(message) => message.to_string(),
         };
 
         // ------- Background Rectangle -----------
@@ -195,20 +198,32 @@ impl Dialog {
         );
 
         // ------- Choices -----------
-        draw_text(
-            "(N)o",
-            (DIALOG_X + DIALOG_SIZE - DIALOG_LEFT_SPAN + HUD_BORDER) as f32 - (5.0 * LETTER_SIZE),
-            (DIALOG_Y + DIALOG_SIZE - DIALOG_TOP_SPAN + HUD_BORDER) as f32,
-            FONT_SIZE,
-            WHITE,
-        );
-        draw_text(
-            "(Y)es",
-            (DIALOG_X + DIALOG_LEFT_SPAN + HUD_BORDER) as f32,
-            (DIALOG_Y + DIALOG_SIZE - DIALOG_TOP_SPAN + HUD_BORDER) as f32,
-            FONT_SIZE,
-            WHITE,
-        );
+
+        if let DialogAction::ShowMessage(_) = action {
+            draw_text(
+                "(O)k",
+                (DIALOG_X + DIALOG_SIZE / 2 - HUD_BORDER) as f32,
+                (DIALOG_Y + DIALOG_SIZE - DIALOG_TOP_SPAN + HUD_BORDER) as f32,
+                FONT_SIZE,
+                WHITE,
+            );
+        } else {
+            draw_text(
+                "(Y)es",
+                (DIALOG_X + DIALOG_LEFT_SPAN + HUD_BORDER) as f32,
+                (DIALOG_Y + DIALOG_SIZE - DIALOG_TOP_SPAN + HUD_BORDER) as f32,
+                FONT_SIZE,
+                WHITE,
+            );
+            draw_text(
+                "(N)o",
+                (DIALOG_X + DIALOG_SIZE - DIALOG_LEFT_SPAN + HUD_BORDER) as f32
+                    - (5.0 * LETTER_SIZE),
+                (DIALOG_Y + DIALOG_SIZE - DIALOG_TOP_SPAN + HUD_BORDER) as f32,
+                FONT_SIZE,
+                WHITE,
+            );
+        }
     }
 
     /// Builds a string representation of the items to be received in a shop offer.

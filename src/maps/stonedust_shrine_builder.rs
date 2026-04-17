@@ -2,10 +2,7 @@ use hecs::{Entity, World};
 use macroquad::math::Rect;
 
 use crate::{
-    components::{
-        common::Immobile,
-        items::{ShopOwner, Tradable},
-    },
+    components::items::{ShopOwner, Tradable},
     constants::{MAP_HEIGHT, MAP_WIDTH},
     maps::{
         ZoneFeatureBuilder,

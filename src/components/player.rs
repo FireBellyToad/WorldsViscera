@@ -1,8 +1,8 @@
 use crate::components::actions::{WantsToDig, WantsToTrade};
 use crate::components::combat::{Grappled, SufferingDamage, WantsToShoot};
-use crate::components::common::{Diggable, Hates, Immunity, ImmunityTypeEnum, Named};
+use crate::components::common::{Diggable, Hates, Immunity, ImmunityTypeEnum, Named, WillChat};
 use crate::components::items::{RangedWeapon, ShopOwner};
-use crate::constants::{ACID_DECAL_DAMAGE_DICE, STANDARD_ACTION_MULTIPLIER};
+use crate::constants::{ACID_DECAL_DAMAGE_DICE, NEXT_TO_DISTANCE, STANDARD_ACTION_MULTIPLIER};
 use crate::engine::state::GameState;
 use crate::utils::common::ItemsInBackpack;
 use crate::utils::roll::Roll;
@@ -345,6 +345,10 @@ impl Player {
                             Player::try_trade(game_state);
                         }
 
+                        //Trade item to shop owner
+                        'c' => {
+                            Player::try_chat(game_state);
+                        }
                         _ => {}
                     }
                 }
@@ -682,7 +686,7 @@ impl Player {
         game_state.run_state = RunState::WaitingPlayerInput;
         let mut owner_entity: Option<Entity> = None;
         let ecs_world = &mut game_state.ecs_world;
-        let player = game_state
+        let player_entity = game_state
             .current_player_entity
             .expect("must be some entity");
         // Scope for keeping borrow checker quiet
@@ -691,9 +695,6 @@ impl Player {
                 .current_zone
                 .as_ref()
                 .expect("must have Some Zone");
-            let player_entity = game_state
-                .current_player_entity
-                .expect("must have Some Player");
             let mut player_query = ecs_world
                 .query_one::<(&Viewshed, &Position)>(player_entity)
                 .expect("Player is not in hecs::World");
@@ -703,15 +704,14 @@ impl Player {
             for &index in &viewshed.visible_tiles {
                 for &entity in &zone.tile_content[index] {
                     // If is a non-angered shop owner, try to trade
-                    if ecs_world.satisfies::<&ShopOwner>(entity).unwrap_or(false)
-                        && let Ok(hates) = ecs_world.get::<&Hates>(entity)
-                        && !hates.list.contains(&player.id())
+                    if let Ok(mut res) =
+                        ecs_world.query_one::<(&ShopOwner, &Hates, &Position)>(entity)
+                        && let Some((_, hates, pos)) = res.get()
+                        && !hates.list.contains(&player_entity.id())
                     {
-                        let pos = ecs_world
-                            .get::<&Position>(entity)
-                            .expect("Entity does not have a Position");
-
-                        if Utils::distance(&player_pos.x, &pos.x, &player_pos.y, &pos.y) <= 1.5 {
+                        if Utils::distance(&player_pos.x, &pos.x, &player_pos.y, &pos.y)
+                            <= NEXT_TO_DISTANCE
+                        {
                             owner_entity = Some(entity);
                             break;
                         } else {
@@ -740,8 +740,75 @@ impl Player {
 
         // If we found a shop owner, offer them an item
         if let Some(target) = owner_entity {
-            let _ = ecs_world.insert_one(player, WantsToTrade { target, item: None });
+            let _ = ecs_world.insert_one(player_entity, WantsToTrade { target, item: None });
             game_state.run_state = RunState::ShowInventory(InventoryAction::Trade);
+        }
+    }
+
+    /// Try to chat an item to a potetial shop owner
+    pub fn try_chat(game_state: &mut GameState) {
+        game_state.run_state = RunState::WaitingPlayerInput;
+        let mut owner_entity: Option<&'static str> = None;
+        let ecs_world = &mut game_state.ecs_world;
+        let player_entity = game_state
+            .current_player_entity
+            .expect("must be some entity");
+        // Scope for keeping borrow checker quiet
+        {
+            let zone = game_state
+                .current_zone
+                .as_ref()
+                .expect("must have Some Zone");
+            let mut player_query = ecs_world
+                .query_one::<(&Viewshed, &Position)>(player_entity)
+                .expect("Player is not in hecs::World");
+            let (viewshed, player_pos) = player_query.get().expect("Player is not in hecs::World");
+
+            // Search for visibile shop owners in the visibile tiles
+            for &index in &viewshed.visible_tiles {
+                for &entity in &zone.tile_content[index] {
+                    // If is a non-angered shop owner, try to trade
+                    if let Ok(mut res) =
+                        ecs_world.query_one::<(&WillChat, &Hates, &Position)>(entity)
+                        && let Some((will_chat, hates, pos)) = res.get()
+                        && !hates.list.contains(&player_entity.id())
+                    {
+                        if Utils::distance(&player_pos.x, &pos.x, &player_pos.y, &pos.y)
+                            <= NEXT_TO_DISTANCE
+                        {
+                            let diag_len = will_chat.dialogues.len();
+                            owner_entity = Some(
+                                will_chat.dialogues[Roll::dice(1, diag_len as i32) as usize - 1],
+                            );
+                            break;
+                        } else {
+                            game_state
+                                .game_log
+                                .add_entry("You see someone who may chat, but it's too far away");
+                            //We must guarantee only one shop owner per zone
+                            game_state.run_state = RunState::WaitingPlayerInput;
+                            return; //abort control flow
+                        }
+                    }
+                }
+
+                // Avoid unnecessary iterations
+                if owner_entity.is_some() {
+                    break;
+                }
+            }
+
+            if owner_entity.is_none() {
+                game_state
+                    .game_log
+                    .add_entry("You can't see anyone willing to chat");
+            }
+        }
+
+        // If we found a shop owner, offer them an item
+        if let Some(message) = owner_entity {
+            Player::wait_after_action(game_state, STANDARD_ACTION_MULTIPLIER);
+            game_state.run_state = RunState::ShowDialog(DialogAction::ShowMessage(message));
         }
     }
 }

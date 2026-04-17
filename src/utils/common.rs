@@ -75,12 +75,7 @@ impl Utils {
         // TODO account speed penalties
         if let Ok(mut already_waiting) = ecs_world.get::<&mut WaitingToAct>(waiter) {
             already_waiting.tick_countdown += count;
-            println!(
-                "Entity {:?} must wait {} ticks",
-                waiter, already_waiting.tick_countdown
-            );
         } else {
-            println!("Entity {:?} must wait {} ticks", waiter, count);
             let _ = ecs_world.exchange_one::<MyTurn, WaitingToAct>(
                 waiter,
                 WaitingToAct {
