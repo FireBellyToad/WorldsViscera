@@ -106,15 +106,18 @@ impl ItemDropping {
     pub fn drop_all_of(ent: Entity, ecs_world: &mut World, drop_x: i32, drop_y: i32) {
         let items_to_drop: Vec<Entity>;
 
-        {
-            //Drop items
-            items_to_drop = ecs_world
-                .query::<ItemsInBackpack>()
-                .iter()
-                .filter(|(_, (_, in_backpack, ..))| in_backpack.owner.id() == ent.id())
-                .map(|(e, _)| e)
-                .collect();
-        }
+        //Drop items
+        items_to_drop = ecs_world
+            .query::<ItemsInBackpack>()
+            .iter()
+            .filter_map(|(e, (_, in_backpack, ..))| {
+                if in_backpack.owner.id() == ent.id() {
+                    Some(e)
+                } else {
+                    None
+                }
+            })
+            .collect();
 
         for item in items_to_drop {
             // Remove item from back pack Register that now item is in "wants_item" entity backpack
