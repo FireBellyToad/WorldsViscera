@@ -186,8 +186,8 @@ impl ApplySystem {
                             match zone.tiles
                                 [Zone::get_index_from_xy(&lock_position.x, &lock_position.y)]
                             {
-                                TileType::GoldLock(locks_to_open) => {
-                                    TileType::GoldLock(locks_to_open - 1.0)
+                                TileType::TripleGoldLock(locks_to_open) => {
+                                    TileType::TripleGoldLock(locks_to_open - 1.0)
                                 }
                                 _ => panic!("Unexpected tile type for lock tile"),
                             }

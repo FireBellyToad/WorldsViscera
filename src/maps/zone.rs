@@ -22,7 +22,8 @@ pub enum TileType {
     LittleCrystal,
     MediumCrystal,
     BigCrystal,
-    GoldLock(f32),
+    TripleGoldLock(f32),
+    Sign,
 }
 #[derive(Clone, Debug, PartialEq)]
 pub enum DecalType {
@@ -159,7 +160,8 @@ impl Zone {
             TileType::LittleCrystal => (1.0, 3.0),
             TileType::MediumCrystal => (2.0, 3.0),
             TileType::BigCrystal => (3.0, 3.0),
-            TileType::GoldLock(lock_to_open) => (*lock_to_open, 4.0),
+            TileType::TripleGoldLock(lock_to_open) => (*lock_to_open, 4.0),
+            TileType::Sign => (4.0, 2.0),
         }
     }
 

@@ -180,35 +180,42 @@ impl HealthManager {
                                                 .entries
                                                 .push(format!("{} stumbles!", named.name));
                                         }
-                                    } else if zone.visible_tiles
-                                        [Zone::get_index_from_xy(&position.x, &position.y)]
-                                    {
+                                    } else {
                                         dizzy_entities_list.push((diseased_entity, stats.speed));
                                         if player_id == diseased_entity.id() {
                                             game_log.add_entry(
                                                 "The fever makes you feel dizzy for a moment!",
                                             );
+                                        } else if zone.visible_tiles
+                                            [Zone::get_index_from_xy(&position.x, &position.y)]
+                                        {
+                                            game_log.add_entry(&format!(
+                                                "The {} seems dizzy",
+                                                named.name
+                                            ));
                                         }
                                     }
                                 }
                                 DiseaseType::Calcification => {
                                     damage.dexterity_damage_received += Roll::dice(1, 2);
-                                    if player_id == diseased_entity.id() {
-                                        if Roll::d6() > 3 {
+                                    if Roll::d6() > 3 {
+                                        if player_id == diseased_entity.id() {
                                             game_log.add_entry("Your muscles stiffens!");
-                                        } else {
-                                            game_log.add_entry(
-                                                "A calcified patch appears on your skin!",
-                                            );
-                                        }
-                                    } else if zone.visible_tiles
-                                        [Zone::get_index_from_xy(&position.x, &position.y)]
-                                    {
-                                        if Roll::d6() > 3 {
+                                        } else if zone.visible_tiles
+                                            [Zone::get_index_from_xy(&position.x, &position.y)]
+                                        {
                                             game_log
                                                 .entries
                                                 .push(format!("{}'s body stiffens!", named.name));
-                                        } else {
+                                        }
+                                    } else {
+                                        if player_id == diseased_entity.id() {
+                                            game_log.add_entry(
+                                                "A calcified patch appears on your skin!",
+                                            );
+                                        } else if zone.visible_tiles
+                                            [Zone::get_index_from_xy(&position.x, &position.y)]
+                                        {
                                             game_log.add_entry(&format!(
                                                 "A calcified patch appears on {}'s skin!",
                                                 named.name

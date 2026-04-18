@@ -181,3 +181,7 @@ pub struct Key {
 pub struct WillChat {
     pub dialogues: Vec<&'static str>,
 }
+
+pub struct Inspectable {
+    pub description: &'static str,
+}

@@ -1,6 +1,8 @@
 use crate::components::actions::{WantsToDig, WantsToTrade};
 use crate::components::combat::{Grappled, SufferingDamage, WantsToShoot};
-use crate::components::common::{Diggable, Hates, Immunity, ImmunityTypeEnum, Named, WillChat};
+use crate::components::common::{
+    Diggable, Hates, Immunity, ImmunityTypeEnum, Inspectable, Named, WillChat,
+};
 use crate::components::items::{RangedWeapon, ShopOwner};
 use crate::constants::{ACID_DECAL_DAMAGE_DICE, NEXT_TO_DISTANCE, STANDARD_ACTION_MULTIPLIER};
 use crate::engine::state::GameState;
@@ -34,6 +36,7 @@ pub enum SpecialViewMode {
     ZapTargeting,
     RangedTargeting,
     Smell,
+    Inspecting,
 }
 
 /// Player struct
@@ -262,6 +265,7 @@ impl Player {
 
         // Player commands. Handed with characters to manage different keyboards layout
         // Do it only if no keys were pressed or else Arrow keys and space will not work properly
+        // IMPORTANT: call clear_input_queue() on action that opens inventory
         if check_chars_pressed {
             match get_char_pressed() {
                 None => game_state.run_state = RunState::WaitingPlayerInput, // Nothing happened
@@ -347,6 +351,10 @@ impl Player {
                         'c' => {
                             Player::try_chat(game_state);
                         }
+
+                        'l' => {
+                            Player::try_inspect(game_state);
+                        }
                         _ => {}
                     }
                 }
@@ -382,15 +390,16 @@ impl Player {
             let rounded_x = (((mouse_x - UI_BORDER_F32) / TILE_SIZE_F32).ceil() - 1.0) as i32;
             let rounded_y = (((mouse_y - UI_BORDER_F32) / TILE_SIZE_F32).ceil() - 1.0) as i32;
 
+            let zone = game_state
+                .current_zone
+                .as_ref()
+                .expect("must have Some Zone");
+
             match special_view_mode {
                 SpecialViewMode::ZapTargeting | SpecialViewMode::RangedTargeting => {
                     let mut is_valid_tile = false;
                     // Scope for keeping borrow checker quiet
                     {
-                        let zone = game_state
-                            .current_zone
-                            .as_ref()
-                            .expect("must have Some Zone");
                         // Make sure that we are targeting a valid tile
                         let index = Zone::get_index_from_xy(&rounded_x, &rounded_y);
                         if index < zone.visible_tiles.len() {
@@ -407,6 +416,31 @@ impl Player {
                         );
 
                         game_state.run_state = RunState::DoTick;
+                    }
+                }
+                SpecialViewMode::Inspecting => {
+                    let mut is_valid_tile = false;
+                    // Scope for keeping borrow checker quiet
+                    {
+                        // Make sure that we are targeting a valid tile
+                        let index = Zone::get_index_from_xy(&rounded_x, &rounded_y);
+                        if index < zone.visible_tiles.len() {
+                            is_valid_tile = zone.visible_tiles[index];
+                        }
+                    }
+
+                    let first_ent_fount =
+                        zone.tile_content[Zone::get_index_from_xy(&rounded_x, &rounded_y)].first();
+                    if is_valid_tile
+                        && let Some(ent) = first_ent_fount
+                        && let Ok(inspectable) = game_state.ecs_world.get::<&Inspectable>(*ent)
+                    {
+                        game_state.run_state = RunState::ShowDialog(DialogAction::ShowMessage(
+                            inspectable.description,
+                        ));
+                    } else {
+                        game_state.game_log.add_entry("Nothing to inspect here");
+                        game_state.run_state = RunState::WaitingPlayerInput;
                     }
                 }
                 SpecialViewMode::Smell => {
@@ -701,7 +735,7 @@ impl Player {
             // Search for visibile shop owners in the visibile tiles
             for &index in &viewshed.visible_tiles {
                 for &entity in &zone.tile_content[index] {
-                    // If is a non-angered shop owner, try to trade
+                    // If entity is a non-angered shop owner, try to trade
                     if let Ok(mut res) =
                         ecs_world.query_one::<(&ShopOwner, &Hates, &Position)>(entity)
                         && let Some((_, hates, pos)) = res.get()
@@ -746,7 +780,7 @@ impl Player {
     /// Try to chat an item to a potetial shop owner
     pub fn try_chat(game_state: &mut GameState) {
         game_state.run_state = RunState::WaitingPlayerInput;
-        let mut owner_entity: Option<&'static str> = None;
+        let mut chatter_entity: Option<&'static str> = None;
         let ecs_world = &mut game_state.ecs_world;
         let player_entity = game_state
             .current_player_entity
@@ -765,17 +799,18 @@ impl Player {
             // Search for visibile shop owners in the visibile tiles
             for &index in &viewshed.visible_tiles {
                 for &entity in &zone.tile_content[index] {
-                    // If is a non-angered shop owner, try to trade
+                    // If is a non-angered chattable, try to chat with it
                     if let Ok(mut res) =
                         ecs_world.query_one::<(&WillChat, &Hates, &Position)>(entity)
                         && let Some((will_chat, hates, pos)) = res.get()
                         && !hates.list.contains(&player_entity.id())
                     {
+                        // must be adjacent to player
                         if Utils::distance(&player_pos.x, &pos.x, &player_pos.y, &pos.y)
                             <= NEXT_TO_DISTANCE
                         {
                             let diag_len = will_chat.dialogues.len();
-                            owner_entity = Some(
+                            chatter_entity = Some(
                                 will_chat.dialogues[Roll::dice(1, diag_len as i32) as usize - 1],
                             );
                             break;
@@ -791,12 +826,12 @@ impl Player {
                 }
 
                 // Avoid unnecessary iterations
-                if owner_entity.is_some() {
+                if chatter_entity.is_some() {
                     break;
                 }
             }
 
-            if owner_entity.is_none() {
+            if chatter_entity.is_none() {
                 game_state
                     .game_log
                     .add_entry("You can't see anyone willing to chat");
@@ -804,9 +839,13 @@ impl Player {
         }
 
         // If we found a shop owner, offer them an item
-        if let Some(message) = owner_entity {
+        if let Some(message) = chatter_entity {
             Player::wait_after_action(game_state, STANDARD_ACTION_MULTIPLIER);
             game_state.run_state = RunState::ShowDialog(DialogAction::ShowMessage(message));
         }
+    }
+
+    pub fn try_inspect(game_state: &mut GameState) {
+        game_state.run_state = RunState::MouseTargeting(SpecialViewMode::Inspecting);
     }
 }

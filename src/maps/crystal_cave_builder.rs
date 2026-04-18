@@ -37,14 +37,14 @@ impl ZoneBuilder for CrystalCaveBuilder {
         let player_x = &((MAP_WIDTH / 2) - Roll::dice(2, 3));
         zone.player_spawn_point = Zone::get_index_from_xy(player_x, &1);
 
-        let lock_index = Zone::get_index_from_xy(&(MAP_WIDTH / 2), &(MAP_HEIGHT / 2));
-        zone.tiles[lock_index] = TileType::GoldLock(3.0);
+        zone.tiles[Zone::get_index_from_xy(&(MAP_WIDTH / 2), &(MAP_HEIGHT / 2))] =
+            TileType::TripleGoldLock(2.0);
 
         let lock_entity = Spawn::tile_entity(
             ecs_world,
             MAP_WIDTH / 2,
             MAP_HEIGHT / 2,
-            &TileType::GoldLock(3.0),
+            &TileType::TripleGoldLock(2.0),
         );
 
         // Place keys to activate down passage in the zone

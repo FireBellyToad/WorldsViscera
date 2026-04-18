@@ -4,8 +4,8 @@ use std::collections::HashMap;
 use crate::components::combat::{CombatStats, SufferingDamage};
 use crate::components::common::{
     BlocksTile, CanListen, CanSmell, DigProductEnum, Diggable, Experience, GrownIfSteppedOn,
-    Immunity, Lock, MyTurn, Named, Position, ProduceSound, Renderable, SmellIntensity, Smellable,
-    Species, SpeciesEnum, Viewshed,
+    Immunity, Inspectable, Lock, MyTurn, Named, Position, ProduceSound, Renderable, SmellIntensity,
+    Smellable, Species, SpeciesEnum, Viewshed,
 };
 use crate::components::health::{CanAutomaticallyHeal, DiseaseType, Hunger, Thirst};
 use crate::components::items::{
@@ -394,10 +394,16 @@ impl Spawn {
                     counter_to_next_state: CRYSTAL_GROWTH_COUNTER_START,
                 },
             ))),
-            TileType::GoldLock(keys_to_unlock) => Some(ecs_world.spawn((
+            TileType::TripleGoldLock(keys_to_unlock) => Some(ecs_world.spawn((
                 Position { x, y },
                 Lock {
-                    keys_to_unlock: *keys_to_unlock as u8,
+                    keys_to_unlock: *keys_to_unlock as u8 + 1,
+                },
+            ))),
+            TileType::Sign => Some(ecs_world.spawn((
+                Position { x, y },
+                Inspectable {
+                    description: "You must go down", //TODO get message based on depth
                 },
             ))),
             _ => None,
