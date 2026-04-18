@@ -61,12 +61,10 @@ impl Draw {
 
                 //Overlay (clone is needed to avoid borrow checker errors)
                 match &game_state.run_state.clone() {
-                    RunState::ShowInventory(mode) => Inventory::draw(assets, game_state, &mode),
-                    RunState::ShowDialog(mode) => {
-                        Dialog::draw(assets, &game_state.ecs_world, &mode)
-                    }
+                    RunState::ShowInventory(mode) => Inventory::draw(assets, game_state, mode),
+                    RunState::ShowDialog(mode) => Dialog::draw(assets, &game_state.ecs_world, mode),
                     RunState::MouseTargeting(special_view_mode) => {
-                        Draw::targeting(game_state, &special_view_mode);
+                        Draw::targeting(game_state, special_view_mode);
                     }
                     RunState::DrawParticles => {
                         let mut animations = game_state.ecs_world.query::<&mut ParticleAnimation>();
