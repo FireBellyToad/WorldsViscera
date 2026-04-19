@@ -4,8 +4,8 @@ use crate::{
         common::{DigProductEnum, Named},
         items::{Corpse, Item, ShopOwner, Tradable},
     },
-    dialog::DialogAction,
     engine::state::{GameState, RunState},
+    utils::dialog::DialogAction,
 };
 use hecs::{Entity, World};
 

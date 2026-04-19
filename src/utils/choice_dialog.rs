@@ -18,25 +18,19 @@ use crate::{
     constants::*,
     engine::state::{GameState, RunState},
     inventory::InventoryAction,
-    systems::trade_system::{TradeDtt, TradeSystem},
-    utils::{assets::TextureName, common::Utils},
+    systems::trade_system::TradeSystem,
+    utils::{
+        assets::TextureName,
+        common::Utils,
+        dialog::{Dialog, DialogAction},
+    },
 };
 
-#[derive(PartialEq, Debug, Clone)]
-pub enum DialogAction {
-    Eat(Entity),
-    Quaff(Entity),
-    Trade(TradeDtt),
-    StealPick(Entity),
-    StealEat(Entity),
-    ShowMessage(&'static str),
-}
+pub struct ChoiceDialog {}
 
-pub struct Dialog {}
-
-impl Dialog {
+impl Dialog<DialogAction> for ChoiceDialog {
     /// Handle dialog input
-    pub fn handle_input(game_state: &mut GameState, action: DialogAction) {
+    fn handle_input(game_state: &mut GameState, action: DialogAction) {
         let ecs_world = &mut game_state.ecs_world;
         match get_char_pressed() {
             Some(letterkey) => match letterkey {
@@ -95,7 +89,7 @@ impl Dialog {
         }
     }
 
-    pub fn draw(_: &HashMap<TextureName, Texture2D>, ecs_world: &World, action: &DialogAction) {
+    fn draw(_: &HashMap<TextureName, Texture2D>, ecs_world: &World, action: &DialogAction) {
         // Build the body text based on the dialog action
         // The body text is a vector of strings that will be displayed in the dialog box
         // each string will be displayed on a new line
@@ -158,12 +152,12 @@ impl Dialog {
                 format!(
                     "{}\noffers you\n{}\nfor your\n{}{}.\nAccept the offer?",
                     shop_owner_named.name,
-                    Dialog::build_offer_string(items_to_be_received.iter(), ecs_world),
+                    ChoiceDialog::build_offer_string(items_to_be_received.iter(), ecs_world),
                     traded_named.name,
                     Utils::get_corpse_string(corpse_opt.is_some()),
                 )
             }
-            DialogAction::ShowMessage(message) => message.to_string(),
+            _ => panic!("Cannot handle DialogAction {:?} in a ChoiceDialog", action),
         };
 
         // ------- Background Rectangle -----------
@@ -199,33 +193,25 @@ impl Dialog {
 
         // ------- Choices -----------
 
-        if let DialogAction::ShowMessage(_) = action {
-            draw_text(
-                "(O)k",
-                (DIALOG_X + DIALOG_SIZE / 2 - HUD_BORDER) as f32,
-                (DIALOG_Y + DIALOG_SIZE - DIALOG_TOP_SPAN + HUD_BORDER) as f32,
-                FONT_SIZE,
-                WHITE,
-            );
-        } else {
-            draw_text(
-                "(Y)es",
-                (DIALOG_X + DIALOG_LEFT_SPAN + HUD_BORDER) as f32,
-                (DIALOG_Y + DIALOG_SIZE - DIALOG_TOP_SPAN + HUD_BORDER) as f32,
-                FONT_SIZE,
-                WHITE,
-            );
-            draw_text(
-                "(N)o",
-                (DIALOG_X + DIALOG_SIZE - DIALOG_LEFT_SPAN + HUD_BORDER) as f32
-                    - (5.0 * LETTER_SIZE),
-                (DIALOG_Y + DIALOG_SIZE - DIALOG_TOP_SPAN + HUD_BORDER) as f32,
-                FONT_SIZE,
-                WHITE,
-            );
-        }
+        draw_text(
+            "(Y)es",
+            (DIALOG_X + DIALOG_LEFT_SPAN + HUD_BORDER) as f32,
+            (DIALOG_Y + DIALOG_SIZE - DIALOG_TOP_SPAN + HUD_BORDER) as f32,
+            FONT_SIZE,
+            WHITE,
+        );
+        draw_text(
+            "(N)o",
+            (DIALOG_X + DIALOG_SIZE - DIALOG_LEFT_SPAN + HUD_BORDER) as f32 - (5.0 * LETTER_SIZE),
+            (DIALOG_Y + DIALOG_SIZE - DIALOG_TOP_SPAN + HUD_BORDER) as f32,
+            FONT_SIZE,
+            WHITE,
+        );
     }
+}
 
+// Implementations for ChoiceDialog
+impl ChoiceDialog {
     /// Builds a string representation of the items to be received in a shop offer.
     /// result example with 2 items: "a sword and a potion"
     fn build_offer_string(items: Iter<'_, Entity>, ecs_world: &World) -> String {

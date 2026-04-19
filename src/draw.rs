@@ -18,15 +18,17 @@ use crate::{
         player::{Player, SpecialViewMode},
     },
     constants::*,
-    dialog::Dialog,
     engine::state::{GameState, RunState},
     inventory::Inventory,
     maps::zone::{DecalType, TileType, Zone},
     systems::{hunger_check::HungerStatus, thirst_check::ThirstStatus},
     utils::{
         assets::TextureName,
+        choice_dialog::ChoiceDialog,
         common::Utils,
+        dialog::{Dialog, DialogAction},
         particle_animation::{ParticleAnimation, ParticleAnimationType},
+        simple_dialog::SimpleDialog,
     },
 };
 
@@ -62,7 +64,12 @@ impl Draw {
                 //Overlay (clone is needed to avoid borrow checker errors)
                 match &game_state.run_state.clone() {
                     RunState::ShowInventory(mode) => Inventory::draw(assets, game_state, mode),
-                    RunState::ShowDialog(mode) => Dialog::draw(assets, &game_state.ecs_world, mode),
+                    RunState::ShowDialog(mode) => match mode {
+                        DialogAction::ShowMessage(_) => {
+                            SimpleDialog::draw(assets, &game_state.ecs_world, mode)
+                        }
+                        _ => ChoiceDialog::draw(assets, &game_state.ecs_world, mode),
+                    },
                     RunState::MouseTargeting(special_view_mode) => {
                         Draw::targeting(game_state, special_view_mode);
                     }

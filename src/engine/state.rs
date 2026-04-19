@@ -6,9 +6,9 @@ use crate::{
         items::InBackback,
         player::SpecialViewMode,
     },
-    dialog::DialogAction,
     inventory::InventoryAction,
     maps::zone::Zone,
+    utils::dialog::DialogAction,
 };
 
 #[derive(PartialEq, Debug, Clone)]

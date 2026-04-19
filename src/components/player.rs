@@ -23,12 +23,12 @@ use crate::{
         items::{Edible, Item, Quaffable},
     },
     constants::{MAP_HEIGHT, MAP_WIDTH, TILE_SIZE_F32, UI_BORDER_F32},
-    dialog::DialogAction,
     engine::state::RunState,
     inventory::InventoryAction,
     maps::zone::{TileType, Zone},
     spawning::spawner::Spawn,
     utils::common::Utils,
+    utils::dialog::DialogAction,
 };
 
 #[derive(PartialEq, Debug, Clone, Copy)]

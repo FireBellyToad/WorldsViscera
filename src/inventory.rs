@@ -63,6 +63,7 @@ type InventoryItem<'a> = (
     Option<&'a Corpse>,
 );
 
+/// Inventory struct that handles
 pub struct Inventory {}
 
 impl Inventory {

@@ -1,6 +1,9 @@
+pub mod assets;
+pub mod choice_dialog;
+pub mod common;
+pub mod dialog;
+pub mod effect_manager;
+pub mod particle_animation;
 pub mod pathfinding;
 pub mod roll;
-pub mod assets;
-pub mod particle_animation;
-pub mod effect_manager;
-pub mod common;
+pub mod simple_dialog;

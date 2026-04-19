@@ -111,6 +111,9 @@ impl ZoneBuilder for TestZoneBuilder {
         StonedustProcessionBuilder::build(&mut zone, ecs_world);
         StonedustShrineBuilder::build(&mut zone, ecs_world);
 
+        let sign_index = Zone::get_index_from_xy(&((MAP_WIDTH / 2) - 5), &(MAP_HEIGHT / 2));
+        zone.tiles[sign_index] = TileType::Sign;
+
         zone
     }
 }

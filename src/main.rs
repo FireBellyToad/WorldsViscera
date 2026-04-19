@@ -1,12 +1,20 @@
 use crate::{
     components::{combat::Grappled, common::Experience},
-    maps::{arena_zone_builder::ArenaZoneBuilder, crystal_cave_builder::CrystalCaveBuilder},
+    maps::{
+        arena_zone_builder::ArenaZoneBuilder, crystal_cave_builder::CrystalCaveBuilder,
+        test_zone_builder::TestZoneBuilder,
+    },
     systems::{
         advancement_system::AdvancementSystem, dig_manager::DigManager,
         gaze_attacks_manager::GazeAttacksManager, health_manager::HealthManager,
         leave_trail_system::LeaveTrailSystem, ranged_manager::RangedManager,
         special_tiles_system::SpecialTilesSystem, spell_manager::SpellManager,
         trade_system::TradeSystem,
+    },
+    utils::{
+        choice_dialog::ChoiceDialog,
+        dialog::{Dialog, DialogAction},
+        simple_dialog::SimpleDialog,
     },
 };
 use components::{common::GameLog, player::Player};
@@ -28,7 +36,6 @@ use systems::{
 
 use crate::{
     components::common::{Position, Viewshed},
-    dialog::Dialog,
     maps::{ZoneBuilder, drunken_walk_zone_builder::DrunkenWalkZoneBuilder, zone::Zone},
     systems::{
         apply_system::ApplySystem, automatic_healing::AutomaticHealing,
@@ -44,7 +51,6 @@ use crate::{
 
 mod components;
 mod constants;
-mod dialog;
 mod draw;
 mod engine;
 mod inventory;
@@ -170,9 +176,13 @@ async fn main() {
                 RunState::ShowInventory(mode) => {
                     Inventory::handle_input(&mut game_state, mode);
                 }
-                RunState::ShowDialog(mode) => {
-                    Dialog::handle_input(&mut game_state, mode.clone());
-                }
+                // Handle both types of dialog
+                RunState::ShowDialog(mode) => match mode {
+                    DialogAction::ShowMessage(_) => {
+                        SimpleDialog::handle_input(&mut game_state, mode.clone())
+                    }
+                    _ => ChoiceDialog::handle_input(&mut game_state, mode.clone()),
+                },
                 RunState::MouseTargeting(special_view_mode) => {
                     Player::checks_input_for_targeting(&mut game_state, special_view_mode);
                 }
@@ -198,7 +208,7 @@ fn populate_world(game_state: &mut GameState) {
     // Generate new seed, or else it will always generate the same things
     rand::srand(macroquad::miniquad::date::now() as _);
 
-    let zone = ArenaZoneBuilder::build(1, &mut game_state.ecs_world);
+    let zone = TestZoneBuilder::build(1, &mut game_state.ecs_world);
 
     game_state.current_player_entity = Some(Spawn::player(&mut game_state.ecs_world, &zone));
     Spawn::everyhing_in_map(&mut game_state.ecs_world, &zone);
@@ -244,21 +254,22 @@ fn change_zone(game_state: &mut GameState) {
         //Set player position in new zone and force a FOV recalculation. Also, award experience
         let mut player_query_viewshed = game_state
             .ecs_world
-            .query::<(&mut Position, &mut Viewshed, &mut Experience)>()
-            .with::<&Player>();
+            .query_one::<(&mut Position, &mut Viewshed, &mut Experience)>(player)
+            .expect("Player not in hecs::World");
 
-        for (_, (player_position, player_viewshed, player_experience)) in &mut player_query_viewshed
-        {
-            let (x, y) = Zone::get_xy_from_index(zone.player_spawn_point);
-            player_position.x = x;
-            player_position.y = y;
+        let (player_position, player_viewshed, player_experience) = player_query_viewshed
+            .get()
+            .expect("Must have Position, Viewshed,Experience components");
 
-            player_viewshed.must_recalculate = true;
+        let (x, y) = Zone::get_xy_from_index(zone.player_spawn_point);
+        player_position.x = x;
+        player_position.y = y;
 
-            // Award experience based on depth reached
-            player_experience.value += zone.depth.pow(2);
-            player_experience.auto_advance_counter = AUTO_ADVANCE_EXP_COUNTER_START;
-        }
+        player_viewshed.must_recalculate = true;
+
+        // Award experience based on depth reached
+        player_experience.value += zone.depth.pow(2);
+        player_experience.auto_advance_counter = AUTO_ADVANCE_EXP_COUNTER_START;
     }
 
     Spawn::everyhing_in_map(&mut game_state.ecs_world, &zone);
