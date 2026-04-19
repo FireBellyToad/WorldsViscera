@@ -1,9 +1,6 @@
 use crate::{
     components::{combat::Grappled, common::Experience},
-    maps::{
-        arena_zone_builder::ArenaZoneBuilder, crystal_cave_builder::CrystalCaveBuilder,
-        test_zone_builder::TestZoneBuilder,
-    },
+    maps::{arena_zone_builder::ArenaZoneBuilder, crystal_cave_builder::CrystalCaveBuilder},
     systems::{
         advancement_system::AdvancementSystem, dig_manager::DigManager,
         gaze_attacks_manager::GazeAttacksManager, health_manager::HealthManager,
@@ -208,7 +205,7 @@ fn populate_world(game_state: &mut GameState) {
     // Generate new seed, or else it will always generate the same things
     rand::srand(macroquad::miniquad::date::now() as _);
 
-    let zone = TestZoneBuilder::build(1, &mut game_state.ecs_world);
+    let zone = ArenaZoneBuilder::build(1, &mut game_state.ecs_world);
 
     game_state.current_player_entity = Some(Spawn::player(&mut game_state.ecs_world, &zone));
     Spawn::everyhing_in_map(&mut game_state.ecs_world, &zone);

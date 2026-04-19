@@ -28,7 +28,7 @@ use crate::{
 
 pub struct ChoiceDialog {}
 
-impl Dialog<DialogAction> for ChoiceDialog {
+impl Dialog for ChoiceDialog {
     /// Handle dialog input
     fn handle_input(game_state: &mut GameState, action: DialogAction) {
         let ecs_world = &mut game_state.ecs_world;

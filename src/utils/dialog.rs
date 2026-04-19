@@ -18,9 +18,9 @@ pub enum DialogAction {
 }
 
 /// Trait for shared behaviours on game dialogs
-pub trait Dialog<T> {
+pub trait Dialog {
     /// Must describe how this dialog handles player input
-    fn handle_input(game_state: &mut GameState, action: T);
+    fn handle_input(game_state: &mut GameState, action: DialogAction);
     /// Must describe how this dialog draws himself
-    fn draw(textures: &HashMap<TextureName, Texture2D>, ecs_world: &World, action: &T);
+    fn draw(textures: &HashMap<TextureName, Texture2D>, ecs_world: &World, action: &DialogAction);
 }
