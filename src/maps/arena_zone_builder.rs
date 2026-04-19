@@ -64,7 +64,7 @@ impl ZoneBuilder for ArenaZoneBuilder {
         zone.tiles[passage_index] = TileType::DownPassage;
 
         let sign_index = Zone::get_index_from_xy(&((MAP_WIDTH / 2) - 5), &(MAP_HEIGHT / 2));
-        zone.tiles[sign_index] = TileType::Sign;
+        zone.tiles[sign_index] = TileType::DisembodiedEntity;
 
         zone
     }

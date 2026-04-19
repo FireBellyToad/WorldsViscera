@@ -184,4 +184,5 @@ pub struct WillChat {
 
 pub struct Inspectable {
     pub description: &'static str,
+    pub despawn_on_inspect: bool,
 }

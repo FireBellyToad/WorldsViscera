@@ -1,7 +1,9 @@
 use crate::{
     components::{
         combat::{CombatStats, SufferingDamage},
-        common::{GrownIfSteppedOn, Immunity, ImmunityTypeEnum, Named, Position, Species},
+        common::{
+            GrownIfSteppedOn, Immunity, ImmunityTypeEnum, Inspectable, Named, Position, Species,
+        },
     },
     constants::CRYSTAL_GROWTH_COUNTER_START,
     engine::state::GameState,

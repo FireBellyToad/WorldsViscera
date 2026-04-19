@@ -400,10 +400,22 @@ impl Spawn {
                     keys_to_unlock: *keys_to_unlock as u8 + 1,
                 },
             ))),
-            TileType::Sign => Some(ecs_world.spawn((
+            TileType::CarvedStone => Some(ecs_world.spawn((
                 Position { x, y },
                 Inspectable {
                     description: "You must go down", //TODO get message based on depth
+                    despawn_on_inspect: false,
+                },
+            ))),
+            TileType::DisembodiedEntity => Some(ecs_world.spawn((
+                Position { x, y },
+                Named {
+                    name: "Disembodied entity",
+                    attack_verb: None,
+                },
+                Inspectable {
+                    description: "You must go down", //TODO get message based on depth
+                    despawn_on_inspect: true,
                 },
             ))),
             _ => None,

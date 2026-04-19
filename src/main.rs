@@ -174,12 +174,14 @@ async fn main() {
                     Inventory::handle_input(&mut game_state, mode);
                 }
                 // Handle both types of dialog
-                RunState::ShowDialog(mode) => match mode {
-                    DialogAction::ShowMessage(_) => {
-                        SimpleDialog::handle_input(&mut game_state, mode.clone())
-                    }
-                    _ => ChoiceDialog::handle_input(&mut game_state, mode.clone()),
-                },
+                RunState::ShowDialog(mode) => {
+                    match mode {
+                        DialogAction::ShowMessage(_) => {
+                            SimpleDialog::handle_input(&mut game_state, mode.clone())
+                        }
+                        _ => ChoiceDialog::handle_input(&mut game_state, mode.clone()),
+                    };
+                }
                 RunState::MouseTargeting(special_view_mode) => {
                     Player::checks_input_for_targeting(&mut game_state, special_view_mode);
                 }

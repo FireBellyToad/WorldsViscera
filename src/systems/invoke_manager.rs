@@ -128,7 +128,10 @@ impl InvokeManager {
                                 target_damage.damage_received += damage_roll / 2;
                                 if target.id() == player_id {
                                     game_state.game_log.add_entry("You duck some of the blow!");
-                                } else {
+                                } else if zone.visible_tiles[Zone::get_index_from_xy(
+                                    &wants_zap.target.0,
+                                    &wants_zap.target.1,
+                                )] {
                                     game_state.game_log.add_entry(&format!(
                                         "{} ducks some of the blow!",
                                         named_target.name
@@ -143,7 +146,10 @@ impl InvokeManager {
                                         "You zap yourself for {} damage",
                                         damage_roll
                                     ));
-                                } else {
+                                } else if zone.visible_tiles[Zone::get_index_from_xy(
+                                    &wants_zap.target.0,
+                                    &wants_zap.target.1,
+                                )] {
                                     game_state.game_log.add_entry(&format!(
                                         "You zap the {} for {} damage",
                                         named_target.name, damage_roll
@@ -154,7 +160,9 @@ impl InvokeManager {
                                     "{} zaps you for {} damage",
                                     named_attacker.name, damage_roll
                                 ));
-                            } else {
+                            } else if zone.visible_tiles
+                                [Zone::get_index_from_xy(&wants_zap.target.0, &wants_zap.target.1)]
+                            {
                                 game_state.game_log.add_entry(&format!(
                                     "{} zaps the {} for {} damage",
                                     named_attacker.name, named_target.name, damage_roll

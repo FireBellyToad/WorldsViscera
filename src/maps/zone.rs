@@ -23,7 +23,8 @@ pub enum TileType {
     MediumCrystal,
     BigCrystal,
     TripleGoldLock(f32),
-    Sign,
+    CarvedStone,
+    DisembodiedEntity,
 }
 #[derive(Clone, Debug, PartialEq)]
 pub enum DecalType {
@@ -114,7 +115,8 @@ impl Zone {
                 | TileType::MushroomField
                 | TileType::MiniCrystal
                 | TileType::LittleCrystal
-                | TileType::MediumCrystal => self.blocked_tiles[index] = false,
+                | TileType::MediumCrystal
+                | TileType::DisembodiedEntity => self.blocked_tiles[index] = false,
                 _ => self.blocked_tiles[index] = true,
             }
         }
@@ -161,7 +163,8 @@ impl Zone {
             TileType::MediumCrystal => (2.0, 3.0),
             TileType::BigCrystal => (3.0, 3.0),
             TileType::TripleGoldLock(lock_to_open) => (*lock_to_open, 4.0),
-            TileType::Sign => (4.0, 2.0),
+            TileType::CarvedStone => (4.0, 2.0),
+            TileType::DisembodiedEntity => (4.0, 1.0),
         }
     }
 

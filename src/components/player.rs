@@ -367,8 +367,8 @@ impl Player {
         game_state: &mut GameState,
         special_view_mode: SpecialViewMode,
     ) {
-        let ecs_world = &mut game_state.ecs_world;
         let player_entity = game_state.current_player_entity.expect("must be Some");
+        let mut to_despawn: Option<(Entity, &str)> = None;
         // Keep RunState to MouseTargeting running while player is targeting
         game_state.run_state = RunState::MouseTargeting(special_view_mode);
         // ESC for escaping targeting without using Invokable
@@ -376,10 +376,14 @@ impl Player {
             // Remove components linked to view mode to avoid bugs
             match special_view_mode {
                 SpecialViewMode::ZapTargeting => {
-                    let _ = ecs_world.remove_one::<WantsToInvoke>(player_entity);
+                    let _ = game_state
+                        .ecs_world
+                        .remove_one::<WantsToInvoke>(player_entity);
                 }
                 SpecialViewMode::RangedTargeting => {
-                    let _ = ecs_world.remove_one::<WantsToShoot>(player_entity);
+                    let _ = game_state
+                        .ecs_world
+                        .remove_one::<WantsToShoot>(player_entity);
                 }
                 _ => {}
             }
@@ -392,7 +396,7 @@ impl Player {
 
             let zone = game_state
                 .current_zone
-                .as_ref()
+                .as_mut()
                 .expect("must have Some Zone");
 
             match special_view_mode {
@@ -408,7 +412,7 @@ impl Player {
                     }
 
                     if is_valid_tile {
-                        let _ = ecs_world.insert_one(
+                        let _ = game_state.ecs_world.insert_one(
                             player_entity,
                             WantsToZap {
                                 target: (rounded_x, rounded_y),
@@ -429,12 +433,21 @@ impl Player {
                         }
                     }
 
+                    // Inspect the first entity found in tile and
+                    // query Inspectable and Named components
                     let first_ent_fount =
                         zone.tile_content[Zone::get_index_from_xy(&rounded_x, &rounded_y)].first();
                     if is_valid_tile
                         && let Some(ent) = first_ent_fount
-                        && let Ok(inspectable) = game_state.ecs_world.get::<&Inspectable>(*ent)
+                        && let Ok(mut q) = game_state
+                            .ecs_world
+                            .query_one::<(&Inspectable, &Named)>(*ent)
+                        && let Some((inspectable, named)) = q.get()
                     {
+                        // Despawn the entity if it should be despawned
+                        if inspectable.despawn_on_inspect {
+                            to_despawn = Some((*ent, named.name));
+                        }
                         game_state.run_state = RunState::ShowDialog(DialogAction::ShowMessage(
                             inspectable.description,
                         ));
@@ -444,7 +457,7 @@ impl Player {
                     }
                 }
                 SpecialViewMode::Smell => {
-                    let _ = ecs_world.insert_one(
+                    let _ = game_state.ecs_world.insert_one(
                         player_entity,
                         WantsToSmell {
                             target: (rounded_x, rounded_y),
@@ -452,6 +465,16 @@ impl Player {
                     );
                     game_state.run_state = RunState::WaitingPlayerInput;
                 }
+            }
+
+            // Despawn any entity that should be despawned
+            // and reset the tile to floor and log
+            if let Some((e, name)) = to_despawn {
+                let _ = game_state.ecs_world.despawn(e);
+                zone.tiles[Zone::get_index_from_xy(&rounded_x, &rounded_y)] = TileType::Floor;
+                game_state
+                    .game_log
+                    .add_entry(&format!("The {} vanishes in the darkness", name));
             }
         }
     }
