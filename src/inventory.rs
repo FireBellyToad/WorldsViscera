@@ -32,7 +32,6 @@ use crate::{
 pub enum InventoryAction {
     Eat,
     Drop,
-    Invoke,
     Quaff,
     RefillWhat,
     Equip,
@@ -90,9 +89,6 @@ impl Inventory {
                         InventoryAction::Eat => {
                             Inventory::get_all_in_backpack_filtered_by::<Edible>(game_state)
                         }
-                        InventoryAction::Invoke => {
-                            Inventory::get_all_in_backpack_filtered_by::<Invokable>(game_state)
-                        }
                         InventoryAction::Quaff => {
                             Inventory::get_all_in_backpack_filtered_by::<Quaffable>(game_state)
                         }
@@ -145,14 +141,6 @@ impl Inventory {
                     InventoryAction::Quaff => {
                         let _ = game_state.ecs_world.insert_one(user, WantsToDrink { item });
                     }
-                    InventoryAction::Invoke => {
-                        let _ = game_state
-                            .ecs_world
-                            .insert_one(user, WantsToInvoke { item });
-
-                        game_state.run_state =
-                            RunState::MouseTargeting(SpecialViewMode::ZapTargeting);
-                    }
                     InventoryAction::RefillWhat => {
                         // Select what to refill, then which item you are going to refill with
                         let wants_to_fuel = game_state.ecs_world.get::<&mut WantsToFuel>(user);
@@ -198,6 +186,18 @@ impl Inventory {
 
                             game_state.run_state =
                                 RunState::ShowInventory(InventoryAction::RefillWhat);
+                        } else if game_state
+                            .ecs_world
+                            .satisfies::<&Invokable>(item)
+                            .unwrap_or(false)
+                        {
+                            //TODO only one query
+                            let _ = game_state
+                                .ecs_world
+                                .insert_one(user, WantsToInvoke { item });
+
+                            game_state.run_state =
+                                RunState::MouseTargeting(SpecialViewMode::ZapTargeting);
                         } else {
                             let _ = game_state.ecs_world.insert_one(user, WantsToApply { item });
                             println!("Player wants to apply {:?}", item.id());
@@ -229,10 +229,6 @@ impl Inventory {
             InventoryAction::Eat => {
                 header_text = "Eat what?";
                 inventory = Inventory::get_all_in_backpack_filtered_by::<Edible>(game_state);
-            }
-            InventoryAction::Invoke => {
-                header_text = "Invoke what?";
-                inventory = Inventory::get_all_in_backpack_filtered_by::<Invokable>(game_state);
             }
             InventoryAction::Quaff => {
                 header_text = "Drink what?";

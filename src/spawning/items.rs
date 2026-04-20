@@ -318,6 +318,9 @@ impl Spawn {
             Item {
                 item_tile: item_tile_index,
             },
+            Appliable {
+                application_time: STANDARD_ACTION_MULTIPLIER,
+            },
             Invokable {
                 invokable_type: InvokablesEnum::LightningWand,
             },

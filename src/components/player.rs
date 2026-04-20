@@ -314,12 +314,6 @@ impl Player {
                             game_state.run_state = RunState::ShowInventory(InventoryAction::Equip);
                         }
 
-                        //Invoke item
-                        'i' => {
-                            clear_input_queue();
-                            game_state.run_state = RunState::ShowInventory(InventoryAction::Invoke);
-                        }
-
                         //Quaff item
                         'q' => {
                             clear_input_queue();

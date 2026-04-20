@@ -300,6 +300,8 @@ fn do_before_tick_logic(game_state: &mut GameState) {
 fn do_in_tick_game_logic(game_engine: &mut GameEngine, game_state: &mut GameState) {
     // Every System that could produce particle animations should be run before the particle manager check
     // This makes sure that the particle animations will not be executed after the Entity has been killed
+    ApplySystem::check(game_state);
+    ApplySystem::do_applications(game_state);
     SpellManager::run(game_state);
     RangedManager::run(game_state);
     FuelManager::do_refills(game_state);
@@ -312,8 +314,6 @@ fn do_in_tick_game_logic(game_engine: &mut GameEngine, game_state: &mut GameStat
         DamageManager::remove_dead_and_check_gameover(game_state);
         //Proceed on game logic if is not Game Over
         if game_state.run_state != RunState::GameOver {
-            ApplySystem::check(game_state);
-            ApplySystem::do_applications(game_state);
             ItemCollection::run(game_state);
             ItemEquipping::run(game_state);
             ItemDropping::run(game_state);
@@ -354,7 +354,7 @@ fn do_debug_logic(game_state: &mut GameState) {
                     Stunned { tick_counter: 3 },
                 );
             } else if is_key_pressed(KeyCode::F10) {
-                Spawn::slingshot(&mut game_state.ecs_world, MAP_WIDTH / 2, MAP_HEIGHT / 2);
+                Spawn::wand(&mut game_state.ecs_world, MAP_WIDTH / 2, MAP_HEIGHT / 2);
             } else if is_key_pressed(KeyCode::F9) {
                 Spawn::refugee(&mut game_state.ecs_world, MAP_WIDTH / 2, MAP_HEIGHT / 2);
             } else if is_key_pressed(KeyCode::F8) {
