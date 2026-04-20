@@ -3,9 +3,9 @@ use std::collections::HashMap;
 
 use crate::components::combat::{CombatStats, SufferingDamage};
 use crate::components::common::{
-    BlocksTile, CanListen, CanSmell, DigProductEnum, Diggable, Experience, GrownIfSteppedOn,
-    Immunity, Inspectable, Lock, MyTurn, Named, Position, ProduceSound, Renderable, SmellIntensity,
-    Smellable, Species, SpeciesEnum, Viewshed,
+    BlocksTile, CanListen, CanSmell, DigProductEnum, Diggable, Experience, Immunity, Inspectable,
+    Lock, MyTurn, Named, Position, ProduceSound, Renderable, SmellIntensity, Smellable, Species,
+    SpeciesEnum, Viewshed,
 };
 use crate::components::health::{CanAutomaticallyHeal, DiseaseType, Hunger, Thirst};
 use crate::components::items::{
@@ -378,21 +378,12 @@ impl Spawn {
                     produces: DigProductEnum::Gold,
                 },
             ))),
-            TileType::MiniCrystal | TileType::LittleCrystal => Some(ecs_world.spawn((
-                Position { x, y },
-                GrownIfSteppedOn {
-                    counter_to_next_state: CRYSTAL_GROWTH_COUNTER_START,
-                },
-            ))),
-            TileType::MediumCrystal | TileType::BigCrystal => Some(ecs_world.spawn((
+            TileType::BigCrystal => Some(ecs_world.spawn((
                 Position { x, y },
                 ProduceLight {
                     radius: CRYSTAL_LIGHT_RADIUS,
                 },
                 TurnedOn {},
-                GrownIfSteppedOn {
-                    counter_to_next_state: CRYSTAL_GROWTH_COUNTER_START,
-                },
             ))),
             TileType::TripleGoldLock(keys_to_unlock) => Some(ecs_world.spawn((
                 Position { x, y },

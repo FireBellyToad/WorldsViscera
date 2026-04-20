@@ -1,7 +1,7 @@
 use hecs::World;
 
 use crate::{
-    constants::{MAP_HEIGHT, MAP_WIDTH},
+    constants::{CRYSTAL_GROWTH_COUNTER_START, GOLD_LOCK_COUNTER_START, MAP_HEIGHT, MAP_WIDTH},
     maps::{
         ZoneBuilder,
         zone::{TileType, Zone},
@@ -16,6 +16,8 @@ pub struct CrystalCaveBuilder {}
 impl ZoneBuilder for CrystalCaveBuilder {
     fn build(depth: u32, ecs_world: &mut World) -> Zone {
         let mut zone = Zone::new(depth, TileType::BigCrystal);
+        zone.special_tile_counter =
+            [CRYSTAL_GROWTH_COUNTER_START; (MAP_WIDTH * MAP_HEIGHT) as usize];
 
         // Create boundaries
         for x in 0..MAP_WIDTH {
@@ -38,13 +40,13 @@ impl ZoneBuilder for CrystalCaveBuilder {
         zone.player_spawn_point = Zone::get_index_from_xy(player_x, &1);
 
         zone.tiles[Zone::get_index_from_xy(&(MAP_WIDTH / 2), &(MAP_HEIGHT / 2))] =
-            TileType::TripleGoldLock(2.0);
+            TileType::TripleGoldLock(GOLD_LOCK_COUNTER_START);
 
         let lock_entity = Spawn::tile_entity(
             ecs_world,
             MAP_WIDTH / 2,
             MAP_HEIGHT / 2,
-            &TileType::TripleGoldLock(2.0),
+            &TileType::TripleGoldLock(GOLD_LOCK_COUNTER_START),
         );
 
         // Place keys to activate down passage in the zone
@@ -67,7 +69,7 @@ impl ZoneBuilder for CrystalCaveBuilder {
         }
 
         // place human refugees in random locations
-        for _ in 0..4 {
+        for _ in 0..6 {
             Spawn::refugee(
                 ecs_world,
                 Roll::dice(1, MAP_WIDTH - 2),

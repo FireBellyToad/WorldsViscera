@@ -5,7 +5,7 @@ use macroquad::math::Rect;
 
 use crate::constants::{MAP_HEIGHT, MAP_WIDTH};
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum TileType {
     Floor,
     Wall,
@@ -37,12 +37,12 @@ pub enum DecalType {
 
 /// Zone Struct
 pub struct Zone {
-    pub tiles: Vec<TileType>,
+    pub tiles: [TileType; (MAP_WIDTH * MAP_HEIGHT) as usize],
     pub rooms: Vec<Rect>,
-    pub revealed_tiles: Vec<bool>,
-    pub visible_tiles: Vec<bool>,
-    pub lit_tiles: Vec<bool>,
-    pub blocked_tiles: Vec<bool>,
+    pub revealed_tiles: [bool; (MAP_WIDTH * MAP_HEIGHT) as usize],
+    pub visible_tiles: [bool; (MAP_WIDTH * MAP_HEIGHT) as usize],
+    pub lit_tiles: [bool; (MAP_WIDTH * MAP_HEIGHT) as usize],
+    pub blocked_tiles: [bool; (MAP_WIDTH * MAP_HEIGHT) as usize],
     pub tile_content: Vec<Vec<Entity>>,
     pub decals_tiles: HashMap<usize, DecalType>,
     pub depth: u32,
@@ -50,7 +50,8 @@ pub struct Zone {
     pub monster_spawn_points: HashSet<usize>,
     pub item_spawn_points: HashSet<usize>,
     pub fauna_spawn_points: HashSet<usize>,
-    pub water_tiles: Vec<bool>,
+    pub water_tiles: [bool; (MAP_WIDTH * MAP_HEIGHT) as usize],
+    pub special_tile_counter: [u8; (MAP_WIDTH * MAP_HEIGHT) as usize],
 }
 
 /// Zone Simplementations
@@ -58,12 +59,12 @@ impl Zone {
     /// Create new empty zone
     pub fn new(depth: u32, fill_tile: TileType) -> Zone {
         Zone {
-            tiles: vec![fill_tile; (MAP_WIDTH * MAP_HEIGHT) as usize],
+            tiles: [fill_tile; (MAP_WIDTH * MAP_HEIGHT) as usize],
             rooms: Vec::new(),
-            revealed_tiles: vec![false; (MAP_WIDTH * MAP_HEIGHT) as usize],
-            visible_tiles: vec![false; (MAP_WIDTH * MAP_HEIGHT) as usize],
-            lit_tiles: vec![false; (MAP_WIDTH * MAP_HEIGHT) as usize],
-            blocked_tiles: vec![false; (MAP_WIDTH * MAP_HEIGHT) as usize],
+            revealed_tiles: [false; (MAP_WIDTH * MAP_HEIGHT) as usize],
+            visible_tiles: [false; (MAP_WIDTH * MAP_HEIGHT) as usize],
+            lit_tiles: [false; (MAP_WIDTH * MAP_HEIGHT) as usize],
+            blocked_tiles: [false; (MAP_WIDTH * MAP_HEIGHT) as usize],
             tile_content: vec![Vec::new(); (MAP_WIDTH * MAP_HEIGHT) as usize],
             player_spawn_point: 0,
             depth,
@@ -71,7 +72,8 @@ impl Zone {
             monster_spawn_points: HashSet::new(),
             item_spawn_points: HashSet::new(),
             fauna_spawn_points: HashSet::new(),
-            water_tiles: vec![false; (MAP_WIDTH * MAP_HEIGHT) as usize],
+            water_tiles: [false; (MAP_WIDTH * MAP_HEIGHT) as usize],
+            special_tile_counter: [0u8; (MAP_WIDTH * MAP_HEIGHT) as usize],
         }
     }
 

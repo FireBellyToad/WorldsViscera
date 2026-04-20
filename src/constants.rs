@@ -19,6 +19,7 @@ pub const BRAZIER_RADIUS: i32 = 20;
 pub const MAX_BRAZIER_IN_ZONE: i32 = 6;
 pub const MAX_RIVERS_IN_ZONE: i32 = 4;
 pub const MAX_CRACKS_IN_ZONE: i32 = 25;
+pub const GOLD_LOCK_COUNTER_START: f32 = 2.0;
 
 pub const MAX_GOLD_IN_ZONE: i32 = 10;
 pub const CRYSTAL_LIGHT_RADIUS: i32 = 1;
@@ -34,6 +35,7 @@ pub const HEADER_HEIGHT: i32 = 24;
 pub const HEADER_LEFT_SPAN: i32 = 24;
 
 pub const MAX_MESSAGES_IN_LOG: usize = 4;
+pub const INITIAL_LOG_CAPACITY: usize = 5000;
 
 /// Inventory related constants
 pub const INVENTORY_X: i32 = (WINDOW_WIDTH / 2) - INVENTORY_WIDTH / 2;

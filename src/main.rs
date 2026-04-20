@@ -165,6 +165,7 @@ async fn main() {
                     } else if is_key_pressed(KeyCode::R) {
                         game_state.ecs_world.clear();
                         populate_world(&mut game_state);
+                        game_state.game_log.entries.clear();
                         clear_input_queue();
                         game_state.run_state = RunState::BeforeTick;
                         game_state.current_tick = 0;

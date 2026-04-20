@@ -1,13 +1,12 @@
 use crate::{
     components::{
         combat::{CombatStats, SufferingDamage},
-        common::{
-            GrownIfSteppedOn, Immunity, ImmunityTypeEnum, Inspectable, Named, Position, Species,
-        },
+        common::{Immunity, ImmunityTypeEnum, Named, Position, Species},
     },
     constants::CRYSTAL_GROWTH_COUNTER_START,
     engine::state::GameState,
     maps::zone::{TileType, Zone},
+    spawning::spawner::Spawn,
     utils::roll::Roll,
 };
 
@@ -22,6 +21,7 @@ impl SpecialTilesSystem {
             .current_zone
             .as_mut()
             .expect("must have Some Zone");
+        let mut spawn_tile_entities: Vec<(&TileType, usize)> = Vec::new();
 
         // Scope for keeping borrow checker quiet
         {
@@ -66,15 +66,16 @@ impl SpecialTilesSystem {
                 }
                 // If there is a GrownIfSteppedOn component on the tile...
                 // find the first entity with the component and get a mutable reference to it
-                else if let Some(mut grow_if_step) = zone.tile_content[pos_idx]
-                    .iter()
-                    .find_map(|&e| ecs_world.get::<&mut GrownIfSteppedOn>(e).ok())
+                else if zone.tiles[pos_idx] == TileType::MiniCrystal
+                    || zone.tiles[pos_idx] == TileType::LittleCrystal
+                    || zone.tiles[pos_idx] == TileType::MediumCrystal
                 {
                     // if player or NPC is on the tile, decrement the counter
                     // Get the entity and the name of the stepper. If present, decrement the counter
-                    grow_if_step.counter_to_next_state -= 1;
-                    if grow_if_step.counter_to_next_state == 0 {
-                        grow_if_step.counter_to_next_state = CRYSTAL_GROWTH_COUNTER_START;
+                    // We do not do wrapping subtraction here - the counter should never go below 0!!!
+                    zone.special_tile_counter[pos_idx] -= 1;
+                    if zone.special_tile_counter[pos_idx] == 0 {
+                        zone.special_tile_counter[pos_idx] = CRYSTAL_GROWTH_COUNTER_START;
                         // Increase crystal growth stage when counter reaches 0
                         match zone.tiles[pos_idx] {
                             TileType::MiniCrystal => {
@@ -85,7 +86,8 @@ impl SpecialTilesSystem {
                             }
                             TileType::MediumCrystal => {
                                 zone.tiles[pos_idx] = TileType::BigCrystal;
-                                grow_if_step.counter_to_next_state = 0;
+                                zone.special_tile_counter[pos_idx] = 0;
+                                spawn_tile_entities.push((&TileType::BigCrystal, pos_idx));
                             }
                             _ => {}
                         };
@@ -126,6 +128,12 @@ impl SpecialTilesSystem {
                     }
                 }
             }
+        }
+
+        // Spawn tile entities if something changed
+        for (tile_type, pos_idx) in spawn_tile_entities {
+            let (x, y) = Zone::get_xy_from_index(pos_idx);
+            Spawn::tile_entity(ecs_world, x, y, tile_type);
         }
     }
 }

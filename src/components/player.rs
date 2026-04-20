@@ -346,7 +346,8 @@ impl Player {
                             Player::try_chat(game_state);
                         }
 
-                        'l' => {
+                        //Inspect something
+                        'i' => {
                             Player::try_inspect(game_state);
                         }
                         _ => {}

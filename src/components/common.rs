@@ -5,7 +5,9 @@ use macroquad::math::Rect;
 
 use crate::{
     components::health::DiseaseType,
-    constants::{BURNING_PARTICLE_TYPE, DAZE_PARTICLE_TYPE, STONE_FELL_PARTICLE_TYPE},
+    constants::{
+        BURNING_PARTICLE_TYPE, DAZE_PARTICLE_TYPE, INITIAL_LOG_CAPACITY, STONE_FELL_PARTICLE_TYPE,
+    },
     utils::assets::TextureName,
 };
 
@@ -38,7 +40,7 @@ pub struct GameLog {
 impl GameLog {
     pub fn new() -> Self {
         GameLog {
-            entries: Vec::new(),
+            entries: Vec::with_capacity(INITIAL_LOG_CAPACITY),
         }
     }
 
@@ -164,10 +166,6 @@ impl SpellType {
 
 pub struct SpellList {
     pub spells: Vec<Entity>,
-}
-
-pub struct GrownIfSteppedOn {
-    pub counter_to_next_state: u8,
 }
 
 pub struct Lock {
