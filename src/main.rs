@@ -33,7 +33,7 @@ use systems::{
 
 use crate::{
     components::common::{Position, Viewshed},
-    maps::{ZoneBuilder, drunken_walk_zone_builder::DrunkenWalkZoneBuilder, zone::Zone},
+    maps::{ZoneBuilder, main_zone_builder::MainZoneBuilder, zone::Zone},
     systems::{
         apply_system::ApplySystem, automatic_healing::AutomaticHealing,
         decay_manager::DecayManager, drinking_quaffables::DrinkingQuaffables,
@@ -246,7 +246,7 @@ fn change_zone(game_state: &mut GameState) {
         CRYSTAL_CAVE_DEPTH => {
             CrystalCaveBuilder::build(current_depth + 1, &mut game_state.ecs_world)
         }
-        _ => DrunkenWalkZoneBuilder::build(current_depth + 1, &mut game_state.ecs_world),
+        _ => MainZoneBuilder::build(current_depth + 1, &mut game_state.ecs_world),
     };
 
     // Scope for keeping borrow checker quiet

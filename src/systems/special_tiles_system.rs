@@ -1,3 +1,5 @@
+use pathfinding::num_traits::{SaturatingSub, WrappingAdd};
+
 use crate::{
     components::{
         combat::{CombatStats, SufferingDamage},
@@ -73,16 +75,32 @@ impl SpecialTilesSystem {
                     // if player or NPC is on the tile, decrement the counter
                     // Get the entity and the name of the stepper. If present, decrement the counter
                     // We do not do wrapping subtraction here - the counter should never go below 0!!!
-                    zone.special_tile_counter[pos_idx] -= 1;
+                    zone.special_tile_counter[pos_idx] =
+                        zone.special_tile_counter[pos_idx].saturating_sub(1);
+
                     if zone.special_tile_counter[pos_idx] == 0 {
                         zone.special_tile_counter[pos_idx] = CRYSTAL_GROWTH_COUNTER_START;
                         // Increase crystal growth stage when counter reaches 0
                         match zone.tiles[pos_idx] {
                             TileType::MiniCrystal => {
                                 zone.tiles[pos_idx] = TileType::LittleCrystal;
+                                // Spread crystal growth to adjacent floor tiles
+                                for x_diff in -1..2 {
+                                    for y_diff in -1..2 {
+                                        let pos_idx = Zone::get_index_from_xy(
+                                            &(position.x + x_diff),
+                                            &(position.y + y_diff),
+                                        );
+                                        if zone.tiles[pos_idx] == TileType::Floor {
+                                            zone.tiles[pos_idx] = TileType::MiniCrystal;
+                                            zone.special_tile_counter[pos_idx] =
+                                                CRYSTAL_GROWTH_COUNTER_START;
+                                        }
+                                    }
+                                }
                             }
                             TileType::LittleCrystal => {
-                                zone.tiles[pos_idx] = TileType::MediumCrystal
+                                zone.tiles[pos_idx] = TileType::MediumCrystal;
                             }
                             TileType::MediumCrystal => {
                                 zone.tiles[pos_idx] = TileType::BigCrystal;

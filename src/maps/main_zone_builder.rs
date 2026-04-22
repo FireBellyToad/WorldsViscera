@@ -7,6 +7,7 @@ use crate::{
     maps::{
         ZoneBuilder, ZoneFeatureBuilder,
         cracks_builder::CracksBuilder,
+        crystal_patch_builder::CrystalPatchBuilder,
         gold_mine_builder::GoldMineBuilder,
         mushroom_field_builder::MushroomFieldBuilder,
         river_builder::RiverBuilder,
@@ -18,9 +19,9 @@ use crate::{
 };
 
 /// Builds a cavern like zone with Drunken walk algorithm
-pub struct DrunkenWalkZoneBuilder {}
+pub struct MainZoneBuilder {}
 
-impl ZoneBuilder for DrunkenWalkZoneBuilder {
+impl ZoneBuilder for MainZoneBuilder {
     /// Create new dungeon zone (needed?)
     fn build(depth: u32, ecs_world: &mut World) -> Zone {
         let mut zone = Zone::new(depth, TileType::Wall);
@@ -103,10 +104,6 @@ impl ZoneBuilder for DrunkenWalkZoneBuilder {
                 _ => panic!("Invalid special room"),
             };
         }
-
-        // Add random gold mine
-        GoldMineBuilder::build(&mut zone, ecs_world);
-
         // Populate water and blocked tiles here, needed for correct spawning
         zone.populate_blocked();
         zone.populate_water();
@@ -216,6 +213,14 @@ impl ZoneBuilder for DrunkenWalkZoneBuilder {
         for _ in 0..cracks_number {
             CracksBuilder::build(&mut zone, ecs_world);
         }
+
+        // After Crystal Cave, a patch of carnivorous crystals may appear
+        if depth > CRYSTAL_CAVE_DEPTH && Roll::d6() == 1 {
+            CrystalPatchBuilder::build(&mut zone, ecs_world);
+        }
+
+        // Add random gold mine
+        GoldMineBuilder::build(&mut zone, ecs_world);
 
         zone
     }

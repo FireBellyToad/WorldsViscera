@@ -103,9 +103,14 @@ impl MeleeManager {
                             Option<&Blind>,
                             Option<&Grappled>,
                             Option<&Immunity>,
-                            Option<&LeaveTrail>
+                            Option<&LeaveTrail>,
                         )>(wants_melee.target)
-                        .expect("Must have one for components CombatStats, Named, Blind, Grappled, Immunity, LeaveTrail");
+                        .unwrap_or_else(|_| {
+                            panic!(
+                                "No entity found for wants_melee.target {:?}",
+                                wants_melee.target
+                            )
+                        });
 
                     // Show appropriate log messages
                     if let Some((

@@ -55,7 +55,7 @@ impl Draw {
                 #[cfg(not(target_arch = "wasm32"))]
                 if game_state.debug_mode {
                     Draw::debug_exit(zone);
-                    Draw::debug_blocked(zone);
+                    Draw::debug_tiles_type(zone);
                     if game_state.debug_monster_vision {
                         Draw::debug_monster_viewshed(game_state);
                     }
@@ -742,27 +742,29 @@ impl Draw {
     }
 
     #[cfg(not(target_arch = "wasm32"))]
-    fn debug_blocked(zone: &Zone) {
-        for (index, &is_blocked) in zone.blocked_tiles.iter().enumerate() {
-            if is_blocked {
-                use macroquad::color::BLUE;
+    fn debug_tiles_type(zone: &Zone) {
+        for (index, &tile) in zone.tiles.iter().enumerate() {
+            use macroquad::color::BLUE;
+            let color = match tile {
+                TileType::CrackedWall => WHITE,
+                TileType::MiniCrystal
+                | TileType::LittleCrystal
+                | TileType::MediumCrystal
+                | TileType::BigCrystal => GREEN,
+                TileType::Wall => BLUE,
+                _ => BLACK,
+            };
 
-                let color = match zone.tiles[index] {
-                    TileType::CrackedWall => GREEN,
-                    _ => BLUE,
-                };
+            let (rounded_x, rounded_y) = Zone::get_xy_from_index(index);
 
-                let (rounded_x, rounded_y) = Zone::get_xy_from_index(index);
-
-                draw_rectangle_lines(
-                    (UI_BORDER + (rounded_x * TILE_SIZE)) as f32,
-                    (UI_BORDER + (rounded_y * TILE_SIZE)) as f32,
-                    TILE_SIZE_F32,
-                    TILE_SIZE_F32,
-                    2.0,
-                    color,
-                );
-            }
+            draw_rectangle_lines(
+                (UI_BORDER + (rounded_x * TILE_SIZE)) as f32,
+                (UI_BORDER + (rounded_y * TILE_SIZE)) as f32,
+                TILE_SIZE_F32,
+                TILE_SIZE_F32,
+                2.0,
+                color,
+            );
         }
     }
 
