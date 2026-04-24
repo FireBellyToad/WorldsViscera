@@ -9,3 +9,6 @@ macroquad = { path = "../visceraquad" }
 adam_fov_rs = "0.4"
 pathfinding = "4.14.0"
 bresenham = "0.1.1"
+
+[patch.crates-io]
+miniquad = { git = "https://github.com/not-fl3/miniquad", branch = "master" }

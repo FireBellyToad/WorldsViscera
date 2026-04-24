@@ -450,7 +450,7 @@ impl Spawn {
 
     pub fn shiv(ecs_world: &mut World, x: i32, y: i32) {
         let item_tile_index = (0, 2);
-        let flask_of_oil = (
+        let shiv = (
             Position { x, y },
             Renderable {
                 texture_name: TextureName::Items,
@@ -479,12 +479,12 @@ impl Spawn {
             },
         );
 
-        ecs_world.spawn(flask_of_oil);
+        ecs_world.spawn(shiv);
     }
 
     pub fn rockpick(ecs_world: &mut World, x: i32, y: i32) -> Entity {
         let item_tile_index = (1, 2);
-        let flask_of_oil = (
+        let rockpick = (
             Position { x, y },
             Renderable {
                 texture_name: TextureName::Items,
@@ -517,7 +517,7 @@ impl Spawn {
 
         //TODO Bonus to climb while wielded
 
-        ecs_world.spawn(flask_of_oil)
+        ecs_world.spawn(rockpick)
     }
 
     pub fn pickaxe(ecs_world: &mut World, x: i32, y: i32) -> Entity {
@@ -653,7 +653,7 @@ impl Spawn {
             Armor { value: 2 },
             Bulky {},
         );
-
+        // Made of alchemical metal, will not rust in water
         ecs_world.spawn(dvergar_chain);
     }
 

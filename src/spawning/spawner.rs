@@ -356,6 +356,10 @@ impl Spawn {
                 ProduceSound {
                     sound_log: "fire burning",
                 },
+                Inspectable {
+                    description: "You see an everlasting\nalchemical brazier of\nhuman manifacture",
+                    despawn_on_inspect: false,
+                },
                 TurnedOn {},
             ))),
             TileType::DownPassage => Some(ecs_world.spawn((
@@ -370,12 +374,20 @@ impl Spawn {
                     dig_points: Roll::dice(4, 10),
                     produces: DigProductEnum::Stone,
                 },
+                Inspectable {
+                    description: "You see a crack in\nthis stone wall.\nYou believe you can dig it\nwith an appropriate tool",
+                    despawn_on_inspect: false,
+                },
             ))),
             TileType::GoldMine => Some(ecs_world.spawn((
                 Position { x, y },
                 Diggable {
                     dig_points: Roll::dice(2, 20),
                     produces: DigProductEnum::Gold,
+                },
+                Inspectable {
+                    description: "You see a some gold\nencrusted in the stone.\nYou believe you can\nextract some of it\nwith an appropriate tool",
+                    despawn_on_inspect: false,
                 },
             ))),
             TileType::BigCrystal => Some(ecs_world.spawn((
@@ -390,11 +402,15 @@ impl Spawn {
                 Lock {
                     keys_to_unlock: *keys_to_unlock as u8 + 1,
                 },
+                Inspectable {
+                    description: "You see a\nweird golden pillar\nwith three circular holes.\nSeems like they could\naccommodate something", //TODO get message based on depth
+                    despawn_on_inspect: false,
+                },
             ))),
             TileType::CarvedStone => Some(ecs_world.spawn((
                 Position { x, y },
                 Inspectable {
-                    description: "You must go down", //TODO get message based on depth
+                    description: "The message in the\ncarved stone says:\n\"You must go down\"",
                     despawn_on_inspect: false,
                 },
             ))),
@@ -405,7 +421,7 @@ impl Spawn {
                     attack_verb: None,
                 },
                 Inspectable {
-                    description: "You must go down", //TODO get message based on depth
+                    description: "The disembodied entity says:\n\"You must go down\"",
                     despawn_on_inspect: true,
                 },
             ))),

@@ -6,6 +6,7 @@ use crate::{
         ZoneBuilder,
         zone::{TileType, Zone},
     },
+    spawning::spawner::Spawn,
     utils::roll::Roll,
 };
 
@@ -14,7 +15,7 @@ pub struct ArenaZoneBuilder {}
 
 impl ZoneBuilder for ArenaZoneBuilder {
     /// Create new dungeon zone (needed?)
-    fn build(depth: u32, _: &mut World) -> Zone {
+    fn build(depth: u32, ecs_world: &mut World) -> Zone {
         let mut zone = Zone::new(depth, TileType::Wall);
 
         // Create boundaries
@@ -63,8 +64,20 @@ impl ZoneBuilder for ArenaZoneBuilder {
         let passage_index = Zone::get_index_from_xy(&(MAP_WIDTH / 2), &(MAP_HEIGHT / 2));
         zone.tiles[passage_index] = TileType::DownPassage;
 
-        let sign_index = Zone::get_index_from_xy(&((MAP_WIDTH / 2) - 5), &(MAP_HEIGHT / 2));
-        zone.tiles[sign_index] = TileType::DisembodiedEntity;
+        let disembodied_index = Zone::get_index_from_xy(
+            &((MAP_WIDTH / 2) - 5),
+            &((MAP_HEIGHT / 2) + (Roll::d6() - 3)),
+        );
+        zone.tiles[disembodied_index] = TileType::DisembodiedEntity;
+
+        // Guaranteed diggable to be picked up
+        let (guaranteed_diggable_x, guaranteed_diggable_y) =
+            ((MAP_WIDTH / 2) + 3, (MAP_HEIGHT / 2) + (Roll::d6() - 3));
+        if Roll::d6() < 4 {
+            Spawn::rockpick(ecs_world, guaranteed_diggable_x, guaranteed_diggable_y);
+        } else {
+            Spawn::pickaxe(ecs_world, guaranteed_diggable_x, guaranteed_diggable_y);
+        }
 
         zone
     }

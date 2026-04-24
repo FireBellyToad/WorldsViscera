@@ -5,6 +5,7 @@ use macroquad::math::Rect;
 
 use crate::constants::{MAP_HEIGHT, MAP_WIDTH};
 
+#[allow(dead_code)]
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum TileType {
     Floor,

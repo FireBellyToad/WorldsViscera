@@ -433,16 +433,23 @@ impl Player {
                     let first_ent_fount =
                         zone.tile_content[Zone::get_index_from_xy(&rounded_x, &rounded_y)].first();
                     if is_valid_tile
-                        && let Some(ent) = first_ent_fount
+                        && let Some(&ent) = first_ent_fount
                         && let Ok(mut q) = game_state
                             .ecs_world
-                            .query_one::<(&Inspectable, &Named)>(*ent)
-                        && let Some((inspectable, named)) = q.get()
+                            .query_one::<(&Inspectable, Option<&Named>)>(ent)
+                        && let Some((inspectable, named_opt)) = q.get()
                     {
                         // Despawn the entity if it should be despawned
-                        if inspectable.despawn_on_inspect {
-                            to_despawn = Some((*ent, named.name));
+                        if inspectable.despawn_on_inspect
+                            && let Some(named) = named_opt
+                        {
+                            to_despawn = Some((ent, named.name));
+                        } else if inspectable.despawn_on_inspect {
+                            panic!(
+                                "No Named component found for inspectable entity that should be despawned"
+                            );
                         }
+                        // Show the inspectable's description in a dialog
                         game_state.run_state = RunState::ShowDialog(DialogAction::ShowMessage(
                             inspectable.description,
                         ));
