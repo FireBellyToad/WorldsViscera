@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{borrow::Cow, collections::HashMap};
 
 use hecs::{Component, Entity};
 use macroquad::{
@@ -119,9 +119,9 @@ impl Inventory {
                         selected_item_entity = Some(item_sel_unwrap.0);
                         user_entity = Some(player_entity);
                     } else {
-                        game_state
-                            .game_log
-                            .add_entry(&format!("No item available for letter {letterkey}"));
+                        game_state.game_log.add_entry(Cow::Owned(format!(
+                            "No item available for letter {letterkey}"
+                        )));
                     }
                 }
             }

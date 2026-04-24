@@ -1,4 +1,7 @@
-use std::collections::{HashMap, hash_map::Entry};
+use std::{
+    borrow::Cow,
+    collections::{HashMap, hash_map::Entry},
+};
 
 use hecs::Entity;
 
@@ -68,28 +71,28 @@ impl EatingEdibles {
                     eaten_eater_list.push((wants_to_eat.item, eater, stats.speed));
 
                     if eater.id() == player_id {
-                        game_state.game_log.add_entry(&format!(
+                        game_state.game_log.add_entry(Cow::Owned(format!(
                             "You ate a {}{}",
                             named_edible.name,
                             Utils::get_corpse_string(corpse_opt.is_some())
-                        ));
+                        )));
                     } else if zone.visible_tiles[Zone::get_index_from_xy(&position.x, &position.y)]
                     {
                         // Log NPC infighting only if visible
-                        game_state.game_log.add_entry(&format!(
+                        game_state.game_log.add_entry(Cow::Owned(format!(
                             "{} ate a {}{}",
                             named_eater.name,
                             named_edible.name,
                             Utils::get_corpse_string(corpse_opt.is_some())
-                        ));
+                        )));
                     }
 
                     if ecs_world.get::<&Deadly>(wants_to_eat.item).is_ok() {
                         damage.damage_received = stats.current_stamina + stats.current_toughness;
                         if eater.id() == player_id {
-                            game_state
-                                .game_log
-                                .add_entry("You ate a deadly poisonous food! You agonize and die");
+                            game_state.game_log.add_entry(Cow::Borrowed(
+                                "You ate a deadly poisonous food! You agonize and die",
+                            ));
                         }
                     }
 
@@ -113,7 +116,10 @@ impl EatingEdibles {
                             // Infect the healthy target otherwise
                             infected_list.push((eater, disease_type));
                             if player_id == eater.id() {
-                                game_state.game_log.add_entry("You start to feel ill...");
+                                game_state
+                                    .game_log
+                                    .entries
+                                    .push(Cow::Borrowed("You start to feel ill..."));
                             }
                         }
                     }
@@ -137,11 +143,13 @@ impl EatingEdibles {
                             if rotten_opt.is_some() {
                                 game_state
                                     .game_log
-                                    .add_entry("You ate rotten food! You vomit!");
+                                    .entries
+                                    .push(Cow::Borrowed("You ate rotten food! You vomit!"));
                             } else if poisonous_opt.is_some() {
                                 game_state
                                     .game_log
-                                    .add_entry("You ate poisonous food! You vomit!");
+                                    .entries
+                                    .push(Cow::Borrowed("You ate poisonous food! You vomit!"));
                             }
                         } else if zone.visible_tiles
                             [Zone::get_index_from_xy(&position.x, &position.y)]
@@ -149,7 +157,8 @@ impl EatingEdibles {
                             // Log NPC infighting only if visible
                             game_state
                                 .game_log
-                                .add_entry(&format!("The {} vomits!", named_eater.name));
+                                .entries
+                                .push(Cow::Owned(format!("The {} vomits!", named_eater.name)));
                         }
 
                         zone.decals_tiles.insert(
@@ -173,17 +182,17 @@ impl EatingEdibles {
                             .expect("owner must be named and hate");
                         if let Some((hates, named_owner)) = shop_owner_query.get() {
                             if eater.id() == player_id {
-                                game_state.game_log.add_entry(&format!(
+                                game_state.game_log.add_entry(Cow::Owned(format!(
                                     "You eat the stolen {}! The {} gets angry!",
                                     named_edible.name, named_owner.name
-                                ));
+                                )));
                             } else if zone.visible_tiles
                                 [Zone::get_index_from_xy(&item_pos.x, &item_pos.y)]
                             {
-                                game_state.game_log.add_entry(&format!(
+                                game_state.game_log.add_entry(Cow::Owned(format!(
                                     "The {} eats the stolen {}! The {} gets angry!",
                                     named_eater.name, named_edible.name, named_owner.name
-                                ));
+                                )));
                             }
 
                             hates.list.insert(eater.id());
@@ -191,7 +200,10 @@ impl EatingEdibles {
                     }
                 } else {
                     if eater.id() == player_id {
-                        game_state.game_log.add_entry("You can't eat that!");
+                        game_state
+                            .game_log
+                            .entries
+                            .push(Cow::Borrowed("You can't eat that!"));
                     }
                     eater_cleanup_list.push(eater);
                 }

@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use hecs::Entity;
 
 use crate::{
@@ -42,18 +44,18 @@ impl DrinkingQuaffables {
                     .expect("Entity is not Named");
 
                 if drinker.id() == player_id {
-                    game_state
-                        .game_log
-                        .entries
-                        .push(format!("You drank the {}", named_quaffable.name));
+                    game_state.game_log.add_entry(Cow::Owned(format!(
+                        "You drank the {}",
+                        named_quaffable.name
+                    )));
                 } else {
                     let named_drinker = ecs_world
                         .get::<&Named>(drinker)
                         .expect("Entity is not Named");
-                    game_state.game_log.add_entry(&format!(
+                    game_state.game_log.add_entry(Cow::Owned(format!(
                         "{} drank the {}",
                         named_drinker.name, named_quaffable.name
-                    ));
+                    )));
                 }
 
                 //-----------

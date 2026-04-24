@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use crate::{
     components::{
         combat::{CombatStats, SufferingDamage},
@@ -52,15 +54,15 @@ impl SpecialTilesSystem {
                         stepper_damage.damage_received =
                             stepper_stats.current_stamina + stepper_stats.current_toughness;
                         if stepper.id() == player_entity.id() {
-                            game_state.game_log.entries.push(
-                                "The crystals crush your body into a bloody pulp!".to_string(),
-                            );
+                            game_state.game_log.add_entry(Cow::Borrowed(
+                                "The crystals crush your body into a bloody pulp!",
+                            ));
                             break;
                         } else if zone.visible_tiles[pos_idx] {
-                            game_state.game_log.entries.push(format!(
+                            game_state.game_log.add_entry(Cow::Owned(format!(
                                 "The crystals crush the {}'s body into a bloody pulp!",
                                 stepper_named.name,
-                            ));
+                            )));
                         }
                     }
                 }
@@ -119,12 +121,12 @@ impl SpecialTilesSystem {
                                 game_state
                                     .game_log
                                     .entries
-                                    .push("The crystals grow under your feet".to_string());
+                                    .push(Cow::Borrowed("The crystals grow under your feet"));
                             } else if zone.visible_tiles[pos_idx] {
-                                game_state.game_log.entries.push(format!(
+                                game_state.game_log.add_entry(Cow::Owned(format!(
                                     "The crystals grow under {}'s feet",
                                     stepper_named.name,
-                                ));
+                                )));
                             }
                         } else if Roll::d20() > stepper_stats.current_dexterity {
                             stepper_damage.damage_received += 1;
@@ -132,13 +134,13 @@ impl SpecialTilesSystem {
                                 game_state
                                     .game_log
                                     .entries
-                                    .push("The crystals stings your bare feet".to_string());
+                                    .push(Cow::Borrowed("The crystals stings your bare feet"));
                                 break;
                             } else if zone.visible_tiles[pos_idx] {
-                                game_state.game_log.entries.push(format!(
+                                game_state.game_log.add_entry(Cow::Owned(format!(
                                     "The crystals stings {}'s bare feet",
                                     stepper_named.name,
-                                ));
+                                )));
                             }
                         }
                     }

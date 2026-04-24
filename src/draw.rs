@@ -176,7 +176,7 @@ impl Draw {
             player_stats.current_dexterity, player_stats.max_dexterity
         );
         let hunger_status = &hunger.current_status;
-        let hunger_text = format!("HUN:{}", hunger_status.to_string());
+        let hunger_text = format!("HUN:{}", hunger_status.to_str());
         let hunger_text_len = hunger_text.len();
 
         let thirst_status = &thirst.current_status;

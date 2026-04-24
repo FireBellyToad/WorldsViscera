@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use hecs::Entity;
 
 use crate::{
@@ -59,25 +61,26 @@ impl GazeAttacksManager {
                             .contains_key(&ImmunityTypeEnum::Blindness)
                     {
                         if player_entity_id == wants_to_gaze.target.id() {
-                            game_state
-                                .game_log
-                                .add_entry(&format!("You just ignore the {}'s gaze!", named.name));
+                            game_state.game_log.add_entry(Cow::Owned(format!(
+                                "You just ignore the {}'s gaze!",
+                                named.name
+                            )));
                         }
                     } else {
                         // One save to avoid the gaze, the other to resist once the target has been gazed upon
                         if Roll::d20() <= target_stats.current_dexterity {
                             if player_entity_id == wants_to_gaze.target.id() {
-                                game_state
-                                    .game_log
-                                    .entries
-                                    .push(format!("You avoid the {}'s gaze!", named.name));
+                                game_state.game_log.add_entry(Cow::Owned(format!(
+                                    "You avoid the {}'s gaze!",
+                                    named.name
+                                )));
                             }
                         } else if Roll::d20() <= target_stats.current_toughness {
                             if player_entity_id == wants_to_gaze.target.id() {
-                                game_state
-                                    .game_log
-                                    .entries
-                                    .push(format!("You resist the {}'s gaze!", named.name));
+                                game_state.game_log.add_entry(Cow::Owned(format!(
+                                    "You resist the {}'s gaze!",
+                                    named.name
+                                )));
                             }
                         } else {
                             gazed_targets.push((wants_to_gaze.target, gaze_attack.effect.clone()));
@@ -88,19 +91,19 @@ impl GazeAttacksManager {
 
                             //Log attack
                             if player_entity_id == wants_to_gaze.target.id() {
-                                game_state.game_log.add_entry(&format!(
+                                game_state.game_log.add_entry(Cow::Owned(format!(
                                     "The {} {} you with its gaze!",
                                     named.name, effect
-                                ));
+                                )));
                             } else if zone.visible_tiles
                                 [Zone::get_index_from_xy(&t_pos.x, &t_pos.y)]
                                 && zone.visible_tiles
                                     [Zone::get_index_from_xy(&position.x, &position.y)]
                             {
-                                game_state.game_log.add_entry(&format!(
+                                game_state.game_log.add_entry(Cow::Owned(format!(
                                     "The {} {} the {} with its gaze!",
                                     named.name, effect, target_name.name
-                                ));
+                                )));
                             }
                         }
                     }

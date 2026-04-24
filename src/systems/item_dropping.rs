@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use hecs::{Entity, World};
 
 use crate::{
@@ -45,7 +47,8 @@ impl ItemDropping {
                     if player_id == dropper.id() {
                         game_state
                             .game_log
-                            .add_entry("You cannot drop an equipped item");
+                            .entries
+                            .push(Cow::Borrowed("You cannot drop an equipped item"));
                     }
 
                     item_drop_nothing.push(dropper);
@@ -63,18 +66,18 @@ impl ItemDropping {
                     ));
 
                     if player_id == dropper.id() {
-                        game_state.game_log.add_entry(&format!(
+                        game_state.game_log.add_entry(Cow::Owned(format!(
                             "You drop up a {}{}",
                             named_item.name, corpse_text
-                        ));
+                        )));
                     } else {
                         let named_dropper = ecs_world
                             .get::<&Named>(dropper)
                             .expect("Entity is not Named");
-                        game_state.game_log.add_entry(&format!(
+                        game_state.game_log.add_entry(Cow::Owned(format!(
                             "{} drops up a {}{}",
                             named_dropper.name, named_item.name, corpse_text
-                        ));
+                        )));
                     }
                 }
             }

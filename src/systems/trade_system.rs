@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use crate::{
     components::{
         actions::{WantsItem, WantsToTrade},
@@ -79,10 +81,10 @@ impl TradeSystem {
                         }
 
                         if items_to_be_received.is_empty() {
-                            game_state.game_log.add_entry(&format!(
+                            game_state.game_log.add_entry(Cow::Owned(format!(
                                 "{} has no items to trade",
                                 shop_owner_name.name
-                            ));
+                            )));
                         } else {
                             // Open trade dialog
                             new_run_state_opt = Some(RunState::ShowDialog(DialogAction::Trade((
@@ -93,9 +95,10 @@ impl TradeSystem {
                             ))));
                         }
                     } else {
-                        game_state
-                            .game_log
-                            .add_entry(&format!("{} is not interested", shop_owner_name.name));
+                        game_state.game_log.add_entry(Cow::Owned(format!(
+                            "{} is not interested",
+                            shop_owner_name.name
+                        )));
                     }
                     traders.push(trader);
                 }

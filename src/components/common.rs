@@ -1,4 +1,7 @@
-use std::collections::{HashMap, HashSet};
+use std::{
+    borrow::Cow,
+    collections::{HashMap, HashSet},
+};
 
 use hecs::Entity;
 use macroquad::math::Rect;
@@ -35,7 +38,7 @@ pub struct ProduceCorpse {}
 
 /// Game log, used in UI
 pub struct GameLog {
-    pub entries: Vec<String>,
+    pub entries: Vec<Cow<'static, str>>,
 }
 impl GameLog {
     pub fn new() -> Self {
@@ -45,9 +48,8 @@ impl GameLog {
     }
 
     /// Adds an entry to the game log.
-    /// Entries are stored as owned `String`s, using `String::from` to convert from `&str`.
-    pub fn add_entry(&mut self, entry: &str) {
-        self.entries.push(String::from(entry));
+    pub fn add_entry(&mut self, entry: Cow<'static, str>) {
+        self.entries.push(entry);
     }
 }
 pub struct WaitingToAct {

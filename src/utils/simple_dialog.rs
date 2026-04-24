@@ -34,8 +34,8 @@ impl Dialog for SimpleDialog {
     }
 
     fn draw(_: &HashMap<TextureName, Texture2D>, _: &World, action: &DialogAction) {
-        let body_text: String = match action {
-            DialogAction::ShowMessage(message) => message.to_string(),
+        let body_text: &'static str = match action {
+            DialogAction::ShowMessage(message) => message,
             _ => panic!("Cannot handle DialogAction {:?} in a SimpleDialog", action),
         };
 

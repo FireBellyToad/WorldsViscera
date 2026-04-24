@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use hecs::Entity;
 
 use crate::{
@@ -100,7 +102,8 @@ impl ApplySystem {
                 if player_id == in_backback.owner.id() {
                     game_state
                         .game_log
-                        .add_entry(&format!("You turn off your {}", named.name));
+                        .entries
+                        .push(Cow::Owned(format!("You turn off your {}", named.name)));
                 }
             }
 
@@ -113,17 +116,18 @@ impl ApplySystem {
                 if let Some(fuel) = must_be_fueled {
                     if wet.is_some() {
                         if player_id == in_backback.owner.id() {
-                            game_state.game_log.add_entry(&format!(
+                            game_state.game_log.add_entry(Cow::Owned(format!(
                                 "Your {} is too wet to be turned on",
                                 named.name
-                            ));
+                            )));
                         }
                         continue;
                     } else if fuel.fuel_counter < 1 {
                         if player_id == in_backback.owner.id() {
                             game_state
                                 .game_log
-                                .add_entry(&format!("Your {} has no fuel", named.name));
+                                .entries
+                                .push(Cow::Owned(format!("Your {} has no fuel", named.name)));
                         }
                         continue;
                     }
@@ -133,7 +137,8 @@ impl ApplySystem {
                 if player_id == in_backback.owner.id() {
                     game_state
                         .game_log
-                        .add_entry(&format!("You turn on your {}", named.name));
+                        .entries
+                        .push(Cow::Owned(format!("You turn on your {}", named.name)));
                 }
             }
 
@@ -143,9 +148,10 @@ impl ApplySystem {
                 entities_cured.push((in_backback.owner, cure.diseases.clone()));
 
                 if player_id == in_backback.owner.id() {
-                    game_state
-                        .game_log
-                        .add_entry(&format!("You apply the {} on yourself", named.name));
+                    game_state.game_log.add_entry(Cow::Owned(format!(
+                        "You apply the {} on yourself",
+                        named.name
+                    )));
                 } else {
                     //TODO would be nice to log npc
                 }
@@ -174,13 +180,17 @@ impl ApplySystem {
                     //Remove lock when opened
                     if lock.keys_to_unlock == 0 {
                         entities_to_despawn.push(key.lock);
-                        game_state.game_log.add_entry("The lock opens!");
+                        game_state
+                            .game_log
+                            .entries
+                            .push(Cow::Borrowed("The lock opens!"));
                         zone.tiles[Zone::get_index_from_xy(&lock_position.x, &lock_position.y)] =
                             TileType::DownPassage;
                     } else {
                         game_state
                             .game_log
-                            .add_entry("The lock moves, but is not open yet.");
+                            .entries
+                            .push(Cow::Borrowed("The lock moves, but is not open yet."));
 
                         zone.tiles[Zone::get_index_from_xy(&lock_position.x, &lock_position.y)] =
                             match zone.tiles
@@ -193,9 +203,9 @@ impl ApplySystem {
                             }
                     }
                 } else {
-                    game_state
-                        .game_log
-                        .add_entry("You are too far away from the lock to apply the key.");
+                    game_state.game_log.add_entry(Cow::Borrowed(
+                        "You are too far away from the lock to apply the key.",
+                    ));
                 }
             }
         }

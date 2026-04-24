@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use crate::{
     components::{combat::Grappled, common::Experience},
     maps::{arena_zone_builder::ArenaZoneBuilder, crystal_cave_builder::CrystalCaveBuilder},
@@ -86,7 +88,10 @@ async fn main() {
         debug_monster_vision: false,
         current_tick: 0,
     };
-    game_state.game_log.add_entry("Welcome to World's Viscera!");
+    game_state
+        .game_log
+        .entries
+        .push(Cow::Borrowed("Welcome to World's Viscera!"));
     populate_world(&mut game_state);
 
     loop {

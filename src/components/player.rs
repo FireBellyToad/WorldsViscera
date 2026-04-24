@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use crate::components::actions::{WantsToDig, WantsToTrade};
 use crate::components::combat::{Grappled, SufferingDamage, WantsToShoot};
 use crate::components::common::{
@@ -86,7 +88,10 @@ impl Player {
                 {
                     // Do DEX saving or slip on slime!
                     if stats.current_dexterity < Roll::d20() {
-                        game_state.game_log.add_entry("You slip on the slime!");
+                        game_state
+                            .game_log
+                            .entries
+                            .push(Cow::Borrowed("You slip on the slime!"));
 
                         game_state.run_state = RunState::DoTick;
                         break;
@@ -125,9 +130,9 @@ impl Player {
                     if is_diggable && let Some(dig_tool) = player_dig_tool {
                         digger_target = Some((player_entity, dig_tool, potential_target));
                     } else if is_diggable {
-                        game_state
-                            .game_log
-                            .add_entry("You have no digging tool to use on this wall");
+                        game_state.game_log.add_entry(Cow::Borrowed(
+                            "You have no digging tool to use on this wall",
+                        ));
                     }
                 }
 
@@ -148,18 +153,18 @@ impl Player {
                             g_query.get().expect("g_query must have result");
                         // Try to escape grapple
                         if Roll::d20() <= stats.current_dexterity {
-                            game_state.game_log.add_entry(&format!(
+                            game_state.game_log.add_entry(Cow::Owned(format!(
                                 "You free yourself from the {}'s grasp!",
                                 grappler_name.name
-                            ));
+                            )));
 
                             // Grappler lose turn
                             waiter_speed_list.push((grappled.by, grappler_stats.speed));
                         } else {
-                            game_state.game_log.add_entry(&format!(
+                            game_state.game_log.add_entry(Cow::Owned(format!(
                                 "You cant' escape the {}'s grasp!",
                                 grappler_name.name
-                            ));
+                            )));
                             game_state.run_state = RunState::DoTick;
                             break;
                         }
@@ -183,7 +188,8 @@ impl Player {
                             if stats.current_dexterity < Roll::d20() {
                                 game_state
                                     .game_log
-                                    .add_entry("You burn yourself on the acid!");
+                                    .entries
+                                    .push(Cow::Borrowed("You burn yourself on the acid!"));
                                 suffering_damage.damage_received +=
                                     Roll::dice(1, ACID_DECAL_DAMAGE_DICE);
                             }
@@ -454,7 +460,10 @@ impl Player {
                             inspectable.description,
                         ));
                     } else {
-                        game_state.game_log.add_entry("Nothing to inspect here");
+                        game_state
+                            .game_log
+                            .entries
+                            .push(Cow::Borrowed("Nothing to inspect here"));
                         game_state.run_state = RunState::WaitingPlayerInput;
                     }
                 }
@@ -476,7 +485,8 @@ impl Player {
                 zone.tiles[Zone::get_index_from_xy(&rounded_x, &rounded_y)] = TileType::Floor;
                 game_state
                     .game_log
-                    .add_entry(&format!("The {} vanishes in the darkness", name));
+                    .entries
+                    .push(Cow::Owned(format!("The {} vanishes in the darkness", name)));
             }
         }
     }
@@ -506,7 +516,8 @@ impl Player {
         } else {
             game_state
                 .game_log
-                .add_entry("There is nothing here to pick up");
+                .entries
+                .push(Cow::Borrowed("There is nothing here to pick up"));
 
             game_state.run_state = RunState::WaitingPlayerInput;
         }
@@ -627,14 +638,21 @@ impl Player {
 
             game_state
                 .game_log
-                .add_entry("There is nothing here to pick up");
+                .entries
+                .push(Cow::Borrowed("There is nothing here to pick up"));
 
             //TODO skill check
             if standing_on_tile == &TileType::DownPassage {
-                game_state.game_log.add_entry("You climb down...");
+                game_state
+                    .game_log
+                    .entries
+                    .push(Cow::Borrowed("You climb down..."));
                 game_state.run_state = RunState::GoToNextZone;
             } else {
-                game_state.game_log.add_entry("You can't go down here");
+                game_state
+                    .game_log
+                    .entries
+                    .push(Cow::Borrowed("You can't go down here"));
             }
         }
     }
@@ -665,7 +683,8 @@ impl Player {
             } else {
                 game_state
                     .game_log
-                    .add_entry("You don't have a ranged weapon equipped");
+                    .entries
+                    .push(Cow::Borrowed("You don't have a ranged weapon equipped"));
             }
         }
 
@@ -681,10 +700,10 @@ impl Player {
 
                 // If no ammo available, abort without advancing to next tick
                 if weapon_stats.ammo_count_total == 0 {
-                    game_state.game_log.add_entry(&format!(
+                    game_state.game_log.add_entry(Cow::Owned(format!(
                         "You don't have any ammunition for your {}",
                         weapon_named.name
-                    ));
+                    )));
                     game_state.run_state = RunState::WaitingPlayerInput;
                     return;
                 }
@@ -772,9 +791,9 @@ impl Player {
                             owner_entity = Some(entity);
                             break;
                         } else {
-                            game_state
-                                .game_log
-                                .add_entry("You see someone who may trade, but it's too far away");
+                            game_state.game_log.add_entry(Cow::Borrowed(
+                                "You see someone who may trade, but it's too far away",
+                            ));
                             //We must guarantee only one shop owner per zone
                             game_state.run_state = RunState::WaitingPlayerInput;
                             return; //abort control flow
@@ -791,7 +810,8 @@ impl Player {
             if owner_entity.is_none() {
                 game_state
                     .game_log
-                    .add_entry("You can't see anyone willing to trade");
+                    .entries
+                    .push(Cow::Borrowed("You can't see anyone willing to trade"));
             }
         }
 
@@ -840,9 +860,9 @@ impl Player {
                             );
                             break;
                         } else {
-                            game_state
-                                .game_log
-                                .add_entry("You see someone who may chat, but it's too far away");
+                            game_state.game_log.add_entry(Cow::Borrowed(
+                                "You see someone who may chat, but it's too far away",
+                            ));
                             //We must guarantee only one shop owner per zone
                             game_state.run_state = RunState::WaitingPlayerInput;
                             return; //abort control flow
@@ -859,7 +879,8 @@ impl Player {
             if chatter_entity.is_none() {
                 game_state
                     .game_log
-                    .add_entry("You can't see anyone willing to chat");
+                    .entries
+                    .push(Cow::Borrowed("You can't see anyone willing to chat"));
             }
         }
 

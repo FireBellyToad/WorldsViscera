@@ -7,7 +7,7 @@ use crate::{
     constants::STONE_FELL_PARTICLE_TYPE,
     engine::state::GameState,
 };
-use std::cmp::max;
+use std::{borrow::Cow, cmp::max};
 
 use hecs::Entity;
 
@@ -105,9 +105,9 @@ impl SpellManager {
                                             if !is_immune {
                                                 target_opt = Some(entity);
                                             } else if is_immune && entity.id() == player_id {
-                                                game_state.game_log.add_entry(
+                                                game_state.game_log.add_entry(Cow::Borrowed(
                                                     "The stones just bounce off your hard headgear",
-                                                );
+                                                ));
                                             }
                                             break;
                                         }
@@ -149,9 +149,9 @@ impl SpellManager {
                                     if target_opt.is_none() && zone.blocked_tiles[index] {
                                         // Log only if visible
                                         if zone.visible_tiles[Zone::get_index_from_xy(&x, &y)] {
-                                            game_state
-                                                .game_log
-                                                .add_entry("The spell bounces on something solid");
+                                            game_state.game_log.add_entry(Cow::Borrowed(
+                                                "The spell bounces on something solid",
+                                            ));
                                         }
                                         must_truncate_line_at = (true, i + 1);
 
@@ -191,18 +191,18 @@ impl SpellManager {
 
                     if Roll::d20() <= target_stats.current_dexterity {
                         if target.id() == player_id {
-                            game_state.game_log.add_entry(&format!(
+                            game_state.game_log.add_entry(Cow::Owned(format!(
                                 "You avoid the spell cast by {}",
                                 named_attacker.name
-                            ));
+                            )));
                         } else if zone.visible_tiles[Zone::get_index_from_xy(
                             &wants_to_zap.target.0,
                             &wants_to_zap.target.1,
                         )] {
-                            game_state.game_log.add_entry(&format!(
+                            game_state.game_log.add_entry(Cow::Owned(format!(
                                 "{} avoids the spell cast by {}",
                                 named_target.name, named_attacker.name,
-                            ));
+                            )));
                         }
                     } else {
                         //Sum damage, keeping in mind that could not have SufferingDamage component
@@ -222,37 +222,37 @@ impl SpellManager {
 
                                 if caster.id() == player_id {
                                     if target.id() == player_id {
-                                        game_state.game_log.add_entry(&format!(
+                                        game_state.game_log.add_entry(Cow::Owned(format!(
                                             "You {} yourself for {} damage",
                                             named_spell.attack_verb.unwrap_or("zap"),
                                             damage_roll
-                                        ));
+                                        )));
                                     } else {
-                                        game_state.game_log.add_entry(&format!(
+                                        game_state.game_log.add_entry(Cow::Owned(format!(
                                             "You {} the {} for {} damage",
                                             named_spell.attack_verb.unwrap_or("zap"),
                                             named_target.name,
                                             damage_roll
-                                        ));
+                                        )));
                                     }
                                 } else if target.id() == player_id {
-                                    game_state.game_log.add_entry(&format!(
+                                    game_state.game_log.add_entry(Cow::Owned(format!(
                                         "{} {}s you for {} damage",
                                         named_attacker.name,
                                         named_spell.attack_verb.unwrap_or("zap"),
                                         damage_roll
-                                    ));
+                                    )));
                                 } else if zone.visible_tiles[Zone::get_index_from_xy(
                                     &wants_to_zap.target.0,
                                     &wants_to_zap.target.1,
                                 )] {
-                                    game_state.game_log.add_entry(&format!(
+                                    game_state.game_log.add_entry(Cow::Owned(format!(
                                         "{} {}s the {} for {} damage",
                                         named_attacker.name,
                                         named_spell.attack_verb.unwrap_or("zap"),
                                         named_target.name,
                                         damage_roll
-                                    ));
+                                    )));
                                 }
                             }
 
@@ -261,33 +261,33 @@ impl SpellManager {
                                 stunned_list.push((target, stun.tick_counter));
                                 if caster.id() == player_id {
                                     if target.id() == player_id {
-                                        game_state.game_log.add_entry(&format!(
+                                        game_state.game_log.add_entry(Cow::Owned(format!(
                                             "You {} yourself",
                                             named_spell.attack_verb.unwrap_or("zaps"),
-                                        ));
+                                        )));
                                     } else {
-                                        game_state.game_log.add_entry(&format!(
+                                        game_state.game_log.add_entry(Cow::Owned(format!(
                                             "You {} the {}",
                                             named_spell.attack_verb.unwrap_or("zap"),
                                             named_target.name
-                                        ));
+                                        )));
                                     }
                                 } else if target.id() == player_id {
-                                    game_state.game_log.add_entry(&format!(
+                                    game_state.game_log.add_entry(Cow::Owned(format!(
                                         "{} {}s you",
                                         named_attacker.name,
                                         named_spell.attack_verb.unwrap_or("zap"),
-                                    ));
+                                    )));
                                 } else if zone.visible_tiles[Zone::get_index_from_xy(
                                     &wants_to_zap.target.0,
                                     &wants_to_zap.target.1,
                                 )] {
-                                    game_state.game_log.add_entry(&format!(
+                                    game_state.game_log.add_entry(Cow::Owned(format!(
                                         "{} {} the {}",
                                         named_attacker.name,
                                         named_spell.attack_verb.unwrap_or("zap"),
                                         named_target.name
-                                    ));
+                                    )));
                                 }
                             }
                         };

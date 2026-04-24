@@ -1,4 +1,4 @@
-use std::cmp::min;
+use std::{borrow::Cow, cmp::min};
 
 use hecs::Entity;
 
@@ -76,12 +76,15 @@ impl AutomaticHealing {
                                     entities_free.push(entity);
 
                                     if entity.id() == player_id {
-                                        game_state.game_log.add_entry("You can move now");
-                                    } else {
                                         game_state
                                             .game_log
                                             .entries
-                                            .push(format!("{} can move now", named.name));
+                                            .push(Cow::Borrowed("You can move now"));
+                                    } else {
+                                        game_state.game_log.add_entry(Cow::Owned(format!(
+                                            "{} can move now",
+                                            named.name
+                                        )));
                                     }
                                 }
                             }

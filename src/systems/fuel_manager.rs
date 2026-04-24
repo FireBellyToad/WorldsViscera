@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use crate::{
     components::{common::Position, items::TurnedOff},
     constants::{FLAME_PARTICLE_TYPE, STANDARD_ACTION_MULTIPLIER},
@@ -55,13 +57,13 @@ impl FuelManager {
                                 game_state
                                     .game_log
                                     .entries
-                                    .push(format!("Your {} is flickering", named.name));
+                                    .push(Cow::Owned(format!("Your {} is flickering", named.name)));
                             }
                             1 => {
                                 game_state
                                     .game_log
                                     .entries
-                                    .push(format!("Your {} goes out", named.name));
+                                    .push(Cow::Owned(format!("Your {} goes out", named.name)));
                                 entities_to_turn_off.push(lighter);
                             }
                             _ => {}
@@ -128,10 +130,10 @@ impl FuelManager {
                         // Bad idea to refill a lit lantern!
                         if turned_on.is_some() {
                             if player_id == refiller.id() {
-                                game_state.game_log.add_entry(&format!(
+                                game_state.game_log.add_entry(Cow::Owned(format!(
                                     "The {} is lit! Flaming oil spills on your skin",
                                     named_target.name
-                                ));
+                                )));
                             }
                             // show fire particle on burned guy
                             particle_animations.push(ParticleAnimation::simple_particle(
@@ -150,12 +152,13 @@ impl FuelManager {
                                 if target.id() == player_id {
                                     game_state
                                         .game_log
-                                        .add_entry("You duck some of the damage!");
+                                        .entries
+                                        .push(Cow::Borrowed("You duck some of the damage!"));
                                 } else {
-                                    game_state.game_log.add_entry(&format!(
+                                    game_state.game_log.add_entry(Cow::Owned(format!(
                                         "{} ducks some of the damage!",
                                         named_fueler.name
-                                    ));
+                                    )));
                                 }
                             }
                         } else {
@@ -168,22 +171,23 @@ impl FuelManager {
                                 .expect("Entity is not Named");
 
                             if player_id == refiller.id() {
-                                game_state.game_log.add_entry(&format!(
+                                game_state.game_log.add_entry(Cow::Owned(format!(
                                     "You refill the {} with the {}",
                                     named_target.name, named_item_used.name
-                                ));
+                                )));
                             } else {
-                                game_state.game_log.add_entry(&format!(
+                                game_state.game_log.add_entry(Cow::Owned(format!(
                                     "{} refills the {} with the {}",
                                     named_fueler.name, named_target.name, named_item_used.name
-                                ));
+                                )));
                             }
                         }
                     }
                     None => {
                         game_state
                             .game_log
-                            .add_entry("This item cannot be refilled!");
+                            .entries
+                            .push(Cow::Borrowed("This item cannot be refilled!"));
                     }
                 }
 

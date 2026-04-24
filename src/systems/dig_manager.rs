@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use hecs::Entity;
 
 use crate::{
@@ -82,19 +84,27 @@ impl DigManager {
                 if digger.id() == player_id {
                     game_state
                         .game_log
-                        .add_entry("You dig the cracked stone wall");
+                        .entries
+                        .push(Cow::Borrowed("You dig the cracked stone wall"));
                 } else if zone.visible_tiles[Zone::get_index_from_xy(&pos.x, &pos.y)] {
-                    game_state
-                        .game_log
-                        .add_entry(&format!("The {} digs the cracked stone wall", named.name));
+                    game_state.game_log.add_entry(Cow::Owned(format!(
+                        "The {} digs the cracked stone wall",
+                        named.name
+                    )));
                 }
 
                 // Clear path if digged enough
                 if diggable.dig_points <= 0 {
                     if zone.visible_tiles[Zone::get_index_from_xy(&pos.x, &pos.y)] {
-                        game_state.game_log.add_entry("The cracked wall opens!");
+                        game_state
+                            .game_log
+                            .entries
+                            .push(Cow::Borrowed("The cracked wall opens!"));
                     } else {
-                        game_state.game_log.add_entry("You hear falling rocks");
+                        game_state
+                            .game_log
+                            .entries
+                            .push(Cow::Borrowed("You hear falling rocks"));
                     }
 
                     zone.tiles[Zone::get_index_from_xy(&pos.x, &pos.y)] = TileType::Floor;

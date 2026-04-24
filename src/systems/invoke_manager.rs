@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use hecs::Entity;
 
 use crate::{
@@ -61,9 +63,9 @@ impl InvokeManager {
                 if wet.is_some() && is_lightning_wand {
                     target_list.push(&zapper_wrapper);
                     println!("Zap himself because is wet{:?}", zapper_wrapper);
-                    game_state
-                        .game_log
-                        .add_entry("Using the Lightning wand while wet was a bad idea...");
+                    game_state.game_log.add_entry(Cow::Borrowed(
+                        "Using the Lightning wand while wet was a bad idea...",
+                    ));
                 }
 
                 // Do not draw if zapping himself
@@ -127,46 +129,49 @@ impl InvokeManager {
                             } else {
                                 target_damage.damage_received += damage_roll / 2;
                                 if target.id() == player_id {
-                                    game_state.game_log.add_entry("You duck some of the blow!");
+                                    game_state
+                                        .game_log
+                                        .entries
+                                        .push(Cow::Borrowed("You duck some of the blow!"));
                                 } else if zone.visible_tiles[Zone::get_index_from_xy(
                                     &wants_zap.target.0,
                                     &wants_zap.target.1,
                                 )] {
-                                    game_state.game_log.add_entry(&format!(
+                                    game_state.game_log.add_entry(Cow::Owned(format!(
                                         "{} ducks some of the blow!",
                                         named_target.name
-                                    ));
+                                    )));
                                 }
                             }
                             target_damage.damager = Some(zapper);
 
                             if zapper.id() == player_id {
                                 if target.id() == player_id {
-                                    game_state.game_log.add_entry(&format!(
+                                    game_state.game_log.add_entry(Cow::Owned(format!(
                                         "You zap yourself for {} damage",
                                         damage_roll
-                                    ));
+                                    )));
                                 } else if zone.visible_tiles[Zone::get_index_from_xy(
                                     &wants_zap.target.0,
                                     &wants_zap.target.1,
                                 )] {
-                                    game_state.game_log.add_entry(&format!(
+                                    game_state.game_log.add_entry(Cow::Owned(format!(
                                         "You zap the {} for {} damage",
                                         named_target.name, damage_roll
-                                    ));
+                                    )));
                                 }
                             } else if target.id() == player_id {
-                                game_state.game_log.add_entry(&format!(
+                                game_state.game_log.add_entry(Cow::Owned(format!(
                                     "{} zaps you for {} damage",
                                     named_attacker.name, damage_roll
-                                ));
+                                )));
                             } else if zone.visible_tiles
                                 [Zone::get_index_from_xy(&wants_zap.target.0, &wants_zap.target.1)]
                             {
-                                game_state.game_log.add_entry(&format!(
+                                game_state.game_log.add_entry(Cow::Owned(format!(
                                     "{} zaps the {} for {} damage",
                                     named_attacker.name, named_target.name, damage_roll
-                                ));
+                                )));
                             }
                         };
                     }

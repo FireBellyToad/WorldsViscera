@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use crate::{
     components::{
         common::{CanListen, Position, ProduceSound},
@@ -53,7 +55,8 @@ impl SoundSystem {
                         if !*already_listened && index == random_sound - 1 {
                             game_state
                                 .game_log
-                                .add_entry(&format!("You hear {}", listen_log));
+                                .entries
+                                .push(Cow::Owned(format!("You hear {}", listen_log)));
                             *already_listened = true;
                             break;
                         }

@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use crate::{
     components::{combat::CombatStats, common::Experience},
     constants::AUTO_ADVANCE_EXP_COUNTER_START,
@@ -30,9 +32,10 @@ impl AdvancementSystem {
                     experience.value = 0;
                     experience.auto_advance_counter = AUTO_ADVANCE_EXP_COUNTER_START;
                     if exp_entity.id() == player_id {
-                        game_state
-                            .game_log
-                            .add_entry(&format!("You have reached level {}", stats.level));
+                        game_state.game_log.add_entry(Cow::Owned(format!(
+                            "You have reached level {}",
+                            stats.level
+                        )));
                     }
 
                     // Increase stats and Stamina

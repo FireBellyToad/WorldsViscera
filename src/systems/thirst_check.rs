@@ -1,4 +1,7 @@
-use std::cmp::{max, min};
+use std::{
+    borrow::Cow,
+    cmp::{max, min},
+};
 
 use crate::{
     components::{
@@ -76,7 +79,10 @@ impl ThirstCheck {
                             thirst.current_status = ThirstStatus::Dehydrated;
 
                             if thirsty_entity.id() == player_id {
-                                game_state.game_log.add_entry("You are dehydrated!");
+                                game_state
+                                    .game_log
+                                    .entries
+                                    .push(Cow::Borrowed("You are dehydrated!"));
                             }
                         }
                         ThirstStatus::Dehydrated => {
@@ -92,7 +98,8 @@ impl ThirstCheck {
                                     if thirsty_entity.id() == player_id {
                                         game_state
                                             .game_log
-                                            .add_entry("Dehydration wastes you away!");
+                                            .entries
+                                            .push(Cow::Borrowed("Dehydration wastes you away!"));
                                     }
                                 }
                             }
@@ -110,9 +117,9 @@ impl ThirstCheck {
                             if Roll::d20() <= stats.current_toughness {
                                 thirst.tick_counter = MAX_THIRST_TICK_COUNTER;
                                 if thirsty_entity.id() == player_id {
-                                    game_state
-                                        .game_log
-                                        .add_entry("You drank too much and feel slightly nauseous");
+                                    game_state.game_log.add_entry(Cow::Borrowed(
+                                        "You drank too much and feel slightly nauseous",
+                                    ));
                                 }
                             } else {
                                 //Less severe than being oversatiated...
@@ -125,7 +132,8 @@ impl ThirstCheck {
                                 if thirsty_entity.id() == player_id {
                                     game_state
                                         .game_log
-                                        .add_entry("You drank too much and vomit!");
+                                        .entries
+                                        .push(Cow::Borrowed("You drank too much and vomit!"));
                                 }
                             }
                         }
@@ -140,7 +148,8 @@ impl ThirstCheck {
                             if thirsty_entity.id() == player_id {
                                 game_state
                                     .game_log
-                                    .add_entry("You are no longer dehydrated");
+                                    .entries
+                                    .push(Cow::Borrowed("You are no longer dehydrated"));
                             }
                         }
                     }

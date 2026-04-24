@@ -1,4 +1,7 @@
-use std::cmp::{max, min};
+use std::{
+    borrow::Cow,
+    cmp::{max, min},
+};
 
 use crate::{
     components::{
@@ -22,7 +25,7 @@ pub enum HungerStatus {
 }
 
 impl HungerStatus {
-    pub fn to_string(&self) -> &'static str {
+    pub fn to_str(&self) -> &'static str {
         match *self {
             HungerStatus::Satiated => "3/3",
             HungerStatus::Normal => "2/3",
@@ -75,7 +78,10 @@ impl HungerCheck {
                             hunger.current_status = HungerStatus::Starved;
 
                             if hungry_entity.id() == player_id {
-                                game_state.game_log.add_entry("You are starving!");
+                                game_state
+                                    .game_log
+                                    .entries
+                                    .push(Cow::Borrowed("You are starving!"));
                             }
                         }
                         HungerStatus::Starved => {
@@ -91,7 +97,8 @@ impl HungerCheck {
                                     if hungry_entity.id() == player_id {
                                         game_state
                                             .game_log
-                                            .add_entry("Starvation wastes you away!");
+                                            .entries
+                                            .push(Cow::Borrowed("Starvation wastes you away!"));
                                     }
                                 }
                             }
@@ -109,9 +116,9 @@ impl HungerCheck {
                             if Roll::d20() <= stats.current_toughness {
                                 hunger.tick_counter = MAX_HUNGER_TICK_COUNTER;
                                 if hungry_entity.id() == player_id {
-                                    game_state
-                                        .game_log
-                                        .add_entry("You ate too much and feel slightly nauseous");
+                                    game_state.game_log.add_entry(Cow::Borrowed(
+                                        "You ate too much and feel slightly nauseous",
+                                    ));
                                 }
                             } else {
                                 hunger.tick_counter = MAX_HUNGER_TICK_COUNTER - Roll::dice(3, 10);
@@ -121,7 +128,10 @@ impl HungerCheck {
                                     DecalType::Vomit,
                                 );
                                 if hungry_entity.id() == player_id {
-                                    game_state.game_log.add_entry("You ate too much and vomit!");
+                                    game_state
+                                        .game_log
+                                        .entries
+                                        .push(Cow::Borrowed("You ate too much and vomit!"));
                                 }
                             }
                         }
@@ -134,7 +144,10 @@ impl HungerCheck {
                         HungerStatus::Starved => {
                             hunger.current_status = HungerStatus::Hungry;
                             if hungry_entity.id() == player_id {
-                                game_state.game_log.add_entry("You are no longer starved");
+                                game_state
+                                    .game_log
+                                    .entries
+                                    .push(Cow::Borrowed("You are no longer starved"));
                             }
                         }
                     }

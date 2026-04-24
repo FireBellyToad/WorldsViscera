@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use hecs::Entity;
 
 use crate::{
@@ -66,7 +68,7 @@ impl DecayManager {
                                 game_state
                                     .game_log
                                     .entries
-                                    .push(format!("Your {} rots away", named.name));
+                                    .push(Cow::Owned(format!("Your {} rots away", named.name)));
                             }
                         }
                         Err(_) => {

@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use hecs::Entity;
 
 use crate::{
@@ -64,21 +66,21 @@ impl SmellManager {
                             if can_smell {
                                 have_smelled_something = true;
                                 if rotten_opt.is_some() {
-                                    game_state.game_log.add_entry(&format!(
+                                    game_state.game_log.add_entry(Cow::Owned(format!(
                                         "You smell rotten {}",
                                         smells
                                             .smell_log
                                             .as_ref()
                                             .expect("must have valid smell log")
-                                    ));
+                                    )));
                                 } else {
-                                    game_state.game_log.add_entry(&format!(
+                                    game_state.game_log.add_entry(Cow::Owned(format!(
                                         "You smell {}",
                                         smells
                                             .smell_log
                                             .as_ref()
                                             .expect("must have valid smell log")
-                                    ));
+                                    )));
                                 };
                             }
                         }
@@ -86,7 +88,10 @@ impl SmellManager {
                 }
 
                 if !have_smelled_something {
-                    game_state.game_log.add_entry("You smell nothing strange");
+                    game_state
+                        .game_log
+                        .entries
+                        .push(Cow::Borrowed("You smell nothing strange"));
                 }
 
                 // prepare lists for removal

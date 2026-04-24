@@ -11,6 +11,7 @@ use crate::{
     utils::common::Utils,
 };
 use std::{
+    borrow::Cow,
     cmp::max,
     collections::{HashMap, hash_map::Entry},
 };
@@ -157,30 +158,30 @@ impl MeleeManager {
                                     target_damage.toughness_damage_received += damage_roll;
 
                                     if attacker_is_player {
-                                        game_state.game_log.add_entry(&format!(
+                                        game_state.game_log.add_entry(Cow::Owned(format!(
                                             "You {} the {} for {} venomous damage",
                                             named_attacker
                                                 .attack_verb
                                                 .expect("attack_verb must not be None "),
                                             named_target.name,
                                             damage_roll
-                                        ));
+                                        )));
                                     } else if target_is_player {
-                                        game_state.game_log.add_entry(&format!(
+                                        game_state.game_log.add_entry(Cow::Owned(format!(
                                             "The {} {} you for {} venomous damage",
                                             named_attacker
                                                 .attack_verb
                                                 .expect("attack_verb must not be None "),
                                             named_attacker.name,
                                             damage_roll
-                                        ));
+                                        )));
                                     } else {
                                         // Log NPC infighting only if visible
                                         if zone.visible_tiles[Zone::get_index_from_xy(
                                             &attacker_position.x,
                                             &attacker_position.y,
                                         )] {
-                                            game_state.game_log.add_entry(&format!(
+                                            game_state.game_log.add_entry(Cow::Owned(format!(
                                                 "The {} {} the {} for {} venomous damage",
                                                 named_attacker.name,
                                                 named_attacker
@@ -188,13 +189,13 @@ impl MeleeManager {
                                                     .expect("attack_verb must not be None "),
                                                 named_target.name,
                                                 damage_roll
-                                            ));
+                                            )));
                                         }
                                     }
                                 } else if target_is_player {
-                                    game_state.game_log.add_entry(
+                                    game_state.game_log.add_entry(Cow::Borrowed(
                                         "The hit makes you feel dizzy for a moment, then it passes",
-                                    );
+                                    ));
                                 }
                             }
                             None => {
@@ -210,25 +211,25 @@ impl MeleeManager {
                                     );
 
                                     if attacker_is_player {
-                                        game_state.game_log.add_entry(&format!(
+                                        game_state.game_log.add_entry(Cow::Owned(format!(
                                             "You sneak attack the {} for {} damage!",
                                             named_target.name, damage_roll
-                                        ));
+                                        )));
                                     } else if target_is_player {
-                                        game_state.game_log.add_entry(&format!(
+                                        game_state.game_log.add_entry(Cow::Owned(format!(
                                             "The {} sneak attacks you for {} damage!",
                                             named_attacker.name, damage_roll
-                                        ));
+                                        )));
                                     } else {
                                         // Log NPC infighting only if visible
                                         if zone.visible_tiles[Zone::get_index_from_xy(
                                             &attacker_position.x,
                                             &attacker_position.y,
                                         )] {
-                                            game_state.game_log.add_entry(&format!(
+                                            game_state.game_log.add_entry(Cow::Owned(format!(
                                                 "The {} sneak attacks the {} for {} damage!",
                                                 named_attacker.name, named_target.name, damage_roll
-                                            ));
+                                            )));
                                         }
                                     }
                                     if hidden_opt.is_some() {
@@ -248,30 +249,30 @@ impl MeleeManager {
                                         Roll::dice(1, attacker_dice) - target_armor - erosion,
                                     );
                                     if attacker_is_player {
-                                        game_state.game_log.add_entry(&format!(
+                                        game_state.game_log.add_entry(Cow::Owned(format!(
                                             "You {} the {} for {} damage",
                                             named_attacker
                                                 .attack_verb
                                                 .expect("attack_verb must not be None "),
                                             named_target.name,
                                             damage_roll
-                                        ));
+                                        )));
                                     } else if target_is_player {
-                                        game_state.game_log.add_entry(&format!(
+                                        game_state.game_log.add_entry(Cow::Owned(format!(
                                             "The {} {} you for {} damage",
                                             named_attacker.name,
                                             named_attacker
                                                 .attack_verb
                                                 .expect("attack_verb must not be None "),
                                             damage_roll
-                                        ));
+                                        )));
                                     } else {
                                         // Log NPC infighting only if visible
                                         if zone.visible_tiles[Zone::get_index_from_xy(
                                             &attacker_position.x,
                                             &attacker_position.y,
                                         )] {
-                                            game_state.game_log.add_entry(&format!(
+                                            game_state.game_log.add_entry(Cow::Owned(format!(
                                                 "{} {} the {} for {} damage",
                                                 named_attacker.name,
                                                 named_attacker
@@ -279,7 +280,7 @@ impl MeleeManager {
                                                     .expect("attack_verb must not be None "),
                                                 named_target.name,
                                                 damage_roll
-                                            ));
+                                            )));
                                         }
                                     }
                                 }
@@ -322,15 +323,18 @@ impl MeleeManager {
                                     // Infect the healthy target otherwise
                                     infected_list.push((wants_melee.target, disease_type));
                                     if player_id == wants_melee.target.id() {
-                                        game_state.game_log.add_entry("You start to feel ill.");
+                                        game_state
+                                            .game_log
+                                            .entries
+                                            .push(Cow::Borrowed("You start to feel ill."));
                                     }
                                 }
                             } else {
                                 // Immune or unaffected
                                 if player_id == wants_melee.target.id() {
-                                    game_state.game_log.add_entry(
+                                    game_state.game_log.add_entry(Cow::Borrowed(
                                         "You felt a little sick, but it passed quickly.",
-                                    );
+                                    ));
                                 }
                             }
                         }
@@ -339,18 +343,18 @@ impl MeleeManager {
                             grappled_entities.push((attacker, wants_melee.target));
                             if Roll::d20() > target_stats.current_dexterity {
                                 if target_is_player {
-                                    game_state
-                                        .game_log
-                                        .entries
-                                        .push(format!("The {} grabs on you!", named_attacker.name));
+                                    game_state.game_log.add_entry(Cow::Owned(format!(
+                                        "The {} grabs on you!",
+                                        named_attacker.name
+                                    )));
                                 } else if zone.visible_tiles[Zone::get_index_from_xy(
                                     &attacker_position.x,
                                     &attacker_position.y,
                                 )] {
-                                    game_state.game_log.add_entry(&format!(
+                                    game_state.game_log.add_entry(Cow::Owned(format!(
                                         "The {} grabs on the {}!",
                                         named_attacker.name, named_target.name
-                                    ));
+                                    )));
                                 }
 
                                 // Grabbing a monster that leaves an acid trail
@@ -360,10 +364,10 @@ impl MeleeManager {
                                 {
                                     target_damage.damage_received +=
                                         Roll::dice(1, ACID_DECAL_DAMAGE_DICE);
-                                    game_state.game_log.add_entry(&format!(
+                                    game_state.game_log.add_entry(Cow::Owned(format!(
                                         "The {} is burned by the {}'s acid!",
                                         named_attacker.name, named_target.name
-                                    ));
+                                    )));
                                 }
                             }
                         }

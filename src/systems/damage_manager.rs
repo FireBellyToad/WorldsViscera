@@ -1,4 +1,4 @@
-use std::cmp::max;
+use std::{borrow::Cow, cmp::max};
 
 use hecs::{Entity, World};
 
@@ -180,9 +180,12 @@ impl DamageManager {
 
                     if entity.id() == player_id {
                         if is_killed {
-                            game_state.game_log.add_entry("You die!");
+                            game_state.game_log.add_entry(Cow::Borrowed("You die!"));
                         } else {
-                            game_state.game_log.add_entry("You stagger in pain!");
+                            game_state
+                                .game_log
+                                .entries
+                                .push(Cow::Borrowed("You stagger in pain!"));
                         }
                     } else if zone.visible_tiles[Zone::get_index_from_xy(&position.x, &position.y)]
                     {
@@ -190,11 +193,13 @@ impl DamageManager {
                         if is_killed {
                             game_state
                                 .game_log
-                                .add_entry(&format!("{} dies!", named.name));
+                                .entries
+                                .push(Cow::Owned(format!("{} dies!", named.name)));
                         } else if stats.current_toughness > 0 {
                             game_state
                                 .game_log
-                                .add_entry(&format!("{} staggers in pain!", named.name));
+                                .entries
+                                .push(Cow::Owned(format!("{} staggers in pain!", named.name)));
                         }
                     }
                 }
@@ -203,11 +208,15 @@ impl DamageManager {
                     paralyzed_entities.push(entity);
 
                     if entity.id() == player_id {
-                        game_state.game_log.add_entry("You are paralyzed!");
+                        game_state
+                            .game_log
+                            .entries
+                            .push(Cow::Borrowed("You are paralyzed!"));
                     } else {
                         game_state
                             .game_log
-                            .add_entry(&format!("{} is paralyzed!", named.name));
+                            .entries
+                            .push(Cow::Owned(format!("{} is paralyzed!", named.name)));
                     }
                 }
                 // Reset SufferingDamage component

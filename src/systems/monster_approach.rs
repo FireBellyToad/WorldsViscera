@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use hecs::Entity;
 
 use crate::{
@@ -76,9 +78,10 @@ impl MonsterApproach {
                         waiter_speed_list.push((monster_entity, stats.speed));
                         if zone.visible_tiles[Zone::get_index_from_xy(&position.x, &position.y)] {
                             // Log NPC infighting only if visible
-                            game_state
-                                .game_log
-                                .add_entry(&format!("The {} slips on the slime!", named.name));
+                            game_state.game_log.add_entry(Cow::Owned(format!(
+                                "The {} slips on the slime!",
+                                named.name
+                            )));
                         }
                         continue;
                     }
@@ -101,10 +104,10 @@ impl MonsterApproach {
 
                         // Grappler lose turn
                         if zone.visible_tiles[Zone::get_index_from_xy(&position.x, &position.y)] {
-                            game_state.game_log.add_entry(&format!(
+                            game_state.game_log.add_entry(Cow::Owned(format!(
                                 "The {} escapes the {}'s grasp!",
                                 named.name, grappler_name.name
-                            ));
+                            )));
                         }
                         waiter_speed_list.push((grappled.by, grappler_stats.speed));
                     } else {
@@ -175,10 +178,10 @@ impl MonsterApproach {
                             if zone.visible_tiles[Zone::get_index_from_xy(&position.x, &position.y)]
                             {
                                 // Log only if visible
-                                game_state
-                                    .game_log
-                                    .entries
-                                    .push(format!("The {} burn itself on the acid!", named.name));
+                                game_state.game_log.add_entry(Cow::Owned(format!(
+                                    "The {} burn itself on the acid!",
+                                    named.name
+                                )));
                             }
                         }
                     }

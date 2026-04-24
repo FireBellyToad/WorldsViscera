@@ -1,4 +1,4 @@
-use std::cmp::max;
+use std::{borrow::Cow, cmp::max};
 
 use hecs::{Entity, World};
 
@@ -74,7 +74,7 @@ impl HealthManager {
 
                         // TODO refactor log
                         if player_id == diseased_entity.id() {
-                            game_log.add_entry("You feel better");
+                            game_log.add_entry(Cow::Borrowed("You feel better"));
                         }
                     }
                     // When clock is depleted, decrease disease status
@@ -100,7 +100,7 @@ impl HealthManager {
                                 healed_entities.push((diseased_entity, *disease_type, false));
                                 // TODO refactor log
                                 if player_id == diseased_entity.id() {
-                                    game_log.add_entry("You feel better");
+                                    game_log.add_entry(Cow::Borrowed("You feel better"));
                                 }
                             } else {
                                 *is_improving = true;
@@ -115,22 +115,27 @@ impl HealthManager {
                                         damage.toughness_damage_received += Roll::dice(1, 3);
                                         if player_id == diseased_entity.id() {
                                             if Roll::d6() > 3 {
-                                                game_log.add_entry("You cough blood!");
+                                                game_log
+                                                    .entries
+                                                    .push(Cow::Borrowed("You cough blood!"));
                                             } else {
-                                                game_log.add_entry("Your skin peels away!");
+                                                game_log
+                                                    .entries
+                                                    .push(Cow::Borrowed("Your skin peels away!"));
                                             }
                                         } else if zone.visible_tiles
                                             [Zone::get_index_from_xy(&position.x, &position.y)]
                                         {
                                             if Roll::d6() > 3 {
-                                                game_log
-                                                    .entries
-                                                    .push(format!("{} coughs blood!", named.name));
+                                                game_log.add_entry(Cow::Owned(format!(
+                                                    "{} coughs blood!",
+                                                    named.name
+                                                )));
                                             } else {
-                                                game_log.add_entry(&format!(
+                                                game_log.add_entry(Cow::Owned(format!(
                                                     "{}'s skin peels away!",
                                                     named.name
-                                                ));
+                                                )));
                                             }
                                         }
 
@@ -159,13 +164,16 @@ impl HealthManager {
                                         );
 
                                         if player_id == diseased_entity.id() {
-                                            game_log.add_entry("You vomit badly!");
+                                            game_log
+                                                .entries
+                                                .push(Cow::Borrowed("You vomit badly!"));
                                         } else if zone.visible_tiles
                                             [Zone::get_index_from_xy(&position.x, &position.y)]
                                         {
-                                            game_log
-                                                .entries
-                                                .push(format!("{} vomits badly!", named.name));
+                                            game_log.add_entry(Cow::Owned(format!(
+                                                "{} vomits badly!",
+                                                named.name
+                                            )));
                                         }
                                     }
                                 }
@@ -174,25 +182,28 @@ impl HealthManager {
                                     if Roll::d6() > 3 {
                                         damage.damage_received += Roll::dice(2, 4);
                                         if player_id == diseased_entity.id() {
-                                            game_log.add_entry("The fever makes you stumble!");
+                                            game_log.add_entry(Cow::Borrowed(
+                                                "The fever makes you stumble!",
+                                            ));
                                         } else {
-                                            game_log
-                                                .entries
-                                                .push(format!("{} stumbles!", named.name));
+                                            game_log.add_entry(Cow::Owned(format!(
+                                                "{} stumbles!",
+                                                named.name
+                                            )));
                                         }
                                     } else {
                                         dizzy_entities_list.push((diseased_entity, stats.speed));
                                         if player_id == diseased_entity.id() {
-                                            game_log.add_entry(
+                                            game_log.add_entry(Cow::Borrowed(
                                                 "The fever makes you feel dizzy for a moment!",
-                                            );
+                                            ));
                                         } else if zone.visible_tiles
                                             [Zone::get_index_from_xy(&position.x, &position.y)]
                                         {
-                                            game_log.add_entry(&format!(
+                                            game_log.add_entry(Cow::Owned(format!(
                                                 "The {} seems dizzy",
                                                 named.name
-                                            ));
+                                            )));
                                         }
                                     }
                                 }
@@ -200,26 +211,29 @@ impl HealthManager {
                                     damage.dexterity_damage_received += Roll::dice(1, 2);
                                     if Roll::d6() > 3 {
                                         if player_id == diseased_entity.id() {
-                                            game_log.add_entry("Your muscles stiffens!");
+                                            game_log
+                                                .entries
+                                                .push(Cow::Borrowed("Your muscles stiffens!"));
                                         } else if zone.visible_tiles
                                             [Zone::get_index_from_xy(&position.x, &position.y)]
                                         {
-                                            game_log
-                                                .entries
-                                                .push(format!("{}'s body stiffens!", named.name));
+                                            game_log.add_entry(Cow::Owned(format!(
+                                                "{}'s body stiffens!",
+                                                named.name
+                                            )));
                                         }
                                     } else {
                                         if player_id == diseased_entity.id() {
-                                            game_log.add_entry(
+                                            game_log.add_entry(Cow::Borrowed(
                                                 "A calcified patch appears on your skin!",
-                                            );
+                                            ));
                                         } else if zone.visible_tiles
                                             [Zone::get_index_from_xy(&position.x, &position.y)]
                                         {
-                                            game_log.add_entry(&format!(
+                                            game_log.add_entry(Cow::Owned(format!(
                                                 "A calcified patch appears on {}'s skin!",
                                                 named.name
-                                            ));
+                                            )));
                                         }
                                     }
                                 }
@@ -294,7 +308,9 @@ impl HealthManager {
                     );
                 } else {
                     if entity.id() == player_id {
-                        game_log.add_entry("You are not stunned anymore");
+                        game_log
+                            .entries
+                            .push(Cow::Borrowed("You are not stunned anymore"));
                     }
                     unstunned_entities.push(entity);
                 }

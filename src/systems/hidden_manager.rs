@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use hecs::Entity;
 
 use crate::{
@@ -68,10 +70,10 @@ impl HiddenManager {
                                 if zone.visible_tiles
                                     [Zone::get_index_from_xy(&position.x, &position.y)]
                                 {
-                                    game_state
-                                        .game_log
-                                        .entries
-                                        .push(format!("A {} suddenly appears!", named.name));
+                                    game_state.game_log.add_entry(Cow::Owned(format!(
+                                        "A {} suddenly appears!",
+                                        named.name
+                                    )));
                                 }
 
                                 // Cannot hide again for 9 -  (stats.current_dexterity / 3) turns
@@ -90,10 +92,10 @@ impl HiddenManager {
 
                             if zone.visible_tiles[Zone::get_index_from_xy(&position.x, &position.y)]
                             {
-                                game_state
-                                    .game_log
-                                    .entries
-                                    .push(format!("The {} suddenly disappears!", named.name));
+                                game_state.game_log.add_entry(Cow::Owned(format!(
+                                    "The {} suddenly disappears!",
+                                    named.name
+                                )));
                             }
                         }
                     }
