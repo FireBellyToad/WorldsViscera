@@ -441,18 +441,16 @@ impl MonsterThink {
         items_of_monster
             .iter()
             // Get all equippables that are not currently equipped by the monster
-            .filter_map(
-                |(entity, (_, in_backpack, .., equippable, equipped, _, _))| {
-                    if in_backpack.owner.id() == monster.id()
-                        && equippable.is_some()
-                        && equipped.is_none()
-                    {
-                        Some((entity, equippable.expect("Equippable item is missing")))
-                    } else {
-                        None
-                    }
-                },
-            )
+            .filter_map(|(entity, (_, in_backpack, .., equippable, equipped, _))| {
+                if in_backpack.owner.id() == monster.id()
+                    && equippable.is_some()
+                    && equipped.is_none()
+                {
+                    Some((entity, equippable.expect("Equippable item is missing")))
+                } else {
+                    None
+                }
+            })
             // If has nothing equipped or has at least one item which body location do not overlap
             // with currently equipped items
             .any(|(item_a, equippable_a)| {

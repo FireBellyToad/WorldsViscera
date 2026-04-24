@@ -8,7 +8,7 @@ use crate::components::common::{
 use crate::components::items::{RangedWeapon, ShopOwner};
 use crate::constants::{ACID_DECAL_DAMAGE_DICE, NEXT_TO_DISTANCE, STANDARD_ACTION_MULTIPLIER};
 use crate::engine::state::GameState;
-use crate::utils::common::ItemsInBackpack;
+use crate::utils::common::{EquippedDiggingTool, ItemsInBackpack};
 use crate::utils::roll::Roll;
 use crate::{components::actions::WantsToInvoke, maps::zone::DecalType};
 use hecs::{Component, Entity, World};
@@ -101,12 +101,9 @@ impl Player {
                 let destination_index =
                     Zone::get_index_from_xy(&(position.x + delta_x), &(position.y + delta_y));
 
-                let player_dig_tool = ecs_world.query::<ItemsInBackpack>().iter().find_map(
-                    |(item, (_, in_backpack, .., equipped, _, _, dig_tool))| {
-                        if in_backpack.owner.id() == player_entity.id()
-                            && equipped.is_some()
-                            && dig_tool.is_some()
-                        {
+                let player_dig_tool = ecs_world.query::<EquippedDiggingTool>().iter().find_map(
+                    |(item, (in_backpack, ..))| {
+                        if in_backpack.owner.id() == player_entity.id() {
                             Some(item)
                         } else {
                             None

@@ -34,8 +34,9 @@ pub type ItemsInBackpack<'a> = (
     Option<&'a Equippable>,
     Option<&'a Equipped>,
     Option<&'a RangedWeapon>,
-    Option<&'a DiggingTool>,
 );
+
+pub type EquippedDiggingTool<'a> = (&'a InBackback, &'a Equipped, &'a DiggingTool);
 
 pub type AmmunitionInBackpack<'a> = (&'a InBackback, &'a mut Ammo);
 
